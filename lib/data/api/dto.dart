@@ -42,6 +42,7 @@ class AccountDto {
     this.creditLimitMinor,
     this.dueDay,
     this.statementDay,
+    this.balanceAnchorMinor,
   });
   final String id;
 
@@ -55,6 +56,9 @@ class AccountDto {
   final int? dueDay;
   final int? statementDay;
 
+  /// Balance at the last anchor (amount owed for a card).
+  final int? balanceAnchorMinor;
+
   bool get isCreditCard => type == 'credit_card';
 
   factory AccountDto.fromJson(Map<String, Object?> j) => AccountDto(
@@ -67,6 +71,7 @@ class AccountDto {
     creditLimitMinor: (j['credit_limit_minor'] as num?)?.toInt(),
     dueDay: (j['due_day'] as num?)?.toInt(),
     statementDay: (j['statement_day'] as num?)?.toInt(),
+    balanceAnchorMinor: (j['balance_anchor_minor'] as num?)?.toInt(),
   );
 
   /// Human label, e.g. "Emirates NBD ••4821".

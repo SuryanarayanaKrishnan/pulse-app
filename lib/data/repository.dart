@@ -55,6 +55,12 @@ abstract class PulseRepository {
 
   Future<List<CreditCard>> myCards();
   Future<List<CreditCard>> cardCatalog();
+
+  /// Bank accounts and wallets (not credit cards).
+  Future<List<BankAccount>> bankAccounts();
+
+  /// Cards ranked for a purchase, best first (`/v1/rewards/best-card`).
+  Future<List<BestCardPick>> bestCard(SpendCategory category, double amount);
   Future<NetWorth> netWorth();
   Future<List<Asset>> assets();
 

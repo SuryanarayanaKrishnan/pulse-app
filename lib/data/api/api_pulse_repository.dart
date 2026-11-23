@@ -547,6 +547,90 @@ class ApiPulseRepository implements PulseRepository {
   @override
   Future<List<CreditCard>> cardCatalog() async => const [];
 
+  static const _accountGradients = [
+    [Color(0xFF1B2433), Color(0xFF2E3B50)],
+    [Color(0xFF173530), Color(0xFF285A50)],
+    [Color(0xFF38332D), Color(0xFF575047)],
+  ];
+
+  /// Non-card accounts with their anchored balance. Month in/out comes from
+  /// this month's transactions on the account.
+  @override
+  Future<List<BankAccount>> bankAccounts() async {
+    final (accounts, txs) = await (_accounts(), transactions()).wait;
+    final now = DateTime.now();
+    final list = accounts.values.where((a) => !a.isCreditCard).toList();
+    return [
+      for (final (i, a) in list.indexed)
+        () {
+          var inflow = 0.0, outflow = 0.0;
+          for (final t in txs) {
+            if (t.accountLabel != a.label) continue;
+            if (t.date.year != now.year || t.date.month != now.month) continue;
+            if (t.isIncome) {
+              inflow += t.amount;
+            } else {
+              outflow += t.amount;
+            }
+          }
+          return BankAccount(
+            id: a.id,
+            bank: a.institution ?? a.name,
+            name: a.institution == null ? _kindOf(a.type).label : a.name,
+            kind: _kindOf(a.type),
+            last4: a.last4,
+            balance: fromMinor(a.balanceAnchorMinor ?? 0),
+            gradient: _accountGradients[i % _accountGradients.length],
+            monthIn: inflow,
+            monthOut: outflow,
+            matchLabels: [a.label],
+          );
+        }(),
+    ];
+  }
+
+  static BankAccountKind _kindOf(String type) => switch (type) {
+    'wallet' => BankAccountKind.wallet,
+    'cash' => BankAccountKind.cash,
+    _ => BankAccountKind.current,
+  };
+
+  /// `/v1/rewards/best-card`, with user cards mapped back to their account
+  /// through `/v1/rewards/summary`.
+  @override
+  Future<List<BestCardPick>> bestCard(
+    SpendCategory category,
+    double amount,
+  ) async {
+    final (json, summary) = await (
+      _send('POST', '/v1/rewards/best-card', {
+        'category': category.id,
+        'amount_minor': toMinor(amount),
+      }),
+      _rewardsByAccount(),
+    ).wait;
+    final accountOf = {
+      for (final e in summary.entries) e.value['user_card_id']: e.key,
+    };
+    double n(Object? v) => v == null ? 0 : double.parse('$v');
+    return [
+      for (final r in (json['ranked'] as List? ?? const []))
+        () {
+          final m = Map<String, Object?>.from(r as Map);
+          return BestCardPick(
+            cardId: accountOf[m['user_card_id']],
+            name: (m['name'] as String?) ?? 'Card',
+            ratePct: n(m['effective_rate_pct']),
+            estimate: fromMinor(
+              (m['estimated_value_minor'] as num?)?.toInt() ?? 0,
+            ),
+            hitsCap: m['hits_cap'] as bool? ?? false,
+            verified: m['data_status'] == 'verified',
+          );
+        }(),
+    ];
+  }
+
   // ---- wealth ------------------------------------------------------------------
 
   @override

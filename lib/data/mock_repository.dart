@@ -50,7 +50,7 @@ class MockPulseRepository implements PulseRepository {
       name: 'Skywards Infinite',
       last4: '4821',
       network: CardNetwork.visa,
-      gradient: const [Color(0xFF0B1F4B), Color(0xFF1E3A8A), Color(0xFFB91C1C)],
+      gradient: const [Color(0xFF14213D), Color(0xFF26395F)],
       limit: 60000,
       balance: 8420.5,
       dueDate: _dayInMonth(_now, 4),
@@ -64,7 +64,7 @@ class MockPulseRepository implements PulseRepository {
         SpendCategory.shopping: 1.5,
         SpendCategory.groceries: 1,
       },
-      annualFee: 0,
+      annualFee: 1575,
       highlight: '3.5 Skywards Miles per AED 1 on flights',
       statementDate: _dayInMonth(_now, 4).subtract(const Duration(days: 25)),
       statementBalance: 7980,
@@ -76,7 +76,7 @@ class MockPulseRepository implements PulseRepository {
       name: 'Cashback Card',
       last4: '0937',
       network: CardNetwork.mastercard,
-      gradient: const [Color(0xFF7C2D12), Color(0xFFEA580C), Color(0xFFFBBF24)],
+      gradient: const [Color(0xFF5A2A18), Color(0xFF8C4A2B)],
       limit: 25000,
       balance: 3190,
       dueDate: _dayInMonth(_now, 12),
@@ -107,7 +107,7 @@ class MockPulseRepository implements PulseRepository {
       name: 'Cashback Platinum',
       last4: '6604',
       network: CardNetwork.visa,
-      gradient: const [Color(0xFF0F172A), Color(0xFF134E4A), Color(0xFF2DD4BF)],
+      gradient: const [Color(0xFF10302B), Color(0xFF1F5047)],
       limit: 40000,
       balance: 11760,
       dueDate: _dayInMonth(_now, 21),
@@ -238,6 +238,94 @@ class MockPulseRepository implements PulseRepository {
   Future<List<CreditCard>> myCards() => _d(List.of(_owned));
   @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
+
+  @override
+  Future<List<BankAccount>> bankAccounts() {
+    final now = DateTime.now();
+    BankAccount acct(
+      String id,
+      String bank,
+      String name,
+      BankAccountKind kind,
+      double balance,
+      List<Color> gradient,
+      List<String> labels, {
+      String? last4,
+    }) {
+      var inflow = 0.0, outflow = 0.0;
+      for (final t in _tx) {
+        if (!labels.contains(t.accountLabel)) continue;
+        if (t.date.year != now.year || t.date.month != now.month) continue;
+        if (t.isIncome) {
+          inflow += t.amount;
+        } else {
+          outflow += t.amount;
+        }
+      }
+      return BankAccount(
+        id: id,
+        bank: bank,
+        name: name,
+        kind: kind,
+        balance: balance,
+        gradient: gradient,
+        last4: last4,
+        monthIn: inflow,
+        monthOut: outflow,
+        matchLabels: labels,
+        updatedAt: now.subtract(const Duration(minutes: 8)),
+      );
+    }
+
+    return _d([
+      acct(
+        'enbd-current',
+        'Emirates NBD',
+        'Current',
+        BankAccountKind.current,
+        41200,
+        const [Color(0xFF1B2433), Color(0xFF2E3B50)],
+        const ['Emirates NBD Current'],
+        last4: '2210',
+      ),
+      acct(
+        'liv-savings',
+        'Liv',
+        'Savings',
+        BankAccountKind.savings,
+        24000,
+        const [Color(0xFF173530), Color(0xFF285A50)],
+        const ['Liv', 'Liv Savings'],
+        last4: '7731',
+      ),
+      acct(
+        'cash',
+        'Cash',
+        'Wallet',
+        BankAccountKind.cash,
+        4500,
+        const [Color(0xFF38332D), Color(0xFF575047)],
+        const ['Cash'],
+      ),
+    ]);
+  }
+
+  @override
+  Future<List<BestCardPick>> bestCard(SpendCategory category, double amount) =>
+      _d([
+        for (final c in rankCardsFor(_owned, category))
+          BestCardPick(
+            cardId: c.id,
+            name: '${c.issuer} ${c.name}',
+            ratePct: effectiveRate(c, category),
+            estimate: rewardFor(c, category, amount),
+            hitsCap:
+                c.caps[category] != null &&
+                rewardFor(c, category, amount) <
+                    amount * rateFor(c, category) / 100 - 0.005,
+            verified: c.rulesVerifiedOn != null,
+          ),
+      ]);
 
   // ---- Transactions ------------------------------------------------------
 

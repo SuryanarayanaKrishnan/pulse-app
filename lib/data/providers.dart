@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../core/env/env.dart';
 import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
+import 'card_ranking.dart';
 import 'insights.dart';
 import 'mock_repository.dart';
 import 'models.dart';
@@ -72,6 +73,21 @@ final safeToSpendProvider = FutureProvider<SafeToSpend>(
 final healthScoreProvider = FutureProvider<HealthScore>(
   (ref) => ref.watch(repositoryProvider).healthScore(),
 );
+final bankAccountsProvider = FutureProvider<List<BankAccount>>(
+  (ref) => ref.watch(repositoryProvider).bankAccounts(),
+);
+
+/// Best card for each everyday category, for a nominal AED 100 purchase.
+final bestByCategoryProvider =
+    FutureProvider<List<(SpendCategory, String, BestCardPick?)>>((ref) async {
+      ref.watch(myCardsProvider);
+      final repo = ref.watch(repositoryProvider);
+      return [
+        for (final (cat, label) in bestCardCategories)
+          (cat, label, (await repo.bestCard(cat, 100)).firstOrNull),
+      ];
+    });
+
 final householdProvider = FutureProvider<Household>(
   (ref) => ref.watch(repositoryProvider).household(),
 );

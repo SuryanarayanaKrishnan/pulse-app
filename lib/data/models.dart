@@ -628,3 +628,64 @@ class SplitGroup {
 
   double get total => expenses.fold(0, (a, e) => a + e.amount);
 }
+
+enum BankAccountKind {
+  current('Current'),
+  savings('Savings'),
+  wallet('Wallet'),
+  cash('Cash');
+
+  const BankAccountKind(this.label);
+  final String label;
+}
+
+/// A bank account or wallet, shown as a card in the wallet stack.
+class BankAccount {
+  const BankAccount({
+    required this.id,
+    required this.bank,
+    required this.name,
+    required this.kind,
+    required this.balance,
+    required this.gradient,
+    this.last4,
+    this.monthIn = 0,
+    this.monthOut = 0,
+    this.matchLabels = const [],
+    this.updatedAt,
+  });
+  final String id;
+  final String bank;
+  final String name;
+  final BankAccountKind kind;
+  final String? last4;
+  final double balance;
+  final List<Color> gradient;
+  final double monthIn;
+  final double monthOut;
+
+  /// Transaction account labels that belong to this account.
+  final List<String> matchLabels;
+  final DateTime? updatedAt;
+
+  double get monthNet => monthIn - monthOut;
+  String get label => '$bank $name';
+}
+
+/// One row of a best-card answer for a purchase.
+class BestCardPick {
+  const BestCardPick({
+    required this.name,
+    required this.ratePct,
+    this.cardId,
+    this.estimate = 0,
+    this.hitsCap = false,
+    this.verified = false,
+  });
+  final String? cardId;
+  final String name;
+  final double ratePct;
+  final double estimate;
+  final bool hitsCap;
+  final bool verified;
+}
