@@ -2,6 +2,8 @@ import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
 
+import 'card_util.dart';
+import 'insights.dart';
 import 'models.dart';
 import 'phone.dart';
 import 'repository.dart';
@@ -39,7 +41,9 @@ class MockPulseRepository implements PulseRepository {
 
   static final _due = DateTime(2026, 1, 1);
 
-  List<CreditCard> get _owned => [
+  late List<CreditCard> _owned = _seedCards();
+
+  List<CreditCard> _seedCards() => [
     CreditCard(
       id: 'enbd-sky',
       issuer: 'Emirates NBD',
@@ -62,6 +66,9 @@ class MockPulseRepository implements PulseRepository {
       },
       annualFee: 0,
       highlight: '3.5 Skywards Miles per AED 1 on flights',
+      statementDate: _dayInMonth(_now, 4).subtract(const Duration(days: 25)),
+      statementBalance: 7980,
+      rulesVerifiedOn: DateTime(2026, 11, 2),
     ),
     CreditCard(
       id: 'mashreq-cb',
@@ -80,10 +87,19 @@ class MockPulseRepository implements PulseRepository {
       categoryRates: {
         SpendCategory.groceries: 5,
         SpendCategory.transport: 5,
-        SpendCategory.dining: 2,
+        SpendCategory.dining: 3,
         SpendCategory.utilities: 0.5,
       },
+      baseRate: 0.25,
+      caps: {
+        SpendCategory.groceries: RewardCap(limit: 150, used: 61),
+        SpendCategory.transport: RewardCap(limit: 75, used: 14),
+        SpendCategory.dining: RewardCap(limit: 50, used: 9),
+      },
       highlight: '5% cashback on groceries and transport',
+      statementDate: _dayInMonth(_now, 12).subtract(const Duration(days: 25)),
+      statementBalance: 3190,
+      rulesVerifiedOn: DateTime(2026, 10, 18),
     ),
     CreditCard(
       id: 'fab-cb',
@@ -106,7 +122,15 @@ class MockPulseRepository implements PulseRepository {
         SpendCategory.health: 2,
       },
       annualFee: 0,
+      baseRate: 0,
+      caps: {
+        SpendCategory.dining: RewardCap(limit: 100, used: 95),
+        SpendCategory.entertainment: RewardCap(limit: 100, used: 22),
+      },
       highlight: '5% on dining and entertainment',
+      statementDate: _dayInMonth(_now, 21).subtract(const Duration(days: 25)),
+      statementBalance: 11760,
+      rulesVerifiedOn: DateTime(2026, 11, 14),
     ),
   ];
 
@@ -211,7 +235,7 @@ class MockPulseRepository implements PulseRepository {
   ];
 
   @override
-  Future<List<CreditCard>> myCards() => _d(_owned);
+  Future<List<CreditCard>> myCards() => _d(List.of(_owned));
   @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
 
@@ -773,8 +797,35 @@ class MockPulseRepository implements PulseRepository {
       NetWorth(
         total: total,
         series: s,
+        labels: [
+          for (var i = 11; i >= 0; i--)
+            _short(DateTime(_now.year, _now.month - i).month),
+        ],
         changePct: (s.last / s[s.length - 2] - 1) * 100 + 0.8,
         changeAed: s.last - s.first,
+        updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
+        prices: [
+          PriceInput(
+            name: 'Gold 22K',
+            value: 'AED 348.25 / g',
+            source: 'Dubai gold rate',
+            updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
+            changePct: 0.6,
+          ),
+          PriceInput(
+            name: 'USD / AED',
+            value: '3.6725',
+            source: 'Central Bank peg',
+            updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
+          ),
+          PriceInput(
+            name: 'Dubai Marina 1BR',
+            value: 'AED 1,450,000',
+            source: 'Area sales index',
+            updatedAt: DateTime.now().subtract(const Duration(days: 6)),
+            changePct: 1.9,
+          ),
+        ],
       ),
     );
   }
@@ -1135,4 +1186,232 @@ class MockPulseRepository implements PulseRepository {
 
   @override
   Future<List<EmailConnection>> emailConnections() => _d(List.of(_gmail));
+
+  // ---- Insights ------------------------------------------------------------
+
+  static const _income = 24500.0;
+  static const _history = [11200.0, 12850.0, 13900.0, 11980.0, 12400.0];
+  static const _cash = 69700.0;
+  static const _upcomingBills = 310.0; // DEWA, due on the 28th
+  static const _goals = 200.0; // Emergency fund top-up
+
+  double get _spentThisMonth => _tx
+      .where((t) => !t.isIncome && !t.excluded && !t.category.isTransfer)
+      .fold(0.0, (a, t) => a + t.amount);
+
+  double get _duesBeforeMonthEnd {
+    final end = DateTime(_now.year, _now.month + 1, 0);
+    return _owned
+        .where((c) => !c.dueDate.isAfter(end))
+        .fold(0.0, (a, c) => a + c.totalDue);
+  }
+
+  @override
+  Future<Cashflow> cashflow() {
+    final dim = DateUtils.getDaysInMonth(_now.year, _now.month);
+    final months = [
+      for (var i = 0; i < 5; i++)
+        CashflowMonth(
+          _short(DateTime(_now.year, _now.month - 5 + i).month),
+          _income + (i == 2 ? 1800 : 0),
+          _history[i],
+        ),
+      CashflowMonth(_short(_now.month), _income, _spentThisMonth),
+    ];
+    final committed = _upcomingBills + _duesBeforeMonthEnd;
+    return _d(
+      Cashflow(
+        months: months,
+        balanceNow: _cash,
+        committed: committed,
+        projectedEndBalance: projectEndBalance(
+          balanceNow: _cash,
+          spentSoFar: _spentThisMonth - 6250, // rent is not daily spend
+          dayOfMonth: _now.day,
+          daysInMonth: dim,
+          committed: committed,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<CategoryTrends> categoryTrends() {
+    final byCat = <SpendCategory, double>{};
+    for (final t in _tx) {
+      if (t.isIncome || t.excluded || t.category.isTransfer) continue;
+      byCat[t.category] = (byCat[t.category] ?? 0) + t.amount;
+    }
+    final top = byCat.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    // Deterministic history around this month's figure.
+    const shape = [0.82, 1.06, 0.94, 1.18, 0.9];
+    return _d(
+      CategoryTrends(
+        [for (var i = 5; i >= 0; i--) _short(DateTime(_now.year, _now.month - i).month)],
+        [
+          for (final (i, e) in top.take(6).indexed)
+            CategoryTrend(e.key, [
+              for (var m = 0; m < 5; m++)
+                e.value * shape[(m + i) % shape.length],
+              e.value,
+            ]),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Future<SafeToSpend> safeToSpend() {
+    final dim = DateUtils.getDaysInMonth(_now.year, _now.month);
+    final planned = _planned.values.fold(0.0, (a, b) => a + b);
+    return _d(
+      computeSafeToSpend(
+        cash: _cash,
+        budgetLeft: planned - _spentThisMonth,
+        bills: _upcomingBills,
+        cardDues: _duesBeforeMonthEnd,
+        goals: _goals,
+        daysLeft: dim - _now.day + 1,
+      ),
+    );
+  }
+
+  @override
+  Future<HealthScore> healthScore() {
+    final limits = _owned.fold(0.0, (a, c) => a + c.limit);
+    final balances = _owned.fold(0.0, (a, c) => a + c.balance);
+    final avgSpend = _history.reduce((a, b) => a + b) / _history.length;
+    return _d(
+      computeHealthScore(
+        savingsRate: (_income - _history.last) / _income,
+        utilisation: limits == 0 ? 0 : balances / limits,
+        onTimeRate: 11 / 12,
+        runwayMonths: _cash / avgSpend,
+      ),
+    );
+  }
+
+  var _captureSeq = 0;
+
+  /// Alternates a dining tap that hits FAB's cap and a grocery tap.
+  @override
+  Future<Transaction> simulateCapture() {
+    final dining = (_captureSeq++).isEven;
+    final cardId = dining ? 'fab-cb' : 'mashreq-cb';
+    final cat = dining ? SpendCategory.dining : SpendCategory.groceries;
+    final amount = dining ? 142.0 : 230.5;
+    final card = _owned.firstWhere((c) => c.id == cardId);
+    final reward = rewardFor(card, cat, amount);
+    _owned = [
+      for (final c in _owned)
+        if (c.id == cardId)
+          c.copyWith(
+            balance: c.balance + amount,
+            caps: {
+              ...c.caps,
+              if (c.caps[cat] != null) cat: c.caps[cat]!.add(reward),
+            },
+          )
+        else
+          c,
+    ];
+    final tx = Transaction(
+      id: _id('live'),
+      merchant: dining ? 'Talabat' : 'Carrefour',
+      amount: amount,
+      category: cat,
+      date: DateTime.now(),
+      source: dining ? TxSource.walletNotification : TxSource.sms,
+      cardId: cardId,
+      accountLabel: '${card.issuer} ${card.name}',
+    );
+    _tx = [tx, ..._tx];
+    return _d(tx);
+  }
+
+  // ---- Family --------------------------------------------------------------
+
+  late var _family = [
+    const FamilyMember(
+      id: 'me',
+      name: 'Sara',
+      relation: 'You',
+      sharing: SharingLevel.categories,
+      isYou: true,
+    ),
+    FamilyMember(
+      id: 'f1',
+      name: 'Khalid',
+      relation: 'Partner',
+      phone: '+971501112233',
+      sharing: SharingLevel.full,
+      spent: 9420,
+      budget: 11000,
+      byCategory: {
+        SpendCategory.groceries: 2140,
+        SpendCategory.transport: 1310,
+        SpendCategory.dining: 960,
+        SpendCategory.family: 3500,
+      },
+    ),
+    FamilyMember(
+      id: 'f2',
+      name: 'Noor',
+      relation: 'Daughter',
+      phone: '+971502223344',
+      sharing: SharingLevel.totals,
+      spent: 640,
+      budget: 800,
+    ),
+  ];
+
+  @override
+  Future<Household> household() {
+    final spent = _spentThisMonth;
+    final planned = _planned.values.fold(0.0, (a, b) => a + b);
+    return _d(
+      Household('Al Mansoori household', [
+        for (final m in _family)
+          if (m.isYou)
+            FamilyMember(
+              id: m.id,
+              name: m.name,
+              relation: m.relation,
+              sharing: m.sharing,
+              isYou: true,
+              spent: spent,
+              budget: planned,
+            )
+          else
+            m,
+      ]),
+    );
+  }
+
+  @override
+  Future<FamilyMember> inviteFamilyMember({
+    required String name,
+    required String phone,
+    required String relation,
+  }) {
+    final m = FamilyMember(
+      id: _id('f'),
+      name: name,
+      relation: relation,
+      phone: toE164(phone),
+      sharing: SharingLevel.totals,
+      invited: true,
+    );
+    _family = [..._family, m];
+    return _d(m);
+  }
+
+  @override
+  Future<void> setSharing(String memberId, SharingLevel level) {
+    _family = [
+      for (final m in _family) m.id == memberId ? m.copyWith(sharing: level) : m,
+    ];
+    return _d(null);
+  }
 }

@@ -5,6 +5,7 @@ import 'package:dio/dio.dart';
 import '../core/env/env.dart';
 import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
+import 'insights.dart';
 import 'mock_repository.dart';
 import 'models.dart';
 import 'rules.dart';
@@ -59,8 +60,28 @@ final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
   (ref) => ref.watch(repositoryProvider).emailConnections(),
 );
 
+final cashflowProvider = FutureProvider<Cashflow>(
+  (ref) => ref.watch(repositoryProvider).cashflow(),
+);
+final categoryTrendsProvider = FutureProvider<CategoryTrends>(
+  (ref) => ref.watch(repositoryProvider).categoryTrends(),
+);
+final safeToSpendProvider = FutureProvider<SafeToSpend>(
+  (ref) => ref.watch(repositoryProvider).safeToSpend(),
+);
+final healthScoreProvider = FutureProvider<HealthScore>(
+  (ref) => ref.watch(repositoryProvider).healthScore(),
+);
+final householdProvider = FutureProvider<Household>(
+  (ref) => ref.watch(repositoryProvider).household(),
+);
+
 /// Refreshes everything derived from transactions.
 void invalidateLedger(WidgetRef ref) {
   ref.invalidate(transactionsProvider);
   ref.invalidate(budgetProvider);
+  ref.invalidate(cashflowProvider);
+  ref.invalidate(categoryTrendsProvider);
+  ref.invalidate(safeToSpendProvider);
+  ref.invalidate(healthScoreProvider);
 }

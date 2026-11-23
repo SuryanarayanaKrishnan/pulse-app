@@ -287,6 +287,11 @@ class CreditCard {
     this.annualFee = 0,
     this.owned = true,
     this.highlight = '',
+    this.statementDate,
+    this.statementBalance,
+    this.baseRate = 0.5,
+    this.caps = const {},
+    this.rulesVerifiedOn,
   });
 
   final String id;
@@ -309,7 +314,62 @@ class CreditCard {
   final bool owned;
   final String highlight;
 
+  /// Last statement date; the due date follows it.
+  final DateTime? statementDate;
+
+  /// Full amount due on the last statement (pay this to avoid interest).
+  final double? statementBalance;
+
+  /// Rate (percent) for categories without a specific rate, and once a
+  /// category's cap is used up.
+  final double baseRate;
+
+  /// Monthly reward caps by category, in AED of reward.
+  final Map<SpendCategory, RewardCap> caps;
+
+  /// When the reward rules above were last checked against the issuer's
+  /// published terms.
+  final DateTime? rulesVerifiedOn;
+
   double get utilisation => limit == 0 ? 0 : balance / limit;
+  double get totalDue => statementBalance ?? balance;
+
+  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps}) =>
+      CreditCard(
+        id: id,
+        issuer: issuer,
+        name: name,
+        last4: last4,
+        network: network,
+        gradient: gradient,
+        limit: limit,
+        balance: balance ?? this.balance,
+        dueDate: dueDate,
+        minDue: minDue,
+        rewardsLabel: rewardsLabel,
+        rewardPoints: rewardPoints,
+        rewardValueAed: rewardValueAed,
+        categoryRates: categoryRates,
+        annualFee: annualFee,
+        owned: owned,
+        highlight: highlight,
+        statementDate: statementDate,
+        statementBalance: statementBalance,
+        baseRate: baseRate,
+        caps: caps ?? this.caps,
+        rulesVerifiedOn: rulesVerifiedOn,
+      );
+}
+
+/// A monthly cap on the reward a card pays for a category (AED of reward).
+class RewardCap {
+  const RewardCap({required this.limit, this.used = 0});
+  final double limit;
+  final double used;
+  double get remaining => (limit - used).clamp(0, limit).toDouble();
+  bool get reached => remaining <= 0.005;
+  double get progress => limit == 0 ? 1 : (used / limit).clamp(0, 1).toDouble();
+  RewardCap add(double reward) => RewardCap(limit: limit, used: used + reward);
 }
 
 class BudgetLine {
@@ -415,11 +475,43 @@ class NetWorth {
     required this.series,
     required this.changePct,
     required this.changeAed,
+    this.labels = const [],
+    this.updatedAt,
+    this.prices = const [],
   });
   final double total;
+
+  /// Month-end values, oldest first; the last point is now.
   final List<double> series;
+
+  /// Short month label per [series] point.
+  final List<String> labels;
   final double changePct;
   final double changeAed;
+
+  /// When the valuations were last refreshed.
+  final DateTime? updatedAt;
+
+  /// Live inputs to the valuation (gold, FX, property index).
+  final List<PriceInput> prices;
+}
+
+/// A market price that revalues assets automatically.
+class PriceInput {
+  const PriceInput({
+    required this.name,
+    required this.value,
+    required this.source,
+    required this.updatedAt,
+    this.changePct = 0,
+  });
+  final String name;
+
+  /// Display value, e.g. "AED 312.40 / g".
+  final String value;
+  final String source;
+  final DateTime updatedAt;
+  final double changePct;
 }
 
 class Member {

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'insights.dart';
 import 'models.dart';
 import 'rules.dart';
 import 'statements.dart';
@@ -97,4 +98,33 @@ abstract class PulseRepository {
   /// connection completed without a browser (demo data).
   Future<Uri?> startGmailConnect();
   Future<List<EmailConnection>> emailConnections();
+
+  // ---- insights ----------------------------------------------------------------
+
+  /// Income, spend and savings by month, plus the projected month-end balance.
+  Future<Cashflow> cashflow();
+
+  /// Spend per category by month, biggest categories first.
+  Future<CategoryTrends> categoryTrends();
+
+  /// Today's allowance after bills, card dues and goals.
+  Future<SafeToSpend> safeToSpend();
+  Future<HealthScore> healthScore();
+
+  /// Demo only: pretend a wallet / SMS capture just arrived. Returns the
+  /// captured transaction; the cards' caps are updated.
+  Future<Transaction> simulateCapture();
+
+  // ---- family ------------------------------------------------------------------
+
+  Future<Household> household();
+  Future<FamilyMember> inviteFamilyMember({
+    required String name,
+    required String phone,
+    required String relation,
+  });
+
+  /// What [memberId] shares. Only the member themself can change it; for
+  /// you this is your own privacy setting.
+  Future<void> setSharing(String memberId, SharingLevel level);
 }

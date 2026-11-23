@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../models.dart';
 import '../rules.dart';
 import '../statements.dart';
+import 'api_exception.dart';
 
 /// Wire-level types for the Pulse backend (`/v1`). Amounts are integer minor
 /// units (fils); conversion to the UI's double AED happens in the `toDomain`
@@ -543,6 +544,7 @@ class SettlementDto {
     required this.amountMinor,
     required this.settledAt,
     this.note,
+    this.status,
   });
   final String id;
   final String fromMemberId;
@@ -551,6 +553,9 @@ class SettlementDto {
   final DateTime settledAt;
   final String? note;
 
+  /// `pending` | `paid` | `confirmed` when the server tracks it.
+  final String? status;
+
   factory SettlementDto.fromJson(Map<String, Object?> j) => SettlementDto(
     id: j['id']! as String,
     fromMemberId: j['from_member_id']! as String,
@@ -558,7 +563,12 @@ class SettlementDto {
     amountMinor: _int(j['amount_minor']),
     settledAt: _dt(j['settled_at']),
     note: j['note'] as String?,
+    status: j['status'] as String?,
   );
+
+  bool get _awaiting => status != null
+      ? status != 'confirmed'
+      : note == aaniPendingNote;
 
   SettlementRecord toDomain(String Function(String) idOf) => SettlementRecord(
     id: id,
@@ -566,10 +576,12 @@ class SettlementDto {
     to: idOf(toMemberId),
     amount: fromMinor(amountMinor),
     date: settledAt,
-    status: note == aaniPendingNote
+    status: _awaiting
         ? SettlementStatus.awaitingConfirmation
         : SettlementStatus.confirmed,
-    method: (note ?? '').startsWith('aani') ? 'aani' : 'manual',
+    method: status != null || (note ?? '').startsWith('aani')
+        ? 'aani'
+        : 'manual',
   );
 }
 
@@ -754,4 +766,165 @@ class IngestResultDto {
     duplicate: (j['duplicate'] as bool?) ?? false,
     parseStatus: (j['parse_status'] as String?) ?? 'pending',
   );
+}
+
+// ---- /v1/rules ---------------------------------------------------------------
+
+String _escapeRegex(String s) =>
+    s.replaceAllMapped(RegExp(r'[.*+?^${}()|[\]\\]'), (m) => '\\${m[0]}');
+
+String? _unescapeRegex(String s) {
+  final out = s.replaceAllMapped(RegExp(r'\\(.)'), (m) => m[1]!);
+  // Anything still special is a real pattern the editor cannot show.
+  return RegExp(r'[.*+?^${}()|[\]\\]').hasMatch(out) ? null : out;
+}
+
+/// Maps a backend rule to the one-condition shape the editor shows. Returns
+/// null for rules the app cannot represent (no supported action).
+AutomationRule? ruleFromJson(
+  Map<String, Object?> j, {
+  Map<String, CategoryDto> categories = const {},
+  Map<String, AccountDto> accounts = const {},
+}) {
+  final conditions = [
+    for (final c in (j['conditions'] as List? ?? const []))
+      Map<String, Object?>.from(c as Map),
+  ];
+  if (conditions.isEmpty) return null;
+  final c = conditions.first;
+  RuleField? field;
+  RuleOperator? op;
+  String? value;
+  switch (c['field']) {
+    case 'merchant' || 'description':
+      field = c['field'] == 'merchant'
+          ? RuleField.merchant
+          : RuleField.description;
+      final raw = (c['value'] as String?) ?? '';
+      switch (c['op']) {
+        case 'contains':
+          op = RuleOperator.contains;
+          value = raw;
+        case 'equals':
+          op = RuleOperator.equals;
+          value = raw;
+        case 'regex':
+          if (!raw.startsWith('^')) return null;
+          final plain = _unescapeRegex(raw.substring(1));
+          if (plain == null) return null;
+          op = RuleOperator.startsWith;
+          value = plain;
+      }
+    case 'amount':
+      field = RuleField.amount;
+      final v = _int(c['value_minor']);
+      switch (c['op']) {
+        case 'equals':
+          op = RuleOperator.equals;
+          value = fromMinor(v).toStringAsFixed(2);
+        case 'gte':
+          op = RuleOperator.greaterThan;
+          value = fromMinor(v - 1).toStringAsFixed(2);
+        case 'lte':
+          op = RuleOperator.lessThan;
+          value = fromMinor(v + 1).toStringAsFixed(2);
+      }
+    case 'account':
+      field = RuleField.account;
+      op = RuleOperator.equals;
+      value = accounts[c['account_id']]?.label ?? 'Account';
+  }
+  if (field == null || op == null || value == null) return null;
+
+  final categoryId = j['category_id'] as String?;
+  final rename = j['rename_merchant'] as String?;
+  final exclude =
+      (j['exclude_from_budget'] as bool? ?? false) ||
+      (j['mark_transfer'] as bool? ?? false);
+  final RuleAction action;
+  if (categoryId != null) {
+    action = RuleAction.setCategory;
+  } else if (rename != null) {
+    action = RuleAction.rename;
+  } else if (exclude) {
+    action = RuleAction.exclude;
+  } else {
+    return null;
+  }
+  return AutomationRule(
+    id: j['id']! as String,
+    field: field,
+    op: op,
+    value: value,
+    action: action,
+    category: categoryId == null
+        ? null
+        : categories[categoryId]?.spendCategory ?? SpendCategory.other,
+    renameTo: rename,
+    enabled: j['is_active'] as bool? ?? true,
+  );
+}
+
+/// The `/v1/rules` body for [r]. Text matching on the server is
+/// case-insensitive against lower-cased text, so "starts with" becomes an
+/// anchored, escaped, lower-case regex.
+Map<String, Object?> ruleToJson(
+  AutomationRule r, {
+  String? categoryId,
+  Iterable<AccountDto> accounts = const [],
+}) {
+  final value = r.value.trim();
+  final Map<String, Object?> condition;
+  switch (r.field) {
+    case RuleField.merchant || RuleField.description:
+      condition = {
+        'field': r.field.name,
+        if (r.op == RuleOperator.startsWith) ...{
+          'op': 'regex',
+          'value': '^${_escapeRegex(value.toLowerCase())}',
+        } else ...{
+          'op': r.op == RuleOperator.equals ? 'equals' : 'contains',
+          'value': value,
+        },
+      };
+    case RuleField.amount:
+      final minor = toMinor(double.parse(value));
+      condition = {
+        'field': 'amount',
+        ...switch (r.op) {
+          RuleOperator.greaterThan => {'op': 'gte', 'value_minor': minor + 1},
+          RuleOperator.lessThan => {
+            'op': 'lte',
+            'value_minor': minor > 0 ? minor - 1 : 0,
+          },
+          _ => {'op': 'equals', 'value_minor': minor},
+        },
+      };
+    case RuleField.account:
+      final needle = normaliseText(value);
+      final match = accounts
+          .where((a) => normaliseText(a.label).contains(needle))
+          .firstOrNull;
+      if (match == null) {
+        throw ApiException(
+          code: 'unknown_account',
+          message: 'No account matches "$value".',
+        );
+      }
+      condition = {'field': 'account', 'account_id': match.id};
+  }
+  if (r.action == RuleAction.setCategory && categoryId == null) {
+    throw const ApiException(
+      code: 'unknown_category',
+      message: 'That category is not available on the server yet.',
+    );
+  }
+  return {
+    'name': r.condition,
+    'is_active': r.enabled,
+    'conditions': [condition],
+    if (r.action == RuleAction.setCategory) 'category_id': categoryId,
+    if (r.action == RuleAction.rename) 'rename_merchant': r.renameTo!.trim(),
+    if (r.action == RuleAction.exclude) 'exclude_from_budget': true,
+  };
 }

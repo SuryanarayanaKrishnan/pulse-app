@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../insights.dart';
 import '../models.dart';
 import '../repository.dart';
 import '../rules.dart';
@@ -392,48 +393,40 @@ class ApiPulseRepository implements PulseRepository {
 
   // ---- automations -----------------------------------------------------------
 
-  /// The backend stores merchant -> category rules (`/v1/merchant-rules`).
+  /// `/v1/rules`: conditions (AND) + actions. The UI edits one condition.
   @override
   Future<List<AutomationRule>> rules() async {
-    final (json, categories) = await (
-      _getList('/v1/merchant-rules'),
+    final (json, categories, accounts) = await (
+      _getList('/v1/rules'),
       _categories(),
+      _accounts(),
     ).wait;
     return [
-      for (final r in json) MerchantRuleDto.fromJson(r).toDomain(categories),
+      for (final r in json)
+        ?ruleFromJson(r, categories: categories, accounts: accounts),
     ];
   }
 
   @override
   Future<AutomationRule> saveRule(AutomationRule rule) async {
-    // TODO(api): description / amount / account conditions, rename and
-    // exclude actions need the rules endpoint; only merchant -> category
-    // exists today.
-    if (!rule.isMerchantCategoryRule) {
-      throw const ApiException(
-        message:
-            'Only "merchant is ... → category" rules are supported by the server so far.',
-        code: 'rule_unsupported',
-      );
-    }
-    final categories = await _categories();
-    final target = _categoryFor(rule.category!, categories.values);
-    if (target == null) {
-      throw ApiException(
-        message: 'No "${rule.category!.label}" category exists on the server.',
-        code: 'category_unavailable',
-      );
-    }
-    final json = await _send('POST', '/v1/merchant-rules', {
-      'merchant': rule.value.trim(),
-      'category_id': target.id,
+    final (categories, accounts) = await (_categories(), _accounts()).wait;
+    final body = ruleToJson(
+      rule,
+      categoryId: rule.category == null
+          ? null
+          : _categoryFor(rule.category!, categories.values)?.id,
+      accounts: accounts.values,
+    );
+    final json = await _send('POST', '/v1/rules', {
+      ...body,
       'apply_to_existing': true,
     });
-    return MerchantRuleDto.fromJson(json).toDomain(categories);
+    return ruleFromJson(json, categories: categories, accounts: accounts) ??
+        rule.copyWith(id: json['id']! as String);
   }
 
   @override
-  Future<void> deleteRule(String id) => _delete('/v1/merchant-rules/$id');
+  Future<void> deleteRule(String id) => _delete('/v1/rules/$id');
 
   // ---- cards -------------------------------------------------------------------
 
@@ -610,19 +603,31 @@ class ApiPulseRepository implements PulseRepository {
     required String name,
     String? phone,
   }) async {
-    // TODO(api): the members endpoint has no phone field yet; the number
-    // stays on the device.
     final json = await _send('POST', '/v1/splits/groups/$groupId/members', {
       'display_name': name,
+      'phone': ?phone,
     });
     final m = SplitMemberDto.fromJson(json);
     return Member(m.id, m.displayName, const Color(0xFF5BC2A8), phone: phone);
   }
 
-  /// TODO(api): `POST /v1/contacts/match {hashes}` is not built yet, so no
-  /// contact is shown as "on Pulse" against the real backend.
+  /// `POST /v1/contacts/match`: only SHA-256 hashes are sent.
   @override
-  Future<Set<String>> matchContacts(List<String> phoneHashes) async => {};
+  Future<Set<String>> matchContacts(List<String> phoneHashes) async {
+    if (phoneHashes.isEmpty) return {};
+    final out = <String>{};
+    for (var i = 0; i < phoneHashes.length; i += 1000) {
+      final chunk = phoneHashes.sublist(
+        i,
+        (i + 1000).clamp(0, phoneHashes.length),
+      );
+      final j = await _send('POST', '/v1/contacts/match', {'hashes': chunk});
+      for (final m in (j['matches'] as List? ?? const [])) {
+        out.add((m as Map)['phone_hash'] as String);
+      }
+    }
+    return out;
+  }
 
   @override
   Future<SettlementRecord> markSettlementPaid(
@@ -631,34 +636,40 @@ class ApiPulseRepository implements PulseRepository {
     required String to,
     required double amount,
   }) async {
+    // An Aani settlement starts pending; mark-paid records the payer's
+    // claim and the payee confirms.
     final resolve = await _memberResolver(groupId);
-    final json = await _send(
+    final created = await _send(
       'POST',
       '/v1/splits/groups/$groupId/settlements',
       {
         'from_member_id': resolve(from),
         'to_member_id': resolve(to),
         'amount_minor': toMinor(amount),
-        'note': aaniPendingNote,
+        'method': 'aani',
       },
     );
-    return SettlementDto.fromJson(json).toDomain((id) => id).copyWith(
-      status: SettlementStatus.awaitingConfirmation,
+    final id = created['id']! as String;
+    final json = await _send(
+      'POST',
+      '/v1/splits/groups/$groupId/settlements/$id/mark-paid',
+      {},
     );
+    return SettlementDto.fromJson(json).toDomain((id) => id);
   }
 
-  /// TODO(api): settlements cannot be updated yet; confirmation needs the
-  /// Aani settlement endpoints.
   @override
   Future<SettlementRecord> confirmSettlement(
     String groupId,
     String settlementId,
-  ) => Future.error(
-    const ApiException(
-      message: 'Confirming a payment needs the next server update.',
-      code: 'not_supported',
-    ),
-  );
+  ) async {
+    final json = await _send(
+      'POST',
+      '/v1/splits/groups/$groupId/settlements/$settlementId/confirm',
+      {},
+    );
+    return SettlementDto.fromJson(json).toDomain((id) => id);
+  }
 
   // ---- monthly close -----------------------------------------------------------
 
@@ -737,4 +748,160 @@ class ApiPulseRepository implements PulseRepository {
             : DateTime.parse(j['last_synced_at']! as String),
       ),
   ];
+
+  // ---- insights ----------------------------------------------------------------
+  //
+  // TODO(api): `/v1/insights/*`, `/v1/rewards/*` and `/v1/cards/due-dates` are
+  // planned; until they exist these are derived on the device from
+  // transactions, budgets, accounts and assets.
+
+  Future<double> _cash() async => (await assets())
+      .where((a) => a.kind == AssetKind.cash)
+      .fold<double>(0, (a, e) => a + e.value);
+
+  @override
+  Future<Cashflow> cashflow() async {
+    final now = _clock();
+    final (txs, cards, cash) = await (
+      _allTx(from: DateTime(now.year, now.month - 5)),
+      myCards(),
+      _cash(),
+    ).wait;
+    final (accounts, categories) = await (_accounts(), _categories()).wait;
+    final domain = [
+      for (final t in txs) t.toDomain(accounts: accounts, categories: categories),
+    ];
+    final months = cashflowFromTransactions(domain, now: now);
+    final end = DateTime(now.year, now.month + 1, 0);
+    final committed = cards
+        .where((c) => !c.dueDate.isAfter(end))
+        .fold<double>(0, (a, c) => a + c.totalDue);
+    return Cashflow(
+      months: months,
+      balanceNow: cash,
+      committed: committed,
+      projectedEndBalance: projectEndBalance(
+        balanceNow: cash,
+        spentSoFar: months.last.spend,
+        dayOfMonth: now.day,
+        daysInMonth: DateUtils.getDaysInMonth(now.year, now.month),
+        committed: committed,
+      ),
+    );
+  }
+
+  @override
+  Future<CategoryTrends> categoryTrends() async {
+    final now = _clock();
+    final (txs, accounts, categories) = await (
+      _allTx(from: DateTime(now.year, now.month - 5)),
+      _accounts(),
+      _categories(),
+    ).wait;
+    final months = [for (var i = 5; i >= 0; i--) DateTime(now.year, now.month - i)];
+    final by = <SpendCategory, List<double>>{};
+    for (final t in txs) {
+      final d = t.toDomain(accounts: accounts, categories: categories);
+      if (d.isIncome || d.excluded || d.category.isTransfer) continue;
+      final i = months.indexWhere(
+        (m) => m.year == d.date.year && m.month == d.date.month,
+      );
+      if (i < 0) continue;
+      (by[d.category] ??= List.filled(6, 0.0))[i] += d.amount;
+    }
+    final series = [for (final e in by.entries) CategoryTrend(e.key, e.value)]
+      ..sort((a, b) => b.values.last.compareTo(a.values.last));
+    return CategoryTrends([
+      for (final m in months) _months[m.month - 1],
+    ], series.take(6).toList());
+  }
+
+  @override
+  Future<SafeToSpend> safeToSpend() async {
+    final now = _clock();
+    final (budget, cards, cash) = await (
+      budgetOverview(),
+      myCards(),
+      _cash(),
+    ).wait;
+    final end = DateTime(now.year, now.month + 1, 0);
+    return computeSafeToSpend(
+      cash: cash,
+      budgetLeft: budget.remaining,
+      bills: 0, // TODO(api): recurring bills are not modelled yet.
+      cardDues: cards
+          .where((c) => !c.dueDate.isAfter(end))
+          .fold<double>(0, (a, c) => a + c.totalDue),
+      goals: 0,
+      daysLeft: budget.daysLeft,
+    );
+  }
+
+  @override
+  Future<HealthScore> healthScore() async {
+    final (flow, cards) = await (cashflow(), myCards()).wait;
+    final full = flow.months.length > 1
+        ? flow.months[flow.months.length - 2]
+        : flow.months.last;
+    final limits = cards.fold<double>(0, (a, c) => a + c.limit);
+    final balances = cards.fold<double>(0, (a, c) => a + c.balance);
+    final spends = [for (final m in flow.months) m.spend];
+    final avg = spends.isEmpty
+        ? 0
+        : spends.reduce((a, b) => a + b) / spends.length;
+    return computeHealthScore(
+      savingsRate: full.savingsRate,
+      utilisation: limits == 0 ? 0 : balances / limits,
+      onTimeRate: 1, // TODO(api): payment history per card.
+      runwayMonths: avg == 0 ? 0 : flow.balanceNow / avg,
+    );
+  }
+
+  @override
+  Future<Transaction> simulateCapture() => Future.error(
+    const ApiException(
+      message: 'Capture simulation is only available with demo data.',
+      code: 'not_supported',
+    ),
+  );
+
+  // ---- family --------------------------------------------------------------------
+  //
+  // TODO(api): households are not in the backend yet; only you are shown.
+
+  @override
+  Future<Household> household() async {
+    final b = await budgetOverview();
+    return Household('Household', [
+      FamilyMember(
+        id: 'me',
+        name: 'You',
+        relation: 'You',
+        sharing: SharingLevel.totals,
+        isYou: true,
+        spent: b.spent,
+        budget: b.planned,
+      ),
+    ]);
+  }
+
+  @override
+  Future<FamilyMember> inviteFamilyMember({
+    required String name,
+    required String phone,
+    required String relation,
+  }) => Future.error(
+    const ApiException(
+      message: 'Family invitations need the next server update.',
+      code: 'not_supported',
+    ),
+  );
+
+  @override
+  Future<void> setSharing(String memberId, SharingLevel level) => Future.error(
+    const ApiException(
+      message: 'Sharing settings need the next server update.',
+      code: 'not_supported',
+    ),
+  );
 }
