@@ -80,23 +80,47 @@ void main() {
     expect(find.textContaining('Projected on'), findsOneWidget);
   });
 
-  testWidgets('cards tab shows payment, verified reward rules and due dates', (
+  testWidgets('wallet stack opens card detail, swipes and returns', (
     tester,
   ) async {
     await _pump(tester, location: '/cards');
-    await tester.dragUntilVisible(
-      find.text('Rewards on this card'),
-      find.byType(ListView).first,
-      const Offset(0, -300),
-    );
-    expect(find.text('Full amount'), findsOneWidget);
-    expect(find.textContaining('Verified on'), findsWidgets);
-    await tester.dragUntilVisible(
-      find.text('Due dates'),
-      find.byType(ListView).first,
-      const Offset(0, -300),
-    );
-    expect(find.text('Due dates'), findsOneWidget);
+    expect(find.text('Total due'), findsOneWidget);
+    expect(find.text('Your cards'), findsOneWidget);
+    await tester.tap(find.text('Emirates NBD').first);
+    await tester.pumpAndSettle();
+    expect(find.byType(PageView), findsOneWidget);
+    expect(find.text('Emirates NBD Skywards Infinite'), findsOneWidget);
+    expect(find.text('Earned this month'), findsOneWidget);
+    await tester.fling(find.byType(PageView), const Offset(-300, 0), 1200);
+    await tester.pumpAndSettle();
+    expect(find.text('Mashreq Cashback Card'), findsOneWidget);
+    await tester.tap(find.byTooltip('Back'));
+    await tester.pumpAndSettle();
+    expect(find.byType(PageView), findsNothing);
+    expect(find.text('Your cards'), findsOneWidget);
+  });
+
+  testWidgets('accounts segment shows total balance and opens an account', (
+    tester,
+  ) async {
+    await _pump(tester, location: '/cards');
+    await tester.tap(find.text('Accounts'));
+    await tester.pumpAndSettle();
+    expect(find.text('Total balance'), findsOneWidget);
+    await tester.tap(find.text('Emirates NBD').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Emirates NBD Current'), findsWidgets);
+    expect(find.text('In this month'), findsOneWidget);
+  });
+
+  testWidgets('ranked page sorts and shows best card per category', (
+    tester,
+  ) async {
+    await _pump(tester, location: '/cards-ranked');
+    expect(find.text('Best card for each category'), findsOneWidget);
+    await tester.tap(find.text('Return'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('a month of the annual fee'), findsOneWidget);
   });
 
   testWidgets('simulated card tap shows the rewards moment', (tester) async {
