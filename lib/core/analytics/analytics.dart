@@ -27,6 +27,13 @@ class AnalyticsEvent {
   static const cardAdded = AnalyticsEvent._('card_added');
   factory AnalyticsEvent.cardRecommendationViewed(String category) =>
       AnalyticsEvent._('card_recommendation_viewed', {'category': category});
+
+  /// Android capture permission results. `permission` is one of
+  /// `sms_receive`, `sms_read`, `notification_access`.
+  factory AnalyticsEvent.permissionGranted(String permission) =>
+      AnalyticsEvent._('permission_granted', {'permission': permission});
+  factory AnalyticsEvent.permissionDenied(String permission) =>
+      AnalyticsEvent._('permission_denied', {'permission': permission});
   static const splitExpenseAdded = AnalyticsEvent._('split_expense_added');
 
   /// Manual entry is the exception; we measure how often it is needed.
