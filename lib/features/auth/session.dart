@@ -8,9 +8,9 @@ import '../../core/env/env.dart';
 /// not configured, sign-in succeeds locally.
 class SessionController extends ChangeNotifier {
   SessionController({
-    this.onboarded = false,
-    this.signedIn = false,
-    this.connected = false,
+    this.onboarded = Env.devSkipOnboarding,
+    this.signedIn = Env.devSkipOnboarding,
+    this.connected = Env.devSkipOnboarding,
   });
   bool onboarded;
   bool signedIn;
