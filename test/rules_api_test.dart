@@ -47,7 +47,12 @@ void main() {
 
   test('amount bounds map to inclusive minor units', () {
     final over = ruleToJson(
-      _rule(RuleField.amount, RuleOperator.greaterThan, '100', action: RuleAction.exclude),
+      _rule(
+        RuleField.amount,
+        RuleOperator.greaterThan,
+        '100',
+        action: RuleAction.exclude,
+      ),
     );
     expect((over['conditions']! as List).single, {
       'field': 'amount',
@@ -56,7 +61,12 @@ void main() {
     });
     expect(over['exclude_from_budget'], true);
     final under = ruleToJson(
-      _rule(RuleField.amount, RuleOperator.lessThan, '20', action: RuleAction.exclude),
+      _rule(
+        RuleField.amount,
+        RuleOperator.lessThan,
+        '20',
+        action: RuleAction.exclude,
+      ),
     );
     expect((under['conditions']! as List).single['value_minor'], 1999);
   });

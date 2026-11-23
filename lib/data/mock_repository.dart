@@ -486,8 +486,12 @@ class MockPulseRepository implements PulseRepository {
         rawDescription: 'Transfer to Liv Savings',
         amount: 3000,
         category: S.savings,
-        date: DateTime(_now.year, _now.month, _now.day, 8)
-            .subtract(const Duration(days: 9)),
+        date: DateTime(
+          _now.year,
+          _now.month,
+          _now.day,
+          8,
+        ).subtract(const Duration(days: 9)),
         source: TxSource.statement,
         cardId: 'enbd-current',
         accountLabel: 'Emirates NBD Current',
@@ -624,7 +628,9 @@ class MockPulseRepository implements PulseRepository {
   Future<AutomationRule> saveRule(AutomationRule rule) {
     final saved = rule.copyWith(id: _id('rule'));
     _rules.add(saved);
-    _tx = [for (final t in _tx) applyRules(t, [saved])];
+    _tx = [
+      for (final t in _tx) applyRules(t, [saved]),
+    ];
     return _d(saved);
   }
 
@@ -848,12 +854,7 @@ class MockPulseRepository implements PulseRepository {
       phone: '+971552345678',
       onPulse: true,
     );
-    const o = Member(
-      'omar',
-      'Omar',
-      Color(0xFF5BC2A8),
-      phone: '+971563456789',
-    );
+    const o = Member('omar', 'Omar', Color(0xFF5BC2A8), phone: '+971563456789');
     final now = _now;
     return [
       SplitGroup(
@@ -957,7 +958,10 @@ class MockPulseRepository implements PulseRepository {
 
   @override
   Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) {
-    _updateGroup(groupId, (g) => g.copyWith(expenses: [expense, ...g.expenses]));
+    _updateGroup(
+      groupId,
+      (g) => g.copyWith(expenses: [expense, ...g.expenses]),
+    );
     return _d(expense);
   }
 
@@ -1008,7 +1012,10 @@ class MockPulseRepository implements PulseRepository {
       date: DateTime.now(),
       status: SettlementStatus.awaitingConfirmation,
     );
-    _updateGroup(groupId, (g) => g.copyWith(settlements: [...g.settlements, rec]));
+    _updateGroup(
+      groupId,
+      (g) => g.copyWith(settlements: [...g.settlements, rec]),
+    );
     return _d(rec);
   }
 
@@ -1068,12 +1075,54 @@ class MockPulseRepository implements PulseRepository {
     final prevEnd = DateTime(end.year, end.month, 0);
     final prevStart = DateTime(prevEnd.year, prevEnd.month, 1);
     return [
-      st('st1', 'enbd', 'Emirates NBD Current', ParseStatus.parsed, ReconStatus.matched),
-      st('st2', 'mashreq', 'Mashreq Cashback ••0937', ParseStatus.parsed, ReconStatus.mismatch, diff: 238),
-      st('st3', 'fab', 'FAB Cashback ••6604', ParseStatus.needsPassword, ReconStatus.pending),
-      st('st4', 'enbd', 'Emirates NBD Skywards ••4821', ParseStatus.parsed, ReconStatus.matched, source: 'upload'),
-      st('st5', 'enbd', 'Emirates NBD Current', ParseStatus.parsed, ReconStatus.matched, s: prevStart, e: prevEnd),
-      st('st6', 'mashreq', 'Mashreq Cashback ••0937', ParseStatus.parsed, ReconStatus.matched, s: prevStart, e: prevEnd),
+      st(
+        'st1',
+        'enbd',
+        'Emirates NBD Current',
+        ParseStatus.parsed,
+        ReconStatus.matched,
+      ),
+      st(
+        'st2',
+        'mashreq',
+        'Mashreq Cashback ••0937',
+        ParseStatus.parsed,
+        ReconStatus.mismatch,
+        diff: 238,
+      ),
+      st(
+        'st3',
+        'fab',
+        'FAB Cashback ••6604',
+        ParseStatus.needsPassword,
+        ReconStatus.pending,
+      ),
+      st(
+        'st4',
+        'enbd',
+        'Emirates NBD Skywards ••4821',
+        ParseStatus.parsed,
+        ReconStatus.matched,
+        source: 'upload',
+      ),
+      st(
+        'st5',
+        'enbd',
+        'Emirates NBD Current',
+        ParseStatus.parsed,
+        ReconStatus.matched,
+        s: prevStart,
+        e: prevEnd,
+      ),
+      st(
+        'st6',
+        'mashreq',
+        'Mashreq Cashback ••0937',
+        ParseStatus.parsed,
+        ReconStatus.matched,
+        s: prevStart,
+        e: prevEnd,
+      ),
     ];
   }
 
@@ -1248,7 +1297,10 @@ class MockPulseRepository implements PulseRepository {
     const shape = [0.82, 1.06, 0.94, 1.18, 0.9];
     return _d(
       CategoryTrends(
-        [for (var i = 5; i >= 0; i--) _short(DateTime(_now.year, _now.month - i).month)],
+        [
+          for (var i = 5; i >= 0; i--)
+            _short(DateTime(_now.year, _now.month - i).month),
+        ],
         [
           for (final (i, e) in top.take(6).indexed)
             CategoryTrend(e.key, [
@@ -1410,7 +1462,8 @@ class MockPulseRepository implements PulseRepository {
   @override
   Future<void> setSharing(String memberId, SharingLevel level) {
     _family = [
-      for (final m in _family) m.id == memberId ? m.copyWith(sharing: level) : m,
+      for (final m in _family)
+        m.id == memberId ? m.copyWith(sharing: level) : m,
     ];
     return _d(null);
   }

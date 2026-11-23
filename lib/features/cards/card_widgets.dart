@@ -35,9 +35,9 @@ String _days(int d) => d == 0
     : '$d days';
 
 Future<void> showWhichCard(BuildContext context, WidgetRef ref) {
-  ref.read(analyticsProvider).track(
-    AnalyticsEvent.cardRecommendationViewed('which_card'),
-  );
+  ref
+      .read(analyticsProvider)
+      .track(AnalyticsEvent.cardRecommendationViewed('which_card'));
   return showPulseSheet<void>(context, builder: (_) => const WhichCardSheet());
 }
 
@@ -93,8 +93,7 @@ class _WhichCardSheetState extends ConsumerState<WhichCardSheet> {
             ],
             style: PulseTheme.amount(c.textPrimary),
             decoration: const InputDecoration(
-              hintText: 'Amount (optional)',
-              prefixText: 'AED  ',
+              hintText: 'Amount in AED (optional)',
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -191,15 +190,14 @@ class DueRow extends StatelessWidget {
         child: CreditCardVisual(card: info.card, compact: true),
       ),
       title: cardName(info.card),
-      subtitle:
-          'Full ${Money.aed(info.totalDue, decimals: false)} · min ${Money.aed(info.minDue, decimals: false)}\n${info.nudge}',
+      subtitle: info.urgent
+          ? info.nudge
+          : 'Full ${Money.aed(info.totalDue, decimals: false)} · min ${Money.aed(info.minDue, decimals: false)}',
+      subtitleColor: info.urgent ? tone : null,
       trailing: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          Text(
-            _days(info.daysLeft),
-            style: PulseTheme.amount(tone, size: 15),
-          ),
+          Text(_days(info.daysLeft), style: PulseTheme.amount(tone, size: 15)),
           const SizedBox(height: 2),
           Text(
             DateFormat('d MMM').format(info.card.dueDate),
@@ -238,7 +236,10 @@ class PaymentDetails extends StatelessWidget {
               ListRow(
                 dense: true,
                 title: 'Statement',
-                trailing: num(date.format(card.statementDate!), c.textSecondary),
+                trailing: num(
+                  date.format(card.statementDate!),
+                  c.textSecondary,
+                ),
               ),
             ListRow(
               dense: true,
@@ -352,14 +353,28 @@ class RewardRules extends StatelessWidget {
               );
             },
           ),
-        ListRow(
-          dense: true,
-          title: 'Everything else',
-          subtitle: verified,
-          subtitleColor: c.textTertiary,
-          trailing: Text(
-            formatRate(card.baseRate),
-            style: PulseTheme.amount(c.textSecondary),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: Space.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text('Everything else', style: context.tt.bodyLarge),
+                  ),
+                  Text(
+                    formatRate(card.baseRate),
+                    style: PulseTheme.amount(c.textSecondary),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                verified,
+                style: context.tt.labelSmall!.copyWith(color: c.textTertiary),
+              ),
+            ],
           ),
         ),
       ],
@@ -396,7 +411,14 @@ class UtilisationChart extends StatelessWidget {
           for (final k in cards) ...[
             Row(
               children: [
-                Expanded(child: Text(cardName(k), style: context.tt.bodyMedium!.copyWith(color: c.textPrimary))),
+                Expanded(
+                  child: Text(
+                    cardName(k),
+                    style: context.tt.bodyMedium!.copyWith(
+                      color: c.textPrimary,
+                    ),
+                  ),
+                ),
                 Text(
                   '${(k.utilisation * 100).round()}%',
                   style: PulseTheme.amount(tone(k.utilisation), size: 15),
@@ -416,7 +438,11 @@ class UtilisationChart extends StatelessWidget {
                   Positioned(
                     left: box.maxWidth * 0.3 - 0.5,
                     top: -3,
-                    child: Container(width: 1, height: 14, color: c.textTertiary),
+                    child: Container(
+                      width: 1,
+                      height: 14,
+                      color: c.textTertiary,
+                    ),
                   ),
                 ],
               ),

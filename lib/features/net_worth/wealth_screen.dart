@@ -181,7 +181,11 @@ class _Body extends StatelessWidget {
           child: StackedBar(
             slices: [
               for (var i = 0; i < kinds.length; i++)
-                ChartSlice(kinds[i].label, sum(kinds[i]), _shade(c, i, kinds.length)),
+                ChartSlice(
+                  kinds[i].label,
+                  sum(kinds[i]),
+                  _shade(c, i, kinds.length),
+                ),
             ],
           ),
         ),

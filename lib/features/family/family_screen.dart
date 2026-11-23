@@ -13,9 +13,8 @@ import '../../data/insights.dart';
 import '../../data/phone.dart';
 import '../../data/providers.dart';
 
-void _toast(BuildContext context, String text) => ScaffoldMessenger.of(
-  context,
-).showSnackBar(SnackBar(content: Text(text)));
+void _toast(BuildContext context, String text) =>
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
 /// A household: who is in it, what each person chooses to share, and what
 /// you share with them.
@@ -25,10 +24,8 @@ class FamilyScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final house = ref.watch(householdProvider);
-    void invite() => showPulseSheet<void>(
-      context,
-      builder: (_) => const InviteSheet(),
-    );
+    void invite() =>
+        showPulseSheet<void>(context, builder: (_) => const InviteSheet());
     return Scaffold(
       appBar: AppBar(
         title: const Text('Family'),
@@ -145,7 +142,7 @@ class _MemberRow extends StatelessWidget {
     if (m.invited) {
       subtitle = '${m.relation} · invitation sent';
     } else if (m.isYou) {
-      subtitle = 'You · sharing ${m.sharing.label.toLowerCase()}';
+      subtitle = 'Sharing ${m.sharing.label.toLowerCase()}';
     } else {
       subtitle = '${m.relation} · shares ${m.sharing.label.toLowerCase()}';
     }
@@ -173,10 +170,8 @@ class _MemberRow extends StatelessWidget {
       chevron: !m.invited,
       onTap: m.invited
           ? null
-          : () => showPulseSheet<void>(
-              context,
-              builder: (_) => _MemberSheet(m),
-            ),
+          : () =>
+                showPulseSheet<void>(context, builder: (_) => _MemberSheet(m)),
     );
   }
 }
@@ -352,7 +347,9 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
             ],
-            decoration: const InputDecoration(hintText: 'Mobile, e.g. 050 123 4567'),
+            decoration: const InputDecoration(
+              hintText: 'Mobile, e.g. 050 123 4567',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.lg),

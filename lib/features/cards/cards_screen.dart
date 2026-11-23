@@ -22,7 +22,6 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   int _index = 0;
   SpendCategory _cat = SpendCategory.groceries;
 
-
   @override
   void dispose() {
     _page.dispose();
@@ -62,7 +61,8 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                   return const EmptyState(
                     icon: Icons.credit_card_outlined,
                     title: 'No cards yet',
-                    message: 'Cards appear here once a statement or alert arrives.',
+                    message:
+                        'Cards appear here once a statement or alert arrives.',
                   );
                 }
                 final card = list[_index.clamp(0, list.length - 1)];
@@ -134,8 +134,9 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     RowGroup(
                       indent: ListRow.leadingInset,
                       children: [
-                        for (final d in [for (final k in list) dueInfo(k)]
-                          ..sort((a, b) => a.daysLeft.compareTo(b.daysLeft)))
+                        for (final d in [
+                          for (final k in list) dueInfo(k),
+                        ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft)))
                           DueRow(
                             d,
                             onTap: () {
@@ -232,7 +233,9 @@ class _Ranked extends StatelessWidget {
                 child: CreditCardVisual(card: ranked[i], compact: true),
               ),
               title: '${ranked[i].issuer} ${ranked[i].name}',
-              subtitle: i == 0 ? 'Best for ${category.label.toLowerCase()}' : null,
+              subtitle: i == 0
+                  ? 'Best for ${category.label.toLowerCase()}'
+                  : null,
               subtitleColor: c.accent,
               trailing: Text(
                 formatRate(effectiveRate(ranked[i], category)),

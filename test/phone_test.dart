@@ -21,10 +21,7 @@ void main() {
   });
 
   test('hash is SHA-256 hex of the E.164 string', () {
-    expect(
-      phoneHash('+971501234567'),
-      hashPhone('050 123 4567'),
-    );
+    expect(phoneHash('+971501234567'), hashPhone('050 123 4567'));
     expect(phoneHash('+971501234567'), hasLength(64));
     expect(
       phoneHash(''),

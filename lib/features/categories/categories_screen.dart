@@ -137,9 +137,8 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
       if (mounted) Navigator.of(context).pop();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -157,10 +156,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            hintText: '0',
-            prefixText: 'AED  ',
-          ),
+          decoration: const InputDecoration(hintText: '0', prefixText: 'AED  '),
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(
@@ -221,9 +217,8 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
       if (mounted) Navigator.of(context).pop();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);

@@ -62,7 +62,11 @@ abstract class PulseRepository {
 
   Future<List<SplitGroup>> splitGroups();
   Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense);
-  Future<Member> addMember(String groupId, {required String name, String? phone});
+  Future<Member> addMember(
+    String groupId, {
+    required String name,
+    String? phone,
+  });
 
   /// Of [phoneHashes] (SHA-256 of E.164), the ones that belong to Pulse users.
   /// Only hashes leave the device.
@@ -77,7 +81,10 @@ abstract class PulseRepository {
   });
 
   /// The payee confirms the money arrived.
-  Future<SettlementRecord> confirmSettlement(String groupId, String settlementId);
+  Future<SettlementRecord> confirmSettlement(
+    String groupId,
+    String settlementId,
+  );
 
   // ---- monthly close ---------------------------------------------------------
 

@@ -202,10 +202,8 @@ class RewardBanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '+${Money.aed(m.earned)} on ${cardName(m.card)}${m.cap?.reached ?? false ? ' · ${m.category.label} cap reached' : ''}',
-                    style: context.tt.bodySmall!.copyWith(
-                      color: c.textPrimary,
-                    ),
+                    '+${Money.aed(m.earned)} on ${cardName(m.card)}${m.cap?.reached ?? false ? ' · cap reached' : ''}',
+                    style: context.tt.bodySmall!.copyWith(color: c.textPrimary),
                   ),
                   if (m.nudge != null) ...[
                     const SizedBox(height: 2),
@@ -244,7 +242,12 @@ class RewardMomentSheet extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          AmountText(m.amount, size: 40, weight: FontWeight.w700, decimals: true),
+          AmountText(
+            m.amount,
+            size: 40,
+            weight: FontWeight.w700,
+            decimals: true,
+          ),
           const SizedBox(height: Space.xl),
           RowGroup(
             padding: EdgeInsets.zero,

@@ -19,11 +19,7 @@ class ChartSeries {
 /// The figures for the selected point, above the chart. Replaces tooltips:
 /// nothing floats over the data, and the numbers stay readable.
 class ChartReadout extends StatelessWidget {
-  const ChartReadout({
-    super.key,
-    required this.label,
-    required this.items,
-  });
+  const ChartReadout({super.key, required this.label, required this.items});
   final String label;
   final List<(String, String, Color)> items;
 
@@ -261,7 +257,9 @@ class _InspectLineChartState extends State<InspectLineChart> {
       }
     }
     final pad = (maxY - minY) * 0.12 + 1;
-    final lo = widget.fill ? minY - pad * 3 : (minY - pad).clamp(0.0, double.infinity);
+    final lo = widget.fill
+        ? minY - pad * 3
+        : (minY - pad).clamp(0.0, double.infinity);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -281,7 +279,10 @@ class _InspectLineChartState extends State<InspectLineChart> {
               gridData: FlGridData(
                 show: true,
                 drawVerticalLine: false,
-                horizontalInterval: ((maxY + pad - lo) / 2).clamp(1, double.infinity),
+                horizontalInterval: ((maxY + pad - lo) / 2).clamp(
+                  1,
+                  double.infinity,
+                ),
                 getDrawingHorizontalLine: (_) =>
                     FlLine(color: c.border, strokeWidth: 0.5),
               ),

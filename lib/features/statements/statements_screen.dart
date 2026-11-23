@@ -220,7 +220,8 @@ class _NeedsYou extends ConsumerWidget {
             .then((_) => ref.invalidate(statementsProvider)),
       ),
       _ => (
-        s.parseError ?? 'This file could not be read. Scanned PDFs are not supported yet.',
+        s.parseError ??
+            'This file could not be read. Scanned PDFs are not supported yet.',
         'Upload another',
         () => uploadStatement(context, ref),
       ),
@@ -383,9 +384,8 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
       if (mounted) Navigator.of(context).pop();
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -509,9 +509,21 @@ class ReconciliationSheet extends ConsumerWidget {
               RowGroup(
                 padding: EdgeInsets.zero,
                 children: [
-                  ListRow(dense: true, title: 'Opening balance', trailing: money(r.opening)),
-                  ListRow(dense: true, title: 'Closing on statement', trailing: money(r.closing)),
-                  ListRow(dense: true, title: 'Closing from transactions', trailing: money(r.computedClosing)),
+                  ListRow(
+                    dense: true,
+                    title: 'Opening balance',
+                    trailing: money(r.opening),
+                  ),
+                  ListRow(
+                    dense: true,
+                    title: 'Closing on statement',
+                    trailing: money(r.closing),
+                  ),
+                  ListRow(
+                    dense: true,
+                    title: 'Closing from transactions',
+                    trailing: money(r.computedClosing),
+                  ),
                   ListRow(
                     dense: true,
                     title: 'Matched to captured',
@@ -521,14 +533,18 @@ class ReconciliationSheet extends ConsumerWidget {
               ),
               if (r.statementOnly.isNotEmpty) ...[
                 const SizedBox(height: Space.xl),
-                Text('On the statement, never captured', style: context.tt.bodySmall),
+                Text(
+                  'On the statement, never captured',
+                  style: context.tt.bodySmall,
+                ),
                 RowGroup(
                   padding: EdgeInsets.zero,
                   children: [
                     for (final l in r.statementOnly)
                       ListRow(
                         title: l.description,
-                        subtitle: '${DateFormat('d MMM').format(l.date)} · added to your ledger',
+                        subtitle:
+                            '${DateFormat('d MMM').format(l.date)} · added to your ledger',
                         trailing: money(l.credit ? l.amount : -l.amount),
                       ),
                   ],
@@ -536,7 +552,10 @@ class ReconciliationSheet extends ConsumerWidget {
               ],
               if (r.capturedOnly.isNotEmpty) ...[
                 const SizedBox(height: Space.xl),
-                Text('Captured, not on the statement', style: context.tt.bodySmall),
+                Text(
+                  'Captured, not on the statement',
+                  style: context.tt.bodySmall,
+                ),
                 RowGroup(
                   padding: EdgeInsets.zero,
                   children: [
@@ -568,9 +587,8 @@ class ReconciliationSheet extends ConsumerWidget {
                       if (context.mounted) Navigator.of(context).pop();
                     } on ApiException catch (e) {
                       if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(e.message)),
-                        );
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text(e.message)));
                       }
                     }
                   },

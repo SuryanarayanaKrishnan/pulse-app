@@ -61,9 +61,12 @@ class _SnapPhysics extends ScrollPhysics {
       return super.createBallisticSimulation(position, velocity);
     }
     final page = position.pixels / extent;
-    final target = (velocity.abs() < toleranceFor(position).velocity
+    final target =
+        (velocity.abs() < toleranceFor(position).velocity
             ? page.roundToDouble()
-            : (velocity > 0 ? page.floorToDouble() + 1 : page.ceilToDouble() - 1)) *
+            : (velocity > 0
+                  ? page.floorToDouble() + 1
+                  : page.ceilToDouble() - 1)) *
         extent;
     final clamped = target.clamp(
       position.minScrollExtent,

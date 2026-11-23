@@ -53,7 +53,14 @@ enum ReconStatus {
 
 /// What the user sees for one statement, collapsed from parse and
 /// reconciliation status.
-enum CloseState { matched, mismatch, needsPassword, needsAccount, processing, failed }
+enum CloseState {
+  matched,
+  mismatch,
+  needsPassword,
+  needsAccount,
+  processing,
+  failed,
+}
 
 class Statement {
   const Statement({

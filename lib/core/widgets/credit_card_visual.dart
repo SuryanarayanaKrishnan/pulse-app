@@ -21,11 +21,16 @@ class CreditCardVisual extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(pad),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(compact ? Radii.sm / 2 : Radii.md),
+          borderRadius: BorderRadius.circular(
+            compact ? Radii.sm / 2 : Radii.md,
+          ),
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [card.gradient.first, card.gradient[card.gradient.length ~/ 2]],
+            colors: [
+              card.gradient.first,
+              card.gradient[card.gradient.length ~/ 2],
+            ],
           ),
         ),
         child: compact

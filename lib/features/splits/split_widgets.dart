@@ -12,9 +12,10 @@ import '../../data/phone.dart';
 import '../../data/providers.dart';
 import 'contacts.dart';
 
-void _toast(BuildContext context, String text) => ScaffoldMessenger.of(
-  context,
-).showSnackBar(SnackBar(content: Text(text), duration: const Duration(seconds: 2)));
+void _toast(BuildContext context, String text) => ScaffoldMessenger.of(context)
+    .showSnackBar(
+      SnackBar(content: Text(text), duration: const Duration(seconds: 2)),
+    );
 
 /// Initial in a neutral circle; a small accent dot marks people on Pulse.
 class MemberAvatar extends StatelessWidget {
@@ -77,7 +78,10 @@ Future<void> confirmReceived(
     Haptics.success();
     ref.invalidate(splitGroupsProvider);
     if (context.mounted) {
-      _toast(context, 'Confirmed. ${g.member(s.from)?.name ?? 'They'} are settled up.');
+      _toast(
+        context,
+        'Confirmed. ${g.member(s.from)?.name ?? 'They'} are settled up.',
+      );
     }
   } on ApiException catch (e) {
     if (context.mounted) _toast(context, e.message);
@@ -180,7 +184,8 @@ class _AaniSettleSheetState extends ConsumerState<AaniSettleSheet> {
     );
     return SheetScaffold(
       title: 'Settle with Aani',
-      subtitle: 'Pay ${p.name} from your bank app. Aani transfers arrive in seconds.',
+      subtitle:
+          'Pay ${p.name} from your bank app. Aani transfers arrive in seconds.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -199,7 +204,9 @@ class _AaniSettleSheetState extends ConsumerState<AaniSettleSheet> {
                 subtitle: p.phone == null
                     ? 'Not saved. Ask ${p.name} for the number on their Aani account.'
                     : formatPhone(p.phone!),
-                trailing: p.phone == null ? null : copyButton(p.phone!, 'Number'),
+                trailing: p.phone == null
+                    ? null
+                    : copyButton(p.phone!, 'Number'),
               ),
             ],
           ),
@@ -326,13 +333,14 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   Widget build(BuildContext context) {
     final c = context.pc;
     final q = _search.text.trim().toLowerCase();
-    final shown = [
-      for (final x in _contacts)
-        if (q.isEmpty || x.name.toLowerCase().contains(q)) x,
-    ]..sort((a, b) {
-        final pa = _isOnPulse(a) ? 0 : 1, pb = _isOnPulse(b) ? 0 : 1;
-        return pa != pb ? pa - pb : a.name.compareTo(b.name);
-      });
+    final shown =
+        [
+          for (final x in _contacts)
+            if (q.isEmpty || x.name.toLowerCase().contains(q)) x,
+        ]..sort((a, b) {
+          final pa = _isOnPulse(a) ? 0 : 1, pb = _isOnPulse(b) ? 0 : 1;
+          return pa != pb ? pa - pb : a.name.compareTo(b.name);
+        });
     return SheetScaffold(
       title: 'Add people',
       subtitle:
@@ -347,10 +355,13 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
           icon: Icons.contacts_outlined,
           title: 'Contacts are off',
           message: 'Allow contacts access in Settings to add people quickly.',
-          action: TextAction('Try again', onTap: () {
-            setState(() => _access = null);
-            _load();
-          }),
+          action: TextAction(
+            'Try again',
+            onTap: () {
+              setState(() => _access = null);
+              _load();
+            },
+          ),
         ),
         _ => Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,

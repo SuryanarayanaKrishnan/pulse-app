@@ -27,7 +27,8 @@ double rewardFor(CreditCard c, SpendCategory category, double amount) {
 /// Cards ranked best-first for [category], cap-aware.
 List<CreditCard> rankCardsFor(List<CreditCard> cards, SpendCategory category) =>
     List.of(cards)..sort(
-      (a, b) => effectiveRate(b, category).compareTo(effectiveRate(a, category)),
+      (a, b) =>
+          effectiveRate(b, category).compareTo(effectiveRate(a, category)),
     );
 
 String formatRate(double r) => '${r.toStringAsFixed(r % 1 == 0 ? 0 : 1)}%';
@@ -185,7 +186,8 @@ class DueInfo {
 
   String get nudge {
     if (overdue) return 'Overdue. Pay at least the minimum today';
-    if (daysLeft == 0) return 'Due today. Pay the full amount to avoid interest';
+    if (daysLeft == 0)
+      return 'Due today. Pay the full amount to avoid interest';
     final d = payBy.difference(today).inDays;
     if (d <= 0) return 'Pay today to land before the due date';
     return 'Pay in full within $d ${d == 1 ? 'day' : 'days'} to avoid interest';

@@ -5,7 +5,12 @@ import '../theme/tokens.dart';
 
 /// A single 2pt line. No fill, no dot, no axes.
 class Sparkline extends StatelessWidget {
-  const Sparkline({super.key, required this.values, this.height = 56, this.color});
+  const Sparkline({
+    super.key,
+    required this.values,
+    this.height = 56,
+    this.color,
+  });
   final List<double> values;
   final double height;
   final Color? color;
@@ -74,7 +79,8 @@ class StackedBar extends StatelessWidget {
         child: Row(
           children: [
             for (var i = 0; i < slices.length; i++) ...[
-              if (i > 0) SizedBox(width: 2, child: ColoredBox(color: context.pc.bg)),
+              if (i > 0)
+                SizedBox(width: 2, child: ColoredBox(color: context.pc.bg)),
               Expanded(
                 flex: (slices[i].value / total * 1000).round().clamp(1, 1000),
                 child: ColoredBox(color: slices[i].color),

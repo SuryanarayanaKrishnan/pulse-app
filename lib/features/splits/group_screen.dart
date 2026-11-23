@@ -38,7 +38,8 @@ class GroupScreen extends ConsumerWidget {
               onPressed: () => showPulseSheet<void>(
                 context,
                 full: true,
-                builder: (_) => AddSplitSheet(groups: groups.value!, initial: g),
+                builder: (_) =>
+                    AddSplitSheet(groups: groups.value!, initial: g),
               ),
             ),
         ],
@@ -69,26 +70,27 @@ class _Body extends ConsumerWidget {
     final others = g.members.where((m) => m.id != 'me').toList();
 
     Widget memberRow(Member m) {
-      final iOwe = plan.where((s) => s.from == 'me' && s.to == m.id).firstOrNull;
-      final owesMe = plan.where((s) => s.from == m.id && s.to == 'me').firstOrNull;
+      final iOwe = plan
+          .where((s) => s.from == 'me' && s.to == m.id)
+          .firstOrNull;
+      final owesMe = plan
+          .where((s) => s.from == m.id && s.to == 'me')
+          .firstOrNull;
       String subtitle;
       Color? subColor;
       Widget? trailing;
       if (iOwe != null) {
         final pending = pendingSettlement(g, 'me', m.id);
         if (pending != null) {
-          subtitle = 'You paid ${Money.aed(pending.amount)} via Aani · waiting for ${m.name}';
+          subtitle =
+              'You paid ${Money.aed(pending.amount)} via Aani · waiting for ${m.name}';
           subColor = c.textSecondary;
         } else {
           subtitle = 'You owe ${Money.aed(iOwe.amount)}';
           trailing = TextAction(
             'Settle',
-            onTap: () => showAaniSheet(
-              context,
-              group: g,
-              payee: m,
-              amount: iOwe.amount,
-            ),
+            onTap: () =>
+                showAaniSheet(context, group: g, payee: m, amount: iOwe.amount),
           );
         }
       } else if (owesMe != null) {
@@ -138,7 +140,7 @@ class _Body extends ConsumerWidget {
           value: mine.abs(),
           color: mine > 0.005 ? c.positive : null,
           caption:
-              '${g.expenses.length} expenses · ${Money.aed(g.total, decimals: false)} in total',
+              '${g.expenses.length} ${g.expenses.length == 1 ? 'expense' : 'expenses'} · ${Money.aed(g.total, decimals: false)} in total',
         ),
         const SectionHeader('People'),
         RowGroup(
@@ -169,8 +171,10 @@ class _Body extends ConsumerWidget {
               children: [
                 Dot(c.accent),
                 const SizedBox(width: Space.sm),
-                Text('On Pulse: sees this group and confirms payments',
-                    style: context.tt.bodySmall),
+                Text(
+                  'On Pulse: sees this group and confirms payments',
+                  style: context.tt.bodySmall,
+                ),
               ],
             ),
           ),

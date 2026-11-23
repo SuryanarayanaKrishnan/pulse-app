@@ -37,7 +37,10 @@ class HealthSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: Space.sm),
-              Text('/ 100 · ${h.band}', style: context.tt.bodyLarge!.copyWith(color: c.textSecondary)),
+              Text(
+                '/ 100 · ${h.band}',
+                style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
+              ),
             ],
           ),
           const SizedBox(height: Space.xl),

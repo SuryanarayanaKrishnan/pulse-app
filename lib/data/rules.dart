@@ -13,8 +13,16 @@ enum RuleField {
   bool get numeric => this == RuleField.amount;
 
   List<RuleOperator> get operators => numeric
-      ? const [RuleOperator.equals, RuleOperator.greaterThan, RuleOperator.lessThan]
-      : const [RuleOperator.contains, RuleOperator.equals, RuleOperator.startsWith];
+      ? const [
+          RuleOperator.equals,
+          RuleOperator.greaterThan,
+          RuleOperator.lessThan,
+        ]
+      : const [
+          RuleOperator.contains,
+          RuleOperator.equals,
+          RuleOperator.startsWith,
+        ];
 }
 
 enum RuleOperator {
@@ -173,13 +181,14 @@ bool hasMerchantRule(
       r.action == RuleAction.setCategory &&
       r.category == category &&
       switch (r.op) {
-        RuleOperator.equals => normaliseText(merchant) == normaliseText(r.value),
-        RuleOperator.contains => normaliseText(merchant).contains(
-          normaliseText(r.value),
-        ),
-        RuleOperator.startsWith => normaliseText(merchant).startsWith(
-          normaliseText(r.value),
-        ),
+        RuleOperator.equals =>
+          normaliseText(merchant) == normaliseText(r.value),
+        RuleOperator.contains => normaliseText(
+          merchant,
+        ).contains(normaliseText(r.value)),
+        RuleOperator.startsWith => normaliseText(
+          merchant,
+        ).startsWith(normaliseText(r.value)),
         _ => false,
       },
 );

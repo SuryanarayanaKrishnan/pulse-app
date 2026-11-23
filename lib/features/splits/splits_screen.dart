@@ -132,7 +132,10 @@ class _Body extends ConsumerWidget {
                         color: c.surfaceElevated,
                         borderRadius: BorderRadius.circular(Radii.sm),
                       ),
-                      child: Text(g.emoji, style: const TextStyle(fontSize: 17)),
+                      child: Text(
+                        g.emoji,
+                        style: const TextStyle(fontSize: 17),
+                      ),
                     ),
                     title: g.name,
                     subtitle:
@@ -190,7 +193,10 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
 
   Future<void> _save() async {
     final amt = double.tryParse(_amount.text.replaceAll(',', ''));
-    if (amt == null || amt <= 0 || _title.text.trim().isEmpty || _with.isEmpty) {
+    if (amt == null ||
+        amt <= 0 ||
+        _title.text.trim().isEmpty ||
+        _with.isEmpty) {
       return;
     }
     await ref

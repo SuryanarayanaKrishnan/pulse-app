@@ -10,9 +10,8 @@ import '../../data/providers.dart';
 import '../../data/rules.dart';
 import '../categories/category_picker.dart';
 
-void _toast(BuildContext context, String text) => ScaffoldMessenger.of(
-  context,
-).showSnackBar(SnackBar(content: Text(text)));
+void _toast(BuildContext context, String text) =>
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
 IconData _iconFor(RuleAction a) => switch (a) {
   RuleAction.setCategory => Icons.category_outlined,
@@ -213,15 +212,19 @@ class _RuleEditorSheetState extends ConsumerState<RuleEditorSheet> {
     child: Text(s, style: context.tt.bodySmall),
   );
 
-  Widget _chips<T>(List<T> items, T value, String Function(T) label, ValueChanged<T> on) =>
-      Wrap(
-        spacing: Space.sm,
-        runSpacing: Space.sm,
-        children: [
-          for (final x in items)
-            Pill(label(x), selected: x == value, onTap: () => on(x)),
-        ],
-      );
+  Widget _chips<T>(
+    List<T> items,
+    T value,
+    String Function(T) label,
+    ValueChanged<T> on,
+  ) => Wrap(
+    spacing: Space.sm,
+    runSpacing: Space.sm,
+    children: [
+      for (final x in items)
+        Pill(label(x), selected: x == value, onTap: () => on(x)),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +242,12 @@ class _RuleEditorSheetState extends ConsumerState<RuleEditorSheet> {
             });
           }),
           const SizedBox(height: Space.md),
-          _chips(_field.operators, _op, (o) => o.label, (o) => setState(() => _op = o)),
+          _chips(
+            _field.operators,
+            _op,
+            (o) => o.label,
+            (o) => setState(() => _op = o),
+          ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _value,
@@ -259,7 +267,12 @@ class _RuleEditorSheetState extends ConsumerState<RuleEditorSheet> {
           ),
           const SizedBox(height: Space.xl),
           _label('Then'),
-          _chips(RuleAction.values, _action, (a) => a.label, (a) => setState(() => _action = a)),
+          _chips(
+            RuleAction.values,
+            _action,
+            (a) => a.label,
+            (a) => setState(() => _action = a),
+          ),
           const SizedBox(height: Space.md),
           AnimatedSize(
             duration: Motion.base,
@@ -280,7 +293,10 @@ class _RuleEditorSheetState extends ConsumerState<RuleEditorSheet> {
                     ),
                     chevron: true,
                     onTap: () async {
-                      final c = await pickCategory(context, selected: _category);
+                      final c = await pickCategory(
+                        context,
+                        selected: _category,
+                      );
                       if (c != null) setState(() => _category = c);
                     },
                   ),

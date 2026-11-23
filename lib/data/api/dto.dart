@@ -566,9 +566,8 @@ class SettlementDto {
     status: j['status'] as String?,
   );
 
-  bool get _awaiting => status != null
-      ? status != 'confirmed'
-      : note == aaniPendingNote;
+  bool get _awaiting =>
+      status != null ? status != 'confirmed' : note == aaniPendingNote;
 
   SettlementRecord toDomain(String Function(String) idOf) => SettlementRecord(
     id: id,

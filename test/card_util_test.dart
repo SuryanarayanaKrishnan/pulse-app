@@ -32,7 +32,11 @@ CreditCard _card(
 void main() {
   test('effective rate falls to base once a cap is reached', () {
     final open = _card('a', dining: 5, cap: const RewardCap(limit: 100));
-    final full = _card('a', dining: 5, cap: const RewardCap(limit: 100, used: 100));
+    final full = _card(
+      'a',
+      dining: 5,
+      cap: const RewardCap(limit: 100, used: 100),
+    );
     expect(effectiveRate(open, SpendCategory.dining), 5);
     expect(effectiveRate(full, SpendCategory.dining), 0.5);
   });
@@ -50,7 +54,11 @@ void main() {
       cap: const RewardCap(limit: 100, used: 100),
     );
     final other = _card('adcb', dining: 3);
-    final advice = adviseCard([capped, other], SpendCategory.dining, amount: 100)!;
+    final advice = adviseCard(
+      [capped, other],
+      SpendCategory.dining,
+      amount: 100,
+    )!;
     expect(advice.best.id, 'adcb');
     expect(advice.rate, 3);
     expect(advice.estimate, closeTo(3, 0.001));
@@ -59,7 +67,11 @@ void main() {
   });
 
   test('reward moment nudges to another card when the cap is hit', () {
-    final fab = _card('fab', dining: 5, cap: const RewardCap(limit: 100, used: 97));
+    final fab = _card(
+      'fab',
+      dining: 5,
+      cap: const RewardCap(limit: 100, used: 97),
+    );
     final adcb = _card('adcb', dining: 3);
     final m = rewardMoment(
       cards: [fab, adcb],

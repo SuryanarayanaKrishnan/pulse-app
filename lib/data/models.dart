@@ -140,11 +140,7 @@ class SpendCategory {
     Icons.credit_card_outlined,
     kind: CategoryKind.transfer,
   );
-  static const fees = SpendCategory(
-    'fees',
-    'Fees',
-    Icons.receipt_outlined,
-  );
+  static const fees = SpendCategory('fees', 'Fees', Icons.receipt_outlined);
   static const other = SpendCategory(
     'other',
     'Other',
@@ -240,8 +236,7 @@ class Transaction {
     SpendCategory? category,
     String? merchant,
     bool? excluded,
-  }) =>
-      Transaction(
+  }) => Transaction(
     id: id,
     merchant: merchant ?? this.merchant,
     amount: amount,

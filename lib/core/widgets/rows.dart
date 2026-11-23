@@ -182,9 +182,11 @@ class Meter extends StatelessWidget {
           duration: Motion.slow,
           curve: Motion.curve,
           builder: (_, x, _) => Stack(
+            fit: StackFit.expand,
             children: [
-              Positioned.fill(child: ColoredBox(color: c.surfaceElevated)),
+              ColoredBox(color: c.surfaceElevated),
               FractionallySizedBox(
+                alignment: Alignment.centerLeft,
                 widthFactor: x,
                 child: ColoredBox(color: color ?? c.accent),
               ),

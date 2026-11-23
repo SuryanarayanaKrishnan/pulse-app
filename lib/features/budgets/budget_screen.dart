@@ -222,7 +222,12 @@ class _WhereItWentState extends State<_WhereItWent> {
     final rows = switch (_by) {
       _By.merchants => [
         for (final m in o.topMerchants)
-          (m.merchant, '${m.count} ${m.count == 1 ? 'payment' : 'payments'}', m.total, m.category.icon),
+          (
+            m.merchant,
+            '${m.count} ${m.count == 1 ? 'payment' : 'payments'}',
+            m.total,
+            m.category.icon,
+          ),
       ],
       _By.cards => _entries(o.byCard, Icons.credit_card_outlined),
       _By.accounts => _entries(o.byAccount, Icons.account_balance_outlined),

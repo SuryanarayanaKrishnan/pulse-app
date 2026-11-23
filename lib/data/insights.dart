@@ -157,15 +157,26 @@ HealthScore computeHealthScore({
     ),
   ];
   final weakest = factors.reduce((a, b) => a.score <= b.score ? a : b);
-  final readiness = weakest.score >= 0.8
-      ? 'All four signals are healthy. A good day to leave things be.'
-      : switch (weakest.name) {
-          'Savings rate' => 'Saving is the one to watch: aim for 20% this month.',
-          'Card utilisation' =>
-            'Card balances are high. Paying down before statements helps most.',
-          'Bills on time' => 'A bill slipped recently. Due dates are below.',
-          _ => 'Runway is short. Even a small automatic transfer helps.',
-        };
+  final String readiness;
+  if (weakest.score >= 0.8) {
+    readiness = 'All four signals are healthy. A good day to leave things be.';
+  } else if (weakest.score >= 0.5) {
+    readiness = switch (weakest.name) {
+      'Savings rate' => 'Saving a little more would lift you most.',
+      'Card utilisation' =>
+        'Paying cards down before statements would lift you most.',
+      'Bills on time' => 'Keep every bill on time this month.',
+      _ => 'A bigger cash cushion would lift you most.',
+    };
+  } else {
+    readiness = switch (weakest.name) {
+      'Savings rate' => 'Saving is the one to watch: aim for 20% this month.',
+      'Card utilisation' =>
+        'Card balances are high. Paying down before statements helps most.',
+      'Bills on time' => 'A bill slipped recently. Due dates are below.',
+      _ => 'Runway is short. Even a small automatic transfer helps.',
+    };
+  }
   return HealthScore(score, factors, readiness);
 }
 
@@ -177,8 +188,18 @@ List<CashflowMonth> cashflowFromTransactions(
   int months = 6,
 }) {
   const names = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   return [
     for (var i = months - 1; i >= 0; i--)

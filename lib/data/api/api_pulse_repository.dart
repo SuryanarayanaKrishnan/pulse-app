@@ -384,7 +384,10 @@ class ApiPulseRepository implements PulseRepository {
     } else {
       await _send('POST', '/v1/budgets', {
         'category_id': target.id,
-        'month': DateTime(now.year, now.month).toIso8601String().substring(0, 10),
+        'month': DateTime(
+          now.year,
+          now.month,
+        ).toIso8601String().substring(0, 10),
         'limit_minor': toMinor(monthly),
         'currency': 'AED',
       });
@@ -446,11 +449,68 @@ class ApiPulseRepository implements PulseRepository {
         : thisMonth;
   }
 
+  /// `/v1/rewards/summary` keyed by account id; empty while the endpoint is
+  /// not deployed.
+  Future<Map<String, Map<String, Object?>>> _rewardsByAccount() async {
+    try {
+      final j = await _getMap('/v1/rewards/summary');
+      return {
+        for (final c in (j['cards'] as List? ?? const []))
+          if ((c as Map)['account_id'] != null)
+            c['account_id']! as String: Map<String, Object?>.from(c),
+      };
+    } on ApiException catch (e) {
+      if (e.statusCode == 404 || e.statusCode == 405) return const {};
+      rethrow;
+    }
+  }
+
+  static CreditCard _withRewards(CreditCard card, Map<String, Object?>? r) {
+    if (r == null) return card;
+    double n(Object? v) => v == null ? 0 : double.parse('$v');
+    final cash = r['unit'] == 'cashback';
+    final caps = <SpendCategory, RewardCap>{};
+    for (final c in (r['caps'] as List? ?? const [])) {
+      final m = Map<String, Object?>.from(c as Map);
+      if (!cash || m['cap_units'] == null) continue;
+      final cat = spendCategoryFor('${m['rule']}');
+      if (cat == SpendCategory.other) continue;
+      caps[cat] = RewardCap(limit: n(m['cap_units']), used: n(m['used_units']));
+    }
+    return CreditCard(
+      id: card.id,
+      issuer: (r['issuer'] as String?) ?? card.issuer,
+      name: (r['name'] as String?) ?? card.name,
+      last4: card.last4,
+      network: card.network,
+      gradient: card.gradient,
+      limit: card.limit,
+      balance: card.balance,
+      dueDate: card.dueDate,
+      minDue: card.minDue,
+      rewardsLabel: cash ? 'Cashback this cycle' : 'Points this cycle',
+      rewardPoints: cash ? 0 : n(r['earned_units']).round(),
+      rewardValueAed: fromMinor(
+        (r['earned_value_minor'] as num?)?.toInt() ?? 0,
+      ),
+      categoryRates: card.categoryRates,
+      statementDate: r['cycle_end'] == null
+          ? null
+          : DateTime.parse(r['cycle_end']! as String),
+      caps: caps,
+      rulesVerifiedOn: r['verified_on'] == null
+          ? null
+          : DateTime.parse(r['verified_on']! as String),
+    );
+  }
+
+  @override
   @override
   Future<List<CreditCard>> myCards() async {
-    final (accounts, liabilities) = await (
+    final (accounts, liabilities, rewards) = await (
       _accounts(),
       _getList('/v1/liabilities'),
+      _rewardsByAccount(),
     ).wait;
     final owed = <String, int>{};
     for (final l in liabilities.map(LiabilityDto.fromJson)) {
@@ -461,21 +521,24 @@ class ApiPulseRepository implements PulseRepository {
     final cards = accounts.values.where((a) => a.isCreditCard).toList();
     return [
       for (var i = 0; i < cards.length; i++)
-        CreditCard(
-          id: cards[i].id,
-          issuer: cards[i].institution ?? cards[i].name,
-          name: cards[i].name,
-          last4: cards[i].last4 ?? '----',
-          network: CardNetwork.visa, // not stored by the backend
-          gradient: _gradients[i % _gradients.length],
-          limit: fromMinor(cards[i].creditLimitMinor ?? 0),
-          balance: fromMinor(owed[cards[i].id] ?? 0),
-          dueDate: _nextDay(cards[i].dueDay),
-          minDue: 0, // TODO(api): no minimum-due field yet.
-          rewardsLabel: 'Rewards',
-          rewardPoints: 0,
-          rewardValueAed: 0,
-          categoryRates: const {},
+        _withRewards(
+          CreditCard(
+            id: cards[i].id,
+            issuer: cards[i].institution ?? cards[i].name,
+            name: cards[i].name,
+            last4: cards[i].last4 ?? '----',
+            network: CardNetwork.visa, // not stored by the backend
+            gradient: _gradients[i % _gradients.length],
+            limit: fromMinor(cards[i].creditLimitMinor ?? 0),
+            balance: fromMinor(owed[cards[i].id] ?? 0),
+            dueDate: _nextDay(cards[i].dueDay),
+            minDue: 0, // TODO(api): no minimum-due field yet.
+            rewardsLabel: 'Rewards',
+            rewardPoints: 0,
+            rewardValueAed: 0,
+            categoryRates: const {},
+          ),
+          rewards[cards[i].id],
         ),
     ];
   }
@@ -522,7 +585,8 @@ class ApiPulseRepository implements PulseRepository {
           _getList('/v1/splits/groups/${g.id}/expenses', query: {'limit': 100}),
       ]),
       Future.wait([
-        for (final g in groups) _getList('/v1/splits/groups/${g.id}/settlements'),
+        for (final g in groups)
+          _getList('/v1/splits/groups/${g.id}/settlements'),
       ]),
     ).wait;
     return [
@@ -769,7 +833,8 @@ class ApiPulseRepository implements PulseRepository {
     ).wait;
     final (accounts, categories) = await (_accounts(), _categories()).wait;
     final domain = [
-      for (final t in txs) t.toDomain(accounts: accounts, categories: categories),
+      for (final t in txs)
+        t.toDomain(accounts: accounts, categories: categories),
     ];
     final months = cashflowFromTransactions(domain, now: now);
     final end = DateTime(now.year, now.month + 1, 0);
@@ -798,7 +863,9 @@ class ApiPulseRepository implements PulseRepository {
       _accounts(),
       _categories(),
     ).wait;
-    final months = [for (var i = 5; i >= 0; i--) DateTime(now.year, now.month - i)];
+    final months = [
+      for (var i = 5; i >= 0; i--) DateTime(now.year, now.month - i),
+    ];
     final by = <SpendCategory, List<double>>{};
     for (final t in txs) {
       final d = t.toDomain(accounts: accounts, categories: categories);

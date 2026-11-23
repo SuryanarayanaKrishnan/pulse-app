@@ -43,12 +43,8 @@ class AmountText extends StatelessWidget {
       tween: Tween(begin: value, end: value),
       duration: Motion.slow,
       curve: Motion.curve,
-      builder: (_, v, _) => Text(
-        fmt(v),
-        style: style,
-        maxLines: 1,
-        semanticsLabel: fmt(value),
-      ),
+      builder: (_, v, _) =>
+          Text(fmt(v), style: style, maxLines: 1, semanticsLabel: fmt(value)),
     );
   }
 }

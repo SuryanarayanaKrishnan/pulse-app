@@ -54,9 +54,7 @@ class DeviceContactsSource implements ContactsSource {
 List<DeviceContact> toDeviceContacts(List<(String, List<String>)> raw) {
   final out = <DeviceContact>[];
   for (final (name, numbers) in raw) {
-    final phones = <String>{
-      for (final n in numbers) ?toE164(n),
-    }.toList();
+    final phones = <String>{for (final n in numbers) ?toE164(n)}.toList();
     if (name.trim().isEmpty || phones.isEmpty) continue;
     out.add(DeviceContact(name: name.trim(), phones: phones));
   }

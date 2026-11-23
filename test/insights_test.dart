@@ -61,30 +61,43 @@ void main() {
   });
 
   test('cashflow by month skips transfers and excluded spend', () {
-    Transaction tx(double a, DateTime d, {bool income = false, SpendCategory? cat, bool excluded = false}) =>
-        Transaction(
-          id: '$a$d',
-          merchant: 'm',
-          amount: a,
-          category: cat ?? (income ? SpendCategory.salary : SpendCategory.groceries),
-          date: d,
-          source: TxSource.sms,
-          cardId: 'c',
-          accountLabel: 'x',
-          isIncome: income,
-          excluded: excluded,
-        );
-    final months = cashflowFromTransactions([
-      tx(20000, DateTime(2026, 11, 1), income: true),
-      tx(300, DateTime(2026, 11, 3)),
-      tx(5000, DateTime(2026, 11, 4), cat: SpendCategory.savings),
-      tx(900, DateTime(2026, 11, 5), excluded: true),
-      tx(400, DateTime(2026, 10, 12)),
-    ], now: DateTime(2026, 11, 23), months: 2);
+    Transaction tx(
+      double a,
+      DateTime d, {
+      bool income = false,
+      SpendCategory? cat,
+      bool excluded = false,
+    }) => Transaction(
+      id: '$a$d',
+      merchant: 'm',
+      amount: a,
+      category:
+          cat ?? (income ? SpendCategory.salary : SpendCategory.groceries),
+      date: d,
+      source: TxSource.sms,
+      cardId: 'c',
+      accountLabel: 'x',
+      isIncome: income,
+      excluded: excluded,
+    );
+    final months = cashflowFromTransactions(
+      [
+        tx(20000, DateTime(2026, 11, 1), income: true),
+        tx(300, DateTime(2026, 11, 3)),
+        tx(5000, DateTime(2026, 11, 4), cat: SpendCategory.savings),
+        tx(900, DateTime(2026, 11, 5), excluded: true),
+        tx(400, DateTime(2026, 10, 12)),
+      ],
+      now: DateTime(2026, 11, 23),
+      months: 2,
+    );
     expect(months.map((m) => m.label), ['Oct', 'Nov']);
     expect(months[0].spend, 400);
     expect(months[1].income, 20000);
-    expect(months[1].saved, 20000 - 300 - (SpendCategory.savings.isTransfer ? 0 : 5000));
+    expect(
+      months[1].saved,
+      20000 - 300 - (SpendCategory.savings.isTransfer ? 0 : 5000),
+    );
   });
 
   test('projected balance extends the daily pace to month end', () {

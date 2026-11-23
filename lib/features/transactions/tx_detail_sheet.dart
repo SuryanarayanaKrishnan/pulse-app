@@ -47,9 +47,9 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
           ),
         );
     invalidateLedger(ref);
-    final rules = await ref.read(rulesProvider.future).catchError(
-      (_) => <AutomationRule>[],
-    );
+    final rules = await ref
+        .read(rulesProvider.future)
+        .catchError((_) => <AutomationRule>[]);
     if (!mounted) return;
     if (!hasMerchantRule(rules, widget.tx.merchant, picked)) {
       setState(() => _suggestion = suggestMerchantRule(widget.tx, picked));
@@ -68,9 +68,8 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       if (mounted) setState(() => _ruleSaved = true);
     } on ApiException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.message)));
       }
     } finally {
       if (mounted) setState(() => _saving = false);

@@ -71,10 +71,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               }
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(
-                value: 'manual',
-                child: Text('Add cash expense'),
-              ),
+              PopupMenuItem(value: 'manual', child: Text('Add cash expense')),
             ],
           ),
         ],

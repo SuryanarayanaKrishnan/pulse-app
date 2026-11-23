@@ -138,9 +138,8 @@ class PulseTheme {
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.all(Colors.white),
         trackColor: WidgetStateProperty.resolveWith(
-          (s) => s.contains(WidgetState.selected)
-              ? c.positive
-              : c.surfaceElevated,
+          (s) =>
+              s.contains(WidgetState.selected) ? c.positive : c.surfaceElevated,
         ),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),

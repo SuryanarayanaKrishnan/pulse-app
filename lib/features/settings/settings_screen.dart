@@ -175,7 +175,10 @@ class SettingsScreen extends ConsumerWidget {
               ListRow(
                 dense: true,
                 title: 'Notifications',
-                trailing: Text('Due dates, budgets', style: context.tt.bodyMedium),
+                trailing: Text(
+                  'Due dates, budgets',
+                  style: context.tt.bodyMedium,
+                ),
               ),
               ListRow(
                 dense: true,
@@ -190,7 +193,10 @@ class SettingsScreen extends ConsumerWidget {
               indent: ListRow.leadingInset,
               children: [
                 ListRow(
-                  leading: IconWell(Icons.contactless_outlined, color: c.accent),
+                  leading: IconWell(
+                    Icons.contactless_outlined,
+                    color: c.accent,
+                  ),
                   title: 'Simulate a card tap',
                   subtitle: 'Shows the live rewards moment',
                   onTap: () => simulateCardTap(context, ref),
@@ -204,7 +210,10 @@ class SettingsScreen extends ConsumerWidget {
               ListRow(
                 dense: true,
                 title: '${Env.appName} beta',
-                trailing: Text('Friends & family', style: context.tt.bodyMedium),
+                trailing: Text(
+                  'Friends & family',
+                  style: context.tt.bodyMedium,
+                ),
               ),
               ListRow(
                 dense: true,

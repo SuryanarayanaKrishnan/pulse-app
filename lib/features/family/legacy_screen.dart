@@ -71,14 +71,12 @@ class LegacyScreen extends StatelessWidget {
               ListRow(
                 leading: IconWell(Icons.inventory_2_outlined),
                 title: 'If something happens to me',
-                subtitle:
-                    'An inventory of accounts, policies, documents and contacts',
+                subtitle: 'An inventory of accounts, policies, documents and contacts',
               ),
               ListRow(
                 leading: IconWell(Icons.lock_clock_outlined),
                 title: 'Trusted contact release',
-                subtitle:
-                    'Shared with a person you choose only after a long period of inactivity, and only after they confirm',
+                subtitle: 'Shared with a person you choose only after a long period of inactivity, and only after they confirm',
               ),
             ],
           ),

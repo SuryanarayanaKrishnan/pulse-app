@@ -158,10 +158,27 @@ class _SafeToSpendSheet extends ConsumerWidget {
             padding: EdgeInsets.zero,
             children: [
               if (b != null)
-                ListRow(dense: true, title: 'Left in budget', trailing: num(b.remaining)),
-              ListRow(dense: true, title: 'Bills still to come', trailing: num(v.bills, minus: true)),
-              ListRow(dense: true, title: 'Card dues this month', subtitle: 'From your cash, not your budget', trailing: num(v.cardDues, minus: true)),
-              ListRow(dense: true, title: 'Goal contributions', trailing: num(v.goals, minus: true)),
+                ListRow(
+                  dense: true,
+                  title: 'Left in budget',
+                  trailing: num(b.remaining),
+                ),
+              ListRow(
+                dense: true,
+                title: 'Bills still to come',
+                trailing: num(v.bills, minus: true),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Card dues this month',
+                subtitle: 'From your cash, not your budget',
+                trailing: num(v.cardDues, minus: true),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Goal contributions',
+                trailing: num(v.goals, minus: true),
+              ),
               ListRow(
                 dense: true,
                 title: 'Free until month end',
@@ -216,7 +233,10 @@ class _WhichCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Which card should I use?', style: context.tt.titleSmall),
+                  Text(
+                    'Which card should I use?',
+                    style: context.tt.titleSmall,
+                  ),
                   Text('Before you pay', style: context.tt.bodySmall),
                 ],
               ),
@@ -257,10 +277,8 @@ class _Health extends ConsumerWidget {
               title: 'Financial health ${h.score} · ${h.band}',
               subtitle: h.readiness,
               chevron: true,
-              onTap: () => showPulseSheet<void>(
-                context,
-                builder: (_) => HealthSheet(h),
-              ),
+              onTap: () =>
+                  showPulseSheet<void>(context, builder: (_) => HealthSheet(h)),
             ),
           ],
         ),

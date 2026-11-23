@@ -74,7 +74,6 @@ lib/data/api/
   dto.dart                   wire types + mapping to UI models, ingest request/response DTOs
   api_exception.dart         backend error envelope -> ApiException (isRetryable / isUnauthorized)
   ingest_api.dart            POST /v1/ingest/{sms,notification,apple-shortcut}
-  statements_api.dart        TODO surface for statements / statement passwords / Gmail connect
 ```
 
 - Amounts are fils on the wire (`amount_minor`); DTO mappers convert to the UI's AED doubles. Transaction direction (`debit`/`credit`) becomes `isIncome`.
@@ -83,14 +82,18 @@ lib/data/api/
 - The signed-in user's split member is exposed as `'me'` (the id the UI already uses).
 - Auth: the existing Supabase JWT interceptor. Errors: `ApiException` carries `code`, `message`, `request_id` from the `{"error": {...}}` envelope.
 
-Derived or stubbed because the backend has no equivalent yet: card rewards, minimum due and the card catalog (`cardCatalog()` is empty), net-worth history (flat series, 0% change), budget trend (built from monthly budgets), emoji on split groups. Statement upload, statement passwords and Gmail connect are not in the backend yet; `statements_api.dart` lists the intended methods as TODOs.
+Wired endpoints beyond the basics: `/v1/categories` (defaults + custom), `/v1/budgets`, `/v1/rules` (one-condition editor; "starts with" is sent as an escaped, anchored regex, "over/under" as inclusive `gte`/`lte` minor units, account names resolve to `account_id`), `/v1/contacts/match` (SHA-256 of E.164 numbers, chunks of 1000), split members by phone, Aani settlements (`POST settlements` with `method: aani`, then `/mark-paid`; the payee calls `/confirm`), `/v1/statements` (+ multipart upload, reconciliation, reprocess), `/v1/statement-passwords` (write-only upsert), `/v1/email-connections/gmail/start`, and `/v1/rewards/summary` (earned this cycle, cash caps and `verified_on` merged into `myCards()`; ignored while the route returns 404).
+
+Derived on the client until the backend has them (each marked `TODO(api)`): cashflow, category trends, safe-to-spend and the health score (from transactions, budgets and cards), minimum due, net-worth history, the card catalog, and household/family endpoints (`household()` returns just you; invites and sharing throw `not_supported`). "Which card should I use?" ranks cards locally with cap-aware effective rates; `/v1/rewards/best-card` is the intended server source. `simulateCapture()` is mock-only and backs the Settings > Demo "Simulate a card tap" action.
 
 ## Design system notes
 
-- Dark-first. Tokens in `PulseColors` (`context.pc`): bg, surface, surfaceElevated, border, text tiers, accent, accentAlt, positive/negative/warning, glass, hero gradient. Spacing (`Space`), radii (`Radii`) and shadows (`Elevations`) are constants.
-- Type: Manrope for UI and numerals, Inter for body (google_fonts). Amounts use tabular figures (`PulseTheme.amount`). `PulseTheme.useGoogleFonts = false` in tests.
-- Money: `Money.aed`, `Money.aedCompact`; `AmountText` count-up animation.
-- Motion: implicit animations everywhere, flutter_animate staggered entrances, Cupertino page transitions, press-scale on buttons/cards with haptics (`Haptics`).
+- Calm and quiet: warm neutrals, one teal accent, amber for caution, muted coral only for over-budget and errors, green for money in. Tokens in `PulseColors` (`context.pc`): bg, surface, surfaceElevated, border, text tiers, accent/onAccent, positive, negative, warning. `forProgress()` and `statusLabel()` give the on track / nearing limit / over colours and words. Spacing (`Space`), radii (`Radii`) and motion (`Motion`) are constants.
+- Light and dark are both first class; Settings > Appearance picks System, Light or Dark (persisted).
+- Type: Inter (system font on iOS), one scale (40/32/24/20/17/15/13/11), tabular figures everywhere (`PulseTheme.amount`). `PulseTheme.useGoogleFonts = false` in tests.
+- Structure: grouped rows with hairlines (`RowGroup`, `ListRow`), one hero number per screen (`HeroNumber`), `SurfaceCard` only where an object is tappable, sheets via `showPulseSheet` + `SheetScaffold`.
+- Charts (`inspect_charts.dart`): `GroupedBarChart` and `InspectLineChart` show the selected period's figures in a readout above the chart instead of floating tooltips; tap or drag to inspect.
+- Motion: spring `Pressable` press feedback, animated numbers and meters, snap-scrolling rails, haptics in one place (`Haptics`).
 - Note: this Flutter release deprecates `package:flutter/material.dart`; the project imports `material_ui` and `cupertino_ui` instead.
 
 ## Analytics

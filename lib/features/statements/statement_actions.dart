@@ -8,9 +8,8 @@ import '../../core/widgets/widgets.dart';
 import '../../data/api/api_exception.dart';
 import '../../data/providers.dart';
 
-void _toast(BuildContext context, String text) => ScaffoldMessenger.of(
-  context,
-).showSnackBar(SnackBar(content: Text(text)));
+void _toast(BuildContext context, String text) =>
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
 /// Starts Gmail OAuth (`POST /v1/email-connections/gmail/start`) and opens the
 /// consent page. Returns true when a connection was started or completed.
