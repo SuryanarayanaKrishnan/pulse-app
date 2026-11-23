@@ -38,7 +38,7 @@ class _SkeletonState extends State<Skeleton>
           gradient: LinearGradient(
             begin: Alignment(-1.5 + _ctl.value * 3, 0),
             end: Alignment(-0.5 + _ctl.value * 3, 0),
-            colors: [c.surfaceElevated, c.border, c.surfaceElevated],
+            colors: [c.surfaceElevated, c.surface, c.surfaceElevated],
           ),
         ),
       ),

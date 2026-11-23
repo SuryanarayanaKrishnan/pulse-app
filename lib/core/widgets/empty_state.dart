@@ -16,42 +16,18 @@ class EmptyState extends StatelessWidget {
   final Widget? action;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    return Padding(
-      padding: const EdgeInsets.all(Space.xxl),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 72,
-            height: 72,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [
-                  c.accent.withValues(alpha: 0.3),
-                  c.accentAlt.withValues(alpha: 0.15),
-                ],
-              ),
-            ),
-            child: Icon(icon, color: c.textPrimary, size: 32),
-          ),
-          const SizedBox(height: Space.lg),
-          Text(
-            title,
-            style: context.tt.titleMedium,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: Space.sm),
-          Text(
-            message,
-            style: context.tt.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
-          if (action != null) ...[const SizedBox(height: Space.xl), action!],
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.all(Space.xxl),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: context.pc.textTertiary, size: 40),
+        const SizedBox(height: Space.lg),
+        Text(title, style: context.tt.titleMedium, textAlign: TextAlign.center),
+        const SizedBox(height: Space.sm),
+        Text(message, style: context.tt.bodyMedium, textAlign: TextAlign.center),
+        if (action != null) ...[const SizedBox(height: Space.xl), action!],
+      ],
+    ),
+  );
 }

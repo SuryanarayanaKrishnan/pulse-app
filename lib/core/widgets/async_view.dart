@@ -39,8 +39,5 @@ class AsyncView<T> extends StatelessWidget {
   );
 }
 
-/// Staggered entrance helper values.
-Duration stagger(int i) => Duration(milliseconds: 60 * i);
-
 /// Standard screen gutter.
 const screenPad = EdgeInsets.symmetric(horizontal: Space.gutter);

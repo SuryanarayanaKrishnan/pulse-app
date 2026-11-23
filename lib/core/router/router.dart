@@ -5,7 +5,11 @@ import '../../features/auth/session.dart';
 import '../../features/capture/apple_ingest_screen.dart';
 import '../../features/capture/apple_pay_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
+import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
+import '../../features/categories/categories_screen.dart';
+import '../../features/splits/group_screen.dart';
+import '../../features/statements/statements_screen.dart';
 import '../../features/cards/cards_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
@@ -31,6 +35,12 @@ abstract class Routes {
   static const settings = '/settings';
   static const applePaySetup = '/apple-pay-setup';
   static const appleIngest = '/apple-ingest';
+  static const categories = '/categories';
+  static const automations = '/automations';
+  static const statements = '/statements';
+
+  /// `/group/<id>`
+  static const group = '/group';
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -122,6 +132,26 @@ GoRouter buildRouter({
         path: Routes.settings,
         name: 'settings',
         builder: (c, s) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.categories,
+        name: 'categories',
+        builder: (c, s) => const CategoriesScreen(),
+      ),
+      GoRoute(
+        path: Routes.automations,
+        name: 'automations',
+        builder: (c, s) => const AutomationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.statements,
+        name: 'statements',
+        builder: (c, s) => const StatementsScreen(),
+      ),
+      GoRoute(
+        path: '${Routes.group}/:id',
+        name: 'group',
+        builder: (c, s) => GroupScreen(groupId: s.pathParameters['id']!),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, shell) => AppShell(shell: shell),

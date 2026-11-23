@@ -1,8 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/tokens.dart';
+import 'pressable.dart';
 
-/// Large screen title row with optional trailing widgets.
+/// Large title with an optional quiet line above it and trailing actions.
 class ScreenHeader extends StatelessWidget {
   const ScreenHeader(this.title, {super.key, this.subtitle, this.trailing});
   final String title;
@@ -13,9 +14,9 @@ class ScreenHeader extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(
       Space.gutter,
-      Space.lg,
-      Space.gutter,
       Space.sm,
+      Space.sm,
+      Space.lg,
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -25,7 +26,7 @@ class ScreenHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (subtitle != null)
-                Text(subtitle!, style: context.tt.bodyMedium),
+                Text(subtitle!, style: context.tt.bodySmall),
               Text(title, style: context.tt.displayMedium),
             ],
           ),
@@ -36,7 +37,7 @@ class ScreenHeader extends StatelessWidget {
   );
 }
 
-/// Circular icon button used in headers.
+/// Header action: a bare accent glyph with a 44pt target. No chrome.
 class RoundIconButton extends StatelessWidget {
   const RoundIconButton({
     super.key,
@@ -49,24 +50,16 @@ class RoundIconButton extends StatelessWidget {
   final String? label;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    return Semantics(
-      button: true,
-      label: label,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: c.surfaceElevated,
-            border: Border.all(color: c.border),
-          ),
-          child: Icon(icon, color: c.textPrimary, size: 22),
-        ),
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    label: label,
+    child: Pressable(
+      onTap: onTap,
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Icon(icon, color: context.pc.accent, size: 24),
       ),
-    );
-  }
+    ),
+  );
 }

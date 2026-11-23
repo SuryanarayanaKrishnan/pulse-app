@@ -7,6 +7,7 @@ import 'core/analytics/analytics.dart';
 import 'core/env/env.dart';
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
+import 'core/theme/theme_mode.dart';
 import 'features/auth/session.dart';
 
 class PulseApp extends ConsumerStatefulWidget {
@@ -54,7 +55,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     debugShowCheckedModeBanner: false,
     theme: PulseTheme.light,
     darkTheme: PulseTheme.dark,
-    themeMode: ThemeMode.dark,
+    themeMode: ref.watch(themeModeProvider),
     routerConfig: _router,
   );
 }

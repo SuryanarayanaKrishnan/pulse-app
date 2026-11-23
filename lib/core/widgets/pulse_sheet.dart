@@ -13,7 +13,12 @@ Future<T?> showPulseSheet<T>(
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,
-    barrierColor: Colors.black.withValues(alpha: 0.55),
+    barrierColor: Colors.black.withValues(alpha: 0.4),
+    sheetAnimationStyle: const AnimationStyle(
+      duration: Duration(milliseconds: 380),
+      curve: Curves.easeOutQuart,
+      reverseDuration: Duration(milliseconds: 240),
+    ),
     constraints: BoxConstraints(
       maxWidth: 560,
       maxHeight: MediaQuery.sizeOf(context).height * (full ? 0.94 : 0.88),
@@ -39,15 +44,14 @@ class SheetScaffold extends StatelessWidget {
     final c = context.pc;
     return Container(
       decoration: BoxDecoration(
-        color: c.surface,
+        color: c.isDark ? c.surface : c.bg,
         borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(Radii.xl),
+          top: Radius.circular(Radii.lg),
         ),
-        border: Border.all(color: c.glassBorder),
       ),
       padding: EdgeInsets.fromLTRB(
         Space.gutter,
-        Space.md,
+        Space.sm,
         Space.gutter,
         MediaQuery.viewInsetsOf(context).bottom + Space.xl,
       ),
@@ -58,21 +62,21 @@ class SheetScaffold extends StatelessWidget {
           children: [
             Center(
               child: Container(
-                width: 40,
-                height: 4,
+                width: 36,
+                height: 5,
                 margin: const EdgeInsets.only(bottom: Space.lg),
                 decoration: BoxDecoration(
                   color: c.border,
-                  borderRadius: BorderRadius.circular(2),
+                  borderRadius: BorderRadius.circular(3),
                 ),
               ),
             ),
             Text(title, style: context.tt.headlineMedium),
             if (subtitle != null) ...[
-              const SizedBox(height: 4),
+              const SizedBox(height: Space.xs),
               Text(subtitle!, style: context.tt.bodyMedium),
             ],
-            const SizedBox(height: Space.lg),
+            const SizedBox(height: Space.xl),
             child,
           ],
         ),

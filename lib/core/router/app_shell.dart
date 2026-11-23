@@ -39,16 +39,16 @@ class _AppShellState extends ConsumerState<AppShell> {
       body: shell,
       bottomNavigationBar: ClipRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
           child: Container(
             decoration: BoxDecoration(
-              color: c.bg.withValues(alpha: 0.78),
-              border: Border(top: BorderSide(color: c.glassBorder)),
+              color: c.bg.withValues(alpha: 0.82),
+              border: Border(top: BorderSide(color: c.border, width: 0.5)),
             ),
             child: SafeArea(
               top: false,
               child: SizedBox(
-                height: 64,
+                height: 56,
                 child: Row(
                   children: [
                     for (var i = 0; i < _items.length; i++)
@@ -60,9 +60,10 @@ class _AppShellState extends ConsumerState<AppShell> {
                           label: _items[i].$3,
                           selected: shell.currentIndex == i,
                           onTap: () {
-                            Haptics.tap();
-                            if (i != shell.currentIndex)
+                            if (i != shell.currentIndex) {
+                              Haptics.tap();
                               ref.read(analyticsProvider).screen(_names[i]);
+                            }
                             shell.goBranch(
                               i,
                               initialLocation: i == shell.currentIndex,
@@ -85,10 +86,10 @@ class AppShellItems {
   const AppShellItems._();
   static const items = [
     (Icons.home_rounded, Icons.home_outlined, 'Home'),
-    (Icons.pie_chart_rounded, Icons.pie_chart_outline_rounded, 'Budget'),
+    (Icons.donut_large_rounded, Icons.donut_large_rounded, 'Budget'),
     (Icons.credit_card_rounded, Icons.credit_card_outlined, 'Cards'),
-    (Icons.group_rounded, Icons.group_outlined, 'Splits'),
-    (Icons.trending_up_rounded, Icons.trending_up_rounded, 'Wealth'),
+    (Icons.people_rounded, Icons.people_outline_rounded, 'Splits'),
+    (Icons.show_chart_rounded, Icons.show_chart_rounded, 'Wealth'),
   ];
 }
 
@@ -107,6 +108,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
+    final color = selected ? c.accent : c.textTertiary;
     return Semantics(
       button: true,
       selected: selected,
@@ -117,32 +119,16 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 260),
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
-              decoration: BoxDecoration(
-                color: selected
-                    ? c.accent.withValues(alpha: 0.18)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(Radii.pill),
-              ),
-              child: AnimatedScale(
-                scale: selected ? 1.08 : 1,
-                duration: const Duration(milliseconds: 260),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: selected ? c.accent : c.textTertiary,
-                ),
-              ),
+            AnimatedSwitcher(
+              duration: Motion.fast,
+              child: Icon(icon, key: ValueKey(icon), size: 24, color: color),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: context.tt.labelSmall!.copyWith(
-                color: selected ? c.textPrimary : c.textTertiary,
-                letterSpacing: 0.1,
+                color: color,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
