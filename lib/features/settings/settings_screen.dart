@@ -13,6 +13,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
 import '../capture/capture_setup_sheet.dart';
+import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
@@ -90,6 +91,26 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SectionHeader('Household'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.people_outline_rounded),
+                title: 'Family',
+                subtitle: 'Members, invites and what each person shares',
+                chevron: true,
+                onTap: () => context.push(Routes.family),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.shield_outlined),
+                title: 'Nominees & legacy',
+                subtitle: 'Coming soon',
+                chevron: true,
+                onTap: () => context.push(Routes.legacy),
+              ),
+            ],
+          ),
           const SectionHeader('Automatic capture'),
           RowGroup(
             indent: ListRow.leadingInset,
@@ -163,6 +184,20 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (!Env.useApi) ...[
+            const SectionHeader('Demo'),
+            RowGroup(
+              indent: ListRow.leadingInset,
+              children: [
+                ListRow(
+                  leading: IconWell(Icons.contactless_outlined, color: c.accent),
+                  title: 'Simulate a card tap',
+                  subtitle: 'Shows the live rewards moment',
+                  onTap: () => simulateCardTap(context, ref),
+                ),
+              ],
+            ),
+          ],
           const SectionHeader('About'),
           RowGroup(
             children: [

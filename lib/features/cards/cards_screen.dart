@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/analytics/analytics.dart';
 import '../../core/theme/theme.dart';
@@ -10,6 +9,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/card_util.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'card_widgets.dart';
 
 class CardsScreen extends ConsumerStatefulWidget {
   const CardsScreen({super.key});
@@ -22,16 +22,6 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   int _index = 0;
   SpendCategory _cat = SpendCategory.groceries;
 
-  static const _recommendable = [
-    SpendCategory.groceries,
-    SpendCategory.dining,
-    SpendCategory.transport,
-    SpendCategory.shopping,
-    SpendCategory.travel,
-    SpendCategory.entertainment,
-    SpendCategory.health,
-    SpendCategory.utilities,
-  ];
 
   @override
   void dispose() {
@@ -55,6 +45,13 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
               subtitle: cards.value == null
                   ? null
                   : '${cards.value!.length} in your wallet',
+              trailing: [
+                RoundIconButton(
+                  icon: Icons.bolt_rounded,
+                  label: 'Which card should I use?',
+                  onTap: () => showWhichCard(context, ref),
+                ),
+              ],
             ),
             AsyncView<List<CreditCard>>(
               value: cards,
@@ -114,58 +111,46 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     HeroNumber(
                       label: 'Balance',
                       value: card.balance,
-                      caption: card.minDue > 0
-                          ? 'Due ${DateFormat('d MMMM').format(card.dueDate)} · minimum ${Money.aed(card.minDue, decimals: false)}'
-                          : 'Due ${DateFormat('d MMMM').format(card.dueDate)}',
+                      caption:
+                          '${(card.utilisation * 100).round()}% of ${Money.aed(card.limit, decimals: false)} limit · ${card.rewardPoints > 0 ? '${Money.number(card.rewardPoints)} pts' : '${Money.aed(card.rewardValueAed, decimals: false)} earned'}',
                     ),
+                    const SectionHeader('Payment'),
+                    PaymentDetails(card),
+                    const SectionHeader('Rewards on this card'),
+                    RewardRules(card),
                     const SizedBox(height: Space.lg),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Space.gutter,
+                      ),
+                      child: PrimaryButton(
+                        label: 'Which card should I use?',
+                        icon: Icons.bolt_rounded,
+                        secondary: true,
+                        onPressed: () => showWhichCard(context, ref),
+                      ),
+                    ),
+                    const SectionHeader('Due dates'),
                     RowGroup(
+                      indent: ListRow.leadingInset,
                       children: [
-                        ListRow(
-                          dense: true,
-                          title: 'Limit',
-                          trailing: Text(
-                            Money.aed(card.limit, decimals: false),
-                            style: PulseTheme.amount(c.textPrimary),
+                        for (final d in [for (final k in list) dueInfo(k)]
+                          ..sort((a, b) => a.daysLeft.compareTo(b.daysLeft)))
+                          DueRow(
+                            d,
+                            onTap: () {
+                              final i = list.indexOf(d.card);
+                              _page.animateToPage(
+                                i,
+                                duration: Motion.slow,
+                                curve: Motion.curve,
+                              );
+                            },
                           ),
-                        ),
-                        ListRow(
-                          dense: true,
-                          title: 'Utilisation',
-                          subtitle: 'Keep it under 30%',
-                          trailing: SizedBox(
-                            width: 120,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Meter(
-                                    value: card.utilisation,
-                                    color: card.utilisation > 0.3
-                                        ? c.warning
-                                        : c.accent,
-                                  ),
-                                ),
-                                const SizedBox(width: Space.sm),
-                                Text(
-                                  '${(card.utilisation * 100).round()}%',
-                                  style: PulseTheme.amount(c.textPrimary),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        ListRow(
-                          dense: true,
-                          title: card.rewardsLabel,
-                          trailing: Text(
-                            card.rewardPoints > 0
-                                ? '${Money.number(card.rewardPoints)} pts'
-                                : Money.aed(card.rewardValueAed, decimals: false),
-                            style: PulseTheme.amount(c.textPrimary),
-                          ),
-                        ),
                       ],
                     ),
+                    const SectionHeader('Utilisation'),
+                    UtilisationChart(list),
                     const SectionHeader('Best card for'),
                     SizedBox(
                       height: 60,
@@ -175,11 +160,11 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                           horizontal: Space.gutter,
                           vertical: Space.md,
                         ),
-                        itemCount: _recommendable.length,
+                        itemCount: recommendableCategories.length,
                         separatorBuilder: (_, _) =>
                             const SizedBox(width: Space.sm),
                         itemBuilder: (_, i) {
-                          final x = _recommendable[i];
+                          final x = recommendableCategories[i];
                           return Pill(
                             x.label,
                             selected: x == _cat,
@@ -234,7 +219,6 @@ class _Ranked extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final ranked = rankCardsFor(cards, category);
-    String pct(double r) => '${r.toStringAsFixed(r % 1 == 0 ? 0 : 1)}%';
     return AnimatedSwitcher(
       duration: Motion.base,
       child: RowGroup(
@@ -251,7 +235,7 @@ class _Ranked extends StatelessWidget {
               subtitle: i == 0 ? 'Best for ${category.label.toLowerCase()}' : null,
               subtitleColor: c.accent,
               trailing: Text(
-                pct(rateFor(ranked[i], category)),
+                formatRate(effectiveRate(ranked[i], category)),
                 style: PulseTheme.amount(
                   i == 0 ? c.textPrimary : c.textSecondary,
                 ),

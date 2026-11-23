@@ -8,6 +8,16 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 
+/// "12 min ago", "3 h ago", "6 days ago".
+String ago(DateTime t, {DateTime? now}) {
+  final d = (now ?? DateTime.now()).difference(t);
+  if (d.inMinutes < 1) return 'just now';
+  if (d.inMinutes < 60) return '${d.inMinutes} min ago';
+  if (d.inHours < 24) return '${d.inHours} h ago';
+  final days = d.inDays;
+  return '$days ${days == 1 ? 'day' : 'days'} ago';
+}
+
 class WealthScreen extends ConsumerWidget {
   const WealthScreen({super.key});
 
@@ -23,15 +33,99 @@ class WealthScreen extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 120),
           children: [
             const ScreenHeader('Wealth', subtitle: 'Assets and liabilities'),
-            if (nw != null)
+            if (nw != null) ...[
               HeroNumber(
                 label: 'Net worth',
                 value: nw.total,
                 caption:
                     '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
                 captionColor: nw.changePct >= 0 ? c.positive : c.negative,
-                footer: Sparkline(values: nw.series, height: 64),
               ),
+              if (nw.updatedAt != null)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.gutter,
+                    Space.xs,
+                    Space.gutter,
+                    0,
+                  ),
+                  child: Row(
+                    children: [
+                      Dot(c.positive, size: 6),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Live · updated ${ago(nw.updatedAt!)}',
+                        style: context.tt.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              if (nw.labels.length == nw.series.length && nw.series.length > 1)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.gutter,
+                    Space.xl,
+                    Space.gutter,
+                    0,
+                  ),
+                  child: InspectLineChart(
+                    labels: [
+                      for (final (i, l) in nw.labels.indexed)
+                        i.isEven || i == nw.labels.length - 1 ? l : '',
+                    ],
+                    title: (i) => nw.labels[i],
+                    fill: true,
+                    height: 140,
+                    format: Money.aedCompact,
+                    series: [ChartSeries('Net worth', nw.series, c.accent)],
+                  ),
+                ),
+              if (nw.prices.isNotEmpty) ...[
+                const SectionHeader('Live values'),
+                RowGroup(
+                  children: [
+                    for (final p in nw.prices)
+                      ListRow(
+                        dense: true,
+                        title: p.name,
+                        subtitle: '${p.source} · ${ago(p.updatedAt)}',
+                        trailing: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              p.value,
+                              style: PulseTheme.amount(c.textPrimary, size: 15),
+                            ),
+                            if (p.changePct != 0)
+                              Text(
+                                '${p.changePct > 0 ? '+' : '−'}${p.changePct.abs().toStringAsFixed(1)}%',
+                                style: context.tt.bodySmall!.copyWith(
+                                  color: p.changePct > 0
+                                      ? c.positive
+                                      : c.negative,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.gutter,
+                    Space.sm,
+                    Space.gutter,
+                    0,
+                  ),
+                  child: Text(
+                    'Gold, property and foreign holdings revalue themselves as these move.',
+                    style: context.tt.bodySmall!.copyWith(
+                      color: c.textTertiary,
+                    ),
+                  ),
+                ),
+              ],
+            ],
             AsyncView<List<Asset>>(
               value: assets,
               loading: const SkeletonList(rows: 4),

@@ -773,10 +773,12 @@ class IngestResultDto {
 String _escapeRegex(String s) =>
     s.replaceAllMapped(RegExp(r'[.*+?^${}()|[\]\\]'), (m) => '\\${m[0]}');
 
+/// The literal text of a pattern made only of plain and escaped characters,
+/// or null when it uses real regex syntax the editor cannot show.
 String? _unescapeRegex(String s) {
-  final out = s.replaceAllMapped(RegExp(r'\\(.)'), (m) => m[1]!);
-  // Anything still special is a real pattern the editor cannot show.
-  return RegExp(r'[.*+?^${}()|[\]\\]').hasMatch(out) ? null : out;
+  final literal = RegExp(r'^(?:\\.|[^.*+?^${}()|[\]\\])*$');
+  if (!literal.hasMatch(s)) return null;
+  return s.replaceAllMapped(RegExp(r'\\(.)'), (m) => m[1]!);
 }
 
 /// Maps a backend rule to the one-condition shape the editor shows. Returns

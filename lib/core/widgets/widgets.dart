@@ -4,6 +4,7 @@ export 'charts.dart';
 export 'credit_card_visual.dart';
 export 'empty_state.dart';
 export 'haptics.dart';
+export 'inspect_charts.dart';
 export 'pill.dart';
 export 'pressable.dart';
 export 'primary_button.dart';

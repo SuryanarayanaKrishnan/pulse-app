@@ -3,20 +3,21 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/analytics/analytics.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/card_util.dart';
-import '../../data/models.dart';
+import '../../data/insights.dart';
 import '../../data/providers.dart';
 import '../../data/splits_util.dart';
+import '../cards/card_widgets.dart';
 import '../transactions/tx_detail_sheet.dart';
+import 'health_sheet.dart';
 import '../transactions/tx_tile.dart';
 
-/// Home answers one question: how much can I still spend this month?
+/// Home answers one question: how much can I safely spend today?
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
@@ -55,6 +56,8 @@ class HomeScreen extends ConsumerWidget {
                 ],
               ),
               const _Hero(),
+              const _WhichCard(),
+              const _Health(),
               const _ComingUp(),
               const _Overview(),
               SectionHeader(
@@ -76,47 +79,35 @@ class _Hero extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final b = ref.watch(budgetProvider);
-    final month = DateFormat('MMMM').format(DateTime.now());
-    return b.when(
+    final s = ref.watch(safeToSpendProvider);
+    return s.when(
       loading: () => const Padding(
         padding: screenPad,
         child: Skeleton(height: 120, radius: Radii.md),
       ),
       error: (e, _) => Padding(
         padding: screenPad,
-        child: Text('Budget unavailable', style: context.tt.bodyMedium),
+        child: Text('Safe to spend unavailable', style: context.tt.bodyMedium),
       ),
-      data: (o) {
-        final over = o.remaining < 0;
+      data: (v) {
+        final none = v.available <= 0;
         return Pressable(
-          onTap: () => context.go(Routes.budget),
+          onTap: () => showPulseSheet<void>(
+            context,
+            builder: (_) => _SafeToSpendSheet(v),
+          ),
           child: HeroNumber(
-            label: over ? 'Over budget in $month' : 'Left to spend in $month',
-            value: o.remaining.abs(),
-            color: over ? c.negative : null,
-            caption: over
-                ? 'Spent ${Money.aed(o.spent, decimals: false)} of ${Money.aed(o.planned, decimals: false)}'
-                : '${Money.aed(o.safePerDay, decimals: false)} a day for the next ${o.daysLeft} days',
-            footer: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            label: 'Safe to spend today',
+            value: v.today,
+            color: none ? c.warning : null,
+            caption: none
+                ? 'Bills, card dues and goals take what is left this month'
+                : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
+            footer: Row(
               children: [
-                Meter(value: o.progress, color: c.forProgress(o.progress)),
-                const SizedBox(height: Space.sm),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        '${Money.aed(o.spent, decimals: false)} spent',
-                        style: context.tt.bodySmall,
-                      ),
-                    ),
-                    Text(
-                      'of ${Money.aed(o.planned, decimals: false)}',
-                      style: context.tt.bodySmall,
-                    ),
-                  ],
-                ),
+                _Figure('Bills', v.bills),
+                _Figure('Card dues', v.cardDues),
+                _Figure('Goals', v.goals),
               ],
             ),
           ),
@@ -126,72 +117,178 @@ class _Hero extends ConsumerWidget {
   }
 }
 
+class _Figure extends StatelessWidget {
+  const _Figure(this.label, this.value);
+  final String label;
+  final double value;
+  @override
+  Widget build(BuildContext context) => Expanded(
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: context.tt.bodySmall),
+        const SizedBox(height: 2),
+        Text(
+          Money.aed(value, decimals: false),
+          style: PulseTheme.amount(context.pc.textPrimary, size: 15),
+        ),
+      ],
+    ),
+  );
+}
+
+class _SafeToSpendSheet extends ConsumerWidget {
+  const _SafeToSpendSheet(this.v);
+  final SafeToSpend v;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final b = ref.watch(budgetProvider).value;
+    Text num(double x, {bool minus = false}) => Text(
+      '${minus ? '−' : ''}${Money.aed(x, decimals: false)}',
+      style: PulseTheme.amount(minus ? c.textSecondary : c.textPrimary),
+    );
+    return SheetScaffold(
+      title: 'Safe to spend',
+      subtitle: 'The lower of what your budget and your cash allow',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RowGroup(
+            padding: EdgeInsets.zero,
+            children: [
+              if (b != null)
+                ListRow(dense: true, title: 'Left in budget', trailing: num(b.remaining)),
+              ListRow(dense: true, title: 'Bills still to come', trailing: num(v.bills, minus: true)),
+              ListRow(dense: true, title: 'Card dues this month', subtitle: 'From your cash, not your budget', trailing: num(v.cardDues, minus: true)),
+              ListRow(dense: true, title: 'Goal contributions', trailing: num(v.goals, minus: true)),
+              ListRow(
+                dense: true,
+                title: 'Free until month end',
+                titleStyle: context.tt.titleMedium,
+                trailing: num(v.available),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.lg),
+          Text(
+            'Spread over ${v.daysLeft} days, that is ${Money.aed(v.today, decimals: false)} a day. It updates with every purchase.',
+            style: context.tt.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Pre-purchase advice, one tap from Home.
+class _WhichCard extends ConsumerWidget {
+  const _WhichCard();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.xl,
+        Space.gutter,
+        0,
+      ),
+      child: SurfaceCard(
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.lg,
+          vertical: Space.md + 2,
+        ),
+        onTap: () => showWhichCard(context, ref),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: c.accent,
+                borderRadius: BorderRadius.circular(Radii.sm),
+              ),
+              child: Icon(Icons.bolt_rounded, size: 20, color: c.onAccent),
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Which card should I use?', style: context.tt.titleSmall),
+                  Text('Before you pay', style: context.tt.bodySmall),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.textTertiary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Health extends ConsumerWidget {
+  const _Health();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final h = ref.watch(healthScoreProvider).value;
+    if (h == null) return const SizedBox.shrink();
+    final tone = h.score >= 60
+        ? c.accent
+        : h.score >= 40
+        ? c.warning
+        : c.negative;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Today'),
+        RowGroup(
+          children: [
+            ListRow(
+              leading: ProgressRing(
+                progress: h.score / 100,
+                size: 32,
+                stroke: 3,
+                color: tone,
+              ),
+              title: 'Financial health ${h.score} · ${h.band}',
+              subtitle: h.readiness,
+              chevron: true,
+              onTap: () => showPulseSheet<void>(
+                context,
+                builder: (_) => HealthSheet(h),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class _ComingUp extends ConsumerWidget {
   const _ComingUp();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
     final cards = ref.watch(myCardsProvider).value;
     if (cards == null || cards.isEmpty) return const SizedBox.shrink();
-    final sorted = List.of(cards)
-      ..sort((a, b) => a.dueDate.compareTo(b.dueDate));
-    final best = rankCardsFor(cards, SpendCategory.groceries).first;
-    final rate = rateFor(best, SpendCategory.groceries);
-    final today = DateUtils.dateOnly(DateTime.now());
+    final dues = [
+      for (final k in cards)
+        if (k.totalDue > 0) dueInfo(k),
+    ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
+    if (dues.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Coming up'),
+        const SectionHeader('Card payments'),
         RowGroup(
           indent: ListRow.leadingInset,
           children: [
-            for (final k in sorted)
-              Builder(
-                builder: (context) {
-                  final days = DateUtils.dateOnly(
-                    k.dueDate,
-                  ).difference(today).inDays;
-                  return ListRow(
-                    leading: SizedBox(
-                      width: 32,
-                      child: CreditCardVisual(card: k, compact: true),
-                    ),
-                    title: '${k.issuer} ${k.name}',
-                    subtitle: k.minDue > 0
-                        ? 'Minimum ${Money.aed(k.minDue, decimals: false)}'
-                        : 'Card payment',
-                    trailing: Text(
-                      days <= 0
-                          ? 'Today'
-                          : days == 1
-                          ? 'Tomorrow'
-                          : DateFormat('d MMM').format(k.dueDate),
-                      style: context.tt.bodyMedium!.copyWith(
-                        color: days <= 5 ? c.warning : null,
-                      ),
-                    ),
-                    onTap: () => context.go(Routes.cards),
-                  );
-                },
-              ),
-            if (rate > 0)
-              ListRow(
-                leading: IconWell(Icons.auto_awesome_outlined, color: c.accent),
-                title: 'Groceries? Use ${best.issuer} ${best.name}',
-                subtitle:
-                    '${rate.toStringAsFixed(rate % 1 == 0 ? 0 : 1)}% back, the best of your cards',
-                chevron: true,
-                onTap: () {
-                  ref
-                      .read(analyticsProvider)
-                      .track(
-                        AnalyticsEvent.cardRecommendationViewed(
-                          SpendCategory.groceries.name,
-                        ),
-                      );
-                  context.go(Routes.cards);
-                },
-              ),
+            for (final d in dues.take(3))
+              DueRow(d, onTap: () => context.go(Routes.cards)),
           ],
         ),
       ],
@@ -248,6 +345,12 @@ class _Overview extends ConsumerWidget {
                 chevron: true,
                 onTap: () => context.go(Routes.splits),
               ),
+            ListRow(
+              title: 'Family',
+              subtitle: 'Shared spending, with privacy per person',
+              chevron: true,
+              onTap: () => context.push(Routes.family),
+            ),
             if (statements != null)
               ListRow(
                 title: 'Monthly close',

@@ -10,6 +10,7 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'budget_charts.dart';
 
 /// Budget: spent against plan, by category, and where it went.
 class BudgetScreen extends ConsumerWidget {
@@ -81,9 +82,11 @@ class _Body extends ConsumerWidget {
               const SizedBox(height: Space.md),
               Row(
                 children: [
+                  Dot(c.forProgress(o.progress)),
+                  const SizedBox(width: Space.sm),
                   Expanded(
                     child: Text(
-                      'Safe to spend ${Money.aed(o.safePerDay, decimals: false)} a day',
+                      '${PulseColors.statusLabel(o.progress)} · ${Money.aed(o.remaining.abs(), decimals: false)} ${o.remaining < 0 ? 'over' : 'left'}',
                       style: context.tt.bodyMedium!.copyWith(
                         color: c.textPrimary,
                       ),
@@ -106,20 +109,8 @@ class _Body extends ConsumerWidget {
           itemCount: lines.length,
           itemBuilder: (context, i) => _CategoryTile(lines[i]),
         ),
-        const SectionHeader('Month over month'),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.md,
-            Space.gutter,
-            0,
-          ),
-          child: TrendBars(
-            labels: [for (final m in o.trend) m.label],
-            values: [for (final m in o.trend) m.spent],
-            planned: o.planned,
-          ),
-        ),
+        const CashflowSection(),
+        const CategoryTrendSection(),
         _WhereItWent(o),
         const SectionHeader('Manage'),
         RowGroup(

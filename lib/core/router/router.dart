@@ -11,6 +11,8 @@ import '../../features/categories/categories_screen.dart';
 import '../../features/splits/group_screen.dart';
 import '../../features/statements/statements_screen.dart';
 import '../../features/cards/cards_screen.dart';
+import '../../features/family/family_screen.dart';
+import '../../features/family/legacy_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
 import '../../features/onboarding/connect_screen.dart';
@@ -38,6 +40,8 @@ abstract class Routes {
   static const categories = '/categories';
   static const automations = '/automations';
   static const statements = '/statements';
+  static const family = '/family';
+  static const legacy = '/legacy';
 
   /// `/group/<id>`
   static const group = '/group';
@@ -142,6 +146,16 @@ GoRouter buildRouter({
         path: Routes.automations,
         name: 'automations',
         builder: (c, s) => const AutomationsScreen(),
+      ),
+      GoRoute(
+        path: Routes.family,
+        name: 'family',
+        builder: (c, s) => const FamilyScreen(),
+      ),
+      GoRoute(
+        path: Routes.legacy,
+        name: 'legacy',
+        builder: (c, s) => const LegacyScreen(),
       ),
       GoRoute(
         path: Routes.statements,
