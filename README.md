@@ -16,11 +16,12 @@ flutter run \
   --dart-define=POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-With no defines the app runs fully on mock data: sign-in accepts any 6-digit code, analytics print to the debug console.
+With no `API_BASE_URL` the app runs fully on mock data: sign-in accepts any 6-digit code, analytics print to the debug console.
 
 | Define | Purpose | Default |
 | --- | --- | --- |
-| `API_BASE_URL` | Backend base URL for the dio client | `http://localhost:8080` |
+| `API_BASE_URL` | Backend base URL (without `/v1`). **Set: real API. Unset: mock data** | none (mock) |
+| `APPLE_SHORTCUT_URL` | Shared iCloud link of the "Transaction" Shortcut (iOS guide) | placeholder |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase auth (email OTP, JWT for API calls). Skipped if absent | none |
 | `POSTHOG_API_KEY`, `POSTHOG_HOST` | Product analytics. No-op if key absent | none, EU host |
 | `DEV_SKIP_ONBOARDING=true` | Jump straight to the tabs (dev/screenshots) | false |
@@ -42,7 +43,10 @@ lib/
     widgets/    GlassCard, AmountText, PrimaryButton, Pill, Skeleton, EmptyState, SheetScaffold,
                 ProgressRing, CreditCardVisual, charts (Sparkline, DonutChart, TrendBars), SourceBadge
   data/         models, PulseRepository interface, MockPulseRepository, providers, split/card utils
+    api/        ApiPulseRepository, DTOs, error mapping, ingest client
+  capture/      offline ingest queue, capture service + Android bridge, Apple Shortcut link parsing
   features/
+    capture/    Android permission sheet, Apple Pay setup guide, pulse:// ingest landing
     onboarding/ intro carousel + "connect your money"
     auth/       sign-in (email OTP / Apple / Google), session controller
     home/       net-worth hero, spend ring, upcoming dues, best-card tip, recents
@@ -60,9 +64,26 @@ Bottom nav: Home, Budget, Cards, Splits, Wealth. Activity is a drill-down (Home 
 
 Every transaction carries a source badge (Statement, SMS, Wallet, Apple Pay, Manual). Onboarding pushes the user to connect an automatic source before anything else, and the Budget tab shows an auto-captured vs manual indicator. Manual entry exists only as a small overflow action inside Activity and fires the `manual_transaction_added` analytics event so we can measure how often it is needed.
 
-## Swapping in the real API
+## Backend (`ApiPulseRepository`)
 
-Implement `PulseRepository` (`lib/data/repository.dart`) with the dio client from `core/network/api_client.dart` and change `repositoryProvider` in `lib/data/providers.dart`. UI never touches the mock directly.
+`repositoryProvider` (`lib/data/providers.dart`) returns `ApiPulseRepository` when `API_BASE_URL` is defined and `MockPulseRepository` otherwise. Mock stays the demo default. UI code only sees `PulseRepository`.
+
+```
+lib/data/api/
+  api_pulse_repository.dart  PulseRepository over dio (/v1 routes)
+  dto.dart                   wire types + mapping to UI models, ingest request/response DTOs
+  api_exception.dart         backend error envelope -> ApiException (isRetryable / isUnauthorized)
+  ingest_api.dart            POST /v1/ingest/{sms,notification,apple-shortcut}
+  statements_api.dart        TODO surface for statements / statement passwords / Gmail connect
+```
+
+- Amounts are fils on the wire (`amount_minor`); DTO mappers convert to the UI's AED doubles. Transaction direction (`debit`/`credit`) becomes `isIncome`.
+- Transactions use keyset cursors (`next_cursor`). `transactionsPage(cursor:, limit:)` exposes one page; `transactions()` follows cursors up to 3 pages of 200.
+- Categories are matched to the UI's fixed `SpendCategory` set by name (`other` when unknown). Re-categorising PATCHes `category_id` with `remember_merchant`.
+- The signed-in user's split member is exposed as `'me'` (the id the UI already uses).
+- Auth: the existing Supabase JWT interceptor. Errors: `ApiException` carries `code`, `message`, `request_id` from the `{"error": {...}}` envelope.
+
+Derived or stubbed because the backend has no equivalent yet: card rewards, minimum due and the card catalog (`cardCatalog()` is empty), net-worth history (flat series, 0% change), budget trend (built from monthly budgets), emoji on split groups. Statement upload, statement passwords and Gmail connect are not in the backend yet; `statements_api.dart` lists the intended methods as TODOs.
 
 ## Design system notes
 
@@ -74,27 +95,50 @@ Implement `PulseRepository` (`lib/data/repository.dart`) with the dio client fro
 
 ## Analytics
 
-`Analytics` interface with `PostHogAnalytics` (posthog_flutter), `ConsoleAnalytics` (debug) and `NoopAnalytics`. Events are typed in `AnalyticsEvent`: `onboarding_started`, `onboarding_step_completed{step}`, `signup_completed`, `source_connected{type}`, `statement_uploaded`, `transaction_recategorized{from,to}`, `budget_created`, `card_added`, `card_recommendation_viewed{category}`, `split_expense_added`, `manual_transaction_added{category}`. Screen views come from `AnalyticsRouteObserver` on the GoRouter plus tab-switch reporting in the shell.
+`Analytics` interface with `PostHogAnalytics` (posthog_flutter), `ConsoleAnalytics` (debug) and `NoopAnalytics`. Events are typed in `AnalyticsEvent`: `onboarding_started`, `onboarding_step_completed{step}`, `signup_completed`, `source_connected{type}`, `statement_uploaded`, `transaction_recategorized{from,to}`, `budget_created`, `card_added`, `card_recommendation_viewed{category}`, `split_expense_added`, `manual_transaction_added{category}`, `permission_granted{permission}`, `permission_denied{permission}`. Screen views come from `AnalyticsRouteObserver` on the GoRouter plus tab-switch reporting in the shell.
 
-## Capturing transactions automatically (to implement)
+## Capturing transactions automatically
+
+Everything funnels into one persistent **offline queue** (`lib/capture/ingest_queue.dart`, backed by shared_preferences): items are deduplicated by a client `external_id`, uploaded in order, retried with exponential backoff (30s up to 1h, dropped after 10 attempts or 14 days), kept on 401 and dropped on 4xx validation errors. It flushes when something is captured, when the app resumes, and every 10 minutes while open. With no `API_BASE_URL` the queue drains into a debug print.
+
+### Android: SMS and wallet notifications
+
+Kotlin under `android/app/src/main/kotlin/com/pulse/pulse/capture/`:
+
+| File | Role |
+| --- | --- |
+| `SmsReceiver` | `RECEIVE_SMS` broadcast receiver for live bank SMS |
+| `SmsBackfill` | one-time inbox read (`READ_SMS`), last 90 days |
+| `PulseNotificationListener` | `NotificationListenerService` for wallet and bank-app notifications |
+| `CaptureConfig` | sender-ID / package filters (persisted, pushed from Dart) |
+| `CaptureStore` | durable native buffer between receivers and Dart |
+| `CapturePlugin` | `MethodChannel('pulse/ingest')` + `EventChannel('pulse/ingest/events')` |
+
+Flow: receiver filters, writes to the native buffer, pings Dart; Dart `peekPending` -> persists to its queue -> `ackPending` -> upload to `/v1/ingest/sms` or `/v1/ingest/notification`. This is at-least-once and works when the app process was dead; the backend dedupes on `external_id` (hash of sender/app + text + minute, identical for live and backfill).
+
+- **Sender IDs** (`CaptureConfig.defaultBankSenderIds`): EmiratesNBD, ENBD, ADCBAlert, ADCB, FAB, Mashreq, RAKBANK, DIB, ADIB, HSBC, CBD, EIB, Liv, and more. IDs of 4 characters or fewer must match exactly (or as a `-` separated part, e.g. `AD-FAB`); longer ones match as substrings. Edit the list in Dart; it is pushed to the native layer on start.
+- **Notification packages**: Google Wallet `com.google.android.apps.walletnfcrel`, Google Pay `com.google.android.apps.nbu.paisa.user`, Samsung `com.samsung.android.spay` and `com.samsung.android.samsungpay.gear`, plus bank apps via `bankAppPackages` (exact) and `bankPackageHints` (package-name substrings). Verify real bank package IDs before release; the exact list is empty by default.
+- **Privacy**: non-bank SMS and other apps' notifications are dropped before being stored. Messages containing OTP / verification-code wording are never captured. Raw text is sent to the backend, which parses it (the earlier plan to parse on device is not implemented).
+- **Permissions UI**: the connect step (Android tiles "Bank SMS" and "Wallet notifications") and Settings open a sheet explaining each permission, showing live status, requesting SMS permissions in-app, and deep-linking to the system notification-access screen (detail page on Android 11+). On return, the result is re-read. Apps installed outside Google Play on Android 13+ may need "Allow restricted settings" in App info; the sheet says so.
+- Analytics: `permission_granted{permission}` / `permission_denied{permission}` with `permission` = `sms_receive`, `sms_read`, `notification_access`.
+- Play Store: `RECEIVE_SMS`/`READ_SMS` need a Play Console declaration. Plan for sideloaded/beta distribution first.
+- No Android SDK is available in this environment, so the Kotlin has not been compiled; run `flutter build apk --debug` before relying on it.
 
 ### iOS: Apple Pay via Shortcuts
 
-Apple exposes no API for Wallet transactions, but Shortcuts has a **Transaction** personal automation trigger (Shortcuts, Automation, New, Transaction, pick cards). The user installs a shared Shortcut that runs on every tap-to-pay with the inputs *Merchant*, *Amount*, *Card or Pass*, *Name*, and does one of:
+Apple exposes no Wallet API. `ApplePaySetupScreen` (`/apple-pay-setup`, reachable from the connect step and Settings) walks the user through the Shortcuts **Transaction** automation:
 
-1. **Get Contents of URL** (POST JSON) to `https://<API_BASE_URL>/v1/ingest/apple-shortcut` with a per-user ingest token in the header or body:
-   `{ "merchant": "<Merchant>", "amount": "<Amount>", "card": "<Card or Pass>", "ts": "<Current Date>" }`
-2. Or **Open URL** `pulse://ingest?merchant=...&amount=...&card=...` so the app posts it (requires registering the URL scheme in `Info.plist` and handling it via go_router deep links).
+1. Button opens the shared Shortcut (`Env.appleShortcutUrl`, override with `--dart-define=APPLE_SHORTCUT_URL=...`; currently a placeholder, so the button shows a message until set).
+2. Automation: Shortcuts, Automation, New, Transaction, Run Immediately.
+3. The Shortcut runs **Open URL** `pulse://ingest?amount=[Amount]&merchant=[Merchant]&card=[Card or Pass]` (optional `currency`, `ts`, `direction`). The scheme is registered in `ios/Runner/Info.plist`; go_router rewrites it to `/apple-ingest`, which parses it (`ShortcutTransaction`, tolerant of `AED 1,234.50` style amounts), queues it and posts structured `fields` to `/v1/ingest/apple-shortcut`.
+4. A per-install ingest token is shown with copy/reveal for Shortcuts that upload directly. **The backend has no ingest-token endpoint yet** (ingest authenticates with the Supabase JWT), so this token is generated locally and not accepted server-side; the Open-URL flow does not need it.
 
-The backend normalises, de-duplicates against later statement lines, and tags `source = apple_pay_shortcut`. The connect step in onboarding should deep-link to the shared Shortcut and show a "send test transaction" verification.
-
-### Android: SMS and notification listener
-
-Plan with platform channels (Kotlin):
-- `RECEIVE_SMS` broadcast receiver (or `READ_SMS` for backfill) filtered to known bank sender IDs (ENBD, ADCB, FAB, Mashreq, Liv, ...). Parse on device with per-bank templates, send only structured fields to `/v1/ingest/sms`.
-- `NotificationListenerService` for wallet/bank-app notifications (Google Wallet, bank apps), same parser. Requires the user to grant "Notification access" in system settings; guide them from the connect screen.
-- Dart side: `MethodChannel('pulse/ingest')` for permission state, `EventChannel` for captured events, queued and retried via the dio client. Play Store SMS-permission policy needs a declaration; plan for a sideloaded/beta distribution first.
+There is no "send test transaction" button yet; it would create a real transaction server-side.
 
 ## Status
 
-Foundation only: all data is mocked, Supabase/PostHog/Apple/Google sign-in are wired structurally, platform capture channels are not implemented yet.
+- Done: API repository (selected by `API_BASE_URL`), cursor pagination, DTO mapping, offline ingest queue, Android SMS/notification capture and permission UI, iOS Shortcut guide and `pulse://` deep link.
+- Mock data remains the default and powers the UI demo.
+- Not done: statement upload/passwords/Gmail connect (backend routes missing), server-side ingest tokens, card catalog and rewards data, net-worth history, on-device compilation check of the Kotlin code.
+
+Checks: `flutter analyze`, `flutter test`.
