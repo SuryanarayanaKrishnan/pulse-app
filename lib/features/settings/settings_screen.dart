@@ -1,3 +1,6 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,7 +8,14 @@ import 'package:go_router/go_router.dart';
 import '../../core/env/env.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
+import '../../core/router/router.dart';
 import '../auth/session.dart';
+import '../capture/capture_setup_sheet.dart';
+
+bool get _android => !kIsWeb && Platform.isAndroid;
+
+Widget _tap(VoidCallback onTap, Widget child) =>
+    InkWell(onTap: onTap, child: child);
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -78,12 +88,25 @@ class SettingsScreen extends ConsumerWidget {
             child: Column(
               children: [
                 row(Icons.mail_rounded, 'Gmail statements', 'Connected'),
-                row(Icons.sms_rounded, 'SMS reading (Android)', 'Not enabled'),
-                row(
-                  Icons.apple,
-                  'Apple Pay Shortcut (iOS)',
-                  'Set up automation',
-                ),
+                if (_android) ...[
+                  _tap(
+                    () => showCaptureSetupSheet(context),
+                    row(
+                      Icons.sms_rounded,
+                      'Bank SMS and wallet alerts',
+                      'Permissions, status and what is read',
+                    ),
+                  ),
+                ],
+                if (!_android)
+                  _tap(
+                    () => context.push(Routes.applePaySetup),
+                    row(
+                      Icons.apple,
+                      'Apple Pay Shortcut (iOS)',
+                      'Set up automation',
+                    ),
+                  ),
               ],
             ),
           ),

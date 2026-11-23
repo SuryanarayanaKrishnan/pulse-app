@@ -2,6 +2,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/session.dart';
+import '../../features/capture/apple_ingest_screen.dart';
+import '../../features/capture/apple_pay_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/budgets/budget_screen.dart';
 import '../../features/cards/cards_screen.dart';
@@ -13,6 +15,7 @@ import '../../features/settings/settings_screen.dart';
 import '../../features/splits/splits_screen.dart';
 import '../../features/transactions/activity_screen.dart';
 import '../analytics/analytics.dart';
+import '../env/env.dart';
 import 'app_shell.dart';
 
 abstract class Routes {
@@ -26,6 +29,8 @@ abstract class Routes {
   static const wealth = '/wealth';
   static const activity = '/activity';
   static const settings = '/settings';
+  static const applePaySetup = '/apple-pay-setup';
+  static const appleIngest = '/apple-ingest';
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -60,12 +65,26 @@ GoRouter buildRouter({
     refreshListenable: session,
     observers: [observer],
     redirect: (context, state) {
+      // Custom-scheme deep link: pulse://ingest?amount=..&merchant=..&card=..
+      if (state.uri.scheme == Env.urlScheme) {
+        final u = state.uri;
+        return (u.host == 'ingest' || u.path == '/ingest')
+            ? Uri(
+                path: Routes.appleIngest,
+                queryParameters: u.queryParameters,
+              ).toString()
+            : Routes.home;
+      }
       final loc = state.uri.path;
       if (!session.onboarded)
         return loc == Routes.onboarding ? null : Routes.onboarding;
       if (!session.signedIn) return loc == Routes.signIn ? null : Routes.signIn;
-      if (!session.connected)
-        return loc == Routes.connect ? null : Routes.connect;
+      if (!session.connected) {
+        // The Apple Pay guide is part of the connect step.
+        return {Routes.connect, Routes.applePaySetup}.contains(loc)
+            ? null
+            : Routes.connect;
+      }
       if ({Routes.onboarding, Routes.signIn, Routes.connect}.contains(loc))
         return Routes.home;
       return null;
@@ -88,6 +107,16 @@ GoRouter buildRouter({
         name: 'activity',
         builder: (c, s) =>
             ActivityScreen(initialCategory: s.uri.queryParameters['category']),
+      ),
+      GoRoute(
+        path: Routes.applePaySetup,
+        name: 'apple_pay_setup',
+        builder: (c, s) => const ApplePaySetupScreen(),
+      ),
+      GoRoute(
+        path: Routes.appleIngest,
+        name: 'apple_ingest',
+        builder: (c, s) => AppleIngestScreen(params: s.uri.queryParameters),
       ),
       GoRoute(
         path: Routes.settings,

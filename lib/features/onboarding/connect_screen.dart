@@ -4,12 +4,16 @@ import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/analytics/analytics.dart';
 import '../../core/env/env.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
+import '../../capture/capture_platform.dart';
+import '../../core/router/router.dart';
 import '../auth/session.dart';
+import '../capture/capture_setup_sheet.dart';
 
 /// "Connect your money": pushes users to automatic sources first.
 class ConnectScreen extends ConsumerStatefulWidget {
@@ -24,7 +28,28 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
   bool get _isIos => !kIsWeb && Platform.isIOS;
   bool get _isAndroid => !kIsWeb && Platform.isAndroid;
 
+  /// Tapping a source: Android capture and the Apple Pay guide open their own
+  /// setup flows and only mark the source connected once it really is.
+  Future<void> _onTap(String type) async {
+    switch (type) {
+      case 'sms' || 'wallet_notifications' when _isAndroid:
+        final CaptureStatus? s = await showCaptureSetupSheet(context);
+        if (s == null || !mounted) return;
+        if (s.smsReceive) _connect('sms');
+        if (s.notificationAccess) _connect('wallet_notifications');
+      case 'apple_pay_shortcut':
+        final done = await context.push<bool>(Routes.applePaySetup);
+        if (done == true && mounted) _connect(type);
+      default:
+        _connect(type);
+        if (type == 'statement_upload') {
+          ref.read(analyticsProvider).track(AnalyticsEvent.statementUploaded);
+        }
+    }
+  }
+
   void _connect(String type) {
+    if (_connected.contains(type)) return;
     Haptics.success();
     setState(() => _connected.add(type));
     ref.read(analyticsProvider).track(AnalyticsEvent.sourceConnected(type));
@@ -46,7 +71,15 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
           'sms',
           Icons.sms_rounded,
           'Bank SMS (Android)',
-          'Instant capture from bank alerts. Messages stay on your device.',
+          'Instant capture from bank alerts. Only bank senders are read; one-time codes are ignored.',
+          _isAndroid ? 'Instant' : 'Android only',
+        ),
+      if (!_isIos)
+        (
+          'wallet_notifications',
+          Icons.account_balance_wallet_rounded,
+          'Wallet notifications (Android)',
+          'Tap-to-pay alerts from Google Wallet, Samsung Wallet and bank apps.',
           _isAndroid ? 'Instant' : 'Android only',
         ),
       if (!_isAndroid)
@@ -83,14 +116,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
                 padding: const EdgeInsets.only(bottom: Space.md),
                 child:
                     GlassCard(
-                          onTap: () {
-                            final t = sources[i].$1;
-                            _connect(t);
-                            if (t == 'statement_upload')
-                              ref
-                                  .read(analyticsProvider)
-                                  .track(AnalyticsEvent.statementUploaded);
-                          },
+                          onTap: () => _onTap(sources[i].$1),
                           child: Row(
                             children: [
                               Container(
