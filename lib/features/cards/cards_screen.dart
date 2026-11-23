@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -19,9 +18,20 @@ class CardsScreen extends ConsumerStatefulWidget {
 }
 
 class _CardsScreenState extends ConsumerState<CardsScreen> {
-  final _page = PageController(viewportFraction: 0.88);
+  final _page = PageController(viewportFraction: 0.84);
   int _index = 0;
   SpendCategory _cat = SpendCategory.groceries;
+
+  static const _recommendable = [
+    SpendCategory.groceries,
+    SpendCategory.dining,
+    SpendCategory.transport,
+    SpendCategory.shopping,
+    SpendCategory.travel,
+    SpendCategory.entertainment,
+    SpendCategory.health,
+    SpendCategory.utilities,
+  ];
 
   @override
   void dispose() {
@@ -33,99 +43,180 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   Widget build(BuildContext context) {
     final cards = ref.watch(myCardsProvider);
     final catalog = ref.watch(catalogProvider);
+    final c = context.pc;
     return Scaffold(
       body: SafeArea(
         bottom: false,
         child: ListView(
           padding: const EdgeInsets.only(bottom: 120),
           children: [
-            const ScreenHeader('Cards', subtitle: 'Your wallet'),
+            ScreenHeader(
+              'Cards',
+              subtitle: cards.value == null
+                  ? null
+                  : '${cards.value!.length} in your wallet',
+            ),
             AsyncView<List<CreditCard>>(
               value: cards,
               loading: const SkeletonList(rows: 2, height: 190),
               onRetry: () => ref.invalidate(myCardsProvider),
-              builder: (list) => Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 214,
-                    child: PageView.builder(
-                      controller: _page,
-                      itemCount: list.length,
-                      onPageChanged: (i) {
-                        Haptics.tap();
-                        setState(() => _index = i);
-                      },
-                      itemBuilder: (_, i) => AnimatedScale(
-                        scale: i == _index ? 1 : 0.94,
-                        duration: const Duration(milliseconds: 250),
-                        curve: Curves.easeOut,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
-                          child: CreditCardVisual(card: list[i]),
+              builder: (list) {
+                if (list.isEmpty) {
+                  return const EmptyState(
+                    icon: Icons.credit_card_outlined,
+                    title: 'No cards yet',
+                    message: 'Cards appear here once a statement or alert arrives.',
+                  );
+                }
+                final card = list[_index.clamp(0, list.length - 1)];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    SizedBox(
+                      height: 206,
+                      child: PageView.builder(
+                        controller: _page,
+                        padEnds: false,
+                        itemCount: list.length,
+                        onPageChanged: (i) {
+                          Haptics.tap();
+                          setState(() => _index = i);
+                        },
+                        itemBuilder: (_, i) => Padding(
+                          padding: EdgeInsets.only(
+                            left: i == 0 ? Space.gutter : Space.xs,
+                            right: i == list.length - 1
+                                ? Space.gutter
+                                : Space.xs,
+                          ),
+                          child: Center(child: CreditCardVisual(card: list[i])),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: Space.md),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (var i = 0; i < list.length; i++)
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: i == _index ? 20 : 6,
-                          height: 6,
-                          decoration: BoxDecoration(
-                            color: i == _index
-                                ? context.pc.accent
-                                : context.pc.border,
-                            borderRadius: BorderRadius.circular(3),
+                    const SizedBox(height: Space.md),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var i = 0; i < list.length; i++)
+                          AnimatedContainer(
+                            duration: Motion.base,
+                            margin: const EdgeInsets.symmetric(horizontal: 3),
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: i == _index ? c.textPrimary : c.border,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: Space.xl),
+                    HeroNumber(
+                      label: 'Balance',
+                      value: card.balance,
+                      caption: card.minDue > 0
+                          ? 'Due ${DateFormat('d MMMM').format(card.dueDate)} · minimum ${Money.aed(card.minDue, decimals: false)}'
+                          : 'Due ${DateFormat('d MMMM').format(card.dueDate)}',
+                    ),
+                    const SizedBox(height: Space.lg),
+                    RowGroup(
+                      children: [
+                        ListRow(
+                          dense: true,
+                          title: 'Limit',
+                          trailing: Text(
+                            Money.aed(card.limit, decimals: false),
+                            style: PulseTheme.amount(c.textPrimary),
                           ),
                         ),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      Space.gutter,
-                      Space.lg,
-                      Space.gutter,
-                      0,
+                        ListRow(
+                          dense: true,
+                          title: 'Utilisation',
+                          subtitle: 'Keep it under 30%',
+                          trailing: SizedBox(
+                            width: 120,
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Meter(
+                                    value: card.utilisation,
+                                    color: card.utilisation > 0.3
+                                        ? c.warning
+                                        : c.accent,
+                                  ),
+                                ),
+                                const SizedBox(width: Space.sm),
+                                Text(
+                                  '${(card.utilisation * 100).round()}%',
+                                  style: PulseTheme.amount(c.textPrimary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        ListRow(
+                          dense: true,
+                          title: card.rewardsLabel,
+                          trailing: Text(
+                            card.rewardPoints > 0
+                                ? '${Money.number(card.rewardPoints)} pts'
+                                : Money.aed(card.rewardValueAed, decimals: false),
+                            style: PulseTheme.amount(c.textPrimary),
+                          ),
+                        ),
+                      ],
                     ),
-                    child: _CardDetail(list[_index.clamp(0, list.length - 1)]),
-                  ),
-                  const SectionHeader('Rewards summary'),
-                  _Rewards(list),
-                  const SectionHeader('Which card should I use?'),
-                  _Recommender(
-                    cards: list,
-                    category: _cat,
-                    onCategory: (c) {
-                      ref
-                          .read(analyticsProvider)
-                          .track(
-                            AnalyticsEvent.cardRecommendationViewed(c.name),
+                    const SectionHeader('Best card for'),
+                    SizedBox(
+                      height: 60,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Space.gutter,
+                          vertical: Space.md,
+                        ),
+                        itemCount: _recommendable.length,
+                        separatorBuilder: (_, _) =>
+                            const SizedBox(width: Space.sm),
+                        itemBuilder: (_, i) {
+                          final x = _recommendable[i];
+                          return Pill(
+                            x.label,
+                            selected: x == _cat,
+                            onTap: () {
+                              ref
+                                  .read(analyticsProvider)
+                                  .track(
+                                    AnalyticsEvent.cardRecommendationViewed(
+                                      x.name,
+                                    ),
+                                  );
+                              setState(() => _cat = x);
+                            },
                           );
-                      setState(() => _cat = c);
-                    },
-                  ),
-                ],
-              ),
+                        },
+                      ),
+                    ),
+                    _Ranked(cards: list, category: _cat),
+                  ],
+                );
+              },
             ),
-            const SectionHeader('Discover cards'),
             AsyncView<List<CreditCard>>(
               value: catalog,
-              loading: const SkeletonList(rows: 2),
-              builder: (list) => Column(
-                children: [
-                  for (var i = 0; i < list.length; i++)
-                    _CatalogTile(list[i])
-                        .animate(delay: stagger(i))
-                        .fadeIn()
-                        .slideY(begin: 0.1),
-                ],
-              ),
+              loading: const SizedBox.shrink(),
+              builder: (list) => list.isEmpty
+                  ? const SizedBox.shrink()
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const SectionHeader('Discover'),
+                        RowGroup(
+                          indent: 56 + Space.md,
+                          children: [for (final k in list) _CatalogRow(k)],
+                        ),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -134,285 +225,61 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   }
 }
 
-class _CardDetail extends StatelessWidget {
-  const _CardDetail(this.card);
-  final CreditCard card;
+class _Ranked extends StatelessWidget {
+  const _Ranked({required this.cards, required this.category});
+  final List<CreditCard> cards;
+  final SpendCategory category;
+
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    return GlassCard(
-      child: Column(
+    final ranked = rankCardsFor(cards, category);
+    String pct(double r) => '${r.toStringAsFixed(r % 1 == 0 ? 0 : 1)}%';
+    return AnimatedSwitcher(
+      duration: Motion.base,
+      child: RowGroup(
+        key: ValueKey(category),
+        indent: 40 + Space.md,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: _Stat(
-                  'Balance',
-                  Money.aed(card.balance, decimals: false),
+          for (var i = 0; i < ranked.length; i++)
+            ListRow(
+              leading: SizedBox(
+                width: 40,
+                child: CreditCardVisual(card: ranked[i], compact: true),
+              ),
+              title: '${ranked[i].issuer} ${ranked[i].name}',
+              subtitle: i == 0 ? 'Best for ${category.label.toLowerCase()}' : null,
+              subtitleColor: c.accent,
+              trailing: Text(
+                pct(rateFor(ranked[i], category)),
+                style: PulseTheme.amount(
+                  i == 0 ? c.textPrimary : c.textSecondary,
                 ),
               ),
-              Expanded(
-                child: _Stat('Limit', Money.aed(card.limit, decimals: false)),
-              ),
-              Expanded(
-                child: _Stat('Due', DateFormat('d MMM').format(card.dueDate)),
-              ),
-            ],
-          ),
-          const SizedBox(height: Space.lg),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: TweenAnimationBuilder<double>(
-              key: ValueKey(card.id),
-              tween: Tween(begin: 0, end: card.utilisation),
-              duration: const Duration(milliseconds: 700),
-              curve: Curves.easeOutCubic,
-              builder: (_, v, _) => LinearProgressIndicator(
-                value: v,
-                minHeight: 8,
-                color: card.utilisation > 0.3 ? c.warning : c.positive,
-                backgroundColor: c.border,
-              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                '${(card.utilisation * 100).round()}% utilisation',
-                style: context.tt.bodySmall,
-              ),
-              const Spacer(),
-              Text('Keep under 30%', style: context.tt.bodySmall),
-            ],
-          ),
         ],
       ),
     );
   }
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat(this.label, this.value);
-  final String label;
-  final String value;
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(label.toUpperCase(), style: context.tt.labelSmall),
-      const SizedBox(height: 4),
-      Text(
-        value,
-        style: PulseTheme.amount(
-          context.pc.textPrimary,
-          size: 16,
-          weight: FontWeight.w700,
-        ),
-      ),
-    ],
-  );
-}
-
-class _Rewards extends StatelessWidget {
-  const _Rewards(this.cards);
-  final List<CreditCard> cards;
-  @override
-  Widget build(BuildContext context) {
-    final total = cards.fold(0.0, (a, c) => a + c.rewardValueAed);
-    return Padding(
-      padding: screenPad,
-      child: GlassCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('EARNED VALUE', style: context.tt.labelSmall),
-            const SizedBox(height: 6),
-            AmountText(total, size: 30, color: context.pc.accentAlt),
-            const SizedBox(height: Space.md),
-            for (final c in cards)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 10,
-                      height: 10,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(colors: c.gradient),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${c.issuer} · ${c.rewardsLabel}',
-                        style: context.tt.titleSmall,
-                      ),
-                    ),
-                    Text(
-                      c.rewardPoints > 0
-                          ? '${Money.number(c.rewardPoints)} pts'
-                          : Money.aed(c.rewardValueAed, decimals: false),
-                      style: context.tt.bodyMedium,
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Recommender extends StatelessWidget {
-  const _Recommender({
-    required this.cards,
-    required this.category,
-    required this.onCategory,
-  });
-  final List<CreditCard> cards;
-  final SpendCategory category;
-  final ValueChanged<SpendCategory> onCategory;
-
-  @override
-  Widget build(BuildContext context) {
-    final ranked = rankCardsFor(cards, category);
-    final cats = SpendCategory.values
-        .where((c) => c != SpendCategory.income && c != SpendCategory.rent)
-        .toList();
-    return Column(
-      children: [
-        SizedBox(
-          height: 40,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: screenPad,
-            itemCount: cats.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 8),
-            itemBuilder: (_, i) => Pill(
-              cats[i].label,
-              icon: cats[i].icon,
-              color: cats[i].color,
-              selected: cats[i] == category,
-              onTap: () => onCategory(cats[i]),
-            ),
-          ),
-        ),
-        const SizedBox(height: Space.md),
-        Padding(
-          padding: screenPad,
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            child: Column(
-              key: ValueKey(category),
-              children: [
-                for (var i = 0; i < ranked.length; i++)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: Space.sm),
-                    child: GlassCard(
-                      padding: const EdgeInsets.all(Space.md),
-                      gradient: i == 0
-                          ? LinearGradient(
-                              colors: [
-                                context.pc.accent.withValues(alpha: 0.25),
-                                context.pc.surface,
-                              ],
-                            )
-                          : null,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 64,
-                            child: CreditCardVisual(
-                              card: ranked[i],
-                              compact: true,
-                            ),
-                          ),
-                          const SizedBox(width: Space.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  ranked[i].name,
-                                  style: context.tt.titleSmall,
-                                ),
-                                if (i == 0)
-                                  Text(
-                                    'Best for ${category.label.toLowerCase()}',
-                                    style: context.tt.bodySmall!.copyWith(
-                                      color: context.pc.accentAlt,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            '${rateFor(ranked[i], category).toStringAsFixed(rateFor(ranked[i], category) % 1 == 0 ? 0 : 1)}%',
-                            style: PulseTheme.amount(
-                              context.pc.textPrimary,
-                              size: 20,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CatalogTile extends ConsumerWidget {
-  const _CatalogTile(this.card);
+class _CatalogRow extends ConsumerWidget {
+  const _CatalogRow(this.card);
   final CreditCard card;
   @override
-  Widget build(BuildContext context, WidgetRef ref) => Padding(
-    padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
-    child: GlassCard(
-      onTap: () => ref.read(analyticsProvider).track(AnalyticsEvent.cardAdded),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 96,
-            child: CreditCardVisual(card: card, compact: true),
-          ),
-          const SizedBox(width: Space.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${card.issuer} ${card.name}',
-                  style: context.tt.titleSmall,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  card.highlight,
-                  style: context.tt.bodySmall,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  card.annualFee == 0
-                      ? 'No annual fee'
-                      : '${Money.aed(card.annualFee, decimals: false)} / year',
-                  style: context.tt.labelMedium!.copyWith(
-                    color: context.pc.accentAlt,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+  Widget build(BuildContext context, WidgetRef ref) => ListRow(
+    leading: SizedBox(
+      width: 56,
+      child: CreditCardVisual(card: card, compact: true),
     ),
+    title: '${card.issuer} ${card.name}',
+    subtitle: [
+      card.highlight,
+      card.annualFee == 0
+          ? 'No annual fee'
+          : '${Money.aed(card.annualFee, decimals: false)} a year',
+    ].where((s) => s.isNotEmpty).join(' · '),
+    chevron: true,
+    onTap: () => ref.read(analyticsProvider).track(AnalyticsEvent.cardAdded),
   );
 }

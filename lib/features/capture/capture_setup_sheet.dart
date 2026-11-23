@@ -232,7 +232,7 @@ class _PermissionRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -241,10 +241,11 @@ class _PermissionRow extends StatelessWidget {
               Icon(icon, color: c.accent),
               const SizedBox(width: Space.md),
               Expanded(child: Text(title, style: context.tt.titleSmall)),
-              Pill(
+              Text(
                 statusLabel,
-                color: granted ? c.positive : c.warning,
-                selected: true,
+                style: context.tt.labelMedium!.copyWith(
+                  color: granted ? c.positive : c.warning,
+                ),
               ),
             ],
           ),

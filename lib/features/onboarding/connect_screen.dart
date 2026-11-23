@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -14,6 +13,7 @@ import '../../capture/capture_platform.dart';
 import '../../core/router/router.dart';
 import '../auth/session.dart';
 import '../capture/capture_setup_sheet.dart';
+import '../statements/statement_actions.dart';
 
 /// "Connect your money": pushes users to automatic sources first.
 class ConnectScreen extends ConsumerStatefulWidget {
@@ -40,11 +40,12 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
       case 'apple_pay_shortcut':
         final done = await context.push<bool>(Routes.applePaySetup);
         if (done == true && mounted) _connect(type);
+      case 'gmail':
+        if (await connectGmail(context, ref) && mounted) _connect(type);
+      case 'statement_upload':
+        if (await uploadStatement(context, ref) && mounted) _connect(type);
       default:
         _connect(type);
-        if (type == 'statement_upload') {
-          ref.read(analyticsProvider).track(AnalyticsEvent.statementUploaded);
-        }
     }
   }
 
@@ -52,7 +53,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
     if (_connected.contains(type)) return;
     Haptics.success();
     setState(() => _connected.add(type));
-    ref.read(analyticsProvider).track(AnalyticsEvent.sourceConnected(type));
+    // Gmail and uploads report their own events.
+    if (type != 'gmail' && type != 'statement_upload') {
+      ref.read(analyticsProvider).track(AnalyticsEvent.sourceConnected(type));
+    }
   }
 
   @override
@@ -103,7 +107,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         child: ListView(
           padding: const EdgeInsets.all(Space.gutter),
           children: [
-            const SizedBox(height: Space.xl),
+            const SizedBox(height: Space.xxl),
             Text('Connect your money', style: context.tt.displayMedium),
             const SizedBox(height: Space.sm),
             Text(
@@ -111,74 +115,33 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
             ),
             const SizedBox(height: Space.xl),
-            for (var i = 0; i < sources.length; i++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: Space.md),
-                child:
-                    GlassCard(
-                          onTap: () => _onTap(sources[i].$1),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: c.accent.withValues(alpha: 0.18),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Icon(sources[i].$2, color: c.accent),
-                              ),
-                              const SizedBox(width: Space.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            sources[i].$3,
-                                            style: context.tt.titleSmall,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Pill(
-                                          sources[i].$5,
-                                          color: c.accentAlt,
-                                          selected: true,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      sources[i].$4,
-                                      style: context.tt.bodySmall,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: Space.sm),
-                              AnimatedSwitcher(
-                                duration: const Duration(milliseconds: 300),
-                                child: _connected.contains(sources[i].$1)
-                                    ? Icon(
-                                        Icons.check_circle_rounded,
-                                        key: const ValueKey('ok'),
-                                        color: c.positive,
-                                      )
-                                    : Icon(
-                                        Icons.add_circle_outline_rounded,
-                                        key: const ValueKey('add'),
-                                        color: c.textTertiary,
-                                      ),
-                              ),
-                            ],
-                          ),
-                        )
-                        .animate(delay: stagger(i))
-                        .fadeIn(duration: 400.ms)
-                        .slideY(begin: 0.1),
-              ),
+            RowGroup(
+              padding: EdgeInsets.zero,
+              indent: ListRow.leadingInset,
+              children: [
+                for (final src in sources)
+                  ListRow(
+                    leading: IconWell(src.$2, color: c.accent),
+                    title: src.$3,
+                    subtitle: '${src.$5} · ${src.$4}',
+                    onTap: () => _onTap(src.$1),
+                    trailing: AnimatedSwitcher(
+                      duration: Motion.base,
+                      child: _connected.contains(src.$1)
+                          ? Icon(
+                              Icons.check_circle_rounded,
+                              key: const ValueKey('ok'),
+                              color: c.positive,
+                            )
+                          : Icon(
+                              Icons.add_circle_outline_rounded,
+                              key: const ValueKey('add'),
+                              color: c.textTertiary,
+                            ),
+                    ),
+                  ),
+              ],
+            ),
             const SizedBox(height: Space.lg),
             PrimaryButton(
               label: _connected.isEmpty
@@ -199,12 +162,10 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             ),
             const SizedBox(height: Space.md),
             Center(
-              child: TextButton(
-                onPressed: () => ref.read(sessionProvider).finishConnect(),
-                child: Text(
-                  'I will do this later',
-                  style: context.tt.bodySmall,
-                ),
+              child: TextAction(
+                'I will do this later',
+                color: c.textSecondary,
+                onTap: () => ref.read(sessionProvider).finishConnect(),
               ),
             ),
           ],

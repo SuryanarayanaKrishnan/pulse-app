@@ -4,6 +4,7 @@
          beta is distributed outside the Play Store, see README. -->
     <uses-permission android:name="android.permission.RECEIVE_SMS"/>
     <uses-permission android:name="android.permission.READ_SMS"/>
+    <uses-permission android:name="android.permission.READ_CONTACTS"/>
 
     <application
         android:label="Pulse"

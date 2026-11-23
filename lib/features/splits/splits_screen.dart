@@ -1,8 +1,9 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/analytics/analytics.dart';
+import '../../core/router/router.dart';
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
@@ -10,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../../data/splits_util.dart';
+import 'split_widgets.dart';
 
 class SplitsScreen extends ConsumerWidget {
   const SplitsScreen({super.key});
@@ -46,43 +48,16 @@ class SplitsScreen extends ConsumerWidget {
             AsyncView<List<SplitGroup>>(
               value: groups,
               onRetry: () => ref.invalidate(splitGroupsProvider),
-              loading: const SkeletonList(rows: 3, height: 120),
+              loading: const SkeletonList(rows: 3, height: 64),
               builder: (list) {
                 if (list.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.group_add_rounded,
+                    icon: Icons.people_outline_rounded,
                     title: 'No groups yet',
                     message: 'Create a group to split bills with friends.',
                   );
                 }
-                var owed = 0.0, owe = 0.0;
-                for (final g in list) {
-                  final v = computeBalances(g.expenses, g.members)['me'] ?? 0;
-                  if (v > 0) {
-                    owed += v;
-                  } else {
-                    owe -= v;
-                  }
-                }
-                return Column(
-                  children: [
-                    _Summary(owed: owed, owe: owe),
-                    const SizedBox(height: Space.lg),
-                    for (var i = 0; i < list.length; i++)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          Space.gutter,
-                          0,
-                          Space.gutter,
-                          Space.md,
-                        ),
-                        child: _GroupCard(list[i])
-                            .animate(delay: stagger(i))
-                            .fadeIn(duration: 400.ms)
-                            .slideY(begin: 0.08),
-                      ),
-                  ],
-                );
+                return _Body(list);
               },
             ),
           ],
@@ -92,157 +67,110 @@ class SplitsScreen extends ConsumerWidget {
   }
 }
 
-class _Summary extends StatelessWidget {
-  const _Summary({required this.owed, required this.owe});
-  final double owed;
-  final double owe;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    return Padding(
-      padding: screenPad,
-      child: GlassCard(
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('YOU ARE OWED', style: context.tt.labelSmall),
-                  const SizedBox(height: 6),
-                  AmountText(owed, size: 24, color: c.positive),
-                ],
-              ),
-            ),
-            Container(width: 1, height: 44, color: c.border),
-            const SizedBox(width: Space.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('YOU OWE', style: context.tt.labelSmall),
-                  const SizedBox(height: 6),
-                  AmountText(owe, size: 24, color: c.negative),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+class _Body extends ConsumerWidget {
+  const _Body(this.groups);
+  final List<SplitGroup> groups;
 
-class _GroupCard extends StatelessWidget {
-  const _GroupCard(this.g);
-  final SplitGroup g;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final bal = computeBalances(g.expenses, g.members);
-    final mine = bal['me'] ?? 0;
-    final plan = simplifyDebts(bal);
-    String name(String id) => g.members.firstWhere((m) => m.id == id).name;
-    return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    final (owed, owe) = myTotals(groups);
+    final net = owed - owe;
+    // Payments others say they made to you, waiting on you.
+    final toConfirm = [
+      for (final g in groups)
+        for (final s in g.settlements)
+          if (s.to == 'me' && s.status == SettlementStatus.awaitingConfirmation)
+            (g, s),
+    ];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HeroNumber(
+          label: net.abs() < 0.01
+              ? 'All settled'
+              : (net > 0 ? 'You are owed' : 'You owe'),
+          value: net.abs(),
+          color: net > 0.005 ? c.positive : null,
+          caption:
+              '${Money.aed(owed, decimals: false)} owed to you · ${Money.aed(owe, decimals: false)} you owe',
+        ),
+        if (toConfirm.isNotEmpty) ...[
+          const SectionHeader('Needs you'),
+          RowGroup(
+            indent: ListRow.leadingInset,
             children: [
-              Text(g.emoji, style: const TextStyle(fontSize: 28)),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(g.name, style: context.tt.titleMedium),
-                    Text(
-                      '${g.expenses.length} expenses · ${Money.aed(g.total, decimals: false)}',
-                      style: context.tt.bodySmall,
-                    ),
-                  ],
+              for (final (g, s) in toConfirm)
+                ListRow(
+                  leading: MemberAvatar(g.member(s.from)),
+                  title:
+                      '${g.member(s.from)?.name ?? 'Someone'} paid you ${Money.aed(s.amount)}',
+                  subtitle: 'Via Aani · ${g.name}',
+                  trailing: TextAction(
+                    'Confirm',
+                    onTap: () => confirmReceived(context, ref, g, s),
+                  ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    mine >= 0 ? 'you are owed' : 'you owe',
-                    style: context.tt.bodySmall,
-                  ),
-                  Text(
-                    Money.aed(mine.abs()),
-                    style: PulseTheme.amount(
-                      mine >= 0 ? c.positive : c.negative,
-                      size: 16,
-                      weight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
             ],
           ),
-          const SizedBox(height: Space.md),
-          SizedBox(
-            height: 32,
-            child: Stack(
-              children: [
-                for (var i = 0; i < g.members.length; i++)
-                  Positioned(
-                    left: i * 22.0,
-                    child: CircleAvatar(
-                      radius: 16,
-                      backgroundColor: c.surface,
-                      child: CircleAvatar(
-                        radius: 14,
-                        backgroundColor: g.members[i].color,
-                        child: Text(
-                          g.members[i].initial,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
+        ],
+        const SectionHeader('Groups'),
+        RowGroup(
+          indent: ListRow.leadingInset,
+          children: [
+            for (final g in groups)
+              Builder(
+                builder: (context) {
+                  final mine = groupBalances(g)['me'] ?? 0;
+                  final settled = mine.abs() < 0.01;
+                  return ListRow(
+                    leading: Container(
+                      width: 32,
+                      height: 32,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: c.surfaceElevated,
+                        borderRadius: BorderRadius.circular(Radii.sm),
+                      ),
+                      child: Text(g.emoji, style: const TextStyle(fontSize: 17)),
+                    ),
+                    title: g.name,
+                    subtitle:
+                        '${g.members.length} people · ${Money.aed(g.total, decimals: false)}',
+                    trailing: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          settled ? 'Settled' : Money.aed(mine.abs()),
+                          style: PulseTheme.amount(
+                            settled
+                                ? c.textSecondary
+                                : (mine > 0 ? c.positive : c.textPrimary),
                           ),
                         ),
-                      ),
+                        if (!settled)
+                          Text(
+                            mine > 0 ? 'owed to you' : 'you owe',
+                            style: context.tt.bodySmall,
+                          ),
+                      ],
                     ),
-                  ),
-              ],
-            ),
-          ),
-          if (plan.isNotEmpty) ...[
-            const SizedBox(height: Space.md),
-            for (final s in plan)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.arrow_forward_rounded,
-                      size: 14,
-                      color: c.textTertiary,
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        '${name(s.from)} pays ${name(s.to)}',
-                        style: context.tt.bodyMedium,
-                      ),
-                    ),
-                    Text(Money.aed(s.amount), style: context.tt.labelMedium),
-                  ],
-                ),
+                    chevron: true,
+                    onTap: () => context.push('${Routes.group}/${g.id}'),
+                  );
+                },
               ),
           ],
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class AddSplitSheet extends ConsumerStatefulWidget {
-  const AddSplitSheet({super.key, required this.groups});
+  const AddSplitSheet({super.key, required this.groups, this.initial});
   final List<SplitGroup> groups;
+  final SplitGroup? initial;
   @override
   ConsumerState<AddSplitSheet> createState() => _AddSplitSheetState();
 }
@@ -250,7 +178,7 @@ class AddSplitSheet extends ConsumerStatefulWidget {
 class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   final _title = TextEditingController();
   final _amount = TextEditingController();
-  late SplitGroup _group = widget.groups.first;
+  late SplitGroup _group = widget.initial ?? widget.groups.first;
   late Set<String> _with = _group.members.map((m) => m.id).toSet();
 
   @override
@@ -261,9 +189,10 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   }
 
   Future<void> _save() async {
-    final amt = double.tryParse(_amount.text);
-    if (amt == null || amt <= 0 || _title.text.trim().isEmpty || _with.isEmpty)
+    final amt = double.tryParse(_amount.text.replaceAll(',', ''));
+    if (amt == null || amt <= 0 || _title.text.trim().isEmpty || _with.isEmpty) {
       return;
+    }
     await ref
         .read(repositoryProvider)
         .addSplitExpense(
@@ -285,27 +214,31 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   @override
   Widget build(BuildContext context) => SheetScaffold(
     title: 'Add expense',
-    subtitle: 'You paid. Split equally between:',
+    subtitle: 'You paid. Split equally.',
     child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Wrap(
-          spacing: 8,
-          children: [
-            for (final g in widget.groups)
-              Pill(
-                '${g.emoji} ${g.name}',
-                selected: g.id == _group.id,
-                onTap: () => setState(() {
-                  _group = g;
-                  _with = g.members.map((m) => m.id).toSet();
-                }),
-              ),
-          ],
-        ),
-        const SizedBox(height: Space.lg),
+        if (widget.groups.length > 1) ...[
+          Wrap(
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              for (final g in widget.groups)
+                Pill(
+                  g.name,
+                  selected: g.id == _group.id,
+                  onTap: () => setState(() {
+                    _group = g;
+                    _with = g.members.map((m) => m.id).toSet();
+                  }),
+                ),
+            ],
+          ),
+          const SizedBox(height: Space.lg),
+        ],
         TextField(
           controller: _title,
+          textCapitalization: TextCapitalization.sentences,
           decoration: const InputDecoration(hintText: 'What was it for?'),
         ),
         const SizedBox(height: Space.md),
@@ -317,16 +250,17 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
             prefixText: 'AED  ',
           ),
         ),
-        const SizedBox(height: Space.lg),
+        const SizedBox(height: Space.xl),
+        Text('Split between', style: context.tt.bodySmall),
+        const SizedBox(height: Space.sm),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: Space.sm,
+          runSpacing: Space.sm,
           children: [
             for (final m in _group.members)
               Pill(
                 m.name,
                 selected: _with.contains(m.id),
-                color: m.color,
                 onTap: () => setState(
                   () => _with.contains(m.id)
                       ? _with.remove(m.id)

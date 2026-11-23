@@ -6,16 +6,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/env/env.dart';
+import '../../core/router/router.dart';
+import '../../core/theme/theme_mode.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
-import '../../core/router/router.dart';
+import '../../data/providers.dart';
 import '../auth/session.dart';
 import '../capture/capture_setup_sheet.dart';
+import '../statements/statement_actions.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
-
-Widget _tap(VoidCallback onTap, Widget child) =>
-    InkWell(onTap: onTap, child: child);
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -23,27 +23,11 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    Widget row(IconData icon, String title, String sub, {Widget? trailing}) =>
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          child: Row(
-            children: [
-              Icon(icon, color: c.accent),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: context.tt.titleSmall),
-                    Text(sub, style: context.tt.bodySmall),
-                  ],
-                ),
-              ),
-              trailing ??
-                  Icon(Icons.chevron_right_rounded, color: c.textTertiary),
-            ],
-          ),
-        );
+    final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
+    final connected = gmail.where((g) => g.active).firstOrNull;
+    final rules = ref.watch(rulesProvider).value;
+    final statements = ref.watch(statementsProvider).value;
+    final attention = statements?.where((s) => s.needsAttention).length ?? 0;
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -53,99 +37,157 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, 40),
+        padding: const EdgeInsets.only(bottom: Space.xxxl),
         children: [
-          GlassCard(
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 28,
-                  backgroundColor: c.accent,
-                  child: const Text(
-                    'S',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                    ),
+          RowGroup(
+            children: [
+              ListRow(
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.surfaceElevated,
+                    shape: BoxShape.circle,
                   ),
+                  child: Text('S', style: context.tt.titleLarge),
                 ),
-                const SizedBox(width: Space.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Sara Al Mansoori', style: context.tt.titleMedium),
-                      Text('sara@example.ae', style: context.tt.bodyMedium),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+                title: 'Sara Al Mansoori',
+                subtitle: 'sara@example.ae',
+              ),
+            ],
+          ),
+          const SectionHeader('Money'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.category_outlined),
+                title: 'Categories & budgets',
+                chevron: true,
+                onTap: () => context.push(Routes.categories),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.auto_mode_rounded),
+                title: 'Automations',
+                subtitle: rules == null
+                    ? null
+                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+                chevron: true,
+                onTap: () => context.push(Routes.automations),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.fact_check_outlined),
+                title: 'Monthly close',
+                subtitle: statements == null
+                    ? null
+                    : (attention == 0
+                          ? 'All statements match'
+                          : '$attention need you'),
+                subtitleColor: attention == 0 ? null : c.warning,
+                chevron: true,
+                onTap: () => context.push(Routes.statements),
+              ),
+            ],
           ),
           const SectionHeader('Automatic capture'),
-          GlassCard(
-            child: Column(
-              children: [
-                row(Icons.mail_rounded, 'Gmail statements', 'Connected'),
-                if (_android) ...[
-                  _tap(
-                    () => showCaptureSetupSheet(context),
-                    row(
-                      Icons.sms_rounded,
-                      'Bank SMS and wallet alerts',
-                      'Permissions, status and what is read',
-                    ),
-                  ),
-                ],
-                if (!_android)
-                  _tap(
-                    () => context.push(Routes.applePaySetup),
-                    row(
-                      Icons.apple,
-                      'Apple Pay Shortcut (iOS)',
-                      'Set up automation',
-                    ),
-                  ),
-              ],
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.mail_outline_rounded),
+                title: 'Gmail statements',
+                subtitle: connected == null
+                    ? 'Not connected'
+                    : 'Connected · ${connected.email}',
+                trailing: connected == null
+                    ? TextAction(
+                        'Connect',
+                        onTap: () => connectGmail(context, ref),
+                      )
+                    : Icon(Icons.check_rounded, color: c.positive, size: 20),
+              ),
+              if (_android)
+                ListRow(
+                  leading: const IconWell(Icons.sms_outlined),
+                  title: 'Bank SMS and wallet alerts',
+                  subtitle: 'Permissions, status and what is read',
+                  chevron: true,
+                  onTap: () => showCaptureSetupSheet(context),
+                )
+              else
+                ListRow(
+                  leading: const IconWell(Icons.apple),
+                  title: 'Apple Pay Shortcut',
+                  subtitle: 'Capture every tap-to-pay instantly',
+                  chevron: true,
+                  onTap: () => context.push(Routes.applePaySetup),
+                ),
+            ],
+          ),
+          const SectionHeader('Appearance'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.md,
+              Space.gutter,
+              0,
+            ),
+            child: Segmented<ThemeMode>(
+              segments: const {
+                ThemeMode.system: 'System',
+                ThemeMode.light: 'Light',
+                ThemeMode.dark: 'Dark',
+              },
+              value: ref.watch(themeModeProvider),
+              onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
             ),
           ),
           const SectionHeader('Preferences'),
-          GlassCard(
-            child: Column(
-              children: [
-                row(Icons.currency_exchange_rounded, 'Currency', 'AED'),
-                row(
-                  Icons.notifications_rounded,
-                  'Notifications',
-                  'Due dates, budget alerts',
-                ),
-                row(Icons.lock_rounded, 'Face ID / biometrics', 'Enabled'),
-              ],
-            ),
+          RowGroup(
+            children: [
+              ListRow(
+                dense: true,
+                title: 'Currency',
+                trailing: Text('AED', style: context.tt.bodyMedium),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Notifications',
+                trailing: Text('Due dates, budgets', style: context.tt.bodyMedium),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Face ID',
+                trailing: Text('On', style: context.tt.bodyMedium),
+              ),
+            ],
           ),
           const SectionHeader('About'),
-          GlassCard(
-            child: Column(
-              children: [
-                row(
-                  Icons.info_outline_rounded,
-                  '${Env.appName} beta',
-                  'Friends & family build',
+          RowGroup(
+            children: [
+              ListRow(
+                dense: true,
+                title: '${Env.appName} beta',
+                trailing: Text('Friends & family', style: context.tt.bodyMedium),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Analytics',
+                trailing: Text(
+                  Env.hasPosthog ? 'PostHog' : 'Off',
+                  style: context.tt.bodyMedium,
                 ),
-                row(
-                  Icons.analytics_rounded,
-                  'Analytics',
-                  Env.hasPosthog ? 'PostHog enabled' : 'Console / off',
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-          const SizedBox(height: Space.xl),
-          PrimaryButton(
-            label: 'Sign out',
-            secondary: true,
-            onPressed: () => ref.read(sessionProvider).signOut(),
+          const SizedBox(height: Space.xxl),
+          Center(
+            child: TextAction(
+              'Sign out',
+              color: c.negative,
+              onTap: () => ref.read(sessionProvider).signOut(),
+            ),
           ),
         ],
       ),

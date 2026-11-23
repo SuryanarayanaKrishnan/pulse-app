@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/analytics/analytics.dart';
@@ -67,20 +66,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          Positioned(
-            top: -120,
-            right: -80,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [c.accent.withValues(alpha: 0.5), Colors.transparent],
-                ),
-              ),
-            ),
-          ),
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(Space.gutter),
@@ -91,14 +76,14 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   Text(
                     'Welcome to\n${Env.appName}',
                     style: context.tt.displayLarge,
-                  ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1),
+                  ),
                   const SizedBox(height: Space.md),
                   Text(
                     'Sign in to see your money on autopilot.',
                     style: context.tt.bodyLarge!.copyWith(
                       color: c.textSecondary,
                     ),
-                  ).animate(delay: 100.ms).fadeIn(),
+                  ),
                   const SizedBox(height: 48),
                   TextField(
                     controller: _email,
@@ -123,7 +108,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             ? null
                             : 'Mock mode: any 6 digits work',
                       ),
-                    ).animate().fadeIn().slideY(begin: 0.2),
+                    ),
                   ],
                   if (_error != null)
                     Padding(

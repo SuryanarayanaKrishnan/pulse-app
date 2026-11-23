@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import '../../core/router/router.dart';
 import '../../core/theme/theme.dart';
@@ -11,7 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 
-/// Budget dashboard: first-class tab.
+/// Budget: spent against plan, by category, and where it went.
 class BudgetScreen extends ConsumerWidget {
   const BudgetScreen({super.key});
 
@@ -26,10 +26,10 @@ class BudgetScreen extends ConsumerWidget {
           children: [
             ScreenHeader(
               'Budget',
-              subtitle: 'This month',
+              subtitle: DateFormat('MMMM y').format(DateTime.now()),
               trailing: [
                 RoundIconButton(
-                  icon: Icons.receipt_long_rounded,
+                  icon: Icons.receipt_long_outlined,
                   label: 'Activity',
                   onTap: () => context.push(Routes.activity),
                 ),
@@ -38,10 +38,7 @@ class BudgetScreen extends ConsumerWidget {
             AsyncView<BudgetOverview>(
               value: b,
               onRetry: () => ref.invalidate(budgetProvider),
-              loading: const Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: SkeletonList(rows: 4, height: 150),
-              ),
+              loading: const SkeletonList(rows: 4, height: 96),
               builder: (o) => _Body(o),
             ),
           ],
@@ -51,299 +48,163 @@ class BudgetScreen extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   const _Body(this.o);
   final BudgetOverview o;
 
   @override
-  Widget build(BuildContext context) {
-    final sections = <Widget>[
-      _Overview(o),
-      _AutoCapture(o),
-      const SectionHeader('Categories'),
-      _Categories(o),
-      const SectionHeader('Month over month'),
-      Padding(
-        padding: screenPad,
-        child: GlassCard(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final rules = ref.watch(rulesProvider).value;
+    final statements = ref.watch(statementsProvider).value;
+    final attention = statements?.where((s) => s.needsAttention).length ?? 0;
+    final lines = [...o.lines.where((l) => l.planned > 0 || l.spent > 0)]
+      ..sort((a, b) {
+        // Most urgent first: over budget, then closest to the limit.
+        final pa = a.planned == 0 ? 2.0 : a.progress;
+        final pb = b.planned == 0 ? 2.0 : b.progress;
+        return pb.compareTo(pa);
+      });
+    final autoPct = (o.autoShare * 100).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        HeroNumber(
+          label: 'Spent this month',
+          value: o.spent,
+          caption:
+              'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
+          footer: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Meter(value: o.progress, color: c.forProgress(o.progress)),
+              const SizedBox(height: Space.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Safe to spend ${Money.aed(o.safePerDay, decimals: false)} a day',
+                      style: context.tt.bodyMedium!.copyWith(
+                        color: c.textPrimary,
+                      ),
+                    ),
+                  ),
+                  Text('$autoPct% automatic', style: context.tt.bodySmall),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SectionHeader(
+          'Categories',
+          action: 'Edit',
+          onAction: () => context.push(Routes.categories),
+        ),
+        const SizedBox(height: Space.sm),
+        SnapRail(
+          height: 128,
+          itemCount: lines.length,
+          itemBuilder: (context, i) => _CategoryTile(lines[i]),
+        ),
+        const SectionHeader('Month over month'),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.md,
+            Space.gutter,
+            0,
+          ),
           child: TrendBars(
             labels: [for (final m in o.trend) m.label],
             values: [for (final m in o.trend) m.spent],
             planned: o.planned,
           ),
         ),
-      ),
-      const SectionHeader('Top merchants'),
-      _Merchants(o),
-      const SectionHeader('By card'),
-      _Breakdown(o.byCard),
-      const SectionHeader('By account'),
-      _Breakdown(o.byAccount),
-    ];
-    return Column(
-      children: [
-        for (var i = 0; i < sections.length; i++)
-          sections[i]
-              .animate(delay: stagger(i.clamp(0, 6)))
-              .fadeIn(duration: 420.ms)
-              .slideY(begin: 0.06, curve: Curves.easeOutCubic),
-      ],
-    );
-  }
-}
-
-class _Overview extends StatelessWidget {
-  const _Overview(this.o);
-  final BudgetOverview o;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    return Padding(
-      padding: screenPad,
-      child: GlassCard(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [c.accent.withValues(alpha: 0.28), c.surface],
-        ),
-        child: Column(
+        _WhereItWent(o),
+        const SectionHeader('Manage'),
+        RowGroup(
+          indent: ListRow.leadingInset,
           children: [
-            Row(
-              children: [
-                ProgressRing(
-                  progress: o.progress,
-                  size: 128,
-                  stroke: 14,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${o.daysLeft}',
-                        style: PulseTheme.amount(c.textPrimary, size: 30),
-                      ),
-                      Text('days left', style: context.tt.bodySmall),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: Space.xl),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('SPENT', style: context.tt.labelSmall),
-                      AmountText(o.spent, size: 26),
-                      const SizedBox(height: 10),
-                      Text('PLANNED', style: context.tt.labelSmall),
-                      Text(
-                        Money.aed(o.planned, decimals: false),
-                        style: PulseTheme.amount(
-                          c.textSecondary,
-                          size: 18,
-                          weight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+            ListRow(
+              leading: const IconWell(Icons.category_outlined),
+              title: 'Categories & budgets',
+              chevron: true,
+              onTap: () => context.push(Routes.categories),
             ),
-            const SizedBox(height: Space.lg),
-            Container(
-              padding: const EdgeInsets.all(Space.md),
-              decoration: BoxDecoration(
-                color: c.accentAlt.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(Radii.md),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.shield_moon_rounded, color: c.accentAlt),
-                  const SizedBox(width: Space.md),
-                  Expanded(
-                    child: Text('Safe to spend', style: context.tt.titleSmall),
-                  ),
-                  Text(
-                    '${Money.aed(o.safePerDay, decimals: false)} / day',
-                    style: PulseTheme.amount(
-                      c.accentAlt,
-                      size: 17,
-                      weight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
+            ListRow(
+              leading: const IconWell(Icons.auto_mode_rounded),
+              title: 'Automations',
+              subtitle: rules == null
+                  ? null
+                  : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+              chevron: true,
+              onTap: () => context.push(Routes.automations),
+            ),
+            ListRow(
+              leading: const IconWell(Icons.fact_check_outlined),
+              title: 'Monthly close',
+              subtitle: statements == null
+                  ? null
+                  : (attention == 0
+                        ? 'All statements match'
+                        : '$attention need you'),
+              subtitleColor: attention == 0 ? null : c.warning,
+              chevron: true,
+              onTap: () => context.push(Routes.statements),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _AutoCapture extends StatelessWidget {
-  const _AutoCapture(this.o);
-  final BudgetOverview o;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    final pct = (o.autoShare * 100).round();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Space.gutter,
-        Space.md,
-        Space.gutter,
-        0,
-      ),
-      child: GlassCard(
-        padding: const EdgeInsets.all(Space.md),
-        child: Row(
-          children: [
-            Icon(Icons.bolt_rounded, color: c.accentAlt),
-            const SizedBox(width: Space.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('$pct% auto-captured', style: context.tt.titleSmall),
-                  const SizedBox(height: 6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: TweenAnimationBuilder<double>(
-                      tween: Tween(begin: 0, end: o.autoShare),
-                      duration: const Duration(milliseconds: 900),
-                      curve: Curves.easeOutCubic,
-                      builder: (_, v, _) => LinearProgressIndicator(
-                        value: v,
-                        minHeight: 6,
-                        color: c.accentAlt,
-                        backgroundColor: c.warning.withValues(alpha: 0.4),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: Space.md),
-            Text(
-              '${o.autoCaptured} auto\n${o.manual} manual',
-              style: context.tt.bodySmall,
-              textAlign: TextAlign.right,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Categories extends StatelessWidget {
-  const _Categories(this.o);
-  final BudgetOverview o;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    final top = o.lines.take(4).toList();
-    final rest = o.lines.skip(4).toList();
-    return Column(
-      children: [
-        SizedBox(
-          height: 150,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: screenPad,
-            itemCount: top.length,
-            separatorBuilder: (_, _) => const SizedBox(width: Space.md),
-            itemBuilder: (_, i) {
-              final l = top[i];
-              return SizedBox(
-                width: 140,
-                child: GlassCard(
-                  padding: const EdgeInsets.all(Space.md),
-                  onTap: () => context.push(
-                    '${Routes.activity}?category=${l.category.name}',
-                  ),
-                  child: Column(
-                    children: [
-                      ProgressRing(
-                        progress: l.progress,
-                        size: 70,
-                        stroke: 8,
-                        color: l.progress > 1 ? c.negative : l.category.color,
-                        child: Icon(
-                          l.category.icon,
-                          color: l.category.color,
-                          size: 22,
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        l.category.label,
-                        style: context.tt.labelMedium,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        '${Money.number(l.spent)} / ${Money.number(l.planned)}',
-                        style: context.tt.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: Space.md),
-        Padding(
-          padding: screenPad,
-          child: GlassCard(
-            child: Column(children: [for (final l in rest) _Bar(l)]),
-          ),
         ),
       ],
     );
   }
 }
 
-class _Bar extends StatelessWidget {
-  const _Bar(this.l);
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile(this.l);
   final BudgetLine l;
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final over = l.progress > 1;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+    final noBudget = l.planned == 0;
+    final status = noBudget
+        ? c.textTertiary
+        : (l.progress > 1
+              ? c.negative
+              : (l.progress >= 0.9 ? c.warning : c.textSecondary));
+    return SurfaceCard(
+      padding: const EdgeInsets.all(Space.md),
+      onTap: () => context.push('${Routes.activity}?category=${l.category.id}'),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(l.category.icon, size: 18, color: l.category.color),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(l.category.label, style: context.tt.titleSmall),
-              ),
-              Text(
-                '${Money.number(l.spent)} / ${Money.number(l.planned)}',
-                style: context.tt.bodySmall!.copyWith(
-                  color: over ? c.negative : null,
-                ),
-              ),
+              Icon(l.category.icon, size: 20, color: c.textSecondary),
+              const Spacer(),
+              if (!noBudget)
+                ProgressRing(progress: l.progress, size: 20, stroke: 3),
             ],
           ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0, end: l.progress.clamp(0, 1)),
-              duration: const Duration(milliseconds: 800),
-              curve: Curves.easeOutCubic,
-              builder: (_, v, _) => LinearProgressIndicator(
-                value: v,
-                minHeight: 6,
-                color: over ? c.negative : l.category.color,
-                backgroundColor: c.border,
-              ),
-            ),
+          const Spacer(),
+          Text(
+            l.category.label,
+            style: context.tt.titleSmall,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            Money.aed(l.spent, decimals: false),
+            style: PulseTheme.amount(c.textPrimary),
+          ),
+          Text(
+            noBudget
+                ? 'No budget'
+                : (l.progress > 1
+                      ? '${Money.number(l.spent - l.planned)} over'
+                      : 'of ${Money.number(l.planned)}'),
+            style: context.tt.bodySmall!.copyWith(color: status),
+            maxLines: 1,
           ),
         ],
       ),
@@ -351,116 +212,88 @@ class _Bar extends StatelessWidget {
   }
 }
 
-class _Merchants extends StatelessWidget {
-  const _Merchants(this.o);
+enum _By { merchants, cards, accounts }
+
+class _WhereItWent extends StatefulWidget {
+  const _WhereItWent(this.o);
   final BudgetOverview o;
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: screenPad,
-    child: GlassCard(
-      child: Column(
-        children: [
-          for (var i = 0; i < o.topMerchants.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: [
-                  Text('${i + 1}', style: context.tt.labelMedium),
-                  const SizedBox(width: Space.md),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: o.topMerchants[i].category.color.withValues(
-                        alpha: 0.16,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      o.topMerchants[i].category.icon,
-                      size: 18,
-                      color: o.topMerchants[i].category.color,
-                    ),
-                  ),
-                  const SizedBox(width: Space.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          o.topMerchants[i].merchant,
-                          style: context.tt.titleSmall,
-                        ),
-                        Text(
-                          '${o.topMerchants[i].count} transactions',
-                          style: context.tt.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    Money.aed(o.topMerchants[i].total, decimals: false),
-                    style: PulseTheme.amount(
-                      context.pc.textPrimary,
-                      size: 15,
-                      weight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
-    ),
-  );
+  State<_WhereItWent> createState() => _WhereItWentState();
 }
 
-class _Breakdown extends StatelessWidget {
-  const _Breakdown(this.data);
-  final Map<String, double> data;
+class _WhereItWentState extends State<_WhereItWent> {
+  _By _by = _By.merchants;
+
   @override
   Widget build(BuildContext context) {
+    final o = widget.o;
     final c = context.pc;
-    final entries = data.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final total = entries.fold(0.0, (a, e) => a + e.value);
-    return Padding(
-      padding: screenPad,
-      child: GlassCard(
-        child: Column(
-          children: [
-            for (final e in entries)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 7),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(e.key, style: context.tt.titleSmall),
-                        ),
-                        Text(
-                          Money.aed(e.value, decimals: false),
-                          style: context.tt.titleSmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: total == 0 ? 0 : e.value / total,
-                        minHeight: 4,
-                        color: c.accent,
-                        backgroundColor: c.border,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
+    final rows = switch (_by) {
+      _By.merchants => [
+        for (final m in o.topMerchants)
+          (m.merchant, '${m.count} ${m.count == 1 ? 'payment' : 'payments'}', m.total, m.category.icon),
+      ],
+      _By.cards => _entries(o.byCard, Icons.credit_card_outlined),
+      _By.accounts => _entries(o.byAccount, Icons.account_balance_outlined),
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Where it went'),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.md,
+            Space.gutter,
+            Space.xs,
+          ),
+          child: Segmented<_By>(
+            segments: const {
+              _By.merchants: 'Merchants',
+              _By.cards: 'Cards',
+              _By.accounts: 'Accounts',
+            },
+            value: _by,
+            onChanged: (v) => setState(() => _by = v),
+          ),
         ),
-      ),
+        AnimatedSwitcher(
+          duration: Motion.base,
+          child: RowGroup(
+            key: ValueKey(_by),
+            indent: ListRow.leadingInset,
+            children: [
+              for (final r in rows)
+                ListRow(
+                  leading: IconWell(r.$4),
+                  title: r.$1,
+                  subtitle: r.$2,
+                  trailing: Text(
+                    Money.aed(r.$3, decimals: false),
+                    style: PulseTheme.amount(c.textPrimary),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
+  }
+
+  List<(String, String?, double, IconData)> _entries(
+    Map<String, double> m,
+    IconData icon,
+  ) {
+    final total = m.values.fold(0.0, (a, b) => a + b);
+    final e = m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));
+    return [
+      for (final x in e)
+        (
+          x.key,
+          total == 0 ? null : '${(x.value / total * 100).round()}% of spend',
+          x.value,
+          icon,
+        ),
+    ];
   }
 }

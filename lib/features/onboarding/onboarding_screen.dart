@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/analytics/analytics.dart';
@@ -82,9 +81,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               alignment: Alignment.centerRight,
               child: Padding(
                 padding: const EdgeInsets.all(Space.lg),
-                child: GestureDetector(
+                child: TextAction(
+                  'Skip',
+                  color: c.textSecondary,
                   onTap: () => ref.read(sessionProvider).finishOnboarding(),
-                  child: Text('Skip', style: context.tt.labelMedium),
                 ),
               ),
             ),
@@ -92,10 +92,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               child: PageView.builder(
                 controller: _ctl,
                 itemCount: _pages.length,
-                onPageChanged: (i) {
-                  Haptics.tap();
-                  setState(() => _page = i);
-                },
+                onPageChanged: (i) => setState(() => _page = i),
                 itemBuilder: (_, i) {
                   final p = _pages[i];
                   return Padding(
@@ -104,39 +101,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                              width: 140,
-                              height: 140,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(40),
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [c.accent, c.accentAlt],
-                                ),
-                                boxShadow: Elevations.glow(c.accent),
-                              ),
-                              child: Icon(p.$1, size: 64, color: Colors.white),
-                            )
-                            .animate(key: ValueKey(i))
-                            .scale(
-                              begin: const Offset(0.8, 0.8),
-                              duration: 500.ms,
-                              curve: Curves.easeOutBack,
-                            )
-                            .fadeIn(),
-                        const SizedBox(height: 48),
-                        Text(p.$2, style: context.tt.displayMedium)
-                            .animate(key: ValueKey('t$i'))
-                            .fadeIn(duration: 450.ms)
-                            .slideY(begin: 0.15),
+                        Icon(p.$1, size: 56, color: c.accent),
+                        const SizedBox(height: Space.xxxl),
+                        Text(p.$2, style: context.tt.displayMedium),
                         const SizedBox(height: Space.md),
                         Text(
                           p.$3,
                           style: context.tt.bodyLarge!.copyWith(
                             color: c.textSecondary,
                           ),
-                        ).animate(key: ValueKey('b$i'), delay: 120.ms).fadeIn(),
+                        ),
                       ],
                     ),
                   );
@@ -150,10 +124,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: i == _page ? 24 : 6,
+                    width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: i == _page ? c.accent : c.border,
+                      color: i == _page ? c.textPrimary : c.border,
                       borderRadius: BorderRadius.circular(3),
                     ),
                   ),

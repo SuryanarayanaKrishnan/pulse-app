@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -21,16 +20,8 @@ class ActivityScreen extends ConsumerStatefulWidget {
 
 class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   final _search = TextEditingController();
-  SpendCategory? _cat;
-  bool _autoOnly = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _cat = SpendCategory.values
-        .where((c) => c.name == widget.initialCategory)
-        .firstOrNull;
-  }
+  late String? _catId = widget.initialCategory;
+  bool _manualOnly = false;
 
   @override
   void dispose() {
@@ -45,13 +36,21 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
     final diff = today.difference(day).inDays;
     if (diff == 0) return 'Today';
     if (diff == 1) return 'Yesterday';
-    return DateFormat('EEEE, d MMM').format(d);
+    return DateFormat('EEEE d MMMM').format(d);
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
     final txs = ref.watch(transactionsProvider);
+    final all = txs.value ?? const <Transaction>[];
+    // Only categories that actually occur, in the default order.
+    final cats = ref.watch(categoriesProvider).value ?? SpendCategory.defaults;
+    final used = {for (final t in all) t.category};
+    final chips = [
+      for (final x in cats)
+        if (used.contains(x)) x,
+    ];
     return Scaffold(
       appBar: AppBar(
         title: const Text('Activity'),
@@ -60,21 +59,21 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           onPressed: () => context.pop(),
         ),
         actions: [
-          // Manual entry is intentionally a small overflow action, never a primary CTA.
+          // Manual entry is intentionally a small overflow action.
           PopupMenuButton<String>(
-            icon: Icon(Icons.more_horiz_rounded, color: c.textSecondary),
-            color: c.surfaceElevated,
+            icon: const Icon(Icons.more_horiz_rounded),
             onSelected: (v) {
-              if (v == 'manual')
+              if (v == 'manual') {
                 showPulseSheet<void>(
                   context,
                   builder: (_) => const AddManualTxSheet(),
                 );
+              }
             },
             itemBuilder: (_) => const [
               PopupMenuItem(
                 value: 'manual',
-                child: Text('Add cash expense manually'),
+                child: Text('Add cash expense'),
               ),
             ],
           ),
@@ -88,36 +87,42 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               controller: _search,
               onChanged: (_) => setState(() {}),
               decoration: InputDecoration(
-                hintText: 'Search merchants',
+                hintText: 'Search',
                 prefixIcon: Icon(Icons.search_rounded, color: c.textTertiary),
               ),
             ),
           ),
           SizedBox(
-            height: 52,
+            height: 60,
             child: ListView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
                 horizontal: Space.gutter,
-                vertical: 10,
+                vertical: Space.md,
               ),
               children: [
                 Pill(
-                  'Automatic',
-                  icon: Icons.bolt_rounded,
-                  selected: _autoOnly,
-                  color: c.accentAlt,
-                  onTap: () => setState(() => _autoOnly = !_autoOnly),
+                  'All',
+                  selected: _catId == null && !_manualOnly,
+                  onTap: () => setState(() {
+                    _catId = null;
+                    _manualOnly = false;
+                  }),
                 ),
-                for (final cat in SpendCategory.values) ...[
-                  const SizedBox(width: 8),
+                const SizedBox(width: Space.sm),
+                Pill(
+                  'Manual',
+                  selected: _manualOnly,
+                  onTap: () => setState(() => _manualOnly = !_manualOnly),
+                ),
+                for (final cat in chips) ...[
+                  const SizedBox(width: Space.sm),
                   Pill(
                     cat.label,
-                    icon: cat.icon,
-                    color: cat.color,
-                    selected: _cat == cat,
-                    onTap: () =>
-                        setState(() => _cat = _cat == cat ? null : cat),
+                    selected: _catId == cat.id,
+                    onTap: () => setState(
+                      () => _catId = _catId == cat.id ? null : cat.id,
+                    ),
                   ),
                 ],
               ],
@@ -130,13 +135,13 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
               builder: (list) {
                 final q = _search.text.trim().toLowerCase();
                 final f = list.where((t) {
-                  if (_cat != null && t.category != _cat) return false;
-                  if (_autoOnly && !t.source.automatic) return false;
+                  if (_catId != null && t.category.id != _catId) return false;
+                  if (_manualOnly && t.source.automatic) return false;
                   return q.isEmpty || t.merchant.toLowerCase().contains(q);
                 }).toList();
                 if (f.isEmpty) {
                   return const EmptyState(
-                    icon: Icons.search_off_rounded,
+                    icon: Icons.search_rounded,
                     title: 'No transactions',
                     message: 'Try a different search or filter.',
                   );
@@ -145,41 +150,32 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                 for (final t in f) {
                   groups.putIfAbsent(_dayLabel(t.date), () => []).add(t);
                 }
-                var i = 0;
                 return ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.gutter,
-                    0,
-                    Space.gutter,
-                    40,
-                  ),
+                  padding: const EdgeInsets.only(bottom: Space.xxxl),
                   children: [
                     for (final e in groups.entries) ...[
                       Padding(
-                        padding: const EdgeInsets.only(
-                          top: Space.lg,
-                          bottom: 4,
+                        padding: const EdgeInsets.fromLTRB(
+                          Space.gutter,
+                          Space.lg,
+                          Space.gutter,
+                          0,
                         ),
-                        child: Text(
-                          e.key.toUpperCase(),
-                          style: context.tt.labelSmall,
-                        ),
+                        child: Text(e.key, style: context.tt.bodySmall),
                       ),
-                      for (final t in e.value)
-                        TxTile(
+                      RowGroup(
+                        indent: ListRow.leadingInset,
+                        children: [
+                          for (final t in e.value)
+                            TxTile(
                               t,
                               onTap: () => showPulseSheet<void>(
                                 context,
                                 builder: (_) => TxDetailSheet(tx: t),
                               ),
-                            )
-                            .animate(delay: stagger((i++).clamp(0, 10)))
-                            .fadeIn(duration: 350.ms)
-                            .slideY(
-                              begin: 0.15,
-                              end: 0,
-                              curve: Curves.easeOutCubic,
                             ),
+                        ],
+                      ),
                     ],
                   ],
                 );

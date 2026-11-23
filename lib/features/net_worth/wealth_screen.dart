@@ -1,5 +1,4 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/theme/theme.dart';
@@ -14,6 +13,7 @@ class WealthScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
     final assets = ref.watch(assetsProvider);
     final nw = ref.watch(netWorthProvider).value;
     return Scaffold(
@@ -22,29 +22,19 @@ class WealthScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 120),
           children: [
-            const ScreenHeader('Wealth', subtitle: 'Assets & liabilities'),
+            const ScreenHeader('Wealth', subtitle: 'Assets and liabilities'),
             if (nw != null)
-              Padding(
-                padding: screenPad,
-                child: GlassCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('NET WORTH', style: context.tt.labelSmall),
-                      const SizedBox(height: 6),
-                      AmountText(nw.total, size: 34),
-                      const SizedBox(height: Space.md),
-                      Sparkline(values: nw.series, height: 90),
-                    ],
-                  ),
-                ).animate().fadeIn(duration: 450.ms).slideY(begin: 0.06),
+              HeroNumber(
+                label: 'Net worth',
+                value: nw.total,
+                caption:
+                    '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
+                captionColor: nw.changePct >= 0 ? c.positive : c.negative,
+                footer: Sparkline(values: nw.series, height: 64),
               ),
             AsyncView<List<Asset>>(
               value: assets,
-              loading: const Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: SkeletonList(rows: 4),
-              ),
+              loading: const SkeletonList(rows: 4),
               onRetry: () => ref.invalidate(assetsProvider),
               builder: (list) => _Body(list),
             ),
@@ -59,6 +49,13 @@ class _Body extends StatelessWidget {
   const _Body(this.list);
   final List<Asset> list;
 
+  /// Allocation colours: one hue family, stepped in lightness, so the bar
+  /// reads as proportion rather than a rainbow.
+  static Color _shade(PulseColors c, int i, int n) {
+    final t = n <= 1 ? 0.0 : i / (n - 1);
+    return Color.lerp(c.accent, c.surfaceElevated, t * 0.85)!;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
@@ -68,139 +65,92 @@ class _Body extends StatelessWidget {
     }
     double sum(AssetKind k) =>
         (byKind[k] ?? []).fold(0.0, (a, e) => a + e.value);
-    final assetKinds = AssetKind.values
-        .where((k) => k != AssetKind.liability && byKind.containsKey(k))
-        .toList();
-    final totalAssets = assetKinds.fold(0.0, (a, k) => a + sum(k));
+    final kinds =
+        AssetKind.values
+            .where((k) => k != AssetKind.liability && byKind.containsKey(k))
+            .toList()
+          ..sort((a, b) => sum(b).compareTo(sum(a)));
+    final totalAssets = kinds.fold(0.0, (a, k) => a + sum(k));
     final liabilities = sum(AssetKind.liability);
+    TextStyle num([Color? col]) => PulseTheme.amount(col ?? c.textPrimary);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SectionHeader('Allocation'),
         Padding(
-          padding: screenPad,
-          child: GlassCard(
-            child: Row(
-              children: [
-                DonutChart(
-                  size: 150,
-                  slices: [
-                    for (final k in assetKinds)
-                      DonutSlice(k.label, sum(k), k.color),
-                  ],
-                  center: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('Assets', style: context.tt.bodySmall),
-                      Text(
-                        Money.aedCompact(totalAssets),
-                        style: PulseTheme.amount(c.textPrimary, size: 16),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: Space.lg),
-                Expanded(
-                  child: Column(
-                    children: [
-                      for (final k in assetKinds)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: k.color,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  k.label,
-                                  style: context.tt.bodyMedium,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              Text(
-                                '${(sum(k) / totalAssets * 100).round()}%',
-                                style: context.tt.labelMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.md,
+            Space.gutter,
+            Space.xs,
+          ),
+          child: StackedBar(
+            slices: [
+              for (var i = 0; i < kinds.length; i++)
+                ChartSlice(kinds[i].label, sum(kinds[i]), _shade(c, i, kinds.length)),
+            ],
           ),
         ),
+        RowGroup(
+          children: [
+            for (var i = 0; i < kinds.length; i++)
+              ListRow(
+                dense: true,
+                leading: Dot(_shade(c, i, kinds.length), size: 10),
+                title: kinds[i].label,
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${(sum(kinds[i]) / totalAssets * 100).round()}%',
+                      style: num(c.textSecondary),
+                    ),
+                    const SizedBox(width: Space.lg),
+                    SizedBox(
+                      width: 104,
+                      child: Text(
+                        Money.aedCompact(sum(kinds[i])),
+                        style: num(),
+                        textAlign: TextAlign.right,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
         for (final k in [
-          ...assetKinds,
+          ...kinds,
           if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
         ]) ...[
           SectionHeader(k.label),
-          Padding(
-            padding: screenPad,
-            child: GlassCard(
-              padding: const EdgeInsets.symmetric(
-                horizontal: Space.lg,
-                vertical: Space.sm,
-              ),
-              child: Column(
-                children: [
-                  for (final a in byKind[k]!)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: k.color.withValues(alpha: 0.16),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(k.icon, color: k.color, size: 20),
-                          ),
-                          const SizedBox(width: Space.md),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(a.name, style: context.tt.titleSmall),
-                                if (a.note.isNotEmpty)
-                                  Text(a.note, style: context.tt.bodySmall),
-                              ],
-                            ),
-                          ),
-                          Text(
-                            Money.aed(
-                              a.isLiability ? -a.value : a.value,
-                              decimals: false,
-                            ),
-                            style: PulseTheme.amount(
-                              a.isLiability ? c.negative : c.textPrimary,
-                              size: 15,
-                              weight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+          RowGroup(
+            children: [
+              for (final a in byKind[k]!)
+                ListRow(
+                  title: a.name,
+                  subtitle: a.note.isEmpty ? null : a.note,
+                  trailing: Text(
+                    Money.aed(
+                      a.isLiability ? -a.value : a.value,
+                      decimals: false,
                     ),
-                ],
-              ),
-            ),
+                    style: num(),
+                  ),
+                ),
+            ],
           ),
         ],
-        const SizedBox(height: Space.md),
         Padding(
-          padding: screenPad,
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.lg,
+            Space.gutter,
+            0,
+          ),
           child: Text(
-            'Liabilities total ${Money.aed(liabilities, decimals: false)}',
+            'Assets ${Money.aed(totalAssets, decimals: false)} · '
+            'Liabilities ${Money.aed(liabilities, decimals: false)}',
             style: context.tt.bodySmall,
           ),
         ),

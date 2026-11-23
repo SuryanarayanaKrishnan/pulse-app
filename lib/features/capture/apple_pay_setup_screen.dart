@@ -149,7 +149,7 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen> {
             'Pass the payment details',
             'The Shortcut opens the link below with the Amount, Merchant and Card from the transaction. ${Env.appName} then records it.',
           ),
-          GlassCard(
+          SurfaceCard(
             padding: const EdgeInsets.all(Space.md),
             child: Row(
               children: [
@@ -177,7 +177,7 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen> {
             'Make a purchase with Apple Pay. It appears in Activity within seconds with an Apple Pay badge.',
           ),
           const SectionHeader('Ingest token'),
-          GlassCard(
+          SurfaceCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
