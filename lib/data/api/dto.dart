@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../models.dart';
+import '../rules.dart';
+import '../statements.dart';
 
 /// Wire-level types for the Pulse backend (`/v1`). Amounts are integer minor
 /// units (fils); conversion to the UI's double AED happens in the `toDomain`
@@ -74,51 +76,99 @@ class AccountDto {
 }
 
 class CategoryDto {
-  const CategoryDto({required this.id, required this.name, required this.kind});
+  const CategoryDto({
+    required this.id,
+    required this.name,
+    required this.kind,
+    this.slug,
+    this.userId,
+    this.isHidden = false,
+  });
   final String id;
   final String name;
 
   /// `expense` | `income` | `transfer`
   final String kind;
 
+  /// Stable key of a default category (e.g. `groceries`); null for custom.
+  final String? slug;
+
+  /// Owner of a custom category; null for the shared defaults.
+  final String? userId;
+  final bool isHidden;
+
   factory CategoryDto.fromJson(Map<String, Object?> j) => CategoryDto(
     id: j['id']! as String,
     name: j['name']! as String,
     kind: (j['kind'] as String?) ?? 'expense',
+    slug: j['slug'] as String?,
+    userId: j['user_id'] as String?,
+    isHidden: (j['is_hidden'] as bool?) ?? false,
   );
 
-  SpendCategory get spendCategory => spendCategoryFor(name, kind: kind);
+  bool get isCustom => userId != null && slug == null;
+
+  CategoryKind get categoryKind => switch (kind) {
+    'income' => CategoryKind.income,
+    'transfer' => CategoryKind.transfer,
+    _ => CategoryKind.expense,
+  };
+
+  /// Default by slug, a custom category by id, else best match by name.
+  SpendCategory get spendCategory {
+    final bySlug = SpendCategory.byId(slug);
+    if (bySlug != null) return bySlug;
+    if (isCustom) return SpendCategory.custom(id, name, kind: categoryKind);
+    return spendCategoryFor(name, kind: kind);
+  }
 }
 
-/// Maps a backend category name to the UI's fixed category set.
+/// Maps a backend category name to the UI's default set.
 SpendCategory spendCategoryFor(String name, {String kind = 'expense'}) {
   final n = name.toLowerCase();
+  for (final c in SpendCategory.defaults) {
+    if (c.label.toLowerCase() == n) return c;
+  }
   bool has(List<String> keys) => keys.any(n.contains);
   if (kind == 'income' || has(['income', 'salary', 'refund'])) {
-    return SpendCategory.income;
+    return SpendCategory.salary;
   }
+  if (has(['credit card', 'card payment'])) return SpendCategory.cardPayments;
   if (has(['grocer', 'supermarket'])) return SpendCategory.groceries;
-  if (has(['din', 'restaurant', 'food', 'cafe', 'coffee'])) {
+  if (has(['din', 'restaurant', 'food', 'cafe', 'coffee', 'delivery'])) {
     return SpendCategory.dining;
   }
-  if (has(['transport', 'fuel', 'taxi', 'ride', 'parking', 'toll', 'auto'])) {
+  if (has(['car loan', 'auto loan'])) return SpendCategory.carLoan;
+  if (has(['mortgage', 'home loan'])) return SpendCategory.homeLoan;
+  if (has(['transport', 'fuel', 'taxi', 'ride', 'parking', 'toll'])) {
     return SpendCategory.transport;
   }
-  if (has(['bill', 'utilit', 'telecom', 'internet', 'insurance'])) {
-    return SpendCategory.bills;
+  if (has(['telecom', 'internet', 'mobile', 'phone'])) {
+    return SpendCategory.telecom;
   }
+  if (has(['utilit', 'bill', 'electric', 'water'])) {
+    return SpendCategory.utilities;
+  }
+  if (has(['subscription', 'fixed', 'insurance'])) {
+    return SpendCategory.fixedExpenses;
+  }
+  if (has(['school', 'education', 'tuition'])) return SpendCategory.education;
   if (has(['shop', 'retail', 'fashion', 'electronics'])) {
     return SpendCategory.shopping;
   }
-  if (has(['travel', 'flight', 'hotel', 'airline']))
+  if (has(['travel', 'flight', 'hotel', 'airline'])) {
     return SpendCategory.travel;
+  }
   if (has(['health', 'pharma', 'medical', 'fitness', 'gym'])) {
     return SpendCategory.health;
   }
-  if (has(['entertain', 'subscription', 'streaming', 'movie'])) {
+  if (has(['entertain', 'streaming', 'movie'])) {
     return SpendCategory.entertainment;
   }
-  if (has(['rent', 'housing', 'mortgage', 'home'])) return SpendCategory.rent;
+  if (has(['family', 'remittance'])) return SpendCategory.family;
+  if (has(['saving', 'invest'])) return SpendCategory.savings;
+  if (has(['fee', 'charge', 'interest'])) return SpendCategory.fees;
+  if (has(['rent', 'housing', 'home'])) return SpendCategory.rent;
   return SpendCategory.other;
 }
 
@@ -183,6 +233,9 @@ class TransactionDto {
       category:
           cat?.spendCategory ??
           (income ? SpendCategory.income : SpendCategory.other),
+      rawDescription: merchantRaw?.trim().isNotEmpty ?? false
+          ? merchantRaw!.trim()
+          : null,
       date: postedAt,
       source: txSourceFor(source),
       cardId: accountId,
@@ -440,6 +493,7 @@ SplitGroup splitGroupToDomain(
   SplitGroupDto g,
   List<SplitExpenseDto> expenses, {
   String? myUserId,
+  List<SettlementDto> settlements = const [],
 }) {
   String idOf(String memberId) {
     final m = g.members.where((m) => m.id == memberId);
@@ -474,7 +528,141 @@ SplitGroup splitGroupToDomain(
           },
         ),
     ],
+    settlements: [for (final s in settlements) s.toDomain(idOf)],
   );
+}
+
+/// Note the client writes on an Aani payment the payee has not confirmed.
+const aaniPendingNote = 'aani:awaiting_confirmation';
+
+class SettlementDto {
+  const SettlementDto({
+    required this.id,
+    required this.fromMemberId,
+    required this.toMemberId,
+    required this.amountMinor,
+    required this.settledAt,
+    this.note,
+  });
+  final String id;
+  final String fromMemberId;
+  final String toMemberId;
+  final int amountMinor;
+  final DateTime settledAt;
+  final String? note;
+
+  factory SettlementDto.fromJson(Map<String, Object?> j) => SettlementDto(
+    id: j['id']! as String,
+    fromMemberId: j['from_member_id']! as String,
+    toMemberId: j['to_member_id']! as String,
+    amountMinor: _int(j['amount_minor']),
+    settledAt: _dt(j['settled_at']),
+    note: j['note'] as String?,
+  );
+
+  SettlementRecord toDomain(String Function(String) idOf) => SettlementRecord(
+    id: id,
+    from: idOf(fromMemberId),
+    to: idOf(toMemberId),
+    amount: fromMinor(amountMinor),
+    date: settledAt,
+    status: note == aaniPendingNote
+        ? SettlementStatus.awaitingConfirmation
+        : SettlementStatus.confirmed,
+    method: (note ?? '').startsWith('aani') ? 'aani' : 'manual',
+  );
+}
+
+class MerchantRuleDto {
+  const MerchantRuleDto(this.id, this.merchantKey, this.categoryId);
+  final String id;
+  final String merchantKey;
+  final String categoryId;
+  factory MerchantRuleDto.fromJson(Map<String, Object?> j) => MerchantRuleDto(
+    j['id']! as String,
+    j['merchant_key']! as String,
+    j['category_id']! as String,
+  );
+
+  AutomationRule toDomain(Map<String, CategoryDto> categories) =>
+      AutomationRule(
+        id: id,
+        field: RuleField.merchant,
+        op: RuleOperator.equals,
+        value: merchantKey,
+        action: RuleAction.setCategory,
+        category: categories[categoryId]?.spendCategory ?? SpendCategory.other,
+      );
+}
+
+DateTime? _dateOpt(Object? v) => v == null ? null : DateTime.parse(v as String);
+double? _aedOpt(Object? v) => v == null ? null : fromMinor(_int(v));
+
+class StatementDto {
+  static Statement toDomain(
+    Map<String, Object?> j, {
+    Map<String, AccountDto> accounts = const {},
+  }) {
+    final inst = j['institution'] as String?;
+    final acct = accounts[j['account_id']];
+    return Statement(
+      id: j['id']! as String,
+      institution: inst,
+      accountId: j['account_id'] as String?,
+      accountLabel:
+          acct?.label ??
+          (inst != null
+              ? institutionName(inst)
+              : (j['original_filename'] as String?) ?? 'Statement'),
+      periodStart: _dateOpt(j['period_start']),
+      periodEnd: _dateOpt(j['period_end']),
+      parse: ParseStatus.fromWire(j['parse_status'] as String?),
+      recon: ReconStatus.fromWire(j['reconciliation_status'] as String?),
+      diff: _aedOpt(j['diff_minor']),
+      source: (j['source'] as String?) ?? 'upload',
+      filename: j['original_filename'] as String?,
+      parseError: j['parse_error'] as String?,
+    );
+  }
+
+  static ReconLine _line(Map<String, Object?> j) => ReconLine(
+    date: DateTime.parse(j['posted_on']! as String),
+    description: (j['description'] as String?) ?? '',
+    amount: fromMinor(_int(j['amount_minor'])),
+    credit: j['direction'] == 'credit',
+  );
+
+  static Reconciliation reconciliation(Map<String, Object?> j) {
+    final b = Map<String, Object?>.from(j['balances'] as Map? ?? const {});
+    final counts = Map<String, Object?>.from(j['counts'] as Map? ?? const {});
+    List<Map<String, Object?>> list(String k) => [
+      for (final e in (j[k] as List? ?? const []))
+        Map<String, Object?>.from(e as Map),
+    ];
+    return Reconciliation(
+      statementId: j['statement_id']! as String,
+      status: ReconStatus.fromWire(j['reconciliation_status'] as String?),
+      opening: _aedOpt(b['opening_minor']),
+      closing: _aedOpt(b['closing_minor']),
+      computedClosing: _aedOpt(b['computed_closing_minor']),
+      diff: _aedOpt(b['diff_minor']),
+      linked: _int(counts['linked']),
+      statementOnly: list('statement_only').map(_line).toList(),
+      capturedOnly: [
+        for (final t in list('captured_only'))
+          ReconLine(
+            date: _dt(t['posted_at']),
+            description:
+                (t['merchant_normalized'] as String?) ??
+                (t['merchant_raw'] as String?) ??
+                '',
+            amount: fromMinor(_int(t['amount_minor'])),
+            credit: t['direction'] == 'credit',
+          ),
+      ],
+      warnings: [for (final w in (j['warnings'] as List? ?? const [])) '$w'],
+    );
+  }
 }
 
 // ---- Requests -------------------------------------------------------------

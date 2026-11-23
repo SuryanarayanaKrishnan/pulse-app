@@ -41,4 +41,41 @@ void main() {
     expect(plan.fold<double>(0, (s, p) => s + p.amount), 45);
     expect(plan.every((p) => p.to == 'a'), isTrue);
   });
+
+  test('only confirmed settlements move balances', () {
+    final e = [
+      SplitExpense(
+        id: '1',
+        title: 'x',
+        paidBy: 'a',
+        amount: 90,
+        participants: const ['a', 'b', 'c'],
+        date: d,
+      ),
+    ];
+    final pending = SettlementRecord(
+      id: 's',
+      from: 'b',
+      to: 'a',
+      amount: 30,
+      date: d,
+      status: SettlementStatus.awaitingConfirmation,
+    );
+    final g = SplitGroup(
+      id: 'g',
+      name: 'G',
+      emoji: '',
+      members: const [a, b, c],
+      expenses: e,
+      settlements: [pending],
+    );
+    expect(groupBalances(g)['b'], -30);
+    expect(pendingSettlement(g, 'b', 'a'), same(pending));
+    final done = g.copyWith(
+      settlements: [pending.copyWith(status: SettlementStatus.confirmed)],
+    );
+    expect(groupBalances(done)['b'], 0);
+    expect(groupBalances(done)['a'], 30);
+    expect(simplifyDebts(groupBalances(done)).single.from, 'c');
+  });
 }

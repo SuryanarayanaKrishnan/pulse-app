@@ -1,7 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
 
 import 'models.dart';
+import 'phone.dart';
 import 'repository.dart';
+import 'rules.dart';
+import 'statements.dart';
 
 typedef S = SpendCategory;
 
@@ -11,15 +16,19 @@ class MockPulseRepository implements PulseRepository {
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
   }) : _now = now ?? DateTime.now() {
-    _tx = _seedTransactions();
+    _tx = [for (final t in _seedTransactions()) applyRules(t, _rules)];
     _groups = _seedGroups();
+    _statements = _seedStatements();
   }
 
   final Duration latency;
   final DateTime _now;
   late List<Transaction> _tx;
   late List<SplitGroup> _groups;
+  late List<Statement> _statements;
   var _manualSeq = 0;
+  var _seq = 0;
+  String _id(String prefix) => '$prefix${_seq++}';
 
   Future<T> _d<T>(T v) async {
     if (latency > Duration.zero) await Future<void>.delayed(latency);
@@ -45,7 +54,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Skywards Miles',
       rewardPoints: 48210,
       rewardValueAed: 964,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.travel: 3.5,
         SpendCategory.dining: 2,
         SpendCategory.shopping: 1.5,
@@ -68,11 +77,11 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Cashback',
       rewardPoints: 0,
       rewardValueAed: 312,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.groceries: 5,
         SpendCategory.transport: 5,
         SpendCategory.dining: 2,
-        SpendCategory.bills: 0.5,
+        SpendCategory.utilities: 0.5,
       },
       highlight: '5% cashback on groceries and transport',
     ),
@@ -90,7 +99,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Cashback',
       rewardPoints: 0,
       rewardValueAed: 540,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.dining: 5,
         SpendCategory.entertainment: 5,
         SpendCategory.shopping: 2,
@@ -123,7 +132,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'TouchPoints',
       rewardPoints: 0,
       rewardValueAed: 0,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.groceries: 3,
         SpendCategory.dining: 3,
         SpendCategory.travel: 2,
@@ -146,7 +155,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Go4it Points',
       rewardPoints: 0,
       rewardValueAed: 0,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.entertainment: 4,
         SpendCategory.transport: 3,
         SpendCategory.dining: 2,
@@ -168,7 +177,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Cashback',
       rewardPoints: 0,
       rewardValueAed: 0,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.shopping: 4,
         SpendCategory.dining: 3,
         SpendCategory.groceries: 1,
@@ -190,7 +199,7 @@ class MockPulseRepository implements PulseRepository {
       rewardsLabel: 'Salaam points',
       rewardPoints: 0,
       rewardValueAed: 0,
-      categoryRates: const {
+      categoryRates: {
         SpendCategory.travel: 4,
         SpendCategory.health: 3,
         SpendCategory.dining: 3,
@@ -273,7 +282,7 @@ class MockPulseRepository implements PulseRepository {
       t(
         'DEWA',
         612.30,
-        S.bills,
+        S.utilities,
         2,
         TxSource.statement,
         'enbd-current',
@@ -336,9 +345,9 @@ class MockPulseRepository implements PulseRepository {
         'Mashreq Cashback',
       ),
       t(
-        'Du Telecom',
+        'du',
         399.00,
-        S.bills,
+        S.telecom,
         8,
         TxSource.statement,
         'enbd-current',
@@ -347,7 +356,7 @@ class MockPulseRepository implements PulseRepository {
       t(
         'Salary · Acme FZ-LLC',
         24500.00,
-        S.income,
+        S.salary,
         9,
         TxSource.statement,
         'enbd-current',
@@ -447,6 +456,18 @@ class MockPulseRepository implements PulseRepository {
         'mashreq-cb',
         'Mashreq Cashback',
       ),
+      Transaction(
+        id: 'tx-savings',
+        merchant: 'Liv Savings',
+        rawDescription: 'Transfer to Liv Savings',
+        amount: 3000,
+        category: S.savings,
+        date: DateTime(_now.year, _now.month, _now.day, 8)
+            .subtract(const Duration(days: 9)),
+        source: TxSource.statement,
+        cardId: 'enbd-current',
+        accountLabel: 'Emirates NBD Current',
+      ),
     ]..sort((a, b) => b.date.compareTo(a.date));
   }
 
@@ -467,9 +488,16 @@ class MockPulseRepository implements PulseRepository {
   }
 
   @override
-  Future<Transaction> recategorise(String txId, SpendCategory category) async {
+  Future<Transaction> recategorise(
+    String txId,
+    SpendCategory category, {
+    bool remember = false,
+  }) async {
     final i = _tx.indexWhere((e) => e.id == txId);
     _tx[i] = _tx[i].copyWith(category: category);
+    if (remember) {
+      await saveRule(suggestMerchantRule(_tx[i], category));
+    }
     return _d(_tx[i]);
   }
 
@@ -479,15 +507,19 @@ class MockPulseRepository implements PulseRepository {
     required double amount,
     required SpendCategory category,
   }) async {
-    final tx = Transaction(
-      id: 'manual${_manualSeq++}',
-      merchant: merchant,
-      amount: amount,
-      category: category,
-      date: DateTime.now(),
-      source: TxSource.manual,
-      cardId: 'cash',
-      accountLabel: 'Cash',
+    final tx = applyRules(
+      Transaction(
+        id: 'manual${_manualSeq++}',
+        merchant: merchant,
+        amount: amount,
+        category: category,
+        date: DateTime.now(),
+        source: TxSource.manual,
+        cardId: 'cash',
+        accountLabel: 'Cash',
+        isIncome: category.isIncome,
+      ),
+      _rules,
     );
     _tx = [tx, ..._tx];
     return _d(tx);
@@ -495,21 +527,94 @@ class MockPulseRepository implements PulseRepository {
 
   // ---- Budget ------------------------------------------------------------
 
-  static const _planned = {
+  final _planned = <SpendCategory, double>{
     SpendCategory.groceries: 1600.0,
     SpendCategory.dining: 1200.0,
     SpendCategory.transport: 600.0,
-    SpendCategory.bills: 1100.0,
+    SpendCategory.utilities: 700.0,
+    SpendCategory.telecom: 400.0,
     SpendCategory.shopping: 1000.0,
     SpendCategory.travel: 2500.0,
     SpendCategory.health: 500.0,
     SpendCategory.entertainment: 400.0,
     SpendCategory.rent: 6250.0,
   };
+  final _custom = <SpendCategory>[];
+
+  @override
+  Future<List<SpendCategory>> categories() =>
+      _d([...SpendCategory.defaults, ..._custom]);
+
+  @override
+  Future<SpendCategory> createCategory({
+    required String name,
+    CategoryKind kind = CategoryKind.expense,
+  }) {
+    final c = SpendCategory.custom(_id('custom_'), name.trim(), kind: kind);
+    _custom.add(c);
+    return _d(c);
+  }
+
+  @override
+  Future<void> setBudget(SpendCategory category, double monthly) {
+    if (monthly <= 0) {
+      _planned.remove(category);
+    } else {
+      _planned[category] = monthly;
+    }
+    return _d(null);
+  }
+
+  // ---- Automations ---------------------------------------------------------
+
+  final _rules = <AutomationRule>[
+    const AutomationRule(
+      id: 'r1',
+      field: RuleField.merchant,
+      op: RuleOperator.contains,
+      value: 'Talabat',
+      action: RuleAction.setCategory,
+      category: SpendCategory.dining,
+    ),
+    const AutomationRule(
+      id: 'r2',
+      field: RuleField.merchant,
+      op: RuleOperator.startsWith,
+      value: 'Tabby ·',
+      action: RuleAction.rename,
+      renameTo: 'Namshi (Tabby)',
+    ),
+    const AutomationRule(
+      id: 'r3',
+      field: RuleField.description,
+      op: RuleOperator.contains,
+      value: 'Transfer to Liv Savings',
+      action: RuleAction.exclude,
+    ),
+  ];
+
+  @override
+  Future<List<AutomationRule>> rules() => _d(List.of(_rules));
+
+  @override
+  Future<AutomationRule> saveRule(AutomationRule rule) {
+    final saved = rule.copyWith(id: _id('rule'));
+    _rules.add(saved);
+    _tx = [for (final t in _tx) applyRules(t, [saved])];
+    return _d(saved);
+  }
+
+  @override
+  Future<void> deleteRule(String id) {
+    _rules.removeWhere((r) => r.id == id);
+    return _d(null);
+  }
 
   @override
   Future<BudgetOverview> budgetOverview() async {
-    final spend = _tx.where((t) => !t.isIncome).toList();
+    final spend = _tx
+        .where((t) => !t.isIncome && !t.excluded && !t.category.isTransfer)
+        .toList();
     final byCat = <SpendCategory, double>{};
     final byMerchant = <String, List<Transaction>>{};
     final byCard = <String, double>{};
@@ -524,17 +629,14 @@ class MockPulseRepository implements PulseRepository {
       if (cardName != null)
         byCard[cardName] = (byCard[cardName] ?? 0) + t.amount;
     }
-    final lines =
-        _planned.entries
-            .map(
-              (e) => BudgetLine(
-                category: e.key,
-                planned: e.value,
-                spent: byCat[e.key] ?? 0,
-              ),
-            )
-            .toList()
-          ..sort((a, b) => b.spent.compareTo(a.spent));
+    final lines = [
+      for (final c in {..._planned.keys, ...byCat.keys})
+        BudgetLine(
+          category: c,
+          planned: _planned[c] ?? 0,
+          spent: byCat[c] ?? 0,
+        ),
+    ]..sort((a, b) => b.spent.compareTo(a.spent));
     final merchants =
         byMerchant.entries
             .map(
@@ -680,10 +782,27 @@ class MockPulseRepository implements PulseRepository {
   // ---- Splits ------------------------------------------------------------
 
   List<SplitGroup> _seedGroups() {
-    const me = Member('me', 'You', Color(0xFF7C5CFF));
-    const a = Member('ahmed', 'Ahmed', Color(0xFF2DD4BF));
-    const s = Member('sara', 'Sara', Color(0xFFF472B6));
-    const o = Member('omar', 'Omar', Color(0xFFFBBF24));
+    const me = Member('me', 'You', Color(0xFF5BC2A8), onPulse: true);
+    const a = Member(
+      'ahmed',
+      'Ahmed',
+      Color(0xFF5BC2A8),
+      phone: '+971501234567',
+      onPulse: true,
+    );
+    const s = Member(
+      'sara',
+      'Sara',
+      Color(0xFF5BC2A8),
+      phone: '+971552345678',
+      onPulse: true,
+    );
+    const o = Member(
+      'omar',
+      'Omar',
+      Color(0xFF5BC2A8),
+      phone: '+971563456789',
+    );
     final now = _now;
     return [
       SplitGroup(
@@ -715,6 +834,16 @@ class MockPulseRepository implements PulseRepository {
             amount: 241.15,
             participants: const ['me', 'ahmed', 'sara'],
             date: now.subtract(const Duration(days: 9)),
+          ),
+        ],
+        settlements: [
+          SettlementRecord(
+            id: 's1',
+            from: 'ahmed',
+            to: 'me',
+            amount: 18.48,
+            date: now.subtract(const Duration(hours: 5)),
+            status: SettlementStatus.awaitingConfirmation,
           ),
         ],
       ),
@@ -772,24 +901,238 @@ class MockPulseRepository implements PulseRepository {
   @override
   Future<List<SplitGroup>> splitGroups() => _d(List.of(_groups));
 
+  void _updateGroup(String id, SplitGroup Function(SplitGroup) f) =>
+      _groups = [for (final g in _groups) g.id == id ? f(g) : g];
+
   @override
-  Future<SplitExpense> addSplitExpense(
-    String groupId,
-    SplitExpense expense,
-  ) async {
-    _groups = [
-      for (final g in _groups)
-        if (g.id == groupId)
-          SplitGroup(
-            id: g.id,
-            name: g.name,
-            emoji: g.emoji,
-            members: g.members,
-            expenses: [expense, ...g.expenses],
-          )
-        else
-          g,
-    ];
+  Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) {
+    _updateGroup(groupId, (g) => g.copyWith(expenses: [expense, ...g.expenses]));
     return _d(expense);
   }
+
+  /// Numbers of people who already use Pulse (demo).
+  static const _pulseUsers = [
+    '+971501234567',
+    '+971552345678',
+    '+971504445566',
+    '+971585550101',
+  ];
+
+  @override
+  Future<Set<String>> matchContacts(List<String> phoneHashes) {
+    final known = {for (final p in _pulseUsers) phoneHash(p)};
+    return _d(phoneHashes.where(known.contains).toSet());
+  }
+
+  @override
+  Future<Member> addMember(
+    String groupId, {
+    required String name,
+    String? phone,
+  }) {
+    final e164 = phone == null ? null : toE164(phone);
+    final m = Member(
+      _id('m'),
+      name,
+      const Color(0xFF5BC2A8),
+      phone: e164,
+      onPulse: e164 != null && _pulseUsers.contains(e164),
+    );
+    _updateGroup(groupId, (g) => g.copyWith(members: [...g.members, m]));
+    return _d(m);
+  }
+
+  @override
+  Future<SettlementRecord> markSettlementPaid(
+    String groupId, {
+    required String from,
+    required String to,
+    required double amount,
+  }) {
+    final rec = SettlementRecord(
+      id: _id('s'),
+      from: from,
+      to: to,
+      amount: amount,
+      date: DateTime.now(),
+      status: SettlementStatus.awaitingConfirmation,
+    );
+    _updateGroup(groupId, (g) => g.copyWith(settlements: [...g.settlements, rec]));
+    return _d(rec);
+  }
+
+  @override
+  Future<SettlementRecord> confirmSettlement(
+    String groupId,
+    String settlementId,
+  ) {
+    late SettlementRecord out;
+    _updateGroup(
+      groupId,
+      (g) => g.copyWith(
+        settlements: [
+          for (final s in g.settlements)
+            if (s.id == settlementId)
+              out = s.copyWith(status: SettlementStatus.confirmed)
+            else
+              s,
+        ],
+      ),
+    );
+    return _d(out);
+  }
+
+  // ---- Monthly close -------------------------------------------------------
+
+  final _passwords = <String, DateTime>{
+    'enbd': DateTime(2026, 9, 2),
+    'mashreq': DateTime(2026, 9, 2),
+  };
+  final _gmail = <EmailConnection>[];
+
+  List<Statement> _seedStatements() {
+    final end = DateTime(_now.year, _now.month, 0);
+    final start = DateTime(end.year, end.month, 1);
+    Statement st(
+      String id,
+      String inst,
+      String label,
+      ParseStatus p,
+      ReconStatus r, {
+      double? diff,
+      String source = 'gmail',
+      DateTime? s,
+      DateTime? e,
+    }) => Statement(
+      id: id,
+      institution: inst,
+      accountLabel: label,
+      parse: p,
+      recon: r,
+      diff: diff,
+      source: source,
+      periodStart: s ?? start,
+      periodEnd: e ?? end,
+    );
+    final prevEnd = DateTime(end.year, end.month, 0);
+    final prevStart = DateTime(prevEnd.year, prevEnd.month, 1);
+    return [
+      st('st1', 'enbd', 'Emirates NBD Current', ParseStatus.parsed, ReconStatus.matched),
+      st('st2', 'mashreq', 'Mashreq Cashback ••0937', ParseStatus.parsed, ReconStatus.mismatch, diff: 238),
+      st('st3', 'fab', 'FAB Cashback ••6604', ParseStatus.needsPassword, ReconStatus.pending),
+      st('st4', 'enbd', 'Emirates NBD Skywards ••4821', ParseStatus.parsed, ReconStatus.matched, source: 'upload'),
+      st('st5', 'enbd', 'Emirates NBD Current', ParseStatus.parsed, ReconStatus.matched, s: prevStart, e: prevEnd),
+      st('st6', 'mashreq', 'Mashreq Cashback ••0937', ParseStatus.parsed, ReconStatus.matched, s: prevStart, e: prevEnd),
+    ];
+  }
+
+  @override
+  Future<List<Statement>> statements() => _d(List.of(_statements));
+
+  @override
+  Future<Reconciliation> reconciliation(String statementId) {
+    final s = _statements.firstWhere((e) => e.id == statementId);
+    final end = s.periodEnd ?? _now;
+    if (s.state == CloseState.mismatch) {
+      return _d(
+        Reconciliation(
+          statementId: s.id,
+          status: s.recon,
+          opening: 2952,
+          closing: 3428,
+          computedClosing: 3190,
+          diff: -238,
+          linked: 41,
+          statementOnly: [
+            ReconLine(
+              date: DateTime(end.year, end.month, 18),
+              description: 'NOON.COM DUBAI',
+              amount: 238,
+            ),
+          ],
+          warnings: const ['One purchase on the statement was never captured.'],
+        ),
+      );
+    }
+    return _d(
+      Reconciliation(
+        statementId: s.id,
+        status: s.recon,
+        opening: 6120,
+        closing: 8420.5,
+        computedClosing: 8420.5,
+        diff: 0,
+        linked: 37,
+      ),
+    );
+  }
+
+  @override
+  Future<UploadResult> uploadStatement({
+    required Uint8List bytes,
+    required String filename,
+    String? institution,
+  }) {
+    final id = _id('up');
+    _statements = [
+      Statement(
+        id: id,
+        institution: institution,
+        accountLabel: filename,
+        parse: ParseStatus.pending,
+        recon: ReconStatus.pending,
+        filename: filename,
+        periodEnd: DateTime(_now.year, _now.month, 0),
+      ),
+      ..._statements,
+    ];
+    return _d(UploadResult(id: id, duplicate: false));
+  }
+
+  @override
+  Future<void> reprocessStatement(String statementId) {
+    _statements = [
+      for (final s in _statements)
+        s.id == statementId
+            ? s.copyWith(parse: ParseStatus.parsed, recon: ReconStatus.matched)
+            : s,
+    ];
+    return _d(null);
+  }
+
+  @override
+  Future<List<StatementPassword>> statementPasswords() => _d([
+    for (final e in _passwords.entries) StatementPassword(e.key, e.value),
+  ]);
+
+  @override
+  Future<void> setStatementPassword(String institution, String password) {
+    _passwords[institution] = DateTime.now();
+    // The backend re-queues locked statements; the demo unlocks them at once.
+    _statements = [
+      for (final s in _statements)
+        s.institution == institution && s.parse == ParseStatus.needsPassword
+            ? s.copyWith(parse: ParseStatus.parsed, recon: ReconStatus.matched)
+            : s,
+    ];
+    return _d(null);
+  }
+
+  @override
+  Future<Uri?> startGmailConnect() {
+    if (_gmail.isEmpty) {
+      _gmail.add(
+        EmailConnection(
+          id: 'gm1',
+          email: 'sara@example.ae',
+          status: 'active',
+          lastSyncedAt: DateTime.now(),
+        ),
+      );
+    }
+    return _d(null);
+  }
+
+  @override
+  Future<List<EmailConnection>> emailConnections() => _d(List.of(_gmail));
 }

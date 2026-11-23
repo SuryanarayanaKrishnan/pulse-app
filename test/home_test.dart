@@ -38,21 +38,20 @@ Future<void> _pump(WidgetTester tester, {String? location}) async {
 void main() {
   testWidgets('home renders hero, budget and recents', (tester) async {
     await _pump(tester);
-    expect(find.text('NET WORTH'), findsOneWidget);
-    expect(find.text('THIS MONTH'), findsOneWidget);
+    expect(find.textContaining('Left to spend'), findsOneWidget);
     await tester.dragUntilVisible(
-      find.text('Recent activity'),
+      find.text('Recent'),
       find.byType(ListView).first,
       const Offset(0, -300),
     );
-    expect(find.text('Recent activity'), findsOneWidget);
+    expect(find.text('Recent'), findsOneWidget);
   });
 
   testWidgets('budget tab shows safe-to-spend and auto-capture', (
     tester,
   ) async {
     await _pump(tester, location: '/budget');
-    expect(find.text('Safe to spend'), findsOneWidget);
-    expect(find.textContaining('auto-captured'), findsOneWidget);
+    expect(find.textContaining('Safe to spend'), findsOneWidget);
+    expect(find.textContaining('automatic'), findsOneWidget);
   });
 }

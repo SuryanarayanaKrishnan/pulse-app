@@ -126,6 +126,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Open Shortcut'), findsOneWidget);
     expect(find.textContaining('pulse://ingest?amount='), findsOneWidget);
+    await tester.scrollUntilVisible(find.textContaining('pls_'), 200);
     expect(find.textContaining('pls_'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
     session.dispose();

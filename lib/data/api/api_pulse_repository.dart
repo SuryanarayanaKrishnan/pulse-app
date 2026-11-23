@@ -1,8 +1,12 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../models.dart';
 import '../repository.dart';
+import '../rules.dart';
+import '../statements.dart';
 import 'api_exception.dart';
 import 'dto.dart';
 
@@ -60,6 +64,9 @@ class ApiPulseRepository implements PulseRepository {
     );
     return res.data!;
   });
+
+  Future<void> _delete(String path) =>
+      guardApi(() => _dio.delete<Object?>(path));
 
   Future<Map<String, AccountDto>> _accounts() async => {
     for (final a in await _getList('/v1/accounts'))
@@ -131,19 +138,24 @@ class ApiPulseRepository implements PulseRepository {
   /// Backend category to use when the user picks [c] in the UI: exact label or
   /// name match first, then any category mapping to the same bucket.
   CategoryDto? _categoryFor(SpendCategory c, Iterable<CategoryDto> all) {
-    final want = c == SpendCategory.income ? 'income' : 'expense';
-    final mine = all.where((x) => x.kind == want).toList();
-    for (final x in mine) {
+    for (final x in all) {
+      if (x.id == c.id || x.slug == c.id) return x;
+    }
+    for (final x in all) {
       if (x.name.toLowerCase() == c.label.toLowerCase()) return x;
     }
-    for (final x in mine) {
+    for (final x in all) {
       if (x.spendCategory == c) return x;
     }
     return null;
   }
 
   @override
-  Future<Transaction> recategorise(String txId, SpendCategory category) async {
+  Future<Transaction> recategorise(
+    String txId,
+    SpendCategory category, {
+    bool remember = false,
+  }) async {
     final (accounts, categories) = await (_accounts(), _categories()).wait;
     final target = _categoryFor(category, categories.values);
     if (target == null) {
@@ -154,7 +166,7 @@ class ApiPulseRepository implements PulseRepository {
     }
     final json = await _send('PATCH', '/v1/transactions/$txId', {
       'category_id': target.id,
-      'remember_merchant': true,
+      'remember_merchant': remember,
     });
     return TransactionDto.fromJson(json)
         .toDomain(accounts: accounts, categories: categories);
@@ -186,7 +198,7 @@ class ApiPulseRepository implements PulseRepository {
     final json = await _send('POST', '/v1/transactions', {
       'account_id': acct.id,
       'amount_minor': toMinor(amount),
-      'direction': category == SpendCategory.income ? 'credit' : 'debit',
+      'direction': category.isIncome ? 'credit' : 'debit',
       'merchant_raw': merchant,
       if (cat != null) 'category_id': cat.id,
       'posted_at': _clock().toUtc().toIso8601String(),
@@ -231,7 +243,13 @@ class ApiPulseRepository implements PulseRepository {
         .where((b) => sameMonth(b.month, monthStart))
         .toList();
 
-    final spend = txs.where((t) => t.direction == 'debit').toList();
+    final spend = txs
+        .where(
+          (t) =>
+              t.direction == 'debit' &&
+              !(categories[t.categoryId]?.spendCategory.isTransfer ?? false),
+        )
+        .toList();
     final byMerchant = <String, List<TransactionDto>>{};
     final byCard = <String, double>{};
     final byAccount = <String, double>{};
@@ -305,6 +323,117 @@ class ApiPulseRepository implements PulseRepository {
       manual: spend.where((t) => !txSourceFor(t.source).automatic).length,
     );
   }
+
+  @override
+  Future<List<SpendCategory>> categories() async {
+    final all = (await _categories()).values.where((c) => !c.isHidden);
+    final custom = [
+      for (final c in all)
+        if (c.spendCategory.custom) c.spendCategory,
+    ];
+    // Defaults in their canonical order (all of them, so the picker is
+    // complete even before the backend seeds new ones), then custom.
+    return [...SpendCategory.defaults, ...custom];
+  }
+
+  @override
+  Future<SpendCategory> createCategory({
+    required String name,
+    CategoryKind kind = CategoryKind.expense,
+  }) async {
+    final json = await _send('POST', '/v1/categories', {
+      'name': name.trim(),
+      'kind': kind.name,
+    });
+    final dto = CategoryDto.fromJson(json);
+    return SpendCategory.custom(dto.id, dto.name, kind: dto.categoryKind);
+  }
+
+  @override
+  Future<void> setBudget(SpendCategory category, double monthly) async {
+    final now = _clock();
+    final (budgetsJson, categories) = await (
+      _getList('/v1/budgets'),
+      _categories(),
+    ).wait;
+    final target = _categoryFor(category, categories.values);
+    if (target == null) {
+      throw ApiException(
+        message: 'No "${category.label}" category exists on the server.',
+        code: 'category_unavailable',
+      );
+    }
+    final existing = budgetsJson
+        .map(BudgetDto.fromJson)
+        .where(
+          (b) =>
+              b.categoryId == target.id &&
+              b.month.year == now.year &&
+              b.month.month == now.month,
+        )
+        .firstOrNull;
+    if (monthly <= 0) {
+      if (existing != null) await _delete('/v1/budgets/${existing.id}');
+      return;
+    }
+    if (existing != null) {
+      await _send('PATCH', '/v1/budgets/${existing.id}', {
+        'limit_minor': toMinor(monthly),
+      });
+    } else {
+      await _send('POST', '/v1/budgets', {
+        'category_id': target.id,
+        'month': DateTime(now.year, now.month).toIso8601String().substring(0, 10),
+        'limit_minor': toMinor(monthly),
+        'currency': 'AED',
+      });
+    }
+  }
+
+  // ---- automations -----------------------------------------------------------
+
+  /// The backend stores merchant -> category rules (`/v1/merchant-rules`).
+  @override
+  Future<List<AutomationRule>> rules() async {
+    final (json, categories) = await (
+      _getList('/v1/merchant-rules'),
+      _categories(),
+    ).wait;
+    return [
+      for (final r in json) MerchantRuleDto.fromJson(r).toDomain(categories),
+    ];
+  }
+
+  @override
+  Future<AutomationRule> saveRule(AutomationRule rule) async {
+    // TODO(api): description / amount / account conditions, rename and
+    // exclude actions need the rules endpoint; only merchant -> category
+    // exists today.
+    if (!rule.isMerchantCategoryRule) {
+      throw const ApiException(
+        message:
+            'Only "merchant is ... → category" rules are supported by the server so far.',
+        code: 'rule_unsupported',
+      );
+    }
+    final categories = await _categories();
+    final target = _categoryFor(rule.category!, categories.values);
+    if (target == null) {
+      throw ApiException(
+        message: 'No "${rule.category!.label}" category exists on the server.',
+        code: 'category_unavailable',
+      );
+    }
+    final json = await _send('POST', '/v1/merchant-rules', {
+      'merchant': rule.value.trim(),
+      'category_id': target.id,
+      'apply_to_existing': true,
+    });
+    return MerchantRuleDto.fromJson(json).toDomain(categories);
+  }
+
+  @override
+  Future<void> deleteRule(String id) => _delete('/v1/merchant-rules/$id');
 
   // ---- cards -------------------------------------------------------------------
 
@@ -394,15 +523,21 @@ class ApiPulseRepository implements PulseRepository {
       _myUserId(),
     ).wait;
     final groups = groupsJson.map(SplitGroupDto.fromJson).toList();
-    final expenses = await Future.wait([
-      for (final g in groups)
-        _getList('/v1/splits/groups/${g.id}/expenses', query: {'limit': 100}),
-    ]);
+    final (expenses, settlements) = await (
+      Future.wait([
+        for (final g in groups)
+          _getList('/v1/splits/groups/${g.id}/expenses', query: {'limit': 100}),
+      ]),
+      Future.wait([
+        for (final g in groups) _getList('/v1/splits/groups/${g.id}/settlements'),
+      ]),
+    ).wait;
     return [
       for (var i = 0; i < groups.length; i++)
         splitGroupToDomain(
           groups[i],
           expenses[i].map(SplitExpenseDto.fromJson).toList(),
+          settlements: settlements[i].map(SettlementDto.fromJson).toList(),
           myUserId: me,
         ),
     ];
@@ -449,4 +584,157 @@ class ApiPulseRepository implements PulseRepository {
       SplitExpenseDto.fromJson(json),
     ], myUserId: me).expenses.single;
   }
+
+  Future<String Function(String)> _memberResolver(String groupId) async {
+    final (groupJson, me) = await (
+      _getMap('/v1/splits/groups/$groupId'),
+      _myUserId(),
+    ).wait;
+    final group = SplitGroupDto.fromJson(groupJson);
+    return (String id) {
+      if (id != 'me') return id;
+      final mine = group.members.where((m) => m.userId == me);
+      if (mine.isEmpty) {
+        throw const ApiException(
+          message: 'You are not a member of this group.',
+          code: 'invalid_member',
+        );
+      }
+      return mine.first.id;
+    };
+  }
+
+  @override
+  Future<Member> addMember(
+    String groupId, {
+    required String name,
+    String? phone,
+  }) async {
+    // TODO(api): the members endpoint has no phone field yet; the number
+    // stays on the device.
+    final json = await _send('POST', '/v1/splits/groups/$groupId/members', {
+      'display_name': name,
+    });
+    final m = SplitMemberDto.fromJson(json);
+    return Member(m.id, m.displayName, const Color(0xFF5BC2A8), phone: phone);
+  }
+
+  /// TODO(api): `POST /v1/contacts/match {hashes}` is not built yet, so no
+  /// contact is shown as "on Pulse" against the real backend.
+  @override
+  Future<Set<String>> matchContacts(List<String> phoneHashes) async => {};
+
+  @override
+  Future<SettlementRecord> markSettlementPaid(
+    String groupId, {
+    required String from,
+    required String to,
+    required double amount,
+  }) async {
+    final resolve = await _memberResolver(groupId);
+    final json = await _send(
+      'POST',
+      '/v1/splits/groups/$groupId/settlements',
+      {
+        'from_member_id': resolve(from),
+        'to_member_id': resolve(to),
+        'amount_minor': toMinor(amount),
+        'note': aaniPendingNote,
+      },
+    );
+    return SettlementDto.fromJson(json).toDomain((id) => id).copyWith(
+      status: SettlementStatus.awaitingConfirmation,
+    );
+  }
+
+  /// TODO(api): settlements cannot be updated yet; confirmation needs the
+  /// Aani settlement endpoints.
+  @override
+  Future<SettlementRecord> confirmSettlement(
+    String groupId,
+    String settlementId,
+  ) => Future.error(
+    const ApiException(
+      message: 'Confirming a payment needs the next server update.',
+      code: 'not_supported',
+    ),
+  );
+
+  // ---- monthly close -----------------------------------------------------------
+
+  @override
+  Future<List<Statement>> statements() async {
+    final (json, accounts) = await (
+      _getList('/v1/statements', query: {'limit': 100}),
+      _accounts(),
+    ).wait;
+    return [for (final j in json) StatementDto.toDomain(j, accounts: accounts)];
+  }
+
+  @override
+  Future<Reconciliation> reconciliation(String statementId) async =>
+      StatementDto.reconciliation(
+        await _getMap('/v1/statements/$statementId/reconciliation'),
+      );
+
+  @override
+  Future<UploadResult> uploadStatement({
+    required Uint8List bytes,
+    required String filename,
+    String? institution,
+  }) => guardApi(() async {
+    final form = FormData.fromMap({
+      'file': MultipartFile.fromBytes(bytes, filename: filename),
+      'institution': ?institution,
+    });
+    final res = await _dio.post<Map<String, Object?>>(
+      '/v1/statements/upload',
+      data: form,
+    );
+    final j = res.data!;
+    return UploadResult(
+      id: j['id']! as String,
+      duplicate: (j['duplicate'] as bool?) ?? false,
+    );
+  });
+
+  @override
+  Future<void> reprocessStatement(String statementId) =>
+      _send('POST', '/v1/statements/$statementId/reprocess', {});
+
+  @override
+  Future<List<StatementPassword>> statementPasswords() async => [
+    for (final j in await _getList('/v1/statement-passwords'))
+      StatementPassword(
+        j['institution']! as String,
+        DateTime.parse(j['updated_at']! as String),
+      ),
+  ];
+
+  /// PUT upserts; the password is never returned by the server.
+  @override
+  Future<void> setStatementPassword(String institution, String password) =>
+      _send('PUT', '/v1/statement-passwords', {
+        'institution': institution,
+        'password': password,
+      });
+
+  @override
+  Future<Uri?> startGmailConnect() async {
+    final j = await _send('POST', '/v1/email-connections/gmail/start', {});
+    return Uri.parse(j['authorization_url']! as String);
+  }
+
+  @override
+  Future<List<EmailConnection>> emailConnections() async => [
+    for (final j in await _getList('/v1/email-connections'))
+      EmailConnection(
+        id: j['id']! as String,
+        email: (j['email'] as String?) ?? '',
+        status: (j['status'] as String?) ?? 'active',
+        lastSyncedAt: j['last_synced_at'] == null
+            ? null
+            : DateTime.parse(j['last_synced_at']! as String),
+      ),
+  ];
 }

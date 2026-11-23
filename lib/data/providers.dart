@@ -7,6 +7,8 @@ import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
+import 'rules.dart';
+import 'statements.dart';
 import 'repository.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
@@ -41,3 +43,24 @@ final assetsProvider = FutureProvider<List<Asset>>(
 final splitGroupsProvider = FutureProvider<List<SplitGroup>>(
   (ref) => ref.watch(repositoryProvider).splitGroups(),
 );
+final categoriesProvider = FutureProvider<List<SpendCategory>>(
+  (ref) => ref.watch(repositoryProvider).categories(),
+);
+final rulesProvider = FutureProvider<List<AutomationRule>>(
+  (ref) => ref.watch(repositoryProvider).rules(),
+);
+final statementsProvider = FutureProvider<List<Statement>>(
+  (ref) => ref.watch(repositoryProvider).statements(),
+);
+final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
+  (ref) => ref.watch(repositoryProvider).statementPasswords(),
+);
+final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
+  (ref) => ref.watch(repositoryProvider).emailConnections(),
+);
+
+/// Refreshes everything derived from transactions.
+void invalidateLedger(WidgetRef ref) {
+  ref.invalidate(transactionsProvider);
+  ref.invalidate(budgetProvider);
+}

@@ -97,7 +97,7 @@ void main() {
         .recategorise('1', SpendCategory.groceries);
     expect(tx.category, SpendCategory.groceries);
     final patch = adapter.requests.firstWhere((r) => r.method == 'PATCH');
-    expect(patch.data, {'category_id': 'c1', 'remember_merchant': true});
+    expect(patch.data, {'category_id': 'c1', 'remember_merchant': false});
   });
 
   test('server errors surface as ApiException with the envelope', () async {

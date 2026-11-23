@@ -112,7 +112,10 @@ void main() {
 
   test('category name mapping', () {
     expect(spendCategoryFor('Dining'), SpendCategory.dining);
-    expect(spendCategoryFor('Bills & Utilities'), SpendCategory.bills);
+    expect(spendCategoryFor('Bills & Utilities'), SpendCategory.utilities);
+    expect(spendCategoryFor('Telecom & Internet'), SpendCategory.telecom);
+    expect(spendCategoryFor('Dining & Delivery'), SpendCategory.dining);
+    expect(spendCategoryFor('Home Loan / Mortgage'), SpendCategory.homeLoan);
     expect(spendCategoryFor('Rent'), SpendCategory.rent);
     expect(
       spendCategoryFor('Transfers', kind: 'transfer'),
