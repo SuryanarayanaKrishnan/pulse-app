@@ -24,7 +24,8 @@ enum SpendCategory {
   health('Health', Icons.favorite_rounded, Color(0xFFFB7185)),
   entertainment('Entertainment', Icons.movie_rounded, Color(0xFFA78BFA)),
   rent('Rent & Housing', Icons.home_rounded, Color(0xFF94A3B8)),
-  income('Income', Icons.south_west_rounded, Color(0xFF2DD4BF));
+  income('Income', Icons.south_west_rounded, Color(0xFF2DD4BF)),
+  other('Other', Icons.category_rounded, Color(0xFF94A3B8));
 
   const SpendCategory(this.label, this.icon, this.color);
   final String label;
@@ -70,6 +71,16 @@ class Transaction {
     accountLabel: accountLabel,
     isIncome: isIncome,
   );
+}
+
+/// One page of a cursor-paginated transaction listing.
+class TxPage {
+  const TxPage(this.items, {this.nextCursor});
+  final List<Transaction> items;
+
+  /// Opaque cursor for the next page; null when this is the last page.
+  final String? nextCursor;
+  bool get hasMore => nextCursor != null;
 }
 
 enum CardNetwork { visa, mastercard, amex }
@@ -188,7 +199,8 @@ enum AssetKind {
   stocks('Stocks', Icons.show_chart_rounded, Color(0xFFA78BFA)),
   gold('Gold', Icons.diamond_rounded, Color(0xFFFBBF24)),
   realEstate('Real estate', Icons.apartment_rounded, Color(0xFFF472B6)),
-  liability('Liabilities', Icons.credit_score_rounded, Color(0xFFFB7185));
+  liability('Liabilities', Icons.credit_score_rounded, Color(0xFFFB7185)),
+  other('Other', Icons.category_rounded, Color(0xFF94A3B8));
 
   const AssetKind(this.label, this.icon, this.color);
   final String label;

@@ -1,12 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:dio/dio.dart';
+
+import '../core/env/env.dart';
+import '../core/network/api_client.dart';
+import 'api/api_pulse_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
 import 'repository.dart';
 
-/// Swap this for an API-backed repository to go live.
+/// Shared dio client (Supabase JWT interceptor). Overridden in tests.
+final dioProvider = Provider<Dio>((ref) => buildApiClient());
+
+/// API-backed when `API_BASE_URL` is defined, mock data otherwise (the demo
+/// default).
 final repositoryProvider = Provider<PulseRepository>(
-  (ref) => MockPulseRepository(),
+  (ref) => Env.useApi
+      ? ApiPulseRepository(ref.watch(dioProvider))
+      : MockPulseRepository(),
 );
 
 final transactionsProvider = FutureProvider<List<Transaction>>(

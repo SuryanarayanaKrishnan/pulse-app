@@ -11,8 +11,22 @@ void main() {
 
   test('equal split balances sum to zero', () {
     final e = [
-      SplitExpense(id: '1', title: 'x', paidBy: 'a', amount: 90, participants: const ['a', 'b', 'c'], date: d),
-      SplitExpense(id: '2', title: 'y', paidBy: 'b', amount: 30, participants: const ['a', 'b'], date: d),
+      SplitExpense(
+        id: '1',
+        title: 'x',
+        paidBy: 'a',
+        amount: 90,
+        participants: const ['a', 'b', 'c'],
+        date: d,
+      ),
+      SplitExpense(
+        id: '2',
+        title: 'y',
+        paidBy: 'b',
+        amount: 30,
+        participants: const ['a', 'b'],
+        date: d,
+      ),
     ];
     final bal = computeBalances(e, const [a, b, c]);
     expect(bal['a'], 45.0); // +90 -30 -15

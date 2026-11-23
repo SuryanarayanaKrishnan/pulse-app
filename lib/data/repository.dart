@@ -4,6 +4,10 @@ import 'models.dart';
 /// implementation (see `core/network/api_client.dart`) without touching UI.
 abstract class PulseRepository {
   Future<List<Transaction>> transactions();
+
+  /// Cursor-paginated listing, newest first. Pass the previous page's
+  /// [TxPage.nextCursor] to continue.
+  Future<TxPage> transactionsPage({String? cursor, int limit = 50});
   Future<Transaction> recategorise(String txId, SpendCategory category);
   Future<Transaction> addManualTransaction({
     required String merchant,

@@ -453,6 +453,19 @@ class MockPulseRepository implements PulseRepository {
   @override
   Future<List<Transaction>> transactions() => _d(List.of(_tx));
 
+  /// Mock cursor is simply the list offset.
+  @override
+  Future<TxPage> transactionsPage({String? cursor, int limit = 50}) {
+    final start = int.tryParse(cursor ?? '') ?? 0;
+    final end = (start + limit).clamp(0, _tx.length);
+    return _d(
+      TxPage(
+        _tx.sublist(start.clamp(0, _tx.length), end),
+        nextCursor: end < _tx.length ? '$end' : null,
+      ),
+    );
+  }
+
   @override
   Future<Transaction> recategorise(String txId, SpendCategory category) async {
     final i = _tx.indexWhere((e) => e.id == txId);
