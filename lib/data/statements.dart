@@ -16,6 +16,7 @@ const institutions = <String, String>{
   'cbd': 'Commercial Bank of Dubai',
   'eib': 'Emirates Islamic',
   'liv': 'Liv',
+  'sib': 'Sharjah Islamic Bank',
 };
 
 String institutionName(String? key) =>
@@ -28,6 +29,15 @@ const _passwordHints = <String, String>{
   'fab':
       'Your birth year followed by the last 4 digits of your registered '
       'mobile number. For example, 1980 and a mobile ending 4567 make 19804567.',
+  'sib': 'Your date of birth as ddmmyy. For example, 5 March 1980 is 050380.',
+  'mashreq':
+      'Your date of birth as ddmmyyyy. For example, 5 March 1980 is 05031980.',
+  'enbd':
+      'The first 4 letters of your name in lowercase, then your birth day and '
+      'month as ddmm. For example, Sara with a 5 March birthday is sara0503.',
+  'hsbc':
+      'Your date of birth as ddmmyy followed by the last 6 digits of your '
+      'card number.',
 };
 
 String statementPasswordHint(String? institution) =>

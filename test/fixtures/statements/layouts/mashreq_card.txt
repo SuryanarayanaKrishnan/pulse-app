@@ -1,0 +1,19 @@
+Cashback Credit Card
+Card No 4600 XXXX XXXX 1234
+Total outstanding balance 75.00
+Minimum payment due 50.00
+Total payment due* 50.00
+Statement date 12/03/2026
+Payment due date 09/04/2026
+Summary AED
+Previous balance 120.00
+- payments 120.00
+- other credits 0.00
++ finance charges 0.00
++ other charges 0.00
++ new transactions 75.00
+= outstanding balance 75.00
+transaction dateposting date description transaction reference AED amount
+05/03 05/03 mobile paymentdubai 1700000001 120.00 -
+10/03 11/03 EXAMPLE SHOP DUBAI ARE 1700000002 75.00
+sub-total 195.00
