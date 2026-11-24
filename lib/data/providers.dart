@@ -31,6 +31,8 @@ import 'local/ingest_pipeline.dart';
 import 'local/local_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
+import 'local/statement_service.dart';
+import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
 import 'repository.dart';
@@ -221,6 +223,7 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
     catalog: catalog,
     pipeline: pipeline,
     wealth: wealth,
+    statementService: ref.watch(localStatementServiceProvider),
     shared: Env.useApi ? ApiPulseRepository(ref.watch(dioProvider)) : null,
   );
 });
@@ -266,8 +269,22 @@ final rulesProvider = FutureProvider<List<AutomationRule>>(
 final statementsProvider = FutureProvider<List<Statement>>(
   (ref) => ref.watch(repositoryProvider).statements(),
 );
+/// Statement passwords stay on this device (Keychain/Keystore), never synced.
+final statementPasswordStoreProvider = Provider<StatementPasswordStore>(
+  (ref) => SecureStatementPasswordStore(),
+);
+/// Reads statement PDFs on this device; null with demo data or no database.
+final localStatementServiceProvider = Provider<LocalStatementService?>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return null;
+  return LocalStatementService(
+    db: db,
+    passwords: ref.watch(statementPasswordStoreProvider),
+    locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
+  );
+});
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
-  (ref) => ref.watch(repositoryProvider).statementPasswords(),
+  (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
 final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
   (ref) => ref.watch(repositoryProvider).emailConnections(),

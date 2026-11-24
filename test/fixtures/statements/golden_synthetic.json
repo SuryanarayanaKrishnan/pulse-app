@@ -1,0 +1,1849 @@
+[
+ {
+  "institution": "enbd",
+  "kind": "card",
+  "text": "EMIRATES NBD\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25 Feb 2026 to 25 Mar 2026\nStatement Date: 25 Mar 2026\nPayment Due Date: 19 Apr 2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02 Mar 2026 03 Mar 2026 CARREFOUR DUBAI AE 120.50\n05 Mar 2026 06 Mar 2026 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07 Mar 2026 08 Mar 2026 AMAZON US SEATTLE US USD 10.00 36.73\n10 Mar 2026 11 Mar 2026 TALABAT DUBAI AE 85.25\n12 Mar 2026 13 Mar 2026 NOON.COM REFUND 40.00 Cr\n15 Mar 2026 16 Mar 2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18 Mar 2026 19 Mar 2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "enbd",
+  "kind": "account",
+  "text": "EMIRATES NBD\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01 Mar 2026 to 31 Mar 2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01 Mar 2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03 Mar 2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06 Mar 2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09 Mar 2026 ENOC STATION 1234 150.00 19,229.50\n14 Mar 2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20 Mar 2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "adcb",
+  "kind": "card",
+  "text": "ABU DHABI COMMERCIAL BANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25/02/2026 to 25/03/2026\nStatement Date: 25/03/2026\nPayment Due Date: 19/04/2026\nCredit Limit AED 20,000.00\nPrevious Balance Payments Purchases Total Amount Due Minimum Payment Due\n1,000.00 540.00 454.48 914.48 100.00\n\nDate Description Amount (AED)\n02/03/2026 CARREFOUR DUBAI AE 120.50\n05/03/2026 PAYMENT RECEIVED - THANK YOU 500.00 CR\n07/03/2026 AMAZON US SEATTLE US USD 10.00 36.73\n10/03/2026 TALABAT DUBAI AE 85.25\n12/03/2026 NOON.COM REFUND 40.00 CR\n15/03/2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18/03/2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "adcb",
+  "kind": "account",
+  "text": "ABU DHABI COMMERCIAL BANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01/03/2026 to 31/03/2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01/03/2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03/03/2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06/03/2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09/03/2026 ENOC STATION 1234 150.00 19,229.50\n14/03/2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20/03/2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "fab",
+  "kind": "card",
+  "text": "FIRST ABU DHABI BANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25-Feb-2026 to 25-Mar-2026\nStatement Date: 25-Mar-2026\nPayment Due Date: 19-Apr-2026\nCredit Limit AED 20,000.00\nPrevious Statement Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02-Mar-2026 03-Mar-2026 CARREFOUR DUBAI AE 120.50\n05-Mar-2026 06-Mar-2026 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07-Mar-2026 08-Mar-2026 AMAZON US SEATTLE US USD 10.00 36.73\n10-Mar-2026 11-Mar-2026 TALABAT DUBAI AE 85.25\n12-Mar-2026 13-Mar-2026 NOON.COM REFUND 40.00 Cr\n15-Mar-2026 16-Mar-2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18-Mar-2026 19-Mar-2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-03",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-08",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-11",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-13",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-16",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-19",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "fab",
+  "kind": "account",
+  "text": "FIRST ABU DHABI BANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01-Mar-2026 to 31-Mar-2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01-Mar-2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03-Mar-2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06-Mar-2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09-Mar-2026 ENOC STATION 1234 150.00 19,229.50\n14-Mar-2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20-Mar-2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "mashreq",
+  "kind": "card",
+  "text": "MASHREQ\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25/02/2026 to 25/03/2026\nStatement Date: 25/03/2026\nPayment Due Date: 19/04/2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nStatement Balance AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02/03/2026 CARREFOUR DUBAI AE 120.50\n05/03/2026 PAYMENT RECEIVED - THANK YOU -500.00\n07/03/2026 AMAZON US SEATTLE US USD 10.00 36.73\n10/03/2026 TALABAT DUBAI AE 85.25\n12/03/2026 NOON.COM REFUND -40.00\n15/03/2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18/03/2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "mashreq",
+  "kind": "account",
+  "text": "MASHREQ\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01/03/2026 to 31/03/2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01/03/2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03/03/2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06/03/2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09/03/2026 ENOC STATION 1234 150.00 19,229.50\n14/03/2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20/03/2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "rakbank",
+  "kind": "card",
+  "text": "RAKBANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25-Feb-26 to 25-Mar-26\nStatement Date: 25-Mar-26\nPayment Due Date: 19-Apr-26\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Outstanding AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02-Mar-26 CARREFOUR DUBAI AE 120.50\n05-Mar-26 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07-Mar-26 AMAZON US SEATTLE US 36.73 USD 10.00\n10-Mar-26 TALABAT DUBAI AE 85.25\n12-Mar-26 NOON.COM REFUND 40.00 Cr\n15-Mar-26 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18-Mar-26 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "rakbank",
+  "kind": "account",
+  "text": "RAKBANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01-Mar-26 to 31-Mar-26\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01-Mar-26 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03-Mar-26 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06-Mar-26 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09-Mar-26 ENOC STATION 1234 150.00 19,229.50\n14-Mar-26 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20-Mar-26 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "dib",
+  "kind": "card",
+  "text": "DUBAI ISLAMIC BANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25/02/2026 to 25/03/2026\nStatement Date: 25/03/2026\nPayment Due Date: 19/04/2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02/03/2026 CARREFOUR DUBAI AE 120.50\n05/03/2026 PAYMENT RECEIVED - THANK YOU 500.00 CR\n07/03/2026 AMAZON US SEATTLE US USD 10.00 36.73\n10/03/2026 TALABAT DUBAI AE 85.25\n12/03/2026 NOON.COM REFUND 40.00 CR\n15/03/2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18/03/2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "dib",
+  "kind": "account",
+  "text": "DUBAI ISLAMIC BANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01/03/2026 to 31/03/2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01/03/2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03/03/2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06/03/2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09/03/2026 ENOC STATION 1234 150.00 19,229.50\n14/03/2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20/03/2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "adib",
+  "kind": "card",
+  "text": "ABU DHABI ISLAMIC BANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25 Feb 2026 to 25 Mar 2026\nStatement Date: 25 Mar 2026\nPayment Due Date: 19 Apr 2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02 Mar 2026 03 Mar 2026 CARREFOUR DUBAI AE 120.50\n05 Mar 2026 06 Mar 2026 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07 Mar 2026 08 Mar 2026 AMAZON US SEATTLE US USD 10.00 36.73\n10 Mar 2026 11 Mar 2026 TALABAT DUBAI AE 85.25\n12 Mar 2026 13 Mar 2026 NOON.COM REFUND 40.00 Cr\n15 Mar 2026 16 Mar 2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18 Mar 2026 19 Mar 2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "adib",
+  "kind": "account",
+  "text": "ABU DHABI ISLAMIC BANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01 Mar 2026 to 31 Mar 2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01 Mar 2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03 Mar 2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06 Mar 2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09 Mar 2026 ENOC STATION 1234 150.00 19,229.50\n14 Mar 2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20 Mar 2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "hsbc",
+  "kind": "card",
+  "text": "HSBC\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25 Feb 2026 to 25 Mar 2026\nStatement Date: 25 Mar 2026\nPayment Due Date: 19 Apr 2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nStatement Balance AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02 Mar 2026 CARREFOUR DUBAI AE 120.50\n05 Mar 2026 PAYMENT RECEIVED - THANK YOU 500.00 CR\n07 Mar 2026 AMAZON US SEATTLE US USD 10.00 36.73\n10 Mar 2026 TALABAT DUBAI AE 85.25\n12 Mar 2026 NOON.COM REFUND 40.00 CR\n15 Mar 2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18 Mar 2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "hsbc",
+  "kind": "account",
+  "text": "HSBC\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01 Mar 2026 to 31 Mar 2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01 Mar 2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03 Mar 2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06 Mar 2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09 Mar 2026 ENOC STATION 1234 150.00 19,229.50\n14 Mar 2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20 Mar 2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "citi",
+  "kind": "card",
+  "text": "CITIBANK\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25 Feb 2026 to 25 Mar 2026\nStatement Date: 25 Mar 2026\nPayment Due Date: 19 Apr 2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nNew Balance AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02 Mar 2026 03 Mar 2026 CARREFOUR DUBAI AE 120.50\n05 Mar 2026 06 Mar 2026 PAYMENT RECEIVED - THANK YOU 500.00 CR\n07 Mar 2026 08 Mar 2026 AMAZON US SEATTLE US USD 10.00 36.73\n10 Mar 2026 11 Mar 2026 TALABAT DUBAI AE 85.25\n12 Mar 2026 13 Mar 2026 NOON.COM REFUND 40.00 CR\n15 Mar 2026 16 Mar 2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18 Mar 2026 19 Mar 2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "citi",
+  "kind": "account",
+  "text": "CITIBANK\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01 Mar 2026 to 31 Mar 2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01 Mar 2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03 Mar 2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06 Mar 2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09 Mar 2026 ENOC STATION 1234 150.00 19,229.50\n14 Mar 2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20 Mar 2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "cbd",
+  "kind": "card",
+  "text": "COMMERCIAL BANK OF DUBAI\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25-02-2026 to 25-03-2026\nStatement Date: 25-03-2026\nPayment Due Date: 19-04-2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02-03-2026 CARREFOUR DUBAI AE 120.50\n05-03-2026 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07-03-2026 AMAZON US SEATTLE US USD 10.00 36.73\n10-03-2026 TALABAT DUBAI AE 85.25\n12-03-2026 NOON.COM REFUND 40.00 Cr\n15-03-2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18-03-2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "cbd",
+  "kind": "account",
+  "text": "COMMERCIAL BANK OF DUBAI\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01-03-2026 to 31-03-2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01-03-2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03-03-2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06-03-2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09-03-2026 ENOC STATION 1234 150.00 19,229.50\n14-03-2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20-03-2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "eib",
+  "kind": "card",
+  "text": "EMIRATES ISLAMIC\nCredit Card Statement\nCard Number: 4111 11XX XXXX 1234\nStatement Period: 25 Feb 2026 to 25 Mar 2026\nStatement Date: 25 Mar 2026\nPayment Due Date: 19 Apr 2026\nCredit Limit AED 20,000.00\nPrevious Balance 1,000.00\nPayments / Credits 540.00\nPurchases / Charges 454.48\nTotal Amount Due AED 914.48\nMinimum Payment Due 100.00\n\nDate Description Amount (AED)\n02 Mar 2026 03 Mar 2026 CARREFOUR DUBAI AE 120.50\n05 Mar 2026 06 Mar 2026 PAYMENT RECEIVED - THANK YOU 500.00 Cr\n07 Mar 2026 08 Mar 2026 AMAZON US SEATTLE US USD 10.00 36.73\n10 Mar 2026 11 Mar 2026 TALABAT DUBAI AE 85.25\n12 Mar 2026 13 Mar 2026 NOON.COM REFUND 40.00 Cr\n15 Mar 2026 16 Mar 2026 UBER *TRIP HELP.UBER.COM 62.00\nAMSTERDAM NL\n18 Mar 2026 19 Mar 2026 ENOC STATION 1234 DUBAI AE 150.00\n\nTotal 454.48\nPage 1 of 1",
+  "expected": {
+   "kind": "credit_card",
+   "last4": "1234",
+   "currency": "AED",
+   "period_start": "2026-02-25",
+   "period_end": "2026-03-25",
+   "statement_date": "2026-03-25",
+   "due_date": "2026-04-19",
+   "opening": 100000,
+   "closing": 91448,
+   "min_due": 10000,
+   "payments": 54000,
+   "purchases": 45448,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-02",
+     "desc": "CARREFOUR DUBAI AE",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-05",
+     "desc": "PAYMENT RECEIVED - THANK YOU",
+     "amt": 50000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-07",
+     "desc": "AMAZON US SEATTLE US",
+     "amt": 3673,
+     "dir": "debit",
+     "fa": 1000,
+     "fc": "USD",
+     "bal": null
+    },
+    {
+     "d": "2026-03-10",
+     "desc": "TALABAT DUBAI AE",
+     "amt": 8525,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-12",
+     "desc": "NOON.COM REFUND",
+     "amt": 4000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-15",
+     "desc": "UBER *TRIP HELP.UBER.COM AMSTERDAM NL",
+     "amt": 6200,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    },
+    {
+     "d": "2026-03-18",
+     "desc": "ENOC STATION 1234 DUBAI AE",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": null
+    }
+   ]
+  }
+ },
+ {
+  "institution": "eib",
+  "kind": "account",
+  "text": "EMIRATES ISLAMIC\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 01 Mar 2026 to 31 Mar 2026\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n01 Mar 2026 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n03 Mar 2026 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n06 Mar 2026 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n09 Mar 2026 ENOC STATION 1234 150.00 19,229.50\n14 Mar 2026 IPI TRANSFER FROM AHMED 200.00 19,429.50\n20 Mar 2026 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ },
+ {
+  "institution": "liv",
+  "kind": "account",
+  "text": "LIV\nAccount Statement\nAccount Number: 1234567890123\nIBAN: AE07 0331 2345 6789 0123 456\nStatement Period: 2026-03-01 to 2026-03-31\nOpening Balance 5,000.00\nClosing Balance 18,997.40\n\nDate Description Amount Balance\n2026-03-01 POS PURCHASE CARREFOUR DUBAI 120.50 4,879.50\n2026-03-03 SALARY CREDIT ACME LLC 15,000.00 19,879.50\n2026-03-06 ATM CASH WITHDRAWAL DUBAI MALL 500.00 19,379.50\n2026-03-09 ENOC STATION 1234 150.00 19,229.50\n2026-03-14 IPI TRANSFER FROM AHMED 200.00 19,429.50\n2026-03-20 DEWA BILL PAYMENT 432.10 18,997.40\n\nPage 1 of 1",
+  "expected": {
+   "kind": "bank_account",
+   "last4": "0123",
+   "currency": "AED",
+   "period_start": "2026-03-01",
+   "period_end": "2026-03-31",
+   "statement_date": "None",
+   "due_date": "None",
+   "opening": 500000,
+   "closing": 1899740,
+   "min_due": null,
+   "payments": null,
+   "purchases": null,
+   "warnings": [],
+   "lines": [
+    {
+     "d": "2026-03-01",
+     "desc": "POS PURCHASE CARREFOUR DUBAI",
+     "amt": 12050,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 487950
+    },
+    {
+     "d": "2026-03-03",
+     "desc": "SALARY CREDIT ACME LLC",
+     "amt": 1500000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1987950
+    },
+    {
+     "d": "2026-03-06",
+     "desc": "ATM CASH WITHDRAWAL DUBAI MALL",
+     "amt": 50000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1937950
+    },
+    {
+     "d": "2026-03-09",
+     "desc": "ENOC STATION 1234",
+     "amt": 15000,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1922950
+    },
+    {
+     "d": "2026-03-14",
+     "desc": "IPI TRANSFER FROM AHMED",
+     "amt": 20000,
+     "dir": "credit",
+     "fa": null,
+     "fc": null,
+     "bal": 1942950
+    },
+    {
+     "d": "2026-03-20",
+     "desc": "DEWA BILL PAYMENT",
+     "amt": 43210,
+     "dir": "debit",
+     "fa": null,
+     "fc": null,
+     "bal": 1899740
+    }
+   ]
+  }
+ }
+]
