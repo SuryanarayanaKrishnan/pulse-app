@@ -189,6 +189,7 @@ final budgetMovesProvider = FutureProvider<List<BudgetMove>>((ref) => ref.watch(
 /// group changed.
 void invalidateBudgetPlan(WidgetRef ref) {
   ref.invalidate(budgetPlanProvider);
+  ref.invalidate(currentFlexPlanProvider);
   ref.invalidate(budgetProvider);
   ref.invalidate(safeToSpendProvider);
 }
@@ -310,9 +311,24 @@ final cashflowProvider = FutureProvider<Cashflow>(
 final categoryTrendsProvider = FutureProvider<CategoryTrends>(
   (ref) => ref.watch(repositoryProvider).categoryTrends(),
 );
-final safeToSpendProvider = FutureProvider<SafeToSpend>(
-  (ref) => ref.watch(repositoryProvider).safeToSpend(),
+/// This month's Flex plan (not the month the Budget tab happens to show).
+final currentFlexPlanProvider = FutureProvider<BudgetPlanView>(
+  (ref) => ref.watch(budgetPlanServiceProvider).view(DateTime.now()),
 );
+
+/// Safe to spend. In Flex mode the budget limb is the Budget tab's
+/// "Flexible left", so the two numbers share one source; otherwise the
+/// repository's category budget is used.
+final safeToSpendProvider = FutureProvider<SafeToSpend>((ref) async {
+  final base = await ref.watch(repositoryProvider).safeToSpend();
+  try {
+    final plan = await ref.watch(currentFlexPlanProvider.future);
+    if (plan.mode == BudgetMode.flex && plan.flex.categories > 0) {
+      return base.withBudget(plan.flex.remainingMinor / 100, SafeBasis.flex);
+    }
+  } catch (_) {}
+  return base;
+});
 final healthScoreProvider = FutureProvider<HealthScore>(
   (ref) => ref.watch(repositoryProvider).healthScore(),
 );
@@ -338,6 +354,7 @@ final householdProvider = FutureProvider<Household>(
 final List<ProviderOrFamily> _ledgerProviders = [
   transactionsProvider,
   budgetProvider,
+  currentFlexPlanProvider,
   cashflowProvider,
   categoryTrendsProvider,
   safeToSpendProvider,

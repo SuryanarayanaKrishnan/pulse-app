@@ -33,7 +33,6 @@ class SplitsScreen extends ConsumerWidget {
               trailing: [
                 TabTip(
                   tab: TipTab.splits,
-                  alignEnd: true,
                   child: RoundIconButton(
                     icon: Icons.add_rounded,
                     label: 'Add expense',

@@ -198,112 +198,143 @@ void main() {
   });
 
   group('tab tips', () {
-    Widget host(KvStore kv) => _app(
-      Scaffold(
-        body: Column(
-          children: [
-            for (final t in TipTab.values)
-              TabTip(
-                key: ValueKey(t),
-                tab: t,
-                delay: const Duration(milliseconds: 50),
-                visibleFor: const Duration(seconds: 3),
-                child: SizedBox(height: 40, child: Text('target ${t.key}')),
-              ),
-          ],
+    // A dock in front of [tab], with every tab's target registered.
+    Widget host(KvStore kv, ValueNotifier<TipTab> tab, {bool reduced = false}) => _app(
+      ValueListenableBuilder<TipTab>(
+        valueListenable: tab,
+        builder: (_, t, _) => Scaffold(
+          body: TipDock(
+            current: t,
+            delay: const Duration(milliseconds: 50),
+            visibleFor: const Duration(seconds: 3),
+            child: Column(
+              children: [
+                for (final k in TipTab.values)
+                  TabTip(
+                    tab: k,
+                    child: SizedBox(height: 40, child: Text('target ${k.key}')),
+                  ),
+              ],
+            ),
+          ),
         ),
       ),
       kv: kv,
+      reduced: reduced,
     );
 
-    testWidgets('each tab tip appears once, then never again', (tester) async {
+    Finder tip(TipTab t) => find.text(tabTipCopy[t]!);
+    Future<void> settle(WidgetTester tester) async {
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      await tester.pump(const Duration(milliseconds: 500));
+    }
+
+    testWidgets('one tip at a time, once per tab, queued for later tabs', (tester) async {
       _phone(tester);
       final kv = MemoryKvStore();
-      await tester.pumpWidget(host(kv));
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 600));
-      // Home through Wealth all float one tip each.
-      for (final t in TipTab.values) {
-        expect(find.text(tabTipCopy[t]!), findsOneWidget, reason: t.key);
-        expect(kv.data['tips.seen.${t.key}'], '1');
+      final tab = ValueNotifier(TipTab.home);
+      await tester.pumpWidget(host(kv, tab));
+      await settle(tester);
+      // Only the tab in front shows its tip.
+      expect(tip(TipTab.home), findsOneWidget);
+      for (final t in TipTab.values.skip(1)) {
+        expect(tip(t), findsNothing, reason: t.key);
+        expect(kv.data['tips.seen.${t.key}'], isNull, reason: 'queued');
       }
-      // Tapping a tip dismisses it, content stays.
-      await tester.tap(find.text(tabTipCopy[TipTab.wealth]!));
+      expect(find.byKey(const Key('tab_tip')), findsOneWidget);
+      // Tapping the tip dismisses it.
+      await tester.tap(find.byKey(const Key('tab_tip')));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
+      // Next tab, next tip.
+      tab.value = TipTab.cards;
       await tester.pump();
-      expect(find.text(tabTipCopy[TipTab.wealth]!), findsNothing);
-      expect(find.text('target wealth'), findsOneWidget);
-      // Fade on their own.
-      await tester.pump(const Duration(seconds: 4));
-      for (final t in TipTab.values) {
-        expect(find.text(tabTipCopy[t]!), findsNothing);
-      }
+      await settle(tester);
+      expect(tip(TipTab.cards), findsOneWidget);
+      expect(find.byKey(const Key('tab_tip')), findsOneWidget);
+      // Leaving the tab takes its tip away; coming back does not repeat it.
+      tab.value = TipTab.home;
+      await tester.pump();
+      await settle(tester);
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
+      expect(kv.data['tips.seen.home'], '1');
+      expect(kv.data['tips.seen.cards'], '1');
 
       // A fresh start: already seen, nothing shows.
       await tester.pumpWidget(const SizedBox());
-      await tester.pumpWidget(host(kv));
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 600));
-      for (final t in TipTab.values) {
-        expect(find.text(tabTipCopy[t]!), findsNothing);
-      }
+      await tester.pumpWidget(host(kv, ValueNotifier(TipTab.cards)));
+      await settle(tester);
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
     });
 
-    testWidgets('touching the marked thing dismisses its tip and does not '
-        'block it', (tester) async {
+    testWidgets('the X and auto-hide dismiss; reduced motion has no animation', (tester) async {
+      _phone(tester);
+      final kv = MemoryKvStore();
+      await tester.pumpWidget(host(kv, ValueNotifier(TipTab.splits), reduced: true));
+      await settle(tester);
+      expect(tip(TipTab.splits), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.close_rounded));
+      await tester.pump();
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
+      // Auto-hide.
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(host(MemoryKvStore(), ValueNotifier(TipTab.wealth)));
+      await settle(tester);
+      expect(tip(TipTab.wealth), findsOneWidget);
+      await tester.pump(const Duration(seconds: 4));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
+    });
+
+    testWidgets('touching the marked thing dismisses its tip and does not block it', (tester) async {
       _phone(tester);
       var taps = 0;
-      final kv = MemoryKvStore();
       await tester.pumpWidget(
         _app(
           Scaffold(
-            body: Align(
-              alignment: Alignment.topLeft,
-              child: TabTip(
-                tab: TipTab.cards,
-                delay: const Duration(milliseconds: 50),
-                child: GestureDetector(
-                  onTap: () => taps++,
-                  child: const SizedBox(
-                    width: 100,
-                    height: 40,
-                    child: Text('go'),
+            body: TipDock(
+              current: TipTab.cards,
+              delay: const Duration(milliseconds: 50),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: TabTip(
+                  tab: TipTab.cards,
+                  child: GestureDetector(
+                    onTap: () => taps++,
+                    child: const SizedBox(width: 100, height: 40, child: Text('go')),
                   ),
                 ),
               ),
             ),
           ),
-          kv: kv,
+          kv: MemoryKvStore(),
         ),
       );
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.text(tabTipCopy[TipTab.cards]!), findsOneWidget);
+      await settle(tester);
+      expect(tip(TipTab.cards), findsOneWidget);
       await tester.tap(find.text('go'));
-      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
       expect(taps, 1);
-      expect(find.text(tabTipCopy[TipTab.cards]!), findsNothing);
-      await tester.pump(const Duration(seconds: 12));
+      expect(find.byKey(const Key('tab_tip')), findsNothing);
     });
 
     testWidgets('reset tips lets them show again', (tester) async {
       _phone(tester);
       final kv = MemoryKvStore()..data['tips.seen.home'] = '1';
-      await tester.pumpWidget(host(kv));
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.text(tabTipCopy[TipTab.home]!), findsNothing);
-      final container = ProviderScope.containerOf(
-        tester.element(find.byType(Scaffold)),
-      );
+      await tester.pumpWidget(host(kv, ValueNotifier(TipTab.home)));
+      await settle(tester);
+      expect(tip(TipTab.home), findsNothing);
+      final container = ProviderScope.containerOf(tester.element(find.byType(Scaffold)));
       await container.read(tourProgressProvider.notifier).resetTips();
-      await tester.pump(const Duration(milliseconds: 200));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.text(tabTipCopy[TipTab.home]!), findsOneWidget);
+      await settle(tester);
+      expect(tip(TipTab.home), findsOneWidget);
       await tester.pump(const Duration(seconds: 12));
     });
   });
 
-  testWidgets('real shell: Home tip appears once, points at the hero', (
+  testWidgets('real shell: Home tip docks above the tab bar, then the Budget one follows', (
     tester,
   ) async {
     _phone(tester);
@@ -330,7 +361,16 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
     await tester.pump(const Duration(seconds: 3));
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text(tabTipCopy[TipTab.home]!), findsOneWidget);
+    expect(find.byKey(const Key('tab_tip')), findsOneWidget);
+    expect(
+      tester.getRect(find.byKey(const Key('tab_tip'))).bottom,
+      lessThanOrEqualTo(tester.getTopLeft(find.text('Home').last).dy),
+    );
     expect(find.text('Safe to spend today'), findsOneWidget);
     expect(kv.data['tips.seen.home'], '1');
     // Move to Budget: its own tip, home's stays seen.
@@ -338,6 +378,8 @@ void main() {
     for (var i = 0; i < 4; i++) {
       await tester.pump(const Duration(seconds: 1));
     }
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text(tabTipCopy[TipTab.home]!), findsNothing);
     expect(find.text(tabTipCopy[TipTab.budget]!), findsOneWidget);
     await tester.pump(const Duration(seconds: 12));
   });

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../core/theme/tokens.dart';
 import 'tour_progress.dart';
@@ -16,229 +15,301 @@ const tabTipCopy = {
   TipTab.wealth: 'Add gold, funds, property or loans. It all counts here.',
 };
 
-/// Marks the one most useful thing on a tab. The first time the tab is open
-/// and this widget is on screen, a small tip floats beside it, once.
-///
-/// It never blocks: the tip is a floating overlay, touches outside it go
-/// straight through, touching the marked thing dismisses it, and it fades on
-/// its own after [visibleFor]. Seen state is persisted, see
-/// [TourProgressController].
+/// Which tips have a target on screen, and which one (at most one) is showing.
+@immutable
+class TipState {
+  const TipState({this.targets = const {}, this.shown});
+  final Map<TipTab, int> targets;
+  final TipTab? shown;
+  bool hasTarget(TipTab t) => (targets[t] ?? 0) > 0;
+}
+
+class TipController extends Notifier<TipState> {
+  @override
+  TipState build() => const TipState();
+
+  void register(TipTab t) => state = TipState(
+    targets: {...state.targets, t: (state.targets[t] ?? 0) + 1},
+    shown: state.shown,
+  );
+
+  void unregister(TipTab t) {
+    final n = (state.targets[t] ?? 0) - 1;
+    final m = {...state.targets};
+    if (n <= 0) {
+      m.remove(t);
+    } else {
+      m[t] = n;
+    }
+    state = TipState(targets: m, shown: state.shown);
+  }
+
+  void show(TipTab t) => state = TipState(targets: state.targets, shown: t);
+  void hide() => state = TipState(targets: state.targets);
+}
+
+final tipControllerProvider = NotifierProvider<TipController, TipState>(
+  TipController.new,
+);
+
+/// Marks the one most useful thing on a tab. It only registers that the thing
+/// is on screen; the tip itself is shown by [TipDock] in the app shell, so it
+/// never floats over content. Touching the marked thing dismisses the tip and
+/// is never blocked.
 class TabTip extends ConsumerStatefulWidget {
-  const TabTip({
-    super.key,
-    required this.tab,
-    required this.child,
-    this.alignEnd = false,
-    this.delay = const Duration(milliseconds: 900),
-    this.visibleFor = const Duration(seconds: 8),
-  });
+  const TabTip({super.key, required this.tab, required this.child});
   final TipTab tab;
   final Widget child;
-
-  /// Anchor the tip to the target's trailing edge (for header buttons).
-  final bool alignEnd;
-  final Duration delay;
-  final Duration visibleFor;
 
   @override
   ConsumerState<TabTip> createState() => _TabTipState();
 }
 
 class _TabTipState extends ConsumerState<TabTip> {
-  final _link = LayerLink();
-  OverlayEntry? _entry;
-  Timer? _poll;
-  Timer? _hide;
+  late final TipController _ctl = ref.read(tipControllerProvider.notifier);
+  late final TipTab _tab = widget.tab;
 
   @override
   void initState() {
     super.initState();
-    ref.listenManual(
-      tourProgressProvider,
-      (_, s) => _consider(s),
-      fireImmediately: true,
-    );
-  }
-
-  void _consider(TourProgress s) {
-    if (!s.loaded || s.tipSeen(widget.tab)) {
-      _poll?.cancel();
-      _poll = null;
-      return;
-    }
-    if (_entry != null) return;
-    // Wait for the screen to settle, then keep trying until this tab is the
-    // one in front (a reset can happen while Settings is on top).
-    _poll ??= Timer(widget.delay, _tryPresent);
-  }
-
-  bool get _tabInFront {
-    final router = GoRouter.maybeOf(context);
-    if (router == null) return true;
-    return router.routerDelegate.currentConfiguration.uri.path ==
-        widget.tab.path;
-  }
-
-  void _tryPresent() {
-    _poll = null;
-    if (!mounted || _entry != null) return;
-    final overlay = Overlay.maybeOf(context);
-    if (overlay == null ||
-        !TickerMode.valuesOf(context).enabled ||
-        !_tabInFront) {
-      _poll = Timer(const Duration(seconds: 1), _tryPresent);
-      return;
-    }
-    ref.read(tourProgressProvider.notifier).markTipSeen(widget.tab);
-    _entry = OverlayEntry(
-      builder: (_) => Positioned(
-        left: 0,
-        top: 0,
-        child: CompositedTransformFollower(
-          link: _link,
-          showWhenUnlinked: false,
-          targetAnchor: widget.alignEnd
-              ? Alignment.bottomRight
-              : Alignment.bottomLeft,
-          followerAnchor: widget.alignEnd
-              ? Alignment.topRight
-              : Alignment.topLeft,
-          offset: const Offset(0, 6),
-          child: _TipBubble(
-            text: tabTipCopy[widget.tab]!,
-            alignEnd: widget.alignEnd,
-            onDismiss: _dismiss,
-          ),
-        ),
-      ),
-    );
-    overlay.insert(_entry!);
-    _hide = Timer(widget.visibleFor, _dismiss);
-  }
-
-  void _dismiss() {
-    _hide?.cancel();
-    _entry?.remove();
-    _entry?.dispose();
-    _entry = null;
+    // Providers must not change while the tree is building.
+    Future.microtask(() {
+      if (mounted) _ctl.register(_tab);
+    });
   }
 
   @override
   void dispose() {
-    _poll?.cancel();
-    _dismiss();
+    final c = _ctl;
+    final t = _tab;
+    Future.microtask(() {
+      try {
+        c.unregister(t);
+      } catch (_) {
+        // The scope is already gone.
+      }
+    });
     super.dispose();
   }
 
   @override
-  Widget build(BuildContext context) => CompositedTransformTarget(
-    link: _link,
-    child: Listener(
-      behavior: HitTestBehavior.translucent,
-      onPointerDown: (_) => _dismiss(),
-      child: widget.child,
-    ),
+  Widget build(BuildContext context) => Listener(
+    behavior: HitTestBehavior.translucent,
+    onPointerDown: (_) {
+      if (ref.read(tipControllerProvider).shown == _tab) _ctl.hide();
+    },
+    child: widget.child,
   );
 }
 
-class _TipBubble extends StatelessWidget {
-  const _TipBubble({
+/// Hosts the app body and, when a tip is due, a slim card between the body
+/// and the tab bar. The card takes its own space (the body shrinks to make
+/// room), so it can never cover content, and it points at its tab.
+///
+/// One tip at a time: only the tab in front can show its tip, and the others
+/// wait until that tab is opened (this session or a later one).
+class TipDock extends ConsumerStatefulWidget {
+  const TipDock({
+    super.key,
+    required this.current,
+    required this.child,
+    this.bottomInset = 0,
+    this.delay = const Duration(milliseconds: 900),
+    this.visibleFor = const Duration(seconds: 10),
+  });
+
+  /// The tab in front (its index is its slot in the tab bar).
+  final TipTab current;
+  final Widget child;
+
+  /// Height of the tab bar drawn over the bottom of the body.
+  final double bottomInset;
+  final Duration delay;
+  final Duration visibleFor;
+
+  @override
+  ConsumerState<TipDock> createState() => _TipDockState();
+}
+
+class _TipDockState extends ConsumerState<TipDock> {
+  Timer? _wait;
+  Timer? _hide;
+  TipTab? _waitingFor;
+
+  bool _eligible(TipTab t) {
+    final p = ref.read(tourProgressProvider);
+    return p.loaded &&
+        !p.tipSeen(t) &&
+        ref.read(tipControllerProvider).hasTarget(t);
+  }
+
+  void _sync() {
+    if (!mounted) return;
+    final shown = ref.read(tipControllerProvider).shown;
+    if (shown != null && shown != widget.current) {
+      _clear();
+      return;
+    }
+    if (shown == null) {
+      _hide?.cancel();
+      if (_waitingFor != null && _waitingFor != widget.current) {
+        _wait?.cancel();
+        _waitingFor = null;
+      }
+      if (_waitingFor == null && _eligible(widget.current)) {
+        final t = widget.current;
+        _waitingFor = t;
+        _wait = Timer(widget.delay, () {
+          _waitingFor = null;
+          if (!mounted || t != widget.current || !_eligible(t)) return;
+          ref.read(tourProgressProvider.notifier).markTipSeen(t);
+          ref.read(tipControllerProvider.notifier).show(t);
+          _hide = Timer(widget.visibleFor, _dismiss);
+        });
+      }
+    }
+  }
+
+  void _clear() {
+    _hide?.cancel();
+    ref.read(tipControllerProvider.notifier).hide();
+  }
+
+  void _dismiss() {
+    if (mounted) _clear();
+  }
+
+  @override
+  void didUpdateWidget(TipDock old) {
+    super.didUpdateWidget(old);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+  }
+
+  @override
+  void dispose() {
+    _wait?.cancel();
+    _hide?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(tipControllerProvider);
+    ref.watch(tourProgressProvider);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _sync());
+    final reduced = MediaQuery.disableAnimationsOf(context);
+    final shown = state.shown;
+    final dock = SizedBox(
+      width: double.infinity,
+      child: shown == null
+          ? null
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _TipCard(
+                  key: ValueKey(shown),
+                  text: tabTipCopy[shown]!,
+                  slot: TipTab.values.indexOf(shown),
+                  slots: TipTab.values.length,
+                  onDismiss: _clear,
+                ),
+                SizedBox(height: widget.bottomInset),
+              ],
+            ),
+    );
+    return Column(
+      children: [
+        Expanded(child: widget.child),
+        if (reduced)
+          dock
+        else
+          AnimatedSize(
+            duration: Motion.base,
+            curve: Motion.curve,
+            alignment: Alignment.bottomCenter,
+            child: dock,
+          ),
+      ],
+    );
+  }
+}
+
+class _TipCard extends StatelessWidget {
+  const _TipCard({
+    super.key,
     required this.text,
-    required this.alignEnd,
+    required this.slot,
+    required this.slots,
     required this.onDismiss,
   });
   final String text;
-  final bool alignEnd;
+  final int slot, slots;
   final VoidCallback onDismiss;
 
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final reduced = MediaQuery.disableAnimationsOf(context);
-    final bubbleColor = c.isDark ? c.surfaceElevated : c.textPrimary;
+    final bg = c.isDark ? c.surfaceElevated : c.textPrimary;
     final fg = c.isDark ? c.textPrimary : c.bg;
-    return TweenAnimationBuilder<double>(
-      tween: Tween(begin: reduced ? 1 : 0, end: 1),
-      duration: reduced ? Duration.zero : Motion.slow,
-      curve: Motion.curve,
-      builder: (_, p, child) => Opacity(
-        opacity: p,
-        child: Transform.translate(
-          offset: Offset(0, (1 - p) * 6),
-          child: child,
-        ),
-      ),
-      child: Material(
-        type: MaterialType.transparency,
-        child: Semantics(
-          liveRegion: true,
-          container: true,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: onDismiss,
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: alignEnd ? 0 : Space.gutter,
-                right: alignEnd ? Space.sm : 0,
-              ),
-              child: Column(
-                crossAxisAlignment: alignEnd
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: Space.lg),
-                    child: CustomPaint(
-                      size: const Size(14, 7),
-                      painter: _Nub(bubbleColor),
-                    ),
-                  ),
-                  Container(
-                    constraints: const BoxConstraints(maxWidth: 256),
-                    padding: const EdgeInsets.fromLTRB(
-                      Space.lg,
-                      Space.md,
-                      Space.lg,
-                      Space.md,
-                    ),
-                    decoration: BoxDecoration(
-                      color: bubbleColor,
-                      borderRadius: BorderRadius.circular(Radii.md),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(
-                            alpha: c.isDark ? .35 : .14,
+    return Material(
+      type: MaterialType.transparency,
+      child: Semantics(
+        liveRegion: true,
+        container: true,
+        label: 'Tip',
+        child: GestureDetector(
+          key: const Key('tab_tip'),
+          behavior: HitTestBehavior.opaque,
+          onTap: onDismiss,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final cx = box.maxWidth * (slot + .5) / slots;
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Space.lg,
+                        vertical: Space.sm,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bg,
+                        borderRadius: BorderRadius.circular(Radii.md),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              text,
+                              style: context.tt.bodyMedium!.copyWith(color: fg),
+                            ),
                           ),
-                          blurRadius: 18,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            text,
-                            style: context.tt.bodyMedium!.copyWith(color: fg),
-                          ),
-                        ),
-                        const SizedBox(width: Space.md),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Icon(
+                          const SizedBox(width: Space.md),
+                          Icon(
                             Icons.close_rounded,
                             size: 16,
                             semanticLabel: 'Dismiss tip',
                             color: fg.withValues(alpha: .6),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                    // Points down at this tab in the bar below.
+                    SizedBox(
+                      height: 7,
+                      width: double.infinity,
+                      child: CustomPaint(painter: _Nub(bg, cx - 7)),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ),
@@ -248,18 +319,19 @@ class _TipBubble extends StatelessWidget {
 }
 
 class _Nub extends CustomPainter {
-  _Nub(this.color);
+  _Nub(this.color, this.left);
   final Color color;
+  final double left;
   @override
   void paint(Canvas canvas, Size size) {
     final path = Path()
-      ..moveTo(0, size.height)
-      ..lineTo(size.width / 2, 0)
-      ..lineTo(size.width, size.height)
+      ..moveTo(left, 0)
+      ..lineTo(left + 7, size.height)
+      ..lineTo(left + 14, 0)
       ..close();
     canvas.drawPath(path, Paint()..color = color);
   }
 
   @override
-  bool shouldRepaint(_Nub old) => old.color != color;
+  bool shouldRepaint(_Nub old) => old.color != color || old.left != left;
 }

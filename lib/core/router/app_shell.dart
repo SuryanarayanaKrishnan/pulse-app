@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../data/providers.dart';
 import '../../features/rewards/reward_moment.dart';
+import '../../features/tour/tab_tip.dart';
+import '../../features/tour/tour_progress.dart';
 import '../analytics/analytics.dart';
 
 import '../theme/tokens.dart';
@@ -43,7 +45,11 @@ class _AppShellState extends ConsumerState<AppShell> {
     });
     return Scaffold(
       extendBody: true,
-      body: shell,
+      body: TipDock(
+        current: TipTab.values[shell.currentIndex],
+        bottomInset: 56 + MediaQuery.viewPaddingOf(context).bottom,
+        child: shell,
+      ),
       bottomNavigationBar: ClipRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
