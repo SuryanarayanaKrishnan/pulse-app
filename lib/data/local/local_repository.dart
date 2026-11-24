@@ -751,6 +751,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       baseRate: _pct(spec.baseRate, spec),
       caps: caps,
       rulesVerifiedOn: cat.verifiedOn == null ? null : DateTime.tryParse(cat.verifiedOn!),
+      catalogId: cat.id,
     );
   }
 

@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../data/models.dart';
-import '../env/env.dart';
+import '../engine/card_art.dart';
+import 'card_face.dart';
 import '../theme/theme.dart';
 import '../theme/tokens.dart';
 import '../utils/money.dart';
@@ -200,6 +201,9 @@ class WalletCardFace extends StatelessWidget {
   }
 }
 
+/// A credit card as it looks in the real world: detailed art from the
+/// catalog, or a plain face from the card's own colours when the product has
+/// no art direction.
 class CreditCardVisual extends StatelessWidget {
   const CreditCardVisual({
     super.key,
@@ -211,19 +215,44 @@ class CreditCardVisual extends StatelessWidget {
   final bool compact;
   final bool elevated;
 
+  static CardArtSpec artFor(CreditCard card) =>
+      CardArts.resolve(
+        id: card.catalogId ?? card.id,
+        issuer: card.issuer,
+        name: card.name,
+      ) ??
+      CardArts.resolve(id: card.id) ??
+      fallbackArt(
+        gradient: card.gradient,
+        network: switch (card.network) {
+          CardNetwork.visa => CardNetworkMark.visa,
+          CardNetwork.mastercard => CardNetworkMark.mastercard,
+          CardNetwork.amex => CardNetworkMark.amex,
+        },
+        bank: card.issuer,
+        tier: _tierOf(card.name),
+      );
+
+  static String _tierOf(String name) {
+    final n = name.toLowerCase();
+    for (final t in const [
+      'Infinite',
+      'Signature',
+      'World Elite',
+      'Titanium',
+      'Platinum',
+      'Gold',
+    ]) {
+      if (n.contains(t.toLowerCase())) return t;
+    }
+    return '';
+  }
+
   @override
-  Widget build(BuildContext context) => WalletCardFace(
-    gradient: card.gradient.length > 2
-        ? [card.gradient.first, card.gradient[card.gradient.length ~/ 2]]
-        : card.gradient,
-    title: card.issuer,
-    subtitle: card.owned ? card.name : Env.appName,
-    number: card.owned ? '•• ${card.last4}' : card.name,
-    mark: switch (card.network) {
-      CardNetwork.visa => 'VISA',
-      CardNetwork.mastercard => 'mastercard',
-      CardNetwork.amex => 'AMEX',
-    },
+  Widget build(BuildContext context) => CardFace(
+    art: artFor(card),
+    last4: card.owned ? card.last4 : null,
+    name: card.name,
     compact: compact,
     elevated: elevated,
   );

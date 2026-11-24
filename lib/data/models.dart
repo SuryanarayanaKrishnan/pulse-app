@@ -293,6 +293,7 @@ class CreditCard {
     this.baseRate = 0.5,
     this.caps = const {},
     this.rulesVerifiedOn,
+    this.catalogId,
   });
 
   final String id;
@@ -300,6 +301,9 @@ class CreditCard {
   final String name;
   final String last4;
   final CardNetwork network;
+
+  /// The catalog product this card is, when known; picks the card's art.
+  final String? catalogId;
   final List<Color> gradient;
   final double limit;
   final double balance;
@@ -359,6 +363,7 @@ class CreditCard {
         baseRate: baseRate,
         caps: caps ?? this.caps,
         rulesVerifiedOn: rulesVerifiedOn,
+        catalogId: catalogId,
       );
 }
 
