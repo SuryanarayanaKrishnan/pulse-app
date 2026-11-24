@@ -11316,6 +11316,3183 @@ class AppSettingsCompanion extends UpdateCompanion<SettingRow> {
   }
 }
 
+class $PriceCacheTable extends PriceCache
+    with TableInfo<$PriceCacheTable, PriceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PriceCacheTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _symbolMeta = const VerificationMeta('symbol');
+  @override
+  late final GeneratedColumn<String> symbol = GeneratedColumn<String>(
+    'symbol',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+    'price',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('AED'),
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('live'),
+  );
+  static const VerificationMeta _quotedAtMeta = const VerificationMeta(
+    'quotedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> quotedAt = GeneratedColumn<DateTime>(
+    'quoted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
+    'fetched_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    symbol,
+    price,
+    unit,
+    source,
+    status,
+    quotedAt,
+    fetchedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'price_cache';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PriceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('symbol')) {
+      context.handle(
+        _symbolMeta,
+        symbol.isAcceptableOrUnknown(data['symbol']!, _symbolMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symbolMeta);
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+        _priceMeta,
+        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_priceMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('quoted_at')) {
+      context.handle(
+        _quotedAtMeta,
+        quotedAt.isAcceptableOrUnknown(data['quoted_at']!, _quotedAtMeta),
+      );
+    }
+    if (data.containsKey('fetched_at')) {
+      context.handle(
+        _fetchedAtMeta,
+        fetchedAt.isAcceptableOrUnknown(data['fetched_at']!, _fetchedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fetchedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {symbol};
+  @override
+  PriceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PriceRow(
+      symbol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symbol'],
+      )!,
+      price: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}price'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      quotedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}quoted_at'],
+      ),
+      fetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}fetched_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PriceCacheTable createAlias(String alias) {
+    return $PriceCacheTable(attachedDatabase, alias);
+  }
+}
+
+class PriceRow extends DataClass implements Insertable<PriceRow> {
+  final String symbol;
+  final double price;
+
+  /// What [price] is quoted in (`AED`).
+  final String unit;
+  final String? source;
+
+  /// live | stale | unavailable, as reported by the backend.
+  final String status;
+
+  /// When the source last quoted it (null when unknown).
+  final DateTime? quotedAt;
+
+  /// When this phone last fetched it.
+  final DateTime fetchedAt;
+  const PriceRow({
+    required this.symbol,
+    required this.price,
+    required this.unit,
+    this.source,
+    required this.status,
+    this.quotedAt,
+    required this.fetchedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['symbol'] = Variable<String>(symbol);
+    map['price'] = Variable<double>(price);
+    map['unit'] = Variable<String>(unit);
+    if (!nullToAbsent || source != null) {
+      map['source'] = Variable<String>(source);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || quotedAt != null) {
+      map['quoted_at'] = Variable<DateTime>(quotedAt);
+    }
+    map['fetched_at'] = Variable<DateTime>(fetchedAt);
+    return map;
+  }
+
+  PriceCacheCompanion toCompanion(bool nullToAbsent) {
+    return PriceCacheCompanion(
+      symbol: Value(symbol),
+      price: Value(price),
+      unit: Value(unit),
+      source: source == null && nullToAbsent
+          ? const Value.absent()
+          : Value(source),
+      status: Value(status),
+      quotedAt: quotedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(quotedAt),
+      fetchedAt: Value(fetchedAt),
+    );
+  }
+
+  factory PriceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PriceRow(
+      symbol: serializer.fromJson<String>(json['symbol']),
+      price: serializer.fromJson<double>(json['price']),
+      unit: serializer.fromJson<String>(json['unit']),
+      source: serializer.fromJson<String?>(json['source']),
+      status: serializer.fromJson<String>(json['status']),
+      quotedAt: serializer.fromJson<DateTime?>(json['quotedAt']),
+      fetchedAt: serializer.fromJson<DateTime>(json['fetchedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'symbol': serializer.toJson<String>(symbol),
+      'price': serializer.toJson<double>(price),
+      'unit': serializer.toJson<String>(unit),
+      'source': serializer.toJson<String?>(source),
+      'status': serializer.toJson<String>(status),
+      'quotedAt': serializer.toJson<DateTime?>(quotedAt),
+      'fetchedAt': serializer.toJson<DateTime>(fetchedAt),
+    };
+  }
+
+  PriceRow copyWith({
+    String? symbol,
+    double? price,
+    String? unit,
+    Value<String?> source = const Value.absent(),
+    String? status,
+    Value<DateTime?> quotedAt = const Value.absent(),
+    DateTime? fetchedAt,
+  }) => PriceRow(
+    symbol: symbol ?? this.symbol,
+    price: price ?? this.price,
+    unit: unit ?? this.unit,
+    source: source.present ? source.value : this.source,
+    status: status ?? this.status,
+    quotedAt: quotedAt.present ? quotedAt.value : this.quotedAt,
+    fetchedAt: fetchedAt ?? this.fetchedAt,
+  );
+  PriceRow copyWithCompanion(PriceCacheCompanion data) {
+    return PriceRow(
+      symbol: data.symbol.present ? data.symbol.value : this.symbol,
+      price: data.price.present ? data.price.value : this.price,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      source: data.source.present ? data.source.value : this.source,
+      status: data.status.present ? data.status.value : this.status,
+      quotedAt: data.quotedAt.present ? data.quotedAt.value : this.quotedAt,
+      fetchedAt: data.fetchedAt.present ? data.fetchedAt.value : this.fetchedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PriceRow(')
+          ..write('symbol: $symbol, ')
+          ..write('price: $price, ')
+          ..write('unit: $unit, ')
+          ..write('source: $source, ')
+          ..write('status: $status, ')
+          ..write('quotedAt: $quotedAt, ')
+          ..write('fetchedAt: $fetchedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(symbol, price, unit, source, status, quotedAt, fetchedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PriceRow &&
+          other.symbol == this.symbol &&
+          other.price == this.price &&
+          other.unit == this.unit &&
+          other.source == this.source &&
+          other.status == this.status &&
+          other.quotedAt == this.quotedAt &&
+          other.fetchedAt == this.fetchedAt);
+}
+
+class PriceCacheCompanion extends UpdateCompanion<PriceRow> {
+  final Value<String> symbol;
+  final Value<double> price;
+  final Value<String> unit;
+  final Value<String?> source;
+  final Value<String> status;
+  final Value<DateTime?> quotedAt;
+  final Value<DateTime> fetchedAt;
+  final Value<int> rowid;
+  const PriceCacheCompanion({
+    this.symbol = const Value.absent(),
+    this.price = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.source = const Value.absent(),
+    this.status = const Value.absent(),
+    this.quotedAt = const Value.absent(),
+    this.fetchedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PriceCacheCompanion.insert({
+    required String symbol,
+    required double price,
+    this.unit = const Value.absent(),
+    this.source = const Value.absent(),
+    this.status = const Value.absent(),
+    this.quotedAt = const Value.absent(),
+    required DateTime fetchedAt,
+    this.rowid = const Value.absent(),
+  }) : symbol = Value(symbol),
+       price = Value(price),
+       fetchedAt = Value(fetchedAt);
+  static Insertable<PriceRow> custom({
+    Expression<String>? symbol,
+    Expression<double>? price,
+    Expression<String>? unit,
+    Expression<String>? source,
+    Expression<String>? status,
+    Expression<DateTime>? quotedAt,
+    Expression<DateTime>? fetchedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (symbol != null) 'symbol': symbol,
+      if (price != null) 'price': price,
+      if (unit != null) 'unit': unit,
+      if (source != null) 'source': source,
+      if (status != null) 'status': status,
+      if (quotedAt != null) 'quoted_at': quotedAt,
+      if (fetchedAt != null) 'fetched_at': fetchedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PriceCacheCompanion copyWith({
+    Value<String>? symbol,
+    Value<double>? price,
+    Value<String>? unit,
+    Value<String?>? source,
+    Value<String>? status,
+    Value<DateTime?>? quotedAt,
+    Value<DateTime>? fetchedAt,
+    Value<int>? rowid,
+  }) {
+    return PriceCacheCompanion(
+      symbol: symbol ?? this.symbol,
+      price: price ?? this.price,
+      unit: unit ?? this.unit,
+      source: source ?? this.source,
+      status: status ?? this.status,
+      quotedAt: quotedAt ?? this.quotedAt,
+      fetchedAt: fetchedAt ?? this.fetchedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (symbol.present) {
+      map['symbol'] = Variable<String>(symbol.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (quotedAt.present) {
+      map['quoted_at'] = Variable<DateTime>(quotedAt.value);
+    }
+    if (fetchedAt.present) {
+      map['fetched_at'] = Variable<DateTime>(fetchedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PriceCacheCompanion(')
+          ..write('symbol: $symbol, ')
+          ..write('price: $price, ')
+          ..write('unit: $unit, ')
+          ..write('source: $source, ')
+          ..write('status: $status, ')
+          ..write('quotedAt: $quotedAt, ')
+          ..write('fetchedAt: $fetchedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $JewelleryItemsTable extends JewelleryItems
+    with TableInfo<$JewelleryItemsTable, JewelleryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $JewelleryItemsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _weightGramsMeta = const VerificationMeta(
+    'weightGrams',
+  );
+  @override
+  late final GeneratedColumn<double> weightGrams = GeneratedColumn<double>(
+    'weight_grams',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _karatMeta = const VerificationMeta('karat');
+  @override
+  late final GeneratedColumn<int> karat = GeneratedColumn<int>(
+    'karat',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _purityOverrideMeta = const VerificationMeta(
+    'purityOverride',
+  );
+  @override
+  late final GeneratedColumn<double> purityOverride = GeneratedColumn<double>(
+    'purity_override',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _purchasePriceMinorMeta =
+      const VerificationMeta('purchasePriceMinor');
+  @override
+  late final GeneratedColumn<int> purchasePriceMinor = GeneratedColumn<int>(
+    'purchase_price_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _purchaseDateMeta = const VerificationMeta(
+    'purchaseDate',
+  );
+  @override
+  late final GeneratedColumn<String> purchaseDate = GeneratedColumn<String>(
+    'purchase_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _makingChargesMinorMeta =
+      const VerificationMeta('makingChargesMinor');
+  @override
+  late final GeneratedColumn<int> makingChargesMinor = GeneratedColumn<int>(
+    'making_charges_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _photoPathsMeta = const VerificationMeta(
+    'photoPaths',
+  );
+  @override
+  late final GeneratedColumn<String> photoPaths = GeneratedColumn<String>(
+    'photo_paths',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    weightGrams,
+    karat,
+    purityOverride,
+    purchasePriceMinor,
+    purchaseDate,
+    makingChargesMinor,
+    notes,
+    photoPaths,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'jewellery_items';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<JewelleryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('weight_grams')) {
+      context.handle(
+        _weightGramsMeta,
+        weightGrams.isAcceptableOrUnknown(
+          data['weight_grams']!,
+          _weightGramsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_weightGramsMeta);
+    }
+    if (data.containsKey('karat')) {
+      context.handle(
+        _karatMeta,
+        karat.isAcceptableOrUnknown(data['karat']!, _karatMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_karatMeta);
+    }
+    if (data.containsKey('purity_override')) {
+      context.handle(
+        _purityOverrideMeta,
+        purityOverride.isAcceptableOrUnknown(
+          data['purity_override']!,
+          _purityOverrideMeta,
+        ),
+      );
+    }
+    if (data.containsKey('purchase_price_minor')) {
+      context.handle(
+        _purchasePriceMinorMeta,
+        purchasePriceMinor.isAcceptableOrUnknown(
+          data['purchase_price_minor']!,
+          _purchasePriceMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+        _purchaseDateMeta,
+        purchaseDate.isAcceptableOrUnknown(
+          data['purchase_date']!,
+          _purchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('making_charges_minor')) {
+      context.handle(
+        _makingChargesMinorMeta,
+        makingChargesMinor.isAcceptableOrUnknown(
+          data['making_charges_minor']!,
+          _makingChargesMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('photo_paths')) {
+      context.handle(
+        _photoPathsMeta,
+        photoPaths.isAcceptableOrUnknown(data['photo_paths']!, _photoPathsMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  JewelleryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return JewelleryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      weightGrams: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}weight_grams'],
+      )!,
+      karat: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}karat'],
+      )!,
+      purityOverride: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}purity_override'],
+      ),
+      purchasePriceMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}purchase_price_minor'],
+      ),
+      purchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purchase_date'],
+      ),
+      makingChargesMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}making_charges_minor'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      photoPaths: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_paths'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $JewelleryItemsTable createAlias(String alias) {
+    return $JewelleryItemsTable(attachedDatabase, alias);
+  }
+}
+
+class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
+  final String id;
+  final String name;
+  final double weightGrams;
+
+  /// 24 | 22 | 21 | 18 (or 0 with a purity override).
+  final int karat;
+
+  /// Fineness 0..1 when it is not a plain karat (e.g. 0.875).
+  final double? purityOverride;
+  final int? purchasePriceMinor;
+  final String? purchaseDate;
+  final int? makingChargesMinor;
+  final String? notes;
+
+  /// JSON list of file paths inside the app-private attachments folder.
+  final String photoPaths;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const JewelleryRow({
+    required this.id,
+    required this.name,
+    required this.weightGrams,
+    required this.karat,
+    this.purityOverride,
+    this.purchasePriceMinor,
+    this.purchaseDate,
+    this.makingChargesMinor,
+    this.notes,
+    required this.photoPaths,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['weight_grams'] = Variable<double>(weightGrams);
+    map['karat'] = Variable<int>(karat);
+    if (!nullToAbsent || purityOverride != null) {
+      map['purity_override'] = Variable<double>(purityOverride);
+    }
+    if (!nullToAbsent || purchasePriceMinor != null) {
+      map['purchase_price_minor'] = Variable<int>(purchasePriceMinor);
+    }
+    if (!nullToAbsent || purchaseDate != null) {
+      map['purchase_date'] = Variable<String>(purchaseDate);
+    }
+    if (!nullToAbsent || makingChargesMinor != null) {
+      map['making_charges_minor'] = Variable<int>(makingChargesMinor);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['photo_paths'] = Variable<String>(photoPaths);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  JewelleryItemsCompanion toCompanion(bool nullToAbsent) {
+    return JewelleryItemsCompanion(
+      id: Value(id),
+      name: Value(name),
+      weightGrams: Value(weightGrams),
+      karat: Value(karat),
+      purityOverride: purityOverride == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purityOverride),
+      purchasePriceMinor: purchasePriceMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchasePriceMinor),
+      purchaseDate: purchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchaseDate),
+      makingChargesMinor: makingChargesMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(makingChargesMinor),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      photoPaths: Value(photoPaths),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory JewelleryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return JewelleryRow(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      weightGrams: serializer.fromJson<double>(json['weightGrams']),
+      karat: serializer.fromJson<int>(json['karat']),
+      purityOverride: serializer.fromJson<double?>(json['purityOverride']),
+      purchasePriceMinor: serializer.fromJson<int?>(json['purchasePriceMinor']),
+      purchaseDate: serializer.fromJson<String?>(json['purchaseDate']),
+      makingChargesMinor: serializer.fromJson<int?>(json['makingChargesMinor']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      photoPaths: serializer.fromJson<String>(json['photoPaths']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'weightGrams': serializer.toJson<double>(weightGrams),
+      'karat': serializer.toJson<int>(karat),
+      'purityOverride': serializer.toJson<double?>(purityOverride),
+      'purchasePriceMinor': serializer.toJson<int?>(purchasePriceMinor),
+      'purchaseDate': serializer.toJson<String?>(purchaseDate),
+      'makingChargesMinor': serializer.toJson<int?>(makingChargesMinor),
+      'notes': serializer.toJson<String?>(notes),
+      'photoPaths': serializer.toJson<String>(photoPaths),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  JewelleryRow copyWith({
+    String? id,
+    String? name,
+    double? weightGrams,
+    int? karat,
+    Value<double?> purityOverride = const Value.absent(),
+    Value<int?> purchasePriceMinor = const Value.absent(),
+    Value<String?> purchaseDate = const Value.absent(),
+    Value<int?> makingChargesMinor = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    String? photoPaths,
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => JewelleryRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    weightGrams: weightGrams ?? this.weightGrams,
+    karat: karat ?? this.karat,
+    purityOverride: purityOverride.present
+        ? purityOverride.value
+        : this.purityOverride,
+    purchasePriceMinor: purchasePriceMinor.present
+        ? purchasePriceMinor.value
+        : this.purchasePriceMinor,
+    purchaseDate: purchaseDate.present ? purchaseDate.value : this.purchaseDate,
+    makingChargesMinor: makingChargesMinor.present
+        ? makingChargesMinor.value
+        : this.makingChargesMinor,
+    notes: notes.present ? notes.value : this.notes,
+    photoPaths: photoPaths ?? this.photoPaths,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  JewelleryRow copyWithCompanion(JewelleryItemsCompanion data) {
+    return JewelleryRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      weightGrams: data.weightGrams.present
+          ? data.weightGrams.value
+          : this.weightGrams,
+      karat: data.karat.present ? data.karat.value : this.karat,
+      purityOverride: data.purityOverride.present
+          ? data.purityOverride.value
+          : this.purityOverride,
+      purchasePriceMinor: data.purchasePriceMinor.present
+          ? data.purchasePriceMinor.value
+          : this.purchasePriceMinor,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
+      makingChargesMinor: data.makingChargesMinor.present
+          ? data.makingChargesMinor.value
+          : this.makingChargesMinor,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      photoPaths: data.photoPaths.present
+          ? data.photoPaths.value
+          : this.photoPaths,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JewelleryRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('karat: $karat, ')
+          ..write('purityOverride: $purityOverride, ')
+          ..write('purchasePriceMinor: $purchasePriceMinor, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('makingChargesMinor: $makingChargesMinor, ')
+          ..write('notes: $notes, ')
+          ..write('photoPaths: $photoPaths, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    weightGrams,
+    karat,
+    purityOverride,
+    purchasePriceMinor,
+    purchaseDate,
+    makingChargesMinor,
+    notes,
+    photoPaths,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is JewelleryRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.weightGrams == this.weightGrams &&
+          other.karat == this.karat &&
+          other.purityOverride == this.purityOverride &&
+          other.purchasePriceMinor == this.purchasePriceMinor &&
+          other.purchaseDate == this.purchaseDate &&
+          other.makingChargesMinor == this.makingChargesMinor &&
+          other.notes == this.notes &&
+          other.photoPaths == this.photoPaths &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<double> weightGrams;
+  final Value<int> karat;
+  final Value<double?> purityOverride;
+  final Value<int?> purchasePriceMinor;
+  final Value<String?> purchaseDate;
+  final Value<int?> makingChargesMinor;
+  final Value<String?> notes;
+  final Value<String> photoPaths;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const JewelleryItemsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.weightGrams = const Value.absent(),
+    this.karat = const Value.absent(),
+    this.purityOverride = const Value.absent(),
+    this.purchasePriceMinor = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.makingChargesMinor = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.photoPaths = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  JewelleryItemsCompanion.insert({
+    required String id,
+    required String name,
+    required double weightGrams,
+    required int karat,
+    this.purityOverride = const Value.absent(),
+    this.purchasePriceMinor = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.makingChargesMinor = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.photoPaths = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       weightGrams = Value(weightGrams),
+       karat = Value(karat);
+  static Insertable<JewelleryRow> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<double>? weightGrams,
+    Expression<int>? karat,
+    Expression<double>? purityOverride,
+    Expression<int>? purchasePriceMinor,
+    Expression<String>? purchaseDate,
+    Expression<int>? makingChargesMinor,
+    Expression<String>? notes,
+    Expression<String>? photoPaths,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (weightGrams != null) 'weight_grams': weightGrams,
+      if (karat != null) 'karat': karat,
+      if (purityOverride != null) 'purity_override': purityOverride,
+      if (purchasePriceMinor != null)
+        'purchase_price_minor': purchasePriceMinor,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
+      if (makingChargesMinor != null)
+        'making_charges_minor': makingChargesMinor,
+      if (notes != null) 'notes': notes,
+      if (photoPaths != null) 'photo_paths': photoPaths,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  JewelleryItemsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<double>? weightGrams,
+    Value<int>? karat,
+    Value<double?>? purityOverride,
+    Value<int?>? purchasePriceMinor,
+    Value<String?>? purchaseDate,
+    Value<int?>? makingChargesMinor,
+    Value<String?>? notes,
+    Value<String>? photoPaths,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return JewelleryItemsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      weightGrams: weightGrams ?? this.weightGrams,
+      karat: karat ?? this.karat,
+      purityOverride: purityOverride ?? this.purityOverride,
+      purchasePriceMinor: purchasePriceMinor ?? this.purchasePriceMinor,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      makingChargesMinor: makingChargesMinor ?? this.makingChargesMinor,
+      notes: notes ?? this.notes,
+      photoPaths: photoPaths ?? this.photoPaths,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (weightGrams.present) {
+      map['weight_grams'] = Variable<double>(weightGrams.value);
+    }
+    if (karat.present) {
+      map['karat'] = Variable<int>(karat.value);
+    }
+    if (purityOverride.present) {
+      map['purity_override'] = Variable<double>(purityOverride.value);
+    }
+    if (purchasePriceMinor.present) {
+      map['purchase_price_minor'] = Variable<int>(purchasePriceMinor.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<String>(purchaseDate.value);
+    }
+    if (makingChargesMinor.present) {
+      map['making_charges_minor'] = Variable<int>(makingChargesMinor.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (photoPaths.present) {
+      map['photo_paths'] = Variable<String>(photoPaths.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('JewelleryItemsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('weightGrams: $weightGrams, ')
+          ..write('karat: $karat, ')
+          ..write('purityOverride: $purityOverride, ')
+          ..write('purchasePriceMinor: $purchasePriceMinor, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('makingChargesMinor: $makingChargesMinor, ')
+          ..write('notes: $notes, ')
+          ..write('photoPaths: $photoPaths, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DocumentAttachmentsTable extends DocumentAttachments
+    with TableInfo<$DocumentAttachmentsTable, DocumentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentAttachmentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _filePathsMeta = const VerificationMeta(
+    'filePaths',
+  );
+  @override
+  late final GeneratedColumn<String> filePaths = GeneratedColumn<String>(
+    'file_paths',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _dueOnMeta = const VerificationMeta('dueOn');
+  @override
+  late final GeneratedColumn<String> dueOn = GeneratedColumn<String>(
+    'due_on',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dueKindMeta = const VerificationMeta(
+    'dueKind',
+  );
+  @override
+  late final GeneratedColumn<String> dueKind = GeneratedColumn<String>(
+    'due_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('expiry'),
+  );
+  static const VerificationMeta _remindDaysBeforeMeta = const VerificationMeta(
+    'remindDaysBefore',
+  );
+  @override
+  late final GeneratedColumn<int> remindDaysBefore = GeneratedColumn<int>(
+    'remind_days_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notificationIdMeta = const VerificationMeta(
+    'notificationId',
+  );
+  @override
+  late final GeneratedColumn<int> notificationId = GeneratedColumn<int>(
+    'notification_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    title,
+    category,
+    notes,
+    filePaths,
+    dueOn,
+    dueKind,
+    remindDaysBefore,
+    notificationId,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'document_attachments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('file_paths')) {
+      context.handle(
+        _filePathsMeta,
+        filePaths.isAcceptableOrUnknown(data['file_paths']!, _filePathsMeta),
+      );
+    }
+    if (data.containsKey('due_on')) {
+      context.handle(
+        _dueOnMeta,
+        dueOn.isAcceptableOrUnknown(data['due_on']!, _dueOnMeta),
+      );
+    }
+    if (data.containsKey('due_kind')) {
+      context.handle(
+        _dueKindMeta,
+        dueKind.isAcceptableOrUnknown(data['due_kind']!, _dueKindMeta),
+      );
+    }
+    if (data.containsKey('remind_days_before')) {
+      context.handle(
+        _remindDaysBeforeMeta,
+        remindDaysBefore.isAcceptableOrUnknown(
+          data['remind_days_before']!,
+          _remindDaysBeforeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notification_id')) {
+      context.handle(
+        _notificationIdMeta,
+        notificationId.isAcceptableOrUnknown(
+          data['notification_id']!,
+          _notificationIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      filePaths: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_paths'],
+      )!,
+      dueOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_on'],
+      ),
+      dueKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_kind'],
+      )!,
+      remindDaysBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}remind_days_before'],
+      ),
+      notificationId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}notification_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $DocumentAttachmentsTable createAlias(String alias) {
+    return $DocumentAttachmentsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentRow extends DataClass implements Insertable<DocumentRow> {
+  final String id;
+  final String title;
+
+  /// title_deed | fd_certificate | insurance | passport | emirates_id | other
+  final String category;
+  final String? notes;
+
+  /// JSON list of file paths inside the app-private attachments folder.
+  final String filePaths;
+
+  /// ISO date (yyyy-mm-dd) of the expiry, maturity or renewal.
+  final String? dueOn;
+
+  /// expiry | maturity | renewal
+  final String dueKind;
+
+  /// Days before [dueOn] to notify; null = no reminder.
+  final int? remindDaysBefore;
+
+  /// Id of the scheduled local notification (stable per document).
+  final int? notificationId;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const DocumentRow({
+    required this.id,
+    required this.title,
+    required this.category,
+    this.notes,
+    required this.filePaths,
+    this.dueOn,
+    required this.dueKind,
+    this.remindDaysBefore,
+    this.notificationId,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['title'] = Variable<String>(title);
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['file_paths'] = Variable<String>(filePaths);
+    if (!nullToAbsent || dueOn != null) {
+      map['due_on'] = Variable<String>(dueOn);
+    }
+    map['due_kind'] = Variable<String>(dueKind);
+    if (!nullToAbsent || remindDaysBefore != null) {
+      map['remind_days_before'] = Variable<int>(remindDaysBefore);
+    }
+    if (!nullToAbsent || notificationId != null) {
+      map['notification_id'] = Variable<int>(notificationId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  DocumentAttachmentsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentAttachmentsCompanion(
+      id: Value(id),
+      title: Value(title),
+      category: Value(category),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      filePaths: Value(filePaths),
+      dueOn: dueOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueOn),
+      dueKind: Value(dueKind),
+      remindDaysBefore: remindDaysBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remindDaysBefore),
+      notificationId: notificationId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notificationId),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory DocumentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentRow(
+      id: serializer.fromJson<String>(json['id']),
+      title: serializer.fromJson<String>(json['title']),
+      category: serializer.fromJson<String>(json['category']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      filePaths: serializer.fromJson<String>(json['filePaths']),
+      dueOn: serializer.fromJson<String?>(json['dueOn']),
+      dueKind: serializer.fromJson<String>(json['dueKind']),
+      remindDaysBefore: serializer.fromJson<int?>(json['remindDaysBefore']),
+      notificationId: serializer.fromJson<int?>(json['notificationId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'title': serializer.toJson<String>(title),
+      'category': serializer.toJson<String>(category),
+      'notes': serializer.toJson<String?>(notes),
+      'filePaths': serializer.toJson<String>(filePaths),
+      'dueOn': serializer.toJson<String?>(dueOn),
+      'dueKind': serializer.toJson<String>(dueKind),
+      'remindDaysBefore': serializer.toJson<int?>(remindDaysBefore),
+      'notificationId': serializer.toJson<int?>(notificationId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  DocumentRow copyWith({
+    String? id,
+    String? title,
+    String? category,
+    Value<String?> notes = const Value.absent(),
+    String? filePaths,
+    Value<String?> dueOn = const Value.absent(),
+    String? dueKind,
+    Value<int?> remindDaysBefore = const Value.absent(),
+    Value<int?> notificationId = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => DocumentRow(
+    id: id ?? this.id,
+    title: title ?? this.title,
+    category: category ?? this.category,
+    notes: notes.present ? notes.value : this.notes,
+    filePaths: filePaths ?? this.filePaths,
+    dueOn: dueOn.present ? dueOn.value : this.dueOn,
+    dueKind: dueKind ?? this.dueKind,
+    remindDaysBefore: remindDaysBefore.present
+        ? remindDaysBefore.value
+        : this.remindDaysBefore,
+    notificationId: notificationId.present
+        ? notificationId.value
+        : this.notificationId,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  DocumentRow copyWithCompanion(DocumentAttachmentsCompanion data) {
+    return DocumentRow(
+      id: data.id.present ? data.id.value : this.id,
+      title: data.title.present ? data.title.value : this.title,
+      category: data.category.present ? data.category.value : this.category,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      filePaths: data.filePaths.present ? data.filePaths.value : this.filePaths,
+      dueOn: data.dueOn.present ? data.dueOn.value : this.dueOn,
+      dueKind: data.dueKind.present ? data.dueKind.value : this.dueKind,
+      remindDaysBefore: data.remindDaysBefore.present
+          ? data.remindDaysBefore.value
+          : this.remindDaysBefore,
+      notificationId: data.notificationId.present
+          ? data.notificationId.value
+          : this.notificationId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRow(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('category: $category, ')
+          ..write('notes: $notes, ')
+          ..write('filePaths: $filePaths, ')
+          ..write('dueOn: $dueOn, ')
+          ..write('dueKind: $dueKind, ')
+          ..write('remindDaysBefore: $remindDaysBefore, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    title,
+    category,
+    notes,
+    filePaths,
+    dueOn,
+    dueKind,
+    remindDaysBefore,
+    notificationId,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentRow &&
+          other.id == this.id &&
+          other.title == this.title &&
+          other.category == this.category &&
+          other.notes == this.notes &&
+          other.filePaths == this.filePaths &&
+          other.dueOn == this.dueOn &&
+          other.dueKind == this.dueKind &&
+          other.remindDaysBefore == this.remindDaysBefore &&
+          other.notificationId == this.notificationId &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class DocumentAttachmentsCompanion extends UpdateCompanion<DocumentRow> {
+  final Value<String> id;
+  final Value<String> title;
+  final Value<String> category;
+  final Value<String?> notes;
+  final Value<String> filePaths;
+  final Value<String?> dueOn;
+  final Value<String> dueKind;
+  final Value<int?> remindDaysBefore;
+  final Value<int?> notificationId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const DocumentAttachmentsCompanion({
+    this.id = const Value.absent(),
+    this.title = const Value.absent(),
+    this.category = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.filePaths = const Value.absent(),
+    this.dueOn = const Value.absent(),
+    this.dueKind = const Value.absent(),
+    this.remindDaysBefore = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentAttachmentsCompanion.insert({
+    required String id,
+    required String title,
+    required String category,
+    this.notes = const Value.absent(),
+    this.filePaths = const Value.absent(),
+    this.dueOn = const Value.absent(),
+    this.dueKind = const Value.absent(),
+    this.remindDaysBefore = const Value.absent(),
+    this.notificationId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       title = Value(title),
+       category = Value(category);
+  static Insertable<DocumentRow> custom({
+    Expression<String>? id,
+    Expression<String>? title,
+    Expression<String>? category,
+    Expression<String>? notes,
+    Expression<String>? filePaths,
+    Expression<String>? dueOn,
+    Expression<String>? dueKind,
+    Expression<int>? remindDaysBefore,
+    Expression<int>? notificationId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (title != null) 'title': title,
+      if (category != null) 'category': category,
+      if (notes != null) 'notes': notes,
+      if (filePaths != null) 'file_paths': filePaths,
+      if (dueOn != null) 'due_on': dueOn,
+      if (dueKind != null) 'due_kind': dueKind,
+      if (remindDaysBefore != null) 'remind_days_before': remindDaysBefore,
+      if (notificationId != null) 'notification_id': notificationId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentAttachmentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? title,
+    Value<String>? category,
+    Value<String?>? notes,
+    Value<String>? filePaths,
+    Value<String?>? dueOn,
+    Value<String>? dueKind,
+    Value<int?>? remindDaysBefore,
+    Value<int?>? notificationId,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentAttachmentsCompanion(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      category: category ?? this.category,
+      notes: notes ?? this.notes,
+      filePaths: filePaths ?? this.filePaths,
+      dueOn: dueOn ?? this.dueOn,
+      dueKind: dueKind ?? this.dueKind,
+      remindDaysBefore: remindDaysBefore ?? this.remindDaysBefore,
+      notificationId: notificationId ?? this.notificationId,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (filePaths.present) {
+      map['file_paths'] = Variable<String>(filePaths.value);
+    }
+    if (dueOn.present) {
+      map['due_on'] = Variable<String>(dueOn.value);
+    }
+    if (dueKind.present) {
+      map['due_kind'] = Variable<String>(dueKind.value);
+    }
+    if (remindDaysBefore.present) {
+      map['remind_days_before'] = Variable<int>(remindDaysBefore.value);
+    }
+    if (notificationId.present) {
+      map['notification_id'] = Variable<int>(notificationId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentAttachmentsCompanion(')
+          ..write('id: $id, ')
+          ..write('title: $title, ')
+          ..write('category: $category, ')
+          ..write('notes: $notes, ')
+          ..write('filePaths: $filePaths, ')
+          ..write('dueOn: $dueOn, ')
+          ..write('dueKind: $dueKind, ')
+          ..write('remindDaysBefore: $remindDaysBefore, ')
+          ..write('notificationId: $notificationId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FundHoldingsTable extends FundHoldings
+    with TableInfo<$FundHoldingsTable, FundRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FundHoldingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _schemeCodeMeta = const VerificationMeta(
+    'schemeCode',
+  );
+  @override
+  late final GeneratedColumn<String> schemeCode = GeneratedColumn<String>(
+    'scheme_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('INR'),
+  );
+  static const VerificationMeta _unitsMeta = const VerificationMeta('units');
+  @override
+  late final GeneratedColumn<double> units = GeneratedColumn<double>(
+    'units',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _avgCostNavMeta = const VerificationMeta(
+    'avgCostNav',
+  );
+  @override
+  late final GeneratedColumn<double> avgCostNav = GeneratedColumn<double>(
+    'avg_cost_nav',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _navMeta = const VerificationMeta('nav');
+  @override
+  late final GeneratedColumn<double> nav = GeneratedColumn<double>(
+    'nav',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _navDateMeta = const VerificationMeta(
+    'navDate',
+  );
+  @override
+  late final GeneratedColumn<String> navDate = GeneratedColumn<String>(
+    'nav_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _navSourceMeta = const VerificationMeta(
+    'navSource',
+  );
+  @override
+  late final GeneratedColumn<String> navSource = GeneratedColumn<String>(
+    'nav_source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manual'),
+  );
+  static const VerificationMeta _navFetchedAtMeta = const VerificationMeta(
+    'navFetchedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> navFetchedAt = GeneratedColumn<DateTime>(
+    'nav_fetched_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sipAmountMinorMeta = const VerificationMeta(
+    'sipAmountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> sipAmountMinor = GeneratedColumn<int>(
+    'sip_amount_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _sipDayMeta = const VerificationMeta('sipDay');
+  @override
+  late final GeneratedColumn<int> sipDay = GeneratedColumn<int>(
+    'sip_day',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    kind,
+    schemeCode,
+    name,
+    currency,
+    units,
+    avgCostNav,
+    nav,
+    navDate,
+    navSource,
+    navFetchedAt,
+    sipAmountMinor,
+    sipDay,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fund_holdings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FundRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('scheme_code')) {
+      context.handle(
+        _schemeCodeMeta,
+        schemeCode.isAcceptableOrUnknown(data['scheme_code']!, _schemeCodeMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('units')) {
+      context.handle(
+        _unitsMeta,
+        units.isAcceptableOrUnknown(data['units']!, _unitsMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitsMeta);
+    }
+    if (data.containsKey('avg_cost_nav')) {
+      context.handle(
+        _avgCostNavMeta,
+        avgCostNav.isAcceptableOrUnknown(
+          data['avg_cost_nav']!,
+          _avgCostNavMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nav')) {
+      context.handle(
+        _navMeta,
+        nav.isAcceptableOrUnknown(data['nav']!, _navMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_navMeta);
+    }
+    if (data.containsKey('nav_date')) {
+      context.handle(
+        _navDateMeta,
+        navDate.isAcceptableOrUnknown(data['nav_date']!, _navDateMeta),
+      );
+    }
+    if (data.containsKey('nav_source')) {
+      context.handle(
+        _navSourceMeta,
+        navSource.isAcceptableOrUnknown(data['nav_source']!, _navSourceMeta),
+      );
+    }
+    if (data.containsKey('nav_fetched_at')) {
+      context.handle(
+        _navFetchedAtMeta,
+        navFetchedAt.isAcceptableOrUnknown(
+          data['nav_fetched_at']!,
+          _navFetchedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sip_amount_minor')) {
+      context.handle(
+        _sipAmountMinorMeta,
+        sipAmountMinor.isAcceptableOrUnknown(
+          data['sip_amount_minor']!,
+          _sipAmountMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sip_day')) {
+      context.handle(
+        _sipDayMeta,
+        sipDay.isAcceptableOrUnknown(data['sip_day']!, _sipDayMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FundRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FundRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      schemeCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scheme_code'],
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      units: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}units'],
+      )!,
+      avgCostNav: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}avg_cost_nav'],
+      ),
+      nav: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}nav'],
+      )!,
+      navDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nav_date'],
+      ),
+      navSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nav_source'],
+      )!,
+      navFetchedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}nav_fetched_at'],
+      ),
+      sipAmountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sip_amount_minor'],
+      ),
+      sipDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sip_day'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $FundHoldingsTable createAlias(String alias) {
+    return $FundHoldingsTable(attachedDatabase, alias);
+  }
+}
+
+class FundRow extends DataClass implements Insertable<FundRow> {
+  final String id;
+
+  /// india_mf | manual
+  final String kind;
+  final String? schemeCode;
+  final String name;
+
+  /// Currency of the NAV (INR for Indian funds, AED/USD for others).
+  final String currency;
+  final double units;
+
+  /// Average cost per unit, in [currency].
+  final double? avgCostNav;
+  final double nav;
+  final String? navDate;
+
+  /// market | manual
+  final String navSource;
+  final DateTime? navFetchedAt;
+
+  /// Monthly SIP amount in [currency] minor units, and the debit day.
+  final int? sipAmountMinor;
+  final int? sipDay;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const FundRow({
+    required this.id,
+    required this.kind,
+    this.schemeCode,
+    required this.name,
+    required this.currency,
+    required this.units,
+    this.avgCostNav,
+    required this.nav,
+    this.navDate,
+    required this.navSource,
+    this.navFetchedAt,
+    this.sipAmountMinor,
+    this.sipDay,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || schemeCode != null) {
+      map['scheme_code'] = Variable<String>(schemeCode);
+    }
+    map['name'] = Variable<String>(name);
+    map['currency'] = Variable<String>(currency);
+    map['units'] = Variable<double>(units);
+    if (!nullToAbsent || avgCostNav != null) {
+      map['avg_cost_nav'] = Variable<double>(avgCostNav);
+    }
+    map['nav'] = Variable<double>(nav);
+    if (!nullToAbsent || navDate != null) {
+      map['nav_date'] = Variable<String>(navDate);
+    }
+    map['nav_source'] = Variable<String>(navSource);
+    if (!nullToAbsent || navFetchedAt != null) {
+      map['nav_fetched_at'] = Variable<DateTime>(navFetchedAt);
+    }
+    if (!nullToAbsent || sipAmountMinor != null) {
+      map['sip_amount_minor'] = Variable<int>(sipAmountMinor);
+    }
+    if (!nullToAbsent || sipDay != null) {
+      map['sip_day'] = Variable<int>(sipDay);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  FundHoldingsCompanion toCompanion(bool nullToAbsent) {
+    return FundHoldingsCompanion(
+      id: Value(id),
+      kind: Value(kind),
+      schemeCode: schemeCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(schemeCode),
+      name: Value(name),
+      currency: Value(currency),
+      units: Value(units),
+      avgCostNav: avgCostNav == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avgCostNav),
+      nav: Value(nav),
+      navDate: navDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(navDate),
+      navSource: Value(navSource),
+      navFetchedAt: navFetchedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(navFetchedAt),
+      sipAmountMinor: sipAmountMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sipAmountMinor),
+      sipDay: sipDay == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sipDay),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory FundRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FundRow(
+      id: serializer.fromJson<String>(json['id']),
+      kind: serializer.fromJson<String>(json['kind']),
+      schemeCode: serializer.fromJson<String?>(json['schemeCode']),
+      name: serializer.fromJson<String>(json['name']),
+      currency: serializer.fromJson<String>(json['currency']),
+      units: serializer.fromJson<double>(json['units']),
+      avgCostNav: serializer.fromJson<double?>(json['avgCostNav']),
+      nav: serializer.fromJson<double>(json['nav']),
+      navDate: serializer.fromJson<String?>(json['navDate']),
+      navSource: serializer.fromJson<String>(json['navSource']),
+      navFetchedAt: serializer.fromJson<DateTime?>(json['navFetchedAt']),
+      sipAmountMinor: serializer.fromJson<int?>(json['sipAmountMinor']),
+      sipDay: serializer.fromJson<int?>(json['sipDay']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'kind': serializer.toJson<String>(kind),
+      'schemeCode': serializer.toJson<String?>(schemeCode),
+      'name': serializer.toJson<String>(name),
+      'currency': serializer.toJson<String>(currency),
+      'units': serializer.toJson<double>(units),
+      'avgCostNav': serializer.toJson<double?>(avgCostNav),
+      'nav': serializer.toJson<double>(nav),
+      'navDate': serializer.toJson<String?>(navDate),
+      'navSource': serializer.toJson<String>(navSource),
+      'navFetchedAt': serializer.toJson<DateTime?>(navFetchedAt),
+      'sipAmountMinor': serializer.toJson<int?>(sipAmountMinor),
+      'sipDay': serializer.toJson<int?>(sipDay),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  FundRow copyWith({
+    String? id,
+    String? kind,
+    Value<String?> schemeCode = const Value.absent(),
+    String? name,
+    String? currency,
+    double? units,
+    Value<double?> avgCostNav = const Value.absent(),
+    double? nav,
+    Value<String?> navDate = const Value.absent(),
+    String? navSource,
+    Value<DateTime?> navFetchedAt = const Value.absent(),
+    Value<int?> sipAmountMinor = const Value.absent(),
+    Value<int?> sipDay = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => FundRow(
+    id: id ?? this.id,
+    kind: kind ?? this.kind,
+    schemeCode: schemeCode.present ? schemeCode.value : this.schemeCode,
+    name: name ?? this.name,
+    currency: currency ?? this.currency,
+    units: units ?? this.units,
+    avgCostNav: avgCostNav.present ? avgCostNav.value : this.avgCostNav,
+    nav: nav ?? this.nav,
+    navDate: navDate.present ? navDate.value : this.navDate,
+    navSource: navSource ?? this.navSource,
+    navFetchedAt: navFetchedAt.present ? navFetchedAt.value : this.navFetchedAt,
+    sipAmountMinor: sipAmountMinor.present
+        ? sipAmountMinor.value
+        : this.sipAmountMinor,
+    sipDay: sipDay.present ? sipDay.value : this.sipDay,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  FundRow copyWithCompanion(FundHoldingsCompanion data) {
+    return FundRow(
+      id: data.id.present ? data.id.value : this.id,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      schemeCode: data.schemeCode.present
+          ? data.schemeCode.value
+          : this.schemeCode,
+      name: data.name.present ? data.name.value : this.name,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      units: data.units.present ? data.units.value : this.units,
+      avgCostNav: data.avgCostNav.present
+          ? data.avgCostNav.value
+          : this.avgCostNav,
+      nav: data.nav.present ? data.nav.value : this.nav,
+      navDate: data.navDate.present ? data.navDate.value : this.navDate,
+      navSource: data.navSource.present ? data.navSource.value : this.navSource,
+      navFetchedAt: data.navFetchedAt.present
+          ? data.navFetchedAt.value
+          : this.navFetchedAt,
+      sipAmountMinor: data.sipAmountMinor.present
+          ? data.sipAmountMinor.value
+          : this.sipAmountMinor,
+      sipDay: data.sipDay.present ? data.sipDay.value : this.sipDay,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FundRow(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('schemeCode: $schemeCode, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('units: $units, ')
+          ..write('avgCostNav: $avgCostNav, ')
+          ..write('nav: $nav, ')
+          ..write('navDate: $navDate, ')
+          ..write('navSource: $navSource, ')
+          ..write('navFetchedAt: $navFetchedAt, ')
+          ..write('sipAmountMinor: $sipAmountMinor, ')
+          ..write('sipDay: $sipDay, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    kind,
+    schemeCode,
+    name,
+    currency,
+    units,
+    avgCostNav,
+    nav,
+    navDate,
+    navSource,
+    navFetchedAt,
+    sipAmountMinor,
+    sipDay,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FundRow &&
+          other.id == this.id &&
+          other.kind == this.kind &&
+          other.schemeCode == this.schemeCode &&
+          other.name == this.name &&
+          other.currency == this.currency &&
+          other.units == this.units &&
+          other.avgCostNav == this.avgCostNav &&
+          other.nav == this.nav &&
+          other.navDate == this.navDate &&
+          other.navSource == this.navSource &&
+          other.navFetchedAt == this.navFetchedAt &&
+          other.sipAmountMinor == this.sipAmountMinor &&
+          other.sipDay == this.sipDay &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
+  final Value<String> id;
+  final Value<String> kind;
+  final Value<String?> schemeCode;
+  final Value<String> name;
+  final Value<String> currency;
+  final Value<double> units;
+  final Value<double?> avgCostNav;
+  final Value<double> nav;
+  final Value<String?> navDate;
+  final Value<String> navSource;
+  final Value<DateTime?> navFetchedAt;
+  final Value<int?> sipAmountMinor;
+  final Value<int?> sipDay;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const FundHoldingsCompanion({
+    this.id = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.schemeCode = const Value.absent(),
+    this.name = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.units = const Value.absent(),
+    this.avgCostNav = const Value.absent(),
+    this.nav = const Value.absent(),
+    this.navDate = const Value.absent(),
+    this.navSource = const Value.absent(),
+    this.navFetchedAt = const Value.absent(),
+    this.sipAmountMinor = const Value.absent(),
+    this.sipDay = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FundHoldingsCompanion.insert({
+    required String id,
+    required String kind,
+    this.schemeCode = const Value.absent(),
+    required String name,
+    this.currency = const Value.absent(),
+    required double units,
+    this.avgCostNav = const Value.absent(),
+    required double nav,
+    this.navDate = const Value.absent(),
+    this.navSource = const Value.absent(),
+    this.navFetchedAt = const Value.absent(),
+    this.sipAmountMinor = const Value.absent(),
+    this.sipDay = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       kind = Value(kind),
+       name = Value(name),
+       units = Value(units),
+       nav = Value(nav);
+  static Insertable<FundRow> custom({
+    Expression<String>? id,
+    Expression<String>? kind,
+    Expression<String>? schemeCode,
+    Expression<String>? name,
+    Expression<String>? currency,
+    Expression<double>? units,
+    Expression<double>? avgCostNav,
+    Expression<double>? nav,
+    Expression<String>? navDate,
+    Expression<String>? navSource,
+    Expression<DateTime>? navFetchedAt,
+    Expression<int>? sipAmountMinor,
+    Expression<int>? sipDay,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (kind != null) 'kind': kind,
+      if (schemeCode != null) 'scheme_code': schemeCode,
+      if (name != null) 'name': name,
+      if (currency != null) 'currency': currency,
+      if (units != null) 'units': units,
+      if (avgCostNav != null) 'avg_cost_nav': avgCostNav,
+      if (nav != null) 'nav': nav,
+      if (navDate != null) 'nav_date': navDate,
+      if (navSource != null) 'nav_source': navSource,
+      if (navFetchedAt != null) 'nav_fetched_at': navFetchedAt,
+      if (sipAmountMinor != null) 'sip_amount_minor': sipAmountMinor,
+      if (sipDay != null) 'sip_day': sipDay,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FundHoldingsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? kind,
+    Value<String?>? schemeCode,
+    Value<String>? name,
+    Value<String>? currency,
+    Value<double>? units,
+    Value<double?>? avgCostNav,
+    Value<double>? nav,
+    Value<String?>? navDate,
+    Value<String>? navSource,
+    Value<DateTime?>? navFetchedAt,
+    Value<int?>? sipAmountMinor,
+    Value<int?>? sipDay,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return FundHoldingsCompanion(
+      id: id ?? this.id,
+      kind: kind ?? this.kind,
+      schemeCode: schemeCode ?? this.schemeCode,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      units: units ?? this.units,
+      avgCostNav: avgCostNav ?? this.avgCostNav,
+      nav: nav ?? this.nav,
+      navDate: navDate ?? this.navDate,
+      navSource: navSource ?? this.navSource,
+      navFetchedAt: navFetchedAt ?? this.navFetchedAt,
+      sipAmountMinor: sipAmountMinor ?? this.sipAmountMinor,
+      sipDay: sipDay ?? this.sipDay,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (schemeCode.present) {
+      map['scheme_code'] = Variable<String>(schemeCode.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (units.present) {
+      map['units'] = Variable<double>(units.value);
+    }
+    if (avgCostNav.present) {
+      map['avg_cost_nav'] = Variable<double>(avgCostNav.value);
+    }
+    if (nav.present) {
+      map['nav'] = Variable<double>(nav.value);
+    }
+    if (navDate.present) {
+      map['nav_date'] = Variable<String>(navDate.value);
+    }
+    if (navSource.present) {
+      map['nav_source'] = Variable<String>(navSource.value);
+    }
+    if (navFetchedAt.present) {
+      map['nav_fetched_at'] = Variable<DateTime>(navFetchedAt.value);
+    }
+    if (sipAmountMinor.present) {
+      map['sip_amount_minor'] = Variable<int>(sipAmountMinor.value);
+    }
+    if (sipDay.present) {
+      map['sip_day'] = Variable<int>(sipDay.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FundHoldingsCompanion(')
+          ..write('id: $id, ')
+          ..write('kind: $kind, ')
+          ..write('schemeCode: $schemeCode, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('units: $units, ')
+          ..write('avgCostNav: $avgCostNav, ')
+          ..write('nav: $nav, ')
+          ..write('navDate: $navDate, ')
+          ..write('navSource: $navSource, ')
+          ..write('navFetchedAt: $navFetchedAt, ')
+          ..write('sipAmountMinor: $sipAmountMinor, ')
+          ..write('sipDay: $sipDay, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ValuationSnapshotsTable extends ValuationSnapshots
+    with TableInfo<$ValuationSnapshotsTable, ValuationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ValuationSnapshotsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _subjectKindMeta = const VerificationMeta(
+    'subjectKind',
+  );
+  @override
+  late final GeneratedColumn<String> subjectKind = GeneratedColumn<String>(
+    'subject_kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _subjectIdMeta = const VerificationMeta(
+    'subjectId',
+  );
+  @override
+  late final GeneratedColumn<String> subjectId = GeneratedColumn<String>(
+    'subject_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _snapshotDateMeta = const VerificationMeta(
+    'snapshotDate',
+  );
+  @override
+  late final GeneratedColumn<String> snapshotDate = GeneratedColumn<String>(
+    'snapshot_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _valueMinorMeta = const VerificationMeta(
+    'valueMinor',
+  );
+  @override
+  late final GeneratedColumn<int> valueMinor = GeneratedColumn<int>(
+    'value_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitPriceMeta = const VerificationMeta(
+    'unitPrice',
+  );
+  @override
+  late final GeneratedColumn<double> unitPrice = GeneratedColumn<double>(
+    'unit_price',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    subjectKind,
+    subjectId,
+    snapshotDate,
+    valueMinor,
+    unitPrice,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'valuation_snapshots';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ValuationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('subject_kind')) {
+      context.handle(
+        _subjectKindMeta,
+        subjectKind.isAcceptableOrUnknown(
+          data['subject_kind']!,
+          _subjectKindMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_subjectKindMeta);
+    }
+    if (data.containsKey('subject_id')) {
+      context.handle(
+        _subjectIdMeta,
+        subjectId.isAcceptableOrUnknown(data['subject_id']!, _subjectIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_subjectIdMeta);
+    }
+    if (data.containsKey('snapshot_date')) {
+      context.handle(
+        _snapshotDateMeta,
+        snapshotDate.isAcceptableOrUnknown(
+          data['snapshot_date']!,
+          _snapshotDateMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_snapshotDateMeta);
+    }
+    if (data.containsKey('value_minor')) {
+      context.handle(
+        _valueMinorMeta,
+        valueMinor.isAcceptableOrUnknown(data['value_minor']!, _valueMinorMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMinorMeta);
+    }
+    if (data.containsKey('unit_price')) {
+      context.handle(
+        _unitPriceMeta,
+        unitPrice.isAcceptableOrUnknown(data['unit_price']!, _unitPriceMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {subjectKind, subjectId, snapshotDate},
+  ];
+  @override
+  ValuationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ValuationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      subjectKind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_kind'],
+      )!,
+      subjectId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}subject_id'],
+      )!,
+      snapshotDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}snapshot_date'],
+      )!,
+      valueMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}value_minor'],
+      )!,
+      unitPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}unit_price'],
+      ),
+    );
+  }
+
+  @override
+  $ValuationSnapshotsTable createAlias(String alias) {
+    return $ValuationSnapshotsTable(attachedDatabase, alias);
+  }
+}
+
+class ValuationRow extends DataClass implements Insertable<ValuationRow> {
+  final String id;
+
+  /// jewellery | fund
+  final String subjectKind;
+  final String subjectId;
+  final String snapshotDate;
+  final int valueMinor;
+
+  /// The AED/g (or NAV) used, so the chart can be explained later.
+  final double? unitPrice;
+  const ValuationRow({
+    required this.id,
+    required this.subjectKind,
+    required this.subjectId,
+    required this.snapshotDate,
+    required this.valueMinor,
+    this.unitPrice,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['subject_kind'] = Variable<String>(subjectKind);
+    map['subject_id'] = Variable<String>(subjectId);
+    map['snapshot_date'] = Variable<String>(snapshotDate);
+    map['value_minor'] = Variable<int>(valueMinor);
+    if (!nullToAbsent || unitPrice != null) {
+      map['unit_price'] = Variable<double>(unitPrice);
+    }
+    return map;
+  }
+
+  ValuationSnapshotsCompanion toCompanion(bool nullToAbsent) {
+    return ValuationSnapshotsCompanion(
+      id: Value(id),
+      subjectKind: Value(subjectKind),
+      subjectId: Value(subjectId),
+      snapshotDate: Value(snapshotDate),
+      valueMinor: Value(valueMinor),
+      unitPrice: unitPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unitPrice),
+    );
+  }
+
+  factory ValuationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ValuationRow(
+      id: serializer.fromJson<String>(json['id']),
+      subjectKind: serializer.fromJson<String>(json['subjectKind']),
+      subjectId: serializer.fromJson<String>(json['subjectId']),
+      snapshotDate: serializer.fromJson<String>(json['snapshotDate']),
+      valueMinor: serializer.fromJson<int>(json['valueMinor']),
+      unitPrice: serializer.fromJson<double?>(json['unitPrice']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'subjectKind': serializer.toJson<String>(subjectKind),
+      'subjectId': serializer.toJson<String>(subjectId),
+      'snapshotDate': serializer.toJson<String>(snapshotDate),
+      'valueMinor': serializer.toJson<int>(valueMinor),
+      'unitPrice': serializer.toJson<double?>(unitPrice),
+    };
+  }
+
+  ValuationRow copyWith({
+    String? id,
+    String? subjectKind,
+    String? subjectId,
+    String? snapshotDate,
+    int? valueMinor,
+    Value<double?> unitPrice = const Value.absent(),
+  }) => ValuationRow(
+    id: id ?? this.id,
+    subjectKind: subjectKind ?? this.subjectKind,
+    subjectId: subjectId ?? this.subjectId,
+    snapshotDate: snapshotDate ?? this.snapshotDate,
+    valueMinor: valueMinor ?? this.valueMinor,
+    unitPrice: unitPrice.present ? unitPrice.value : this.unitPrice,
+  );
+  ValuationRow copyWithCompanion(ValuationSnapshotsCompanion data) {
+    return ValuationRow(
+      id: data.id.present ? data.id.value : this.id,
+      subjectKind: data.subjectKind.present
+          ? data.subjectKind.value
+          : this.subjectKind,
+      subjectId: data.subjectId.present ? data.subjectId.value : this.subjectId,
+      snapshotDate: data.snapshotDate.present
+          ? data.snapshotDate.value
+          : this.snapshotDate,
+      valueMinor: data.valueMinor.present
+          ? data.valueMinor.value
+          : this.valueMinor,
+      unitPrice: data.unitPrice.present ? data.unitPrice.value : this.unitPrice,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ValuationRow(')
+          ..write('id: $id, ')
+          ..write('subjectKind: $subjectKind, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('snapshotDate: $snapshotDate, ')
+          ..write('valueMinor: $valueMinor, ')
+          ..write('unitPrice: $unitPrice')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    subjectKind,
+    subjectId,
+    snapshotDate,
+    valueMinor,
+    unitPrice,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ValuationRow &&
+          other.id == this.id &&
+          other.subjectKind == this.subjectKind &&
+          other.subjectId == this.subjectId &&
+          other.snapshotDate == this.snapshotDate &&
+          other.valueMinor == this.valueMinor &&
+          other.unitPrice == this.unitPrice);
+}
+
+class ValuationSnapshotsCompanion extends UpdateCompanion<ValuationRow> {
+  final Value<String> id;
+  final Value<String> subjectKind;
+  final Value<String> subjectId;
+  final Value<String> snapshotDate;
+  final Value<int> valueMinor;
+  final Value<double?> unitPrice;
+  final Value<int> rowid;
+  const ValuationSnapshotsCompanion({
+    this.id = const Value.absent(),
+    this.subjectKind = const Value.absent(),
+    this.subjectId = const Value.absent(),
+    this.snapshotDate = const Value.absent(),
+    this.valueMinor = const Value.absent(),
+    this.unitPrice = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ValuationSnapshotsCompanion.insert({
+    required String id,
+    required String subjectKind,
+    required String subjectId,
+    required String snapshotDate,
+    required int valueMinor,
+    this.unitPrice = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       subjectKind = Value(subjectKind),
+       subjectId = Value(subjectId),
+       snapshotDate = Value(snapshotDate),
+       valueMinor = Value(valueMinor);
+  static Insertable<ValuationRow> custom({
+    Expression<String>? id,
+    Expression<String>? subjectKind,
+    Expression<String>? subjectId,
+    Expression<String>? snapshotDate,
+    Expression<int>? valueMinor,
+    Expression<double>? unitPrice,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (subjectKind != null) 'subject_kind': subjectKind,
+      if (subjectId != null) 'subject_id': subjectId,
+      if (snapshotDate != null) 'snapshot_date': snapshotDate,
+      if (valueMinor != null) 'value_minor': valueMinor,
+      if (unitPrice != null) 'unit_price': unitPrice,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ValuationSnapshotsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? subjectKind,
+    Value<String>? subjectId,
+    Value<String>? snapshotDate,
+    Value<int>? valueMinor,
+    Value<double?>? unitPrice,
+    Value<int>? rowid,
+  }) {
+    return ValuationSnapshotsCompanion(
+      id: id ?? this.id,
+      subjectKind: subjectKind ?? this.subjectKind,
+      subjectId: subjectId ?? this.subjectId,
+      snapshotDate: snapshotDate ?? this.snapshotDate,
+      valueMinor: valueMinor ?? this.valueMinor,
+      unitPrice: unitPrice ?? this.unitPrice,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (subjectKind.present) {
+      map['subject_kind'] = Variable<String>(subjectKind.value);
+    }
+    if (subjectId.present) {
+      map['subject_id'] = Variable<String>(subjectId.value);
+    }
+    if (snapshotDate.present) {
+      map['snapshot_date'] = Variable<String>(snapshotDate.value);
+    }
+    if (valueMinor.present) {
+      map['value_minor'] = Variable<int>(valueMinor.value);
+    }
+    if (unitPrice.present) {
+      map['unit_price'] = Variable<double>(unitPrice.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ValuationSnapshotsCompanion(')
+          ..write('id: $id, ')
+          ..write('subjectKind: $subjectKind, ')
+          ..write('subjectId: $subjectId, ')
+          ..write('snapshotDate: $snapshotDate, ')
+          ..write('valueMinor: $valueMinor, ')
+          ..write('unitPrice: $unitPrice, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -11339,6 +14516,13 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     this,
   );
   late final $AppSettingsTable appSettings = $AppSettingsTable(this);
+  late final $PriceCacheTable priceCache = $PriceCacheTable(this);
+  late final $JewelleryItemsTable jewelleryItems = $JewelleryItemsTable(this);
+  late final $DocumentAttachmentsTable documentAttachments =
+      $DocumentAttachmentsTable(this);
+  late final $FundHoldingsTable fundHoldings = $FundHoldingsTable(this);
+  late final $ValuationSnapshotsTable valuationSnapshots =
+      $ValuationSnapshotsTable(this);
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -11373,6 +14557,11 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     netWorthSnapshots,
     recurringReviews,
     appSettings,
+    priceCache,
+    jewelleryItems,
+    documentAttachments,
+    fundHoldings,
+    valuationSnapshots,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -19435,6 +22624,1590 @@ typedef $$AppSettingsTableProcessedTableManager =
       SettingRow,
       PrefetchHooks Function()
     >;
+typedef $$PriceCacheTableCreateCompanionBuilder = PriceCacheCompanion Function({
+  required String symbol,
+  required double price,
+  Value<String> unit,
+  Value<String?> source,
+  Value<String> status,
+  Value<DateTime?> quotedAt,
+  required DateTime fetchedAt,
+  Value<int> rowid,
+});
+typedef $$PriceCacheTableUpdateCompanionBuilder = PriceCacheCompanion Function({
+  Value<String> symbol,
+  Value<double> price,
+  Value<String> unit,
+  Value<String?> source,
+  Value<String> status,
+  Value<DateTime?> quotedAt,
+  Value<DateTime> fetchedAt,
+  Value<int> rowid,
+});
+
+class $$PriceCacheTableFilterComposer
+    extends Composer<_$PulseDatabase, $PriceCacheTable> {
+  $$PriceCacheTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get quotedAt => $composableBuilder(
+    column: $table.quotedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PriceCacheTableOrderingComposer
+    extends Composer<_$PulseDatabase, $PriceCacheTable> {
+  $$PriceCacheTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get quotedAt => $composableBuilder(
+    column: $table.quotedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get fetchedAt => $composableBuilder(
+    column: $table.fetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PriceCacheTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $PriceCacheTable> {
+  $$PriceCacheTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get symbol =>
+      $composableBuilder(column: $table.symbol, builder: (column) => column);
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get quotedAt =>
+      $composableBuilder(column: $table.quotedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get fetchedAt =>
+      $composableBuilder(column: $table.fetchedAt, builder: (column) => column);
+}
+
+class $$PriceCacheTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $PriceCacheTable,
+          PriceRow,
+          $$PriceCacheTableFilterComposer,
+          $$PriceCacheTableOrderingComposer,
+          $$PriceCacheTableAnnotationComposer,
+          $$PriceCacheTableCreateCompanionBuilder,
+          $$PriceCacheTableUpdateCompanionBuilder,
+          (
+            PriceRow,
+            BaseReferences<_$PulseDatabase, $PriceCacheTable, PriceRow>,
+          ),
+          PriceRow,
+          PrefetchHooks Function()
+        > {
+  $$PriceCacheTableTableManager(_$PulseDatabase db, $PriceCacheTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PriceCacheTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PriceCacheTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PriceCacheTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> symbol = const Value.absent(),
+                Value<double> price = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<String?> source = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> quotedAt = const Value.absent(),
+                Value<DateTime> fetchedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PriceCacheCompanion(
+                symbol: symbol,
+                price: price,
+                unit: unit,
+                source: source,
+                status: status,
+                quotedAt: quotedAt,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String symbol,
+                required double price,
+                Value<String> unit = const Value.absent(),
+                Value<String?> source = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> quotedAt = const Value.absent(),
+                required DateTime fetchedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PriceCacheCompanion.insert(
+                symbol: symbol,
+                price: price,
+                unit: unit,
+                source: source,
+                status: status,
+                quotedAt: quotedAt,
+                fetchedAt: fetchedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PriceCacheTable, PriceRow>(table),
+                  BaseReferences<_$PulseDatabase, $PriceCacheTable, PriceRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PriceCacheTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $PriceCacheTable,
+      PriceRow,
+      $$PriceCacheTableFilterComposer,
+      $$PriceCacheTableOrderingComposer,
+      $$PriceCacheTableAnnotationComposer,
+      $$PriceCacheTableCreateCompanionBuilder,
+      $$PriceCacheTableUpdateCompanionBuilder,
+      (PriceRow, BaseReferences<_$PulseDatabase, $PriceCacheTable, PriceRow>),
+      PriceRow,
+      PrefetchHooks Function()
+    >;
+typedef $$JewelleryItemsTableCreateCompanionBuilder =
+    JewelleryItemsCompanion Function({
+      required String id,
+      required String name,
+      required double weightGrams,
+      required int karat,
+      Value<double?> purityOverride,
+      Value<int?> purchasePriceMinor,
+      Value<String?> purchaseDate,
+      Value<int?> makingChargesMinor,
+      Value<String?> notes,
+      Value<String> photoPaths,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$JewelleryItemsTableUpdateCompanionBuilder =
+    JewelleryItemsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<double> weightGrams,
+      Value<int> karat,
+      Value<double?> purityOverride,
+      Value<int?> purchasePriceMinor,
+      Value<String?> purchaseDate,
+      Value<int?> makingChargesMinor,
+      Value<String?> notes,
+      Value<String> photoPaths,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$JewelleryItemsTableFilterComposer
+    extends Composer<_$PulseDatabase, $JewelleryItemsTable> {
+  $$JewelleryItemsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get karat => $composableBuilder(
+    column: $table.karat,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get purityOverride => $composableBuilder(
+    column: $table.purityOverride,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get purchasePriceMinor => $composableBuilder(
+    column: $table.purchasePriceMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get makingChargesMinor => $composableBuilder(
+    column: $table.makingChargesMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$JewelleryItemsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $JewelleryItemsTable> {
+  $$JewelleryItemsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get karat => $composableBuilder(
+    column: $table.karat,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get purityOverride => $composableBuilder(
+    column: $table.purityOverride,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get purchasePriceMinor => $composableBuilder(
+    column: $table.purchasePriceMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get makingChargesMinor => $composableBuilder(
+    column: $table.makingChargesMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$JewelleryItemsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $JewelleryItemsTable> {
+  $$JewelleryItemsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<double> get weightGrams => $composableBuilder(
+    column: $table.weightGrams,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get karat =>
+      $composableBuilder(column: $table.karat, builder: (column) => column);
+
+  GeneratedColumn<double> get purityOverride => $composableBuilder(
+    column: $table.purityOverride,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get purchasePriceMinor => $composableBuilder(
+    column: $table.purchasePriceMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get makingChargesMinor => $composableBuilder(
+    column: $table.makingChargesMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$JewelleryItemsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $JewelleryItemsTable,
+          JewelleryRow,
+          $$JewelleryItemsTableFilterComposer,
+          $$JewelleryItemsTableOrderingComposer,
+          $$JewelleryItemsTableAnnotationComposer,
+          $$JewelleryItemsTableCreateCompanionBuilder,
+          $$JewelleryItemsTableUpdateCompanionBuilder,
+          (
+            JewelleryRow,
+            BaseReferences<_$PulseDatabase, $JewelleryItemsTable, JewelleryRow>,
+          ),
+          JewelleryRow,
+          PrefetchHooks Function()
+        > {
+  $$JewelleryItemsTableTableManager(
+    _$PulseDatabase db,
+    $JewelleryItemsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$JewelleryItemsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$JewelleryItemsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$JewelleryItemsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<double> weightGrams = const Value.absent(),
+                Value<int> karat = const Value.absent(),
+                Value<double?> purityOverride = const Value.absent(),
+                Value<int?> purchasePriceMinor = const Value.absent(),
+                Value<String?> purchaseDate = const Value.absent(),
+                Value<int?> makingChargesMinor = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> photoPaths = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JewelleryItemsCompanion(
+                id: id,
+                name: name,
+                weightGrams: weightGrams,
+                karat: karat,
+                purityOverride: purityOverride,
+                purchasePriceMinor: purchasePriceMinor,
+                purchaseDate: purchaseDate,
+                makingChargesMinor: makingChargesMinor,
+                notes: notes,
+                photoPaths: photoPaths,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required double weightGrams,
+                required int karat,
+                Value<double?> purityOverride = const Value.absent(),
+                Value<int?> purchasePriceMinor = const Value.absent(),
+                Value<String?> purchaseDate = const Value.absent(),
+                Value<int?> makingChargesMinor = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> photoPaths = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => JewelleryItemsCompanion.insert(
+                id: id,
+                name: name,
+                weightGrams: weightGrams,
+                karat: karat,
+                purityOverride: purityOverride,
+                purchasePriceMinor: purchasePriceMinor,
+                purchaseDate: purchaseDate,
+                makingChargesMinor: makingChargesMinor,
+                notes: notes,
+                photoPaths: photoPaths,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$JewelleryItemsTable, JewelleryRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $JewelleryItemsTable,
+                    JewelleryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$JewelleryItemsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $JewelleryItemsTable,
+      JewelleryRow,
+      $$JewelleryItemsTableFilterComposer,
+      $$JewelleryItemsTableOrderingComposer,
+      $$JewelleryItemsTableAnnotationComposer,
+      $$JewelleryItemsTableCreateCompanionBuilder,
+      $$JewelleryItemsTableUpdateCompanionBuilder,
+      (
+        JewelleryRow,
+        BaseReferences<_$PulseDatabase, $JewelleryItemsTable, JewelleryRow>,
+      ),
+      JewelleryRow,
+      PrefetchHooks Function()
+    >;
+typedef $$DocumentAttachmentsTableCreateCompanionBuilder =
+    DocumentAttachmentsCompanion Function({
+      required String id,
+      required String title,
+      required String category,
+      Value<String?> notes,
+      Value<String> filePaths,
+      Value<String?> dueOn,
+      Value<String> dueKind,
+      Value<int?> remindDaysBefore,
+      Value<int?> notificationId,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$DocumentAttachmentsTableUpdateCompanionBuilder =
+    DocumentAttachmentsCompanion Function({
+      Value<String> id,
+      Value<String> title,
+      Value<String> category,
+      Value<String?> notes,
+      Value<String> filePaths,
+      Value<String?> dueOn,
+      Value<String> dueKind,
+      Value<int?> remindDaysBefore,
+      Value<int?> notificationId,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$DocumentAttachmentsTableFilterComposer
+    extends Composer<_$PulseDatabase, $DocumentAttachmentsTable> {
+  $$DocumentAttachmentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePaths => $composableBuilder(
+    column: $table.filePaths,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueOn => $composableBuilder(
+    column: $table.dueOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueKind => $composableBuilder(
+    column: $table.dueKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get remindDaysBefore => $composableBuilder(
+    column: $table.remindDaysBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DocumentAttachmentsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $DocumentAttachmentsTable> {
+  $$DocumentAttachmentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePaths => $composableBuilder(
+    column: $table.filePaths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueOn => $composableBuilder(
+    column: $table.dueOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueKind => $composableBuilder(
+    column: $table.dueKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get remindDaysBefore => $composableBuilder(
+    column: $table.remindDaysBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DocumentAttachmentsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $DocumentAttachmentsTable> {
+  $$DocumentAttachmentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get filePaths =>
+      $composableBuilder(column: $table.filePaths, builder: (column) => column);
+
+  GeneratedColumn<String> get dueOn =>
+      $composableBuilder(column: $table.dueOn, builder: (column) => column);
+
+  GeneratedColumn<String> get dueKind =>
+      $composableBuilder(column: $table.dueKind, builder: (column) => column);
+
+  GeneratedColumn<int> get remindDaysBefore => $composableBuilder(
+    column: $table.remindDaysBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get notificationId => $composableBuilder(
+    column: $table.notificationId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$DocumentAttachmentsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $DocumentAttachmentsTable,
+          DocumentRow,
+          $$DocumentAttachmentsTableFilterComposer,
+          $$DocumentAttachmentsTableOrderingComposer,
+          $$DocumentAttachmentsTableAnnotationComposer,
+          $$DocumentAttachmentsTableCreateCompanionBuilder,
+          $$DocumentAttachmentsTableUpdateCompanionBuilder,
+          (
+            DocumentRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $DocumentAttachmentsTable,
+              DocumentRow
+            >,
+          ),
+          DocumentRow,
+          PrefetchHooks Function()
+        > {
+  $$DocumentAttachmentsTableTableManager(
+    _$PulseDatabase db,
+    $DocumentAttachmentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentAttachmentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentAttachmentsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DocumentAttachmentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> filePaths = const Value.absent(),
+                Value<String?> dueOn = const Value.absent(),
+                Value<String> dueKind = const Value.absent(),
+                Value<int?> remindDaysBefore = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentAttachmentsCompanion(
+                id: id,
+                title: title,
+                category: category,
+                notes: notes,
+                filePaths: filePaths,
+                dueOn: dueOn,
+                dueKind: dueKind,
+                remindDaysBefore: remindDaysBefore,
+                notificationId: notificationId,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String title,
+                required String category,
+                Value<String?> notes = const Value.absent(),
+                Value<String> filePaths = const Value.absent(),
+                Value<String?> dueOn = const Value.absent(),
+                Value<String> dueKind = const Value.absent(),
+                Value<int?> remindDaysBefore = const Value.absent(),
+                Value<int?> notificationId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentAttachmentsCompanion.insert(
+                id: id,
+                title: title,
+                category: category,
+                notes: notes,
+                filePaths: filePaths,
+                dueOn: dueOn,
+                dueKind: dueKind,
+                remindDaysBefore: remindDaysBefore,
+                notificationId: notificationId,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DocumentAttachmentsTable, DocumentRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $DocumentAttachmentsTable,
+                    DocumentRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DocumentAttachmentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $DocumentAttachmentsTable,
+      DocumentRow,
+      $$DocumentAttachmentsTableFilterComposer,
+      $$DocumentAttachmentsTableOrderingComposer,
+      $$DocumentAttachmentsTableAnnotationComposer,
+      $$DocumentAttachmentsTableCreateCompanionBuilder,
+      $$DocumentAttachmentsTableUpdateCompanionBuilder,
+      (
+        DocumentRow,
+        BaseReferences<_$PulseDatabase, $DocumentAttachmentsTable, DocumentRow>,
+      ),
+      DocumentRow,
+      PrefetchHooks Function()
+    >;
+typedef $$FundHoldingsTableCreateCompanionBuilder =
+    FundHoldingsCompanion Function({
+      required String id,
+      required String kind,
+      Value<String?> schemeCode,
+      required String name,
+      Value<String> currency,
+      required double units,
+      Value<double?> avgCostNav,
+      required double nav,
+      Value<String?> navDate,
+      Value<String> navSource,
+      Value<DateTime?> navFetchedAt,
+      Value<int?> sipAmountMinor,
+      Value<int?> sipDay,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$FundHoldingsTableUpdateCompanionBuilder =
+    FundHoldingsCompanion Function({
+      Value<String> id,
+      Value<String> kind,
+      Value<String?> schemeCode,
+      Value<String> name,
+      Value<String> currency,
+      Value<double> units,
+      Value<double?> avgCostNav,
+      Value<double> nav,
+      Value<String?> navDate,
+      Value<String> navSource,
+      Value<DateTime?> navFetchedAt,
+      Value<int?> sipAmountMinor,
+      Value<int?> sipDay,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$FundHoldingsTableFilterComposer
+    extends Composer<_$PulseDatabase, $FundHoldingsTable> {
+  $$FundHoldingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get schemeCode => $composableBuilder(
+    column: $table.schemeCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get avgCostNav => $composableBuilder(
+    column: $table.avgCostNav,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get nav => $composableBuilder(
+    column: $table.nav,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get navDate => $composableBuilder(
+    column: $table.navDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get navSource => $composableBuilder(
+    column: $table.navSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get navFetchedAt => $composableBuilder(
+    column: $table.navFetchedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sipAmountMinor => $composableBuilder(
+    column: $table.sipAmountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sipDay => $composableBuilder(
+    column: $table.sipDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FundHoldingsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $FundHoldingsTable> {
+  $$FundHoldingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schemeCode => $composableBuilder(
+    column: $table.schemeCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get avgCostNav => $composableBuilder(
+    column: $table.avgCostNav,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get nav => $composableBuilder(
+    column: $table.nav,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get navDate => $composableBuilder(
+    column: $table.navDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get navSource => $composableBuilder(
+    column: $table.navSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get navFetchedAt => $composableBuilder(
+    column: $table.navFetchedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sipAmountMinor => $composableBuilder(
+    column: $table.sipAmountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sipDay => $composableBuilder(
+    column: $table.sipDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FundHoldingsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $FundHoldingsTable> {
+  $$FundHoldingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get schemeCode => $composableBuilder(
+    column: $table.schemeCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<double> get units =>
+      $composableBuilder(column: $table.units, builder: (column) => column);
+
+  GeneratedColumn<double> get avgCostNav => $composableBuilder(
+    column: $table.avgCostNav,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get nav =>
+      $composableBuilder(column: $table.nav, builder: (column) => column);
+
+  GeneratedColumn<String> get navDate =>
+      $composableBuilder(column: $table.navDate, builder: (column) => column);
+
+  GeneratedColumn<String> get navSource =>
+      $composableBuilder(column: $table.navSource, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get navFetchedAt => $composableBuilder(
+    column: $table.navFetchedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sipAmountMinor => $composableBuilder(
+    column: $table.sipAmountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get sipDay =>
+      $composableBuilder(column: $table.sipDay, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$FundHoldingsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $FundHoldingsTable,
+          FundRow,
+          $$FundHoldingsTableFilterComposer,
+          $$FundHoldingsTableOrderingComposer,
+          $$FundHoldingsTableAnnotationComposer,
+          $$FundHoldingsTableCreateCompanionBuilder,
+          $$FundHoldingsTableUpdateCompanionBuilder,
+          (
+            FundRow,
+            BaseReferences<_$PulseDatabase, $FundHoldingsTable, FundRow>,
+          ),
+          FundRow,
+          PrefetchHooks Function()
+        > {
+  $$FundHoldingsTableTableManager(_$PulseDatabase db, $FundHoldingsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FundHoldingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FundHoldingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FundHoldingsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> schemeCode = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<double> units = const Value.absent(),
+                Value<double?> avgCostNav = const Value.absent(),
+                Value<double> nav = const Value.absent(),
+                Value<String?> navDate = const Value.absent(),
+                Value<String> navSource = const Value.absent(),
+                Value<DateTime?> navFetchedAt = const Value.absent(),
+                Value<int?> sipAmountMinor = const Value.absent(),
+                Value<int?> sipDay = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FundHoldingsCompanion(
+                id: id,
+                kind: kind,
+                schemeCode: schemeCode,
+                name: name,
+                currency: currency,
+                units: units,
+                avgCostNav: avgCostNav,
+                nav: nav,
+                navDate: navDate,
+                navSource: navSource,
+                navFetchedAt: navFetchedAt,
+                sipAmountMinor: sipAmountMinor,
+                sipDay: sipDay,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String kind,
+                Value<String?> schemeCode = const Value.absent(),
+                required String name,
+                Value<String> currency = const Value.absent(),
+                required double units,
+                Value<double?> avgCostNav = const Value.absent(),
+                required double nav,
+                Value<String?> navDate = const Value.absent(),
+                Value<String> navSource = const Value.absent(),
+                Value<DateTime?> navFetchedAt = const Value.absent(),
+                Value<int?> sipAmountMinor = const Value.absent(),
+                Value<int?> sipDay = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FundHoldingsCompanion.insert(
+                id: id,
+                kind: kind,
+                schemeCode: schemeCode,
+                name: name,
+                currency: currency,
+                units: units,
+                avgCostNav: avgCostNav,
+                nav: nav,
+                navDate: navDate,
+                navSource: navSource,
+                navFetchedAt: navFetchedAt,
+                sipAmountMinor: sipAmountMinor,
+                sipDay: sipDay,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FundHoldingsTable, FundRow>(table),
+                  BaseReferences<_$PulseDatabase, $FundHoldingsTable, FundRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FundHoldingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $FundHoldingsTable,
+      FundRow,
+      $$FundHoldingsTableFilterComposer,
+      $$FundHoldingsTableOrderingComposer,
+      $$FundHoldingsTableAnnotationComposer,
+      $$FundHoldingsTableCreateCompanionBuilder,
+      $$FundHoldingsTableUpdateCompanionBuilder,
+      (FundRow, BaseReferences<_$PulseDatabase, $FundHoldingsTable, FundRow>),
+      FundRow,
+      PrefetchHooks Function()
+    >;
+typedef $$ValuationSnapshotsTableCreateCompanionBuilder =
+    ValuationSnapshotsCompanion Function({
+      required String id,
+      required String subjectKind,
+      required String subjectId,
+      required String snapshotDate,
+      required int valueMinor,
+      Value<double?> unitPrice,
+      Value<int> rowid,
+    });
+typedef $$ValuationSnapshotsTableUpdateCompanionBuilder =
+    ValuationSnapshotsCompanion Function({
+      Value<String> id,
+      Value<String> subjectKind,
+      Value<String> subjectId,
+      Value<String> snapshotDate,
+      Value<int> valueMinor,
+      Value<double?> unitPrice,
+      Value<int> rowid,
+    });
+
+class $$ValuationSnapshotsTableFilterComposer
+    extends Composer<_$PulseDatabase, $ValuationSnapshotsTable> {
+  $$ValuationSnapshotsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subjectKind => $composableBuilder(
+    column: $table.subjectKind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get valueMinor => $composableBuilder(
+    column: $table.valueMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ValuationSnapshotsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $ValuationSnapshotsTable> {
+  $$ValuationSnapshotsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subjectKind => $composableBuilder(
+    column: $table.subjectKind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get subjectId => $composableBuilder(
+    column: $table.subjectId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get valueMinor => $composableBuilder(
+    column: $table.valueMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get unitPrice => $composableBuilder(
+    column: $table.unitPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ValuationSnapshotsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $ValuationSnapshotsTable> {
+  $$ValuationSnapshotsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get subjectKind => $composableBuilder(
+    column: $table.subjectKind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get subjectId =>
+      $composableBuilder(column: $table.subjectId, builder: (column) => column);
+
+  GeneratedColumn<String> get snapshotDate => $composableBuilder(
+    column: $table.snapshotDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get valueMinor => $composableBuilder(
+    column: $table.valueMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get unitPrice =>
+      $composableBuilder(column: $table.unitPrice, builder: (column) => column);
+}
+
+class $$ValuationSnapshotsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $ValuationSnapshotsTable,
+          ValuationRow,
+          $$ValuationSnapshotsTableFilterComposer,
+          $$ValuationSnapshotsTableOrderingComposer,
+          $$ValuationSnapshotsTableAnnotationComposer,
+          $$ValuationSnapshotsTableCreateCompanionBuilder,
+          $$ValuationSnapshotsTableUpdateCompanionBuilder,
+          (
+            ValuationRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $ValuationSnapshotsTable,
+              ValuationRow
+            >,
+          ),
+          ValuationRow,
+          PrefetchHooks Function()
+        > {
+  $$ValuationSnapshotsTableTableManager(
+    _$PulseDatabase db,
+    $ValuationSnapshotsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ValuationSnapshotsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ValuationSnapshotsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ValuationSnapshotsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> subjectKind = const Value.absent(),
+                Value<String> subjectId = const Value.absent(),
+                Value<String> snapshotDate = const Value.absent(),
+                Value<int> valueMinor = const Value.absent(),
+                Value<double?> unitPrice = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ValuationSnapshotsCompanion(
+                id: id,
+                subjectKind: subjectKind,
+                subjectId: subjectId,
+                snapshotDate: snapshotDate,
+                valueMinor: valueMinor,
+                unitPrice: unitPrice,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String subjectKind,
+                required String subjectId,
+                required String snapshotDate,
+                required int valueMinor,
+                Value<double?> unitPrice = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ValuationSnapshotsCompanion.insert(
+                id: id,
+                subjectKind: subjectKind,
+                subjectId: subjectId,
+                snapshotDate: snapshotDate,
+                valueMinor: valueMinor,
+                unitPrice: unitPrice,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$ValuationSnapshotsTable, ValuationRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $ValuationSnapshotsTable,
+                    ValuationRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ValuationSnapshotsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $ValuationSnapshotsTable,
+      ValuationRow,
+      $$ValuationSnapshotsTableFilterComposer,
+      $$ValuationSnapshotsTableOrderingComposer,
+      $$ValuationSnapshotsTableAnnotationComposer,
+      $$ValuationSnapshotsTableCreateCompanionBuilder,
+      $$ValuationSnapshotsTableUpdateCompanionBuilder,
+      (
+        ValuationRow,
+        BaseReferences<_$PulseDatabase, $ValuationSnapshotsTable, ValuationRow>,
+      ),
+      ValuationRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -19473,4 +24246,14 @@ class $PulseDatabaseManager {
       $$RecurringReviewsTableTableManager(_db, _db.recurringReviews);
   $$AppSettingsTableTableManager get appSettings =>
       $$AppSettingsTableTableManager(_db, _db.appSettings);
+  $$PriceCacheTableTableManager get priceCache =>
+      $$PriceCacheTableTableManager(_db, _db.priceCache);
+  $$JewelleryItemsTableTableManager get jewelleryItems =>
+      $$JewelleryItemsTableTableManager(_db, _db.jewelleryItems);
+  $$DocumentAttachmentsTableTableManager get documentAttachments =>
+      $$DocumentAttachmentsTableTableManager(_db, _db.documentAttachments);
+  $$FundHoldingsTableTableManager get fundHoldings =>
+      $$FundHoldingsTableTableManager(_db, _db.fundHoldings);
+  $$ValuationSnapshotsTableTableManager get valuationSnapshots =>
+      $$ValuationSnapshotsTableTableManager(_db, _db.valuationSnapshots);
 }

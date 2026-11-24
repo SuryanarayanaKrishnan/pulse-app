@@ -27,6 +27,11 @@ part 'database.g.dart';
     NetWorthSnapshots,
     RecurringReviews,
     AppSettings,
+    PriceCache,
+    JewelleryItems,
+    DocumentAttachments,
+    FundHoldings,
+    ValuationSnapshots,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -34,7 +39,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 1;
+  static const currentSchemaVersion = 2;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -49,7 +54,17 @@ class PulseDatabase extends _$PulseDatabase {
     // (`dart run drift_dev schema dump lib/data/local/database.dart drift_schemas/`),
     // regenerate steps (`schema steps drift_schemas/ lib/data/local/schema_versions.dart`)
     // and add a `fromNToN+1` callback below. Never drop user data.
-    onUpgrade: stepByStep(),
+    onUpgrade: stepByStep(
+      // v2: price cache, jewellery, documents, fund holdings, valuation
+      // snapshots. Purely additive: nothing existing is touched.
+      from1To2: (m, schema) async {
+        await m.createTable(schema.priceCache);
+        await m.createTable(schema.jewelleryItems);
+        await m.createTable(schema.documentAttachments);
+        await m.createTable(schema.fundHoldings);
+        await m.createTable(schema.valuationSnapshots);
+      },
+    ),
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
       if (!details.wasCreated) await seedDefaults();

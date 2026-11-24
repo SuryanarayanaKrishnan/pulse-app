@@ -384,3 +384,148 @@ class AppSettings extends Table {
   @override
   Set<Column> get primaryKey => {key};
 }
+
+// ---- schema v2: priced assets, documents, funds ---------------------------
+
+/// Last prices fetched from the shared snapshot (`GET /v1/prices/snapshot`),
+/// one row per symbol: `XAU_AED_G_24K`, `XAU_AED_G_22K`, `FX_USD_AED`... The
+/// phone revalues gold, jewellery and funds from these rows alone, so values
+/// still work offline.
+@DataClassName('PriceRow')
+class PriceCache extends Table {
+  TextColumn get symbol => text()();
+  RealColumn get price => real()();
+
+  /// What [price] is quoted in (`AED`).
+  TextColumn get unit => text().withDefault(const Constant('AED'))();
+  TextColumn get source => text().nullable()();
+
+  /// live | stale | unavailable, as reported by the backend.
+  TextColumn get status => text().withDefault(const Constant('live'))();
+
+  /// When the source last quoted it (null when unknown).
+  DateTimeColumn get quotedAt => dateTime().nullable()();
+
+  /// When this phone last fetched it.
+  DateTimeColumn get fetchedAt => dateTime()();
+
+  @override
+  Set<Column> get primaryKey => {symbol};
+}
+
+/// A piece of gold jewellery. Valued locally as weight x purity x gold price;
+/// photos are files in the app-private folder, never uploaded.
+@DataClassName('JewelleryRow')
+class JewelleryItems extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  RealColumn get weightGrams => real()();
+
+  /// 24 | 22 | 21 | 18 (or 0 with a purity override).
+  IntColumn get karat => integer()();
+
+  /// Fineness 0..1 when it is not a plain karat (e.g. 0.875).
+  RealColumn get purityOverride => real().nullable()();
+  IntColumn get purchasePriceMinor => integer().nullable()();
+  TextColumn get purchaseDate => text().nullable()();
+  IntColumn get makingChargesMinor => integer().nullable()();
+  TextColumn get notes => text().nullable()();
+
+  /// JSON list of file paths inside the app-private attachments folder.
+  TextColumn get photoPaths => text().withDefault(const Constant('[]'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A scan or photo of a document (title deed, FD certificate, insurance...)
+/// with metadata and an optional date that drives a local reminder.
+@DataClassName('DocumentRow')
+class DocumentAttachments extends Table {
+  TextColumn get id => text()();
+  TextColumn get title => text()();
+
+  /// title_deed | fd_certificate | insurance | passport | emirates_id | other
+  TextColumn get category => text()();
+  TextColumn get notes => text().nullable()();
+
+  /// JSON list of file paths inside the app-private attachments folder.
+  TextColumn get filePaths => text().withDefault(const Constant('[]'))();
+
+  /// ISO date (yyyy-mm-dd) of the expiry, maturity or renewal.
+  TextColumn get dueOn => text().nullable()();
+
+  /// expiry | maturity | renewal
+  TextColumn get dueKind => text().withDefault(const Constant('expiry'))();
+
+  /// Days before [dueOn] to notify; null = no reminder.
+  IntColumn get remindDaysBefore => integer().nullable()();
+
+  /// Id of the scheduled local notification (stable per document).
+  IntColumn get notificationId => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A mutual fund position: an Indian scheme found by search (`india_mf`, NAV
+/// from mfapi.in through the backend) or one entered by hand (`manual`).
+@DataClassName('FundRow')
+class FundHoldings extends Table {
+  TextColumn get id => text()();
+
+  /// india_mf | manual
+  TextColumn get kind => text()();
+  TextColumn get schemeCode => text().nullable()();
+  TextColumn get name => text()();
+
+  /// Currency of the NAV (INR for Indian funds, AED/USD for others).
+  TextColumn get currency => text().withDefault(const Constant('INR'))();
+  RealColumn get units => real()();
+
+  /// Average cost per unit, in [currency].
+  RealColumn get avgCostNav => real().nullable()();
+  RealColumn get nav => real()();
+  TextColumn get navDate => text().nullable()();
+
+  /// market | manual
+  TextColumn get navSource => text().withDefault(const Constant('manual'))();
+  DateTimeColumn get navFetchedAt => dateTime().nullable()();
+
+  /// Monthly SIP amount in [currency] minor units, and the debit day.
+  IntColumn get sipAmountMinor => integer().nullable()();
+  IntColumn get sipDay => integer().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One stored valuation of one thing on one day (jewellery value over time).
+/// The latest value of a day replaces the earlier ones.
+@DataClassName('ValuationRow')
+class ValuationSnapshots extends Table {
+  TextColumn get id => text()();
+
+  /// jewellery | fund
+  TextColumn get subjectKind => text()();
+  TextColumn get subjectId => text()();
+  TextColumn get snapshotDate => text()();
+  IntColumn get valueMinor => integer()();
+
+  /// The AED/g (or NAV) used, so the chart can be explained later.
+  RealColumn get unitPrice => real().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {subjectKind, subjectId, snapshotDate},
+  ];
+}
