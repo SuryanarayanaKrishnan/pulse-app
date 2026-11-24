@@ -11,7 +11,10 @@ import '../core/engine/prices.dart';
 import 'card_ranking.dart';
 import '../core/analytics/analytics.dart';
 import 'demo_wealth.dart';
+import '../core/engine/budget_moves.dart';
+import 'budget_plan_service.dart';
 import 'goal_models.dart';
+import 'local/budget_plan_store.dart';
 import 'goal_service.dart';
 import 'local/goal_store.dart';
 import 'local/attachments.dart';
@@ -129,6 +132,52 @@ void invalidateWealth(WidgetRef ref) {
   ref.invalidate(jewelleryHistoryProvider);
   ref.invalidate(netWorthProvider);
   ref.invalidate(assetsProvider);
+}
+
+// ---- Flex budget -------------------------------------------------------------
+
+final budgetPlanStoreProvider = Provider<BudgetPlanStore>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return demoBudgetPlanStore();
+  return LocalBudgetPlanStore(db);
+});
+
+final budgetPlanServiceProvider = Provider<BudgetPlanService>(
+  (ref) => BudgetPlanService(
+    store: ref.watch(budgetPlanStoreProvider),
+    transactions: () => ref.read(repositoryProvider).transactions(),
+    onModeChanged: (m) => ref.read(analyticsProvider).track(AnalyticsEvent.budgetModeChanged(m.key)),
+    onMoved: () => ref.read(analyticsProvider).track(AnalyticsEvent.moneyMoved),
+  ),
+);
+
+/// The month the Budget tab shows, as the first of that month.
+class BudgetMonthNotifier extends Notifier<DateTime> {
+  @override
+  DateTime build() {
+    final n = DateTime.now();
+    return DateTime(n.year, n.month, 1);
+  }
+
+  void set(DateTime m) => state = DateTime(m.year, m.month, 1);
+}
+
+final budgetMonthProvider = NotifierProvider<BudgetMonthNotifier, DateTime>(BudgetMonthNotifier.new);
+
+final budgetPlanProvider = FutureProvider<BudgetPlanView>(
+  (ref) => ref.watch(budgetPlanServiceProvider).view(ref.watch(budgetMonthProvider)),
+);
+
+/// Every move not undone, all months and both scopes (the Joint view reads
+/// its own from here).
+final budgetMovesProvider = FutureProvider<List<BudgetMove>>((ref) => ref.watch(budgetPlanServiceProvider).allMoves());
+
+/// Refreshes the Budget after a budget, a move, a mode or a category's
+/// group changed.
+void invalidateBudgetPlan(WidgetRef ref) {
+  ref.invalidate(budgetPlanProvider);
+  ref.invalidate(budgetProvider);
+  ref.invalidate(safeToSpendProvider);
 }
 
 // ---- Goals -----------------------------------------------------------------

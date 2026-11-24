@@ -8,12 +8,16 @@ import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/budget_plan_service.dart' show PlanRow;
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../household/joint_views.dart';
 import '../../core/household/household_engine.dart' show NwScope;
 import '../../household/household_providers.dart';
+import '../../data/local/budget_plan_store.dart' show BudgetMode;
 import 'budget_charts.dart';
+import 'cashflow_sankey.dart';
+import 'flex_budget_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 
@@ -97,51 +101,61 @@ class _Body extends ConsumerWidget {
         return pb.compareTo(pa);
       });
     final autoPct = (o.autoShare * 100).round();
+    final plan = ref.watch(budgetPlanProvider).value;
+    final flex = plan != null && plan.mode == BudgetMode.flex;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        HeroNumber(
-          label: 'Spent this month',
-          value: o.spent,
-          caption:
-              'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
-          footer: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Meter(value: o.progress, color: c.forProgress(o.progress)),
-              const SizedBox(height: Space.md),
-              Row(
-                children: [
-                  Dot(c.forProgress(o.progress)),
-                  const SizedBox(width: Space.sm),
-                  Expanded(
-                    child: Text(
-                      '${PulseColors.statusLabel(o.progress)} · ${Money.aed(o.remaining.abs(), decimals: false)} ${o.remaining < 0 ? 'over' : 'left'}',
-                      style: context.tt.bodyMedium!.copyWith(
-                        color: c.textPrimary,
+        if (!flex)
+          HeroNumber(
+            label: 'Spent this month',
+            value: o.spent,
+            caption:
+                'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
+            footer: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Meter(value: o.progress, color: c.forProgress(o.progress)),
+                const SizedBox(height: Space.md),
+                Row(
+                  children: [
+                    Dot(c.forProgress(o.progress)),
+                    const SizedBox(width: Space.sm),
+                    Expanded(
+                      child: Text(
+                        '${PulseColors.statusLabel(o.progress)} · ${Money.aed(o.remaining.abs(), decimals: false)} ${o.remaining < 0 ? 'over' : 'left'}',
+                        style: context.tt.bodyMedium!.copyWith(
+                          color: c.textPrimary,
+                        ),
                       ),
                     ),
-                  ),
-                  Text('$autoPct% automatic', style: context.tt.bodySmall),
-                ],
-              ),
-            ],
+                    Text('$autoPct% automatic', style: context.tt.bodySmall),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        SectionHeader(
-          'Categories',
-          action: 'Edit',
-          onAction: () => context.push(Routes.categories),
-        ),
-        const SizedBox(height: Space.sm),
+        const FlexBudgetSection(),
+        if (!flex) ...[
+          SectionHeader(
+            'Categories',
+            action: 'Edit',
+            onAction: () => context.push(Routes.categories),
+          ),
+          const SizedBox(height: Space.sm),
+        ],
         TabTip(
           tab: TipTab.budget,
-          child: SnapRail(
-            height: 128,
-            itemCount: lines.length,
-            itemBuilder: (context, i) => _CategoryTile(lines[i]),
-          ),
+          child: flex
+              ? const SizedBox.shrink()
+              : SnapRail(
+                  height: 128,
+                  itemCount: lines.length,
+                  itemBuilder: (context, i) =>
+                      _CategoryTile(lines[i], plan?.row(lines[i].category.id)),
+                ),
         ),
+        const CashflowSankeySection(),
         const CashflowSection(),
         const CategoryTrendSection(),
         _WhereItWent(o),
@@ -184,8 +198,17 @@ class _Body extends ConsumerWidget {
 }
 
 class _CategoryTile extends StatelessWidget {
-  const _CategoryTile(this.l);
+  const _CategoryTile(this.l, [this.plan]);
   final BudgetLine l;
+
+  /// The category's flex row, for the rollover balance.
+  final PlanRow? plan;
+  String _carry() {
+    final k = plan?.carryMinor;
+    if (k == null || k == 0) return '';
+    return ' (${k > 0 ? '+' : '-'}${Money.number(k.abs() / 100)})';
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
@@ -204,6 +227,10 @@ class _CategoryTile extends StatelessWidget {
           Row(
             children: [
               CategoryIcon(l.category, size: 22),
+              if (plan?.config.rolls ?? false) ...[
+                const SizedBox(width: 6),
+                Icon(Icons.autorenew_rounded, size: 13, color: c.textTertiary),
+              ],
               const Spacer(),
               if (!noBudget)
                 ProgressRing(progress: l.progress, size: 20, stroke: 3),
@@ -226,7 +253,7 @@ class _CategoryTile extends StatelessWidget {
                 ? 'No budget'
                 : (l.progress > 1
                       ? '${Money.number(l.spent - l.planned)} over'
-                      : 'of ${Money.number(l.planned)}'),
+                      : 'of ${Money.number(l.planned)}${_carry()}'),
             style: context.tt.bodySmall!.copyWith(color: status),
             maxLines: 1,
           ),

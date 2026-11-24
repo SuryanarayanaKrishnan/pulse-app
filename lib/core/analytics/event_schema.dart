@@ -164,6 +164,10 @@ abstract final class AnalyticsSchema {
     EventSpec('goal_completed', 'Everyday use', 'A goal reaches its target.'),
     EventSpec('household_created', 'Everyday use', 'You start a household.'),
     EventSpec('household_member_joined', 'Everyday use', 'You join a household with an invite.'),
+    EventSpec('budget_mode_changed', 'Everyday use', 'You switch the Budget between flex groups and single categories.', props: {
+      'mode': EnumProp('Flex groups, or every category on its own', ['flex', 'category']),
+    }),
+    EventSpec('money_moved', 'Everyday use', 'You move money between two categories in a month.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
     EventSpec('card_check_shown', 'Everyday use', 'Pulse tells you whether you used the best card.', props: {

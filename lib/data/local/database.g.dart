@@ -2174,6 +2174,78 @@ class $CategoriesTable extends Categories
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _budgetGroupMeta = const VerificationMeta(
+    'budgetGroup',
+  );
+  @override
+  late final GeneratedColumn<String> budgetGroup = GeneratedColumn<String>(
+    'budget_group',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rolloverMeta = const VerificationMeta(
+    'rollover',
+  );
+  @override
+  late final GeneratedColumn<bool> rollover = GeneratedColumn<bool>(
+    'rollover',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("rollover" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _rolloverStartMeta = const VerificationMeta(
+    'rolloverStart',
+  );
+  @override
+  late final GeneratedColumn<String> rolloverStart = GeneratedColumn<String>(
+    'rollover_start',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rolloverStartMinorMeta =
+      const VerificationMeta('rolloverStartMinor');
+  @override
+  late final GeneratedColumn<int> rolloverStartMinor = GeneratedColumn<int>(
+    'rollover_start_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _cycleCostMinorMeta = const VerificationMeta(
+    'cycleCostMinor',
+  );
+  @override
+  late final GeneratedColumn<int> cycleCostMinor = GeneratedColumn<int>(
+    'cycle_cost_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _cycleMonthsMeta = const VerificationMeta(
+    'cycleMonths',
+  );
+  @override
+  late final GeneratedColumn<int> cycleMonths = GeneratedColumn<int>(
+    'cycle_months',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2188,6 +2260,12 @@ class $CategoriesTable extends Categories
     parentId,
     isCustom,
     isHidden,
+    budgetGroup,
+    rollover,
+    rolloverStart,
+    rolloverStartMinor,
+    cycleCostMinor,
+    cycleMonths,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2274,6 +2352,57 @@ class $CategoriesTable extends Categories
         isHidden.isAcceptableOrUnknown(data['is_hidden']!, _isHiddenMeta),
       );
     }
+    if (data.containsKey('budget_group')) {
+      context.handle(
+        _budgetGroupMeta,
+        budgetGroup.isAcceptableOrUnknown(
+          data['budget_group']!,
+          _budgetGroupMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rollover')) {
+      context.handle(
+        _rolloverMeta,
+        rollover.isAcceptableOrUnknown(data['rollover']!, _rolloverMeta),
+      );
+    }
+    if (data.containsKey('rollover_start')) {
+      context.handle(
+        _rolloverStartMeta,
+        rolloverStart.isAcceptableOrUnknown(
+          data['rollover_start']!,
+          _rolloverStartMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rollover_start_minor')) {
+      context.handle(
+        _rolloverStartMinorMeta,
+        rolloverStartMinor.isAcceptableOrUnknown(
+          data['rollover_start_minor']!,
+          _rolloverStartMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cycle_cost_minor')) {
+      context.handle(
+        _cycleCostMinorMeta,
+        cycleCostMinor.isAcceptableOrUnknown(
+          data['cycle_cost_minor']!,
+          _cycleCostMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('cycle_months')) {
+      context.handle(
+        _cycleMonthsMeta,
+        cycleMonths.isAcceptableOrUnknown(
+          data['cycle_months']!,
+          _cycleMonthsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -2331,6 +2460,30 @@ class $CategoriesTable extends Categories
         DriftSqlType.bool,
         data['${effectivePrefix}is_hidden'],
       )!,
+      budgetGroup: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}budget_group'],
+      ),
+      rollover: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}rollover'],
+      )!,
+      rolloverStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rollover_start'],
+      ),
+      rolloverStartMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}rollover_start_minor'],
+      )!,
+      cycleCostMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cycle_cost_minor'],
+      )!,
+      cycleMonths: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}cycle_months'],
+      )!,
     );
   }
 
@@ -2360,6 +2513,23 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final String? parentId;
   final bool isCustom;
   final bool isHidden;
+
+  /// Flex budgeting group: `fixed` | `flexible` | `nonmonthly`. Null falls
+  /// back to the default (fixed categories are Fixed, the rest Flexible).
+  final String? budgetGroup;
+
+  /// Unspent (or overspent) amount carries into the next month.
+  final bool rollover;
+
+  /// First month (`YYYY-MM-01`) the rollover counts from, and the balance it
+  /// opens with. Null start: the category's earliest budget month.
+  final String? rolloverStart;
+  final int rolloverStartMinor;
+
+  /// Non-monthly: the whole cost per cycle and the cycle length in months.
+  /// The monthly amount is the cost spread over the cycle.
+  final int cycleCostMinor;
+  final int cycleMonths;
   const CategoryRow({
     required this.id,
     this.slug,
@@ -2373,6 +2543,12 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     this.parentId,
     required this.isCustom,
     required this.isHidden,
+    this.budgetGroup,
+    required this.rollover,
+    this.rolloverStart,
+    required this.rolloverStartMinor,
+    required this.cycleCostMinor,
+    required this.cycleMonths,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2399,6 +2575,16 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     }
     map['is_custom'] = Variable<bool>(isCustom);
     map['is_hidden'] = Variable<bool>(isHidden);
+    if (!nullToAbsent || budgetGroup != null) {
+      map['budget_group'] = Variable<String>(budgetGroup);
+    }
+    map['rollover'] = Variable<bool>(rollover);
+    if (!nullToAbsent || rolloverStart != null) {
+      map['rollover_start'] = Variable<String>(rolloverStart);
+    }
+    map['rollover_start_minor'] = Variable<int>(rolloverStartMinor);
+    map['cycle_cost_minor'] = Variable<int>(cycleCostMinor);
+    map['cycle_months'] = Variable<int>(cycleMonths);
     return map;
   }
 
@@ -2422,6 +2608,16 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           : Value(parentId),
       isCustom: Value(isCustom),
       isHidden: Value(isHidden),
+      budgetGroup: budgetGroup == null && nullToAbsent
+          ? const Value.absent()
+          : Value(budgetGroup),
+      rollover: Value(rollover),
+      rolloverStart: rolloverStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rolloverStart),
+      rolloverStartMinor: Value(rolloverStartMinor),
+      cycleCostMinor: Value(cycleCostMinor),
+      cycleMonths: Value(cycleMonths),
     );
   }
 
@@ -2443,6 +2639,12 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       parentId: serializer.fromJson<String?>(json['parentId']),
       isCustom: serializer.fromJson<bool>(json['isCustom']),
       isHidden: serializer.fromJson<bool>(json['isHidden']),
+      budgetGroup: serializer.fromJson<String?>(json['budgetGroup']),
+      rollover: serializer.fromJson<bool>(json['rollover']),
+      rolloverStart: serializer.fromJson<String?>(json['rolloverStart']),
+      rolloverStartMinor: serializer.fromJson<int>(json['rolloverStartMinor']),
+      cycleCostMinor: serializer.fromJson<int>(json['cycleCostMinor']),
+      cycleMonths: serializer.fromJson<int>(json['cycleMonths']),
     );
   }
   @override
@@ -2461,6 +2663,12 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'parentId': serializer.toJson<String?>(parentId),
       'isCustom': serializer.toJson<bool>(isCustom),
       'isHidden': serializer.toJson<bool>(isHidden),
+      'budgetGroup': serializer.toJson<String?>(budgetGroup),
+      'rollover': serializer.toJson<bool>(rollover),
+      'rolloverStart': serializer.toJson<String?>(rolloverStart),
+      'rolloverStartMinor': serializer.toJson<int>(rolloverStartMinor),
+      'cycleCostMinor': serializer.toJson<int>(cycleCostMinor),
+      'cycleMonths': serializer.toJson<int>(cycleMonths),
     };
   }
 
@@ -2477,6 +2685,12 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     Value<String?> parentId = const Value.absent(),
     bool? isCustom,
     bool? isHidden,
+    Value<String?> budgetGroup = const Value.absent(),
+    bool? rollover,
+    Value<String?> rolloverStart = const Value.absent(),
+    int? rolloverStartMinor,
+    int? cycleCostMinor,
+    int? cycleMonths,
   }) => CategoryRow(
     id: id ?? this.id,
     slug: slug.present ? slug.value : this.slug,
@@ -2490,6 +2704,14 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     parentId: parentId.present ? parentId.value : this.parentId,
     isCustom: isCustom ?? this.isCustom,
     isHidden: isHidden ?? this.isHidden,
+    budgetGroup: budgetGroup.present ? budgetGroup.value : this.budgetGroup,
+    rollover: rollover ?? this.rollover,
+    rolloverStart: rolloverStart.present
+        ? rolloverStart.value
+        : this.rolloverStart,
+    rolloverStartMinor: rolloverStartMinor ?? this.rolloverStartMinor,
+    cycleCostMinor: cycleCostMinor ?? this.cycleCostMinor,
+    cycleMonths: cycleMonths ?? this.cycleMonths,
   );
   CategoryRow copyWithCompanion(CategoriesCompanion data) {
     return CategoryRow(
@@ -2505,6 +2727,22 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
       isCustom: data.isCustom.present ? data.isCustom.value : this.isCustom,
       isHidden: data.isHidden.present ? data.isHidden.value : this.isHidden,
+      budgetGroup: data.budgetGroup.present
+          ? data.budgetGroup.value
+          : this.budgetGroup,
+      rollover: data.rollover.present ? data.rollover.value : this.rollover,
+      rolloverStart: data.rolloverStart.present
+          ? data.rolloverStart.value
+          : this.rolloverStart,
+      rolloverStartMinor: data.rolloverStartMinor.present
+          ? data.rolloverStartMinor.value
+          : this.rolloverStartMinor,
+      cycleCostMinor: data.cycleCostMinor.present
+          ? data.cycleCostMinor.value
+          : this.cycleCostMinor,
+      cycleMonths: data.cycleMonths.present
+          ? data.cycleMonths.value
+          : this.cycleMonths,
     );
   }
 
@@ -2522,7 +2760,13 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('sortOrder: $sortOrder, ')
           ..write('parentId: $parentId, ')
           ..write('isCustom: $isCustom, ')
-          ..write('isHidden: $isHidden')
+          ..write('isHidden: $isHidden, ')
+          ..write('budgetGroup: $budgetGroup, ')
+          ..write('rollover: $rollover, ')
+          ..write('rolloverStart: $rolloverStart, ')
+          ..write('rolloverStartMinor: $rolloverStartMinor, ')
+          ..write('cycleCostMinor: $cycleCostMinor, ')
+          ..write('cycleMonths: $cycleMonths')
           ..write(')'))
         .toString();
   }
@@ -2541,6 +2785,12 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     parentId,
     isCustom,
     isHidden,
+    budgetGroup,
+    rollover,
+    rolloverStart,
+    rolloverStartMinor,
+    cycleCostMinor,
+    cycleMonths,
   );
   @override
   bool operator ==(Object other) =>
@@ -2557,7 +2807,13 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.sortOrder == this.sortOrder &&
           other.parentId == this.parentId &&
           other.isCustom == this.isCustom &&
-          other.isHidden == this.isHidden);
+          other.isHidden == this.isHidden &&
+          other.budgetGroup == this.budgetGroup &&
+          other.rollover == this.rollover &&
+          other.rolloverStart == this.rolloverStart &&
+          other.rolloverStartMinor == this.rolloverStartMinor &&
+          other.cycleCostMinor == this.cycleCostMinor &&
+          other.cycleMonths == this.cycleMonths);
 }
 
 class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
@@ -2573,6 +2829,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<String?> parentId;
   final Value<bool> isCustom;
   final Value<bool> isHidden;
+  final Value<String?> budgetGroup;
+  final Value<bool> rollover;
+  final Value<String?> rolloverStart;
+  final Value<int> rolloverStartMinor;
+  final Value<int> cycleCostMinor;
+  final Value<int> cycleMonths;
   final Value<int> rowid;
   const CategoriesCompanion({
     this.id = const Value.absent(),
@@ -2587,6 +2849,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.parentId = const Value.absent(),
     this.isCustom = const Value.absent(),
     this.isHidden = const Value.absent(),
+    this.budgetGroup = const Value.absent(),
+    this.rollover = const Value.absent(),
+    this.rolloverStart = const Value.absent(),
+    this.rolloverStartMinor = const Value.absent(),
+    this.cycleCostMinor = const Value.absent(),
+    this.cycleMonths = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CategoriesCompanion.insert({
@@ -2602,6 +2870,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.parentId = const Value.absent(),
     this.isCustom = const Value.absent(),
     this.isHidden = const Value.absent(),
+    this.budgetGroup = const Value.absent(),
+    this.rollover = const Value.absent(),
+    this.rolloverStart = const Value.absent(),
+    this.rolloverStartMinor = const Value.absent(),
+    this.cycleCostMinor = const Value.absent(),
+    this.cycleMonths = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
@@ -2618,6 +2892,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<String>? parentId,
     Expression<bool>? isCustom,
     Expression<bool>? isHidden,
+    Expression<String>? budgetGroup,
+    Expression<bool>? rollover,
+    Expression<String>? rolloverStart,
+    Expression<int>? rolloverStartMinor,
+    Expression<int>? cycleCostMinor,
+    Expression<int>? cycleMonths,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2633,6 +2913,13 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (parentId != null) 'parent_id': parentId,
       if (isCustom != null) 'is_custom': isCustom,
       if (isHidden != null) 'is_hidden': isHidden,
+      if (budgetGroup != null) 'budget_group': budgetGroup,
+      if (rollover != null) 'rollover': rollover,
+      if (rolloverStart != null) 'rollover_start': rolloverStart,
+      if (rolloverStartMinor != null)
+        'rollover_start_minor': rolloverStartMinor,
+      if (cycleCostMinor != null) 'cycle_cost_minor': cycleCostMinor,
+      if (cycleMonths != null) 'cycle_months': cycleMonths,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2650,6 +2937,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<String?>? parentId,
     Value<bool>? isCustom,
     Value<bool>? isHidden,
+    Value<String?>? budgetGroup,
+    Value<bool>? rollover,
+    Value<String?>? rolloverStart,
+    Value<int>? rolloverStartMinor,
+    Value<int>? cycleCostMinor,
+    Value<int>? cycleMonths,
     Value<int>? rowid,
   }) {
     return CategoriesCompanion(
@@ -2665,6 +2958,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       parentId: parentId ?? this.parentId,
       isCustom: isCustom ?? this.isCustom,
       isHidden: isHidden ?? this.isHidden,
+      budgetGroup: budgetGroup ?? this.budgetGroup,
+      rollover: rollover ?? this.rollover,
+      rolloverStart: rolloverStart ?? this.rolloverStart,
+      rolloverStartMinor: rolloverStartMinor ?? this.rolloverStartMinor,
+      cycleCostMinor: cycleCostMinor ?? this.cycleCostMinor,
+      cycleMonths: cycleMonths ?? this.cycleMonths,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2708,6 +3007,24 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     if (isHidden.present) {
       map['is_hidden'] = Variable<bool>(isHidden.value);
     }
+    if (budgetGroup.present) {
+      map['budget_group'] = Variable<String>(budgetGroup.value);
+    }
+    if (rollover.present) {
+      map['rollover'] = Variable<bool>(rollover.value);
+    }
+    if (rolloverStart.present) {
+      map['rollover_start'] = Variable<String>(rolloverStart.value);
+    }
+    if (rolloverStartMinor.present) {
+      map['rollover_start_minor'] = Variable<int>(rolloverStartMinor.value);
+    }
+    if (cycleCostMinor.present) {
+      map['cycle_cost_minor'] = Variable<int>(cycleCostMinor.value);
+    }
+    if (cycleMonths.present) {
+      map['cycle_months'] = Variable<int>(cycleMonths.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2729,6 +3046,12 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('parentId: $parentId, ')
           ..write('isCustom: $isCustom, ')
           ..write('isHidden: $isHidden, ')
+          ..write('budgetGroup: $budgetGroup, ')
+          ..write('rollover: $rollover, ')
+          ..write('rolloverStart: $rolloverStart, ')
+          ..write('rolloverStartMinor: $rolloverStartMinor, ')
+          ..write('cycleCostMinor: $cycleCostMinor, ')
+          ..write('cycleMonths: $cycleMonths, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -17460,6 +17783,731 @@ class HouseholdMirrorCompanion extends UpdateCompanion<HouseholdMirrorRow> {
   }
 }
 
+class $BudgetMovesTable extends BudgetMoves
+    with TableInfo<$BudgetMovesTable, BudgetMoveRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BudgetMovesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _scopeMeta = const VerificationMeta('scope');
+  @override
+  late final GeneratedColumn<String> scope = GeneratedColumn<String>(
+    'scope',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('me'),
+  );
+  static const VerificationMeta _monthMeta = const VerificationMeta('month');
+  @override
+  late final GeneratedColumn<String> month = GeneratedColumn<String>(
+    'month',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromCategoryIdMeta = const VerificationMeta(
+    'fromCategoryId',
+  );
+  @override
+  late final GeneratedColumn<String> fromCategoryId = GeneratedColumn<String>(
+    'from_category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toCategoryIdMeta = const VerificationMeta(
+    'toCategoryId',
+  );
+  @override
+  late final GeneratedColumn<String> toCategoryId = GeneratedColumn<String>(
+    'to_category_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    scope,
+    month,
+    fromCategoryId,
+    toCategoryId,
+    amountMinor,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budget_moves';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BudgetMoveRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('scope')) {
+      context.handle(
+        _scopeMeta,
+        scope.isAcceptableOrUnknown(data['scope']!, _scopeMeta),
+      );
+    }
+    if (data.containsKey('month')) {
+      context.handle(
+        _monthMeta,
+        month.isAcceptableOrUnknown(data['month']!, _monthMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_monthMeta);
+    }
+    if (data.containsKey('from_category_id')) {
+      context.handle(
+        _fromCategoryIdMeta,
+        fromCategoryId.isAcceptableOrUnknown(
+          data['from_category_id']!,
+          _fromCategoryIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fromCategoryIdMeta);
+    }
+    if (data.containsKey('to_category_id')) {
+      context.handle(
+        _toCategoryIdMeta,
+        toCategoryId.isAcceptableOrUnknown(
+          data['to_category_id']!,
+          _toCategoryIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_toCategoryIdMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BudgetMoveRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetMoveRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      scope: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scope'],
+      )!,
+      month: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}month'],
+      )!,
+      fromCategoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_category_id'],
+      )!,
+      toCategoryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_category_id'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $BudgetMovesTable createAlias(String alias) {
+    return $BudgetMovesTable(attachedDatabase, alias);
+  }
+}
+
+class BudgetMoveRow extends DataClass implements Insertable<BudgetMoveRow> {
+  final String id;
+  final String scope;
+
+  /// `YYYY-MM-01`.
+  final String month;
+  final String fromCategoryId;
+  final String toCategoryId;
+  final int amountMinor;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const BudgetMoveRow({
+    required this.id,
+    required this.scope,
+    required this.month,
+    required this.fromCategoryId,
+    required this.toCategoryId,
+    required this.amountMinor,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['scope'] = Variable<String>(scope);
+    map['month'] = Variable<String>(month);
+    map['from_category_id'] = Variable<String>(fromCategoryId);
+    map['to_category_id'] = Variable<String>(toCategoryId);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  BudgetMovesCompanion toCompanion(bool nullToAbsent) {
+    return BudgetMovesCompanion(
+      id: Value(id),
+      scope: Value(scope),
+      month: Value(month),
+      fromCategoryId: Value(fromCategoryId),
+      toCategoryId: Value(toCategoryId),
+      amountMinor: Value(amountMinor),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory BudgetMoveRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetMoveRow(
+      id: serializer.fromJson<String>(json['id']),
+      scope: serializer.fromJson<String>(json['scope']),
+      month: serializer.fromJson<String>(json['month']),
+      fromCategoryId: serializer.fromJson<String>(json['fromCategoryId']),
+      toCategoryId: serializer.fromJson<String>(json['toCategoryId']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'scope': serializer.toJson<String>(scope),
+      'month': serializer.toJson<String>(month),
+      'fromCategoryId': serializer.toJson<String>(fromCategoryId),
+      'toCategoryId': serializer.toJson<String>(toCategoryId),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  BudgetMoveRow copyWith({
+    String? id,
+    String? scope,
+    String? month,
+    String? fromCategoryId,
+    String? toCategoryId,
+    int? amountMinor,
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => BudgetMoveRow(
+    id: id ?? this.id,
+    scope: scope ?? this.scope,
+    month: month ?? this.month,
+    fromCategoryId: fromCategoryId ?? this.fromCategoryId,
+    toCategoryId: toCategoryId ?? this.toCategoryId,
+    amountMinor: amountMinor ?? this.amountMinor,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  BudgetMoveRow copyWithCompanion(BudgetMovesCompanion data) {
+    return BudgetMoveRow(
+      id: data.id.present ? data.id.value : this.id,
+      scope: data.scope.present ? data.scope.value : this.scope,
+      month: data.month.present ? data.month.value : this.month,
+      fromCategoryId: data.fromCategoryId.present
+          ? data.fromCategoryId.value
+          : this.fromCategoryId,
+      toCategoryId: data.toCategoryId.present
+          ? data.toCategoryId.value
+          : this.toCategoryId,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetMoveRow(')
+          ..write('id: $id, ')
+          ..write('scope: $scope, ')
+          ..write('month: $month, ')
+          ..write('fromCategoryId: $fromCategoryId, ')
+          ..write('toCategoryId: $toCategoryId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    scope,
+    month,
+    fromCategoryId,
+    toCategoryId,
+    amountMinor,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetMoveRow &&
+          other.id == this.id &&
+          other.scope == this.scope &&
+          other.month == this.month &&
+          other.fromCategoryId == this.fromCategoryId &&
+          other.toCategoryId == this.toCategoryId &&
+          other.amountMinor == this.amountMinor &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class BudgetMovesCompanion extends UpdateCompanion<BudgetMoveRow> {
+  final Value<String> id;
+  final Value<String> scope;
+  final Value<String> month;
+  final Value<String> fromCategoryId;
+  final Value<String> toCategoryId;
+  final Value<int> amountMinor;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const BudgetMovesCompanion({
+    this.id = const Value.absent(),
+    this.scope = const Value.absent(),
+    this.month = const Value.absent(),
+    this.fromCategoryId = const Value.absent(),
+    this.toCategoryId = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BudgetMovesCompanion.insert({
+    required String id,
+    this.scope = const Value.absent(),
+    required String month,
+    required String fromCategoryId,
+    required String toCategoryId,
+    required int amountMinor,
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       month = Value(month),
+       fromCategoryId = Value(fromCategoryId),
+       toCategoryId = Value(toCategoryId),
+       amountMinor = Value(amountMinor);
+  static Insertable<BudgetMoveRow> custom({
+    Expression<String>? id,
+    Expression<String>? scope,
+    Expression<String>? month,
+    Expression<String>? fromCategoryId,
+    Expression<String>? toCategoryId,
+    Expression<int>? amountMinor,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (scope != null) 'scope': scope,
+      if (month != null) 'month': month,
+      if (fromCategoryId != null) 'from_category_id': fromCategoryId,
+      if (toCategoryId != null) 'to_category_id': toCategoryId,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BudgetMovesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? scope,
+    Value<String>? month,
+    Value<String>? fromCategoryId,
+    Value<String>? toCategoryId,
+    Value<int>? amountMinor,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return BudgetMovesCompanion(
+      id: id ?? this.id,
+      scope: scope ?? this.scope,
+      month: month ?? this.month,
+      fromCategoryId: fromCategoryId ?? this.fromCategoryId,
+      toCategoryId: toCategoryId ?? this.toCategoryId,
+      amountMinor: amountMinor ?? this.amountMinor,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (scope.present) {
+      map['scope'] = Variable<String>(scope.value);
+    }
+    if (month.present) {
+      map['month'] = Variable<String>(month.value);
+    }
+    if (fromCategoryId.present) {
+      map['from_category_id'] = Variable<String>(fromCategoryId.value);
+    }
+    if (toCategoryId.present) {
+      map['to_category_id'] = Variable<String>(toCategoryId.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetMovesCompanion(')
+          ..write('id: $id, ')
+          ..write('scope: $scope, ')
+          ..write('month: $month, ')
+          ..write('fromCategoryId: $fromCategoryId, ')
+          ..write('toCategoryId: $toCategoryId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $BudgetPrefsTable extends BudgetPrefs
+    with TableInfo<$BudgetPrefsTable, BudgetPrefRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BudgetPrefsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _modeMeta = const VerificationMeta('mode');
+  @override
+  late final GeneratedColumn<String> mode = GeneratedColumn<String>(
+    'mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('flex'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, mode];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'budget_prefs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BudgetPrefRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('mode')) {
+      context.handle(
+        _modeMeta,
+        mode.isAcceptableOrUnknown(data['mode']!, _modeMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BudgetPrefRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BudgetPrefRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      mode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mode'],
+      )!,
+    );
+  }
+
+  @override
+  $BudgetPrefsTable createAlias(String alias) {
+    return $BudgetPrefsTable(attachedDatabase, alias);
+  }
+}
+
+class BudgetPrefRow extends DataClass implements Insertable<BudgetPrefRow> {
+  final String id;
+  final String mode;
+  const BudgetPrefRow({required this.id, required this.mode});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['mode'] = Variable<String>(mode);
+    return map;
+  }
+
+  BudgetPrefsCompanion toCompanion(bool nullToAbsent) {
+    return BudgetPrefsCompanion(id: Value(id), mode: Value(mode));
+  }
+
+  factory BudgetPrefRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BudgetPrefRow(
+      id: serializer.fromJson<String>(json['id']),
+      mode: serializer.fromJson<String>(json['mode']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'mode': serializer.toJson<String>(mode),
+    };
+  }
+
+  BudgetPrefRow copyWith({String? id, String? mode}) =>
+      BudgetPrefRow(id: id ?? this.id, mode: mode ?? this.mode);
+  BudgetPrefRow copyWithCompanion(BudgetPrefsCompanion data) {
+    return BudgetPrefRow(
+      id: data.id.present ? data.id.value : this.id,
+      mode: data.mode.present ? data.mode.value : this.mode,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetPrefRow(')
+          ..write('id: $id, ')
+          ..write('mode: $mode')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, mode);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BudgetPrefRow &&
+          other.id == this.id &&
+          other.mode == this.mode);
+}
+
+class BudgetPrefsCompanion extends UpdateCompanion<BudgetPrefRow> {
+  final Value<String> id;
+  final Value<String> mode;
+  final Value<int> rowid;
+  const BudgetPrefsCompanion({
+    this.id = const Value.absent(),
+    this.mode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  BudgetPrefsCompanion.insert({
+    required String id,
+    this.mode = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id);
+  static Insertable<BudgetPrefRow> custom({
+    Expression<String>? id,
+    Expression<String>? mode,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (mode != null) 'mode': mode,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  BudgetPrefsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? mode,
+    Value<int>? rowid,
+  }) {
+    return BudgetPrefsCompanion(
+      id: id ?? this.id,
+      mode: mode ?? this.mode,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (mode.present) {
+      map['mode'] = Variable<String>(mode.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BudgetPrefsCompanion(')
+          ..write('id: $id, ')
+          ..write('mode: $mode, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -17505,6 +18553,8 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   late final $HouseholdMirrorTable householdMirror = $HouseholdMirrorTable(
     this,
   );
+  late final $BudgetMovesTable budgetMoves = $BudgetMovesTable(this);
+  late final $BudgetPrefsTable budgetPrefs = $BudgetPrefsTable(this);
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -17550,6 +18600,8 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     householdBills,
     householdLimits,
     householdMirror,
+    budgetMoves,
+    budgetPrefs,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -19311,6 +20363,12 @@ typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<String?> parentId,
   Value<bool> isCustom,
   Value<bool> isHidden,
+  Value<String?> budgetGroup,
+  Value<bool> rollover,
+  Value<String?> rolloverStart,
+  Value<int> rolloverStartMinor,
+  Value<int> cycleCostMinor,
+  Value<int> cycleMonths,
   Value<int> rowid,
 });
 typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
@@ -19326,6 +20384,12 @@ typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<String?> parentId,
   Value<bool> isCustom,
   Value<bool> isHidden,
+  Value<String?> budgetGroup,
+  Value<bool> rollover,
+  Value<String?> rolloverStart,
+  Value<int> rolloverStartMinor,
+  Value<int> cycleCostMinor,
+  Value<int> cycleMonths,
   Value<int> rowid,
 });
 
@@ -19455,6 +20519,36 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<bool> get isHidden => $composableBuilder(
     column: $table.isHidden,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get budgetGroup => $composableBuilder(
+    column: $table.budgetGroup,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get rollover => $composableBuilder(
+    column: $table.rollover,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rolloverStart => $composableBuilder(
+    column: $table.rolloverStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get rolloverStartMinor => $composableBuilder(
+    column: $table.rolloverStartMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cycleCostMinor => $composableBuilder(
+    column: $table.cycleCostMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get cycleMonths => $composableBuilder(
+    column: $table.cycleMonths,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -19602,6 +20696,36 @@ class $$CategoriesTableOrderingComposer
     column: $table.isHidden,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get budgetGroup => $composableBuilder(
+    column: $table.budgetGroup,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get rollover => $composableBuilder(
+    column: $table.rollover,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rolloverStart => $composableBuilder(
+    column: $table.rolloverStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get rolloverStartMinor => $composableBuilder(
+    column: $table.rolloverStartMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cycleCostMinor => $composableBuilder(
+    column: $table.cycleCostMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get cycleMonths => $composableBuilder(
+    column: $table.cycleMonths,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CategoriesTableAnnotationComposer
@@ -19648,6 +20772,34 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<bool> get isHidden =>
       $composableBuilder(column: $table.isHidden, builder: (column) => column);
+
+  GeneratedColumn<String> get budgetGroup => $composableBuilder(
+    column: $table.budgetGroup,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get rollover =>
+      $composableBuilder(column: $table.rollover, builder: (column) => column);
+
+  GeneratedColumn<String> get rolloverStart => $composableBuilder(
+    column: $table.rolloverStart,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get rolloverStartMinor => $composableBuilder(
+    column: $table.rolloverStartMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get cycleCostMinor => $composableBuilder(
+    column: $table.cycleCostMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get cycleMonths => $composableBuilder(
+    column: $table.cycleMonths,
+    builder: (column) => column,
+  );
 
   Expression<T> transactionsRefs<T extends Object>(
     Expression<T> Function($$TransactionsTableAnnotationComposer a) f,
@@ -19769,6 +20921,12 @@ class $$CategoriesTableTableManager
                 Value<String?> parentId = const Value.absent(),
                 Value<bool> isCustom = const Value.absent(),
                 Value<bool> isHidden = const Value.absent(),
+                Value<String?> budgetGroup = const Value.absent(),
+                Value<bool> rollover = const Value.absent(),
+                Value<String?> rolloverStart = const Value.absent(),
+                Value<int> rolloverStartMinor = const Value.absent(),
+                Value<int> cycleCostMinor = const Value.absent(),
+                Value<int> cycleMonths = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion(
                 id: id,
@@ -19783,6 +20941,12 @@ class $$CategoriesTableTableManager
                 parentId: parentId,
                 isCustom: isCustom,
                 isHidden: isHidden,
+                budgetGroup: budgetGroup,
+                rollover: rollover,
+                rolloverStart: rolloverStart,
+                rolloverStartMinor: rolloverStartMinor,
+                cycleCostMinor: cycleCostMinor,
+                cycleMonths: cycleMonths,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -19799,6 +20963,12 @@ class $$CategoriesTableTableManager
                 Value<String?> parentId = const Value.absent(),
                 Value<bool> isCustom = const Value.absent(),
                 Value<bool> isHidden = const Value.absent(),
+                Value<String?> budgetGroup = const Value.absent(),
+                Value<bool> rollover = const Value.absent(),
+                Value<String?> rolloverStart = const Value.absent(),
+                Value<int> rolloverStartMinor = const Value.absent(),
+                Value<int> cycleCostMinor = const Value.absent(),
+                Value<int> cycleMonths = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CategoriesCompanion.insert(
                 id: id,
@@ -19813,6 +20983,12 @@ class $$CategoriesTableTableManager
                 parentId: parentId,
                 isCustom: isCustom,
                 isHidden: isHidden,
+                budgetGroup: budgetGroup,
+                rollover: rollover,
+                rolloverStart: rolloverStart,
+                rolloverStartMinor: rolloverStartMinor,
+                cycleCostMinor: cycleCostMinor,
+                cycleMonths: cycleMonths,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -28833,6 +30009,420 @@ typedef $$HouseholdMirrorTableProcessedTableManager =
       HouseholdMirrorRow,
       PrefetchHooks Function()
     >;
+typedef $$BudgetMovesTableCreateCompanionBuilder =
+    BudgetMovesCompanion Function({
+      required String id,
+      Value<String> scope,
+      required String month,
+      required String fromCategoryId,
+      required String toCategoryId,
+      required int amountMinor,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$BudgetMovesTableUpdateCompanionBuilder =
+    BudgetMovesCompanion Function({
+      Value<String> id,
+      Value<String> scope,
+      Value<String> month,
+      Value<String> fromCategoryId,
+      Value<String> toCategoryId,
+      Value<int> amountMinor,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$BudgetMovesTableFilterComposer
+    extends Composer<_$PulseDatabase, $BudgetMovesTable> {
+  $$BudgetMovesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get scope => $composableBuilder(
+    column: $table.scope,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromCategoryId => $composableBuilder(
+    column: $table.fromCategoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toCategoryId => $composableBuilder(
+    column: $table.toCategoryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BudgetMovesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $BudgetMovesTable> {
+  $$BudgetMovesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get scope => $composableBuilder(
+    column: $table.scope,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get month => $composableBuilder(
+    column: $table.month,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromCategoryId => $composableBuilder(
+    column: $table.fromCategoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toCategoryId => $composableBuilder(
+    column: $table.toCategoryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BudgetMovesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $BudgetMovesTable> {
+  $$BudgetMovesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get scope =>
+      $composableBuilder(column: $table.scope, builder: (column) => column);
+
+  GeneratedColumn<String> get month =>
+      $composableBuilder(column: $table.month, builder: (column) => column);
+
+  GeneratedColumn<String> get fromCategoryId => $composableBuilder(
+    column: $table.fromCategoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toCategoryId => $composableBuilder(
+    column: $table.toCategoryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$BudgetMovesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $BudgetMovesTable,
+          BudgetMoveRow,
+          $$BudgetMovesTableFilterComposer,
+          $$BudgetMovesTableOrderingComposer,
+          $$BudgetMovesTableAnnotationComposer,
+          $$BudgetMovesTableCreateCompanionBuilder,
+          $$BudgetMovesTableUpdateCompanionBuilder,
+          (
+            BudgetMoveRow,
+            BaseReferences<_$PulseDatabase, $BudgetMovesTable, BudgetMoveRow>,
+          ),
+          BudgetMoveRow,
+          PrefetchHooks Function()
+        > {
+  $$BudgetMovesTableTableManager(_$PulseDatabase db, $BudgetMovesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BudgetMovesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BudgetMovesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BudgetMovesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> scope = const Value.absent(),
+                Value<String> month = const Value.absent(),
+                Value<String> fromCategoryId = const Value.absent(),
+                Value<String> toCategoryId = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BudgetMovesCompanion(
+                id: id,
+                scope: scope,
+                month: month,
+                fromCategoryId: fromCategoryId,
+                toCategoryId: toCategoryId,
+                amountMinor: amountMinor,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                Value<String> scope = const Value.absent(),
+                required String month,
+                required String fromCategoryId,
+                required String toCategoryId,
+                required int amountMinor,
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => BudgetMovesCompanion.insert(
+                id: id,
+                scope: scope,
+                month: month,
+                fromCategoryId: fromCategoryId,
+                toCategoryId: toCategoryId,
+                amountMinor: amountMinor,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$BudgetMovesTable, BudgetMoveRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $BudgetMovesTable,
+                    BudgetMoveRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BudgetMovesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $BudgetMovesTable,
+      BudgetMoveRow,
+      $$BudgetMovesTableFilterComposer,
+      $$BudgetMovesTableOrderingComposer,
+      $$BudgetMovesTableAnnotationComposer,
+      $$BudgetMovesTableCreateCompanionBuilder,
+      $$BudgetMovesTableUpdateCompanionBuilder,
+      (
+        BudgetMoveRow,
+        BaseReferences<_$PulseDatabase, $BudgetMovesTable, BudgetMoveRow>,
+      ),
+      BudgetMoveRow,
+      PrefetchHooks Function()
+    >;
+typedef $$BudgetPrefsTableCreateCompanionBuilder =
+    BudgetPrefsCompanion Function({
+      required String id,
+      Value<String> mode,
+      Value<int> rowid,
+    });
+typedef $$BudgetPrefsTableUpdateCompanionBuilder =
+    BudgetPrefsCompanion Function({
+      Value<String> id,
+      Value<String> mode,
+      Value<int> rowid,
+    });
+
+class $$BudgetPrefsTableFilterComposer
+    extends Composer<_$PulseDatabase, $BudgetPrefsTable> {
+  $$BudgetPrefsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BudgetPrefsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $BudgetPrefsTable> {
+  $$BudgetPrefsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mode => $composableBuilder(
+    column: $table.mode,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BudgetPrefsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $BudgetPrefsTable> {
+  $$BudgetPrefsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get mode =>
+      $composableBuilder(column: $table.mode, builder: (column) => column);
+}
+
+class $$BudgetPrefsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $BudgetPrefsTable,
+          BudgetPrefRow,
+          $$BudgetPrefsTableFilterComposer,
+          $$BudgetPrefsTableOrderingComposer,
+          $$BudgetPrefsTableAnnotationComposer,
+          $$BudgetPrefsTableCreateCompanionBuilder,
+          $$BudgetPrefsTableUpdateCompanionBuilder,
+          (
+            BudgetPrefRow,
+            BaseReferences<_$PulseDatabase, $BudgetPrefsTable, BudgetPrefRow>,
+          ),
+          BudgetPrefRow,
+          PrefetchHooks Function()
+        > {
+  $$BudgetPrefsTableTableManager(_$PulseDatabase db, $BudgetPrefsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BudgetPrefsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BudgetPrefsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BudgetPrefsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<String> id = const Value.absent(),
+            Value<String> mode = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => BudgetPrefsCompanion(id: id, mode: mode, rowid: rowid),
+          createCompanionCallback: ({
+            required String id,
+            Value<String> mode = const Value.absent(),
+            Value<int> rowid = const Value.absent(),
+          }) => BudgetPrefsCompanion.insert(id: id, mode: mode, rowid: rowid),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$BudgetPrefsTable, BudgetPrefRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $BudgetPrefsTable,
+                    BudgetPrefRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BudgetPrefsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $BudgetPrefsTable,
+      BudgetPrefRow,
+      $$BudgetPrefsTableFilterComposer,
+      $$BudgetPrefsTableOrderingComposer,
+      $$BudgetPrefsTableAnnotationComposer,
+      $$BudgetPrefsTableCreateCompanionBuilder,
+      $$BudgetPrefsTableUpdateCompanionBuilder,
+      (
+        BudgetPrefRow,
+        BaseReferences<_$PulseDatabase, $BudgetPrefsTable, BudgetPrefRow>,
+      ),
+      BudgetPrefRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -28893,4 +30483,8 @@ class $PulseDatabaseManager {
       $$HouseholdLimitsTableTableManager(_db, _db.householdLimits);
   $$HouseholdMirrorTableTableManager get householdMirror =>
       $$HouseholdMirrorTableTableManager(_db, _db.householdMirror);
+  $$BudgetMovesTableTableManager get budgetMoves =>
+      $$BudgetMovesTableTableManager(_db, _db.budgetMoves);
+  $$BudgetPrefsTableTableManager get budgetPrefs =>
+      $$BudgetPrefsTableTableManager(_db, _db.budgetPrefs);
 }

@@ -38,6 +38,8 @@ part 'database.g.dart';
     HouseholdBills,
     HouseholdLimits,
     HouseholdMirror,
+    BudgetMoves,
+    BudgetPrefs,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -45,7 +47,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 6;
+  static const currentSchemaVersion = 7;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -111,6 +113,20 @@ class PulseDatabase extends _$PulseDatabase {
         await m.createTable(schema.householdBills);
         await m.createTable(schema.householdLimits);
         await m.createTable(schema.householdMirror);
+      },
+      // v7: flex budgeting. A budget group, rollover and sinking-fund cycle
+      // on categories, plus `budget_moves` and `budget_prefs`. Additive only:
+      // every category keeps its group by default (fixed stays Fixed, the
+      // rest Flexible), no rollover, and no moves.
+      from6To7: (m, schema) async {
+        await m.addColumn(schema.categories, schema.categories.budgetGroup);
+        await m.addColumn(schema.categories, schema.categories.rollover);
+        await m.addColumn(schema.categories, schema.categories.rolloverStart);
+        await m.addColumn(schema.categories, schema.categories.rolloverStartMinor);
+        await m.addColumn(schema.categories, schema.categories.cycleCostMinor);
+        await m.addColumn(schema.categories, schema.categories.cycleMonths);
+        await m.createTable(schema.budgetMoves);
+        await m.createTable(schema.budgetPrefs);
       },
     ),
     beforeOpen: (details) async {

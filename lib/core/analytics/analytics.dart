@@ -73,6 +73,9 @@ class AnalyticsEvent {
   /// Household planning. No names, amounts or member counts.
   static const householdCreated = AnalyticsEvent._('household_created');
   static const householdMemberJoined = AnalyticsEvent._('household_member_joined');
+  /// `mode`: flex | category. Never a category, an amount or a month.
+  factory AnalyticsEvent.budgetModeChanged(String mode) => AnalyticsEvent._('budget_mode_changed', {'mode': mode});
+  static const moneyMoved = AnalyticsEvent._('money_moved');
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 

@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/engine/dates.dart';
 import '../../core/household/household_engine.dart';
+import '../../core/household/household_models.dart' show HLimit;
 import '../../core/router/router.dart';
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
@@ -12,6 +13,9 @@ import '../../core/widgets/widgets.dart';
 import '../../data/household_service.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../../core/engine/budget_moves.dart';
+import '../../core/engine/flex_budget.dart' show monthKeyFor;
+import '../budgets/move_money_sheet.dart';
 import '../goals/goal_widgets.dart' show aedMinor;
 import 'household_common.dart';
 import 'household_screen.dart' show JointLimitSheet, addJointLimit;
@@ -60,7 +64,24 @@ class JointBudgetView extends ConsumerWidget {
     final c = context.pc;
     final now = this.now ?? DateTime.now();
     final cats = ref.watch(categoriesProvider).value ?? SpendCategory.defaults;
-    final b = jointBudget(j.limits, j.txs, month: now, me: j.me, shareMine: j.shareMine);
+    // Money moved between joint limits this month sits on top of the limits.
+    final moves = ref.watch(budgetMovesProvider).value ?? const <BudgetMove>[];
+    final monthKey = monthKeyFor(now);
+    final delta = moveDeltas(moves, month: monthKey, scope: MoveScope.joint);
+    final b = jointBudget(
+      [
+        for (final l in j.limits)
+          HLimit(id: l.id, categoryId: l.categoryId, limitMinor: l.limitMinor + (delta[l.categoryId] ?? 0), currency: l.currency),
+      ],
+      j.txs,
+      month: now,
+      me: j.me,
+      shareMine: j.shareMine,
+    );
+    final jointMoves = [
+      for (final m in moves.reversed)
+        if (m.month == monthKey && m.scope == MoveScope.joint) m,
+    ];
     final from = DateTime.utc(now.year, now.month, 1), to = DateTime.utc(now.year, now.month + 1, 1);
     final by = spendByMember(j.txs, from: from, to: to, me: j.me, shareMine: j.shareMine);
     final totalSpent = by.fold(0, (a, s) => a + s.spentMinor);
@@ -118,6 +139,45 @@ class JointBudgetView extends ConsumerWidget {
               for (final l in b.lines)
                 _LimitRow(l, categoryFor(cats, l.limit.categoryId), j),
             ],
+          ),
+        if (b.lines.length >= 2)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: TextAction(
+                'Move money',
+                key: const Key('joint_move'),
+                color: c.accent,
+                onTap: () => showMoveMoney(
+                  context,
+                  ref,
+                  month: now,
+                  scope: MoveScope.joint,
+                  sources: [
+                    for (final l in b.lines)
+                      MoveSource(categoryFor(cats, l.limit.categoryId), l.limit.limitMinor, l.spentMinor),
+                  ],
+                  targets: [for (final l in b.lines) categoryFor(cats, l.limit.categoryId)],
+                  onChanged: () => ref.invalidate(budgetMovesProvider),
+                ),
+              ),
+            ),
+          ),
+        for (final m in jointMoves)
+          ListRow(
+            key: Key('joint_move_${m.id}'),
+            dense: true,
+            title: '${categoryFor(cats, m.fromId).label} to ${categoryFor(cats, m.toId).label}',
+            subtitle: aedMinor(m.amountMinor),
+            trailing: TextAction(
+              'Undo',
+              color: c.accent,
+              onTap: () async {
+                await ref.read(budgetPlanServiceProvider).undoMove(m.id);
+                ref.invalidate(budgetMovesProvider);
+              },
+            ),
           ),
         const SectionHeader('Who spent it'),
         if (by.isEmpty)
@@ -225,7 +285,7 @@ class _LimitRow extends ConsumerWidget {
     return Pressable(
       onTap: () => showPulseSheet<void>(
         context,
-        builder: (_) => JointLimitSheet(categoryId: cat.id, categoryLabel: cat.label, existing: l.limit),
+        builder: (_) => JointLimitSheet(categoryId: cat.id, categoryLabel: cat.label, existing: j.limits.firstWhere((x) => x.id == l.limit.id, orElse: () => l.limit)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: Space.md),

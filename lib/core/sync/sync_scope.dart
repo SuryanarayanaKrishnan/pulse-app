@@ -15,6 +15,8 @@ const syncedTables = <String>{
   'categories',
   'transactions',
   'budgets',
+  'budget_moves',
+  'budget_prefs',
   'merchant_rules',
   'statements',
   'statement_lines',

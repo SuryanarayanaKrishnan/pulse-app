@@ -229,6 +229,55 @@ void main() {
     expect((await p2.sync()).idle, isTrue);
   });
 
+  test('flex budget: moves and mode are allow-listed, the group and rollover columns travel with the category', () async {
+    expect(syncedTables, containsAll(['budget_moves', 'budget_prefs', 'budgets', 'categories']));
+    for (final c in ['budget_group', 'rollover', 'rollover_start', 'rollover_start_minor', 'cycle_cost_minor', 'cycle_months']) {
+      expect(isSyncedColumn('categories', c), isTrue, reason: c);
+    }
+    for (final c in ['id', 'scope', 'month', 'from_category_id', 'to_category_id', 'amount_minor', 'deleted_at']) {
+      expect(isSyncedColumn('budget_moves', c), isTrue, reason: c);
+    }
+  });
+
+  test('a category set to Non-monthly with a yearly cost, a move and its undo, and the mode reach my other phone', () async {
+    await p1.db.customStatement(
+      "INSERT INTO categories (id, name, kind, budget_group, rollover, cycle_cost_minor, cycle_months) "
+      "VALUES ('fee', 'Card fee', 'expense', 'nonmonthly', 1, 36500, 12)",
+    );
+    await p1.db.customStatement("INSERT INTO budget_prefs (id, mode) VALUES ('main', 'category')");
+    await p1.db.customStatement(
+      "INSERT INTO budget_moves (id, scope, month, from_category_id, to_category_id, amount_minor) "
+      "VALUES ('m1', 'me', '2026-11-01', 'dining', 'fee', 12345)",
+    );
+    await p1.db.customStatement(
+      "INSERT INTO budget_moves (id, scope, month, from_category_id, to_category_id, amount_minor) "
+      "VALUES ('m2', 'shared', '2026-11-01', 'a', 'b', 700)",
+    );
+    p1.nowMs += 1000;
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows("SELECT budget_group, rollover, cycle_cost_minor, cycle_months FROM categories WHERE id = 'fee'"), [
+      {'budget_group': 'nonmonthly', 'rollover': 1, 'cycle_cost_minor': 36500, 'cycle_months': 12},
+    ]);
+    expect(await p2.rows('SELECT mode FROM budget_prefs'), [
+      {'mode': 'category'},
+    ]);
+    expect(await p2.rows('SELECT id, scope, amount_minor FROM budget_moves ORDER BY id'), [
+      {'id': 'm1', 'scope': 'me', 'amount_minor': 12345},
+      {'id': 'm2', 'scope': 'shared', 'amount_minor': 700},
+    ]);
+
+    // Undo on the first phone (soft delete) reaches the second.
+    p1.nowMs += 1000;
+    await p1.db.customStatement("UPDATE budget_moves SET deleted_at = 1790000000 WHERE id = 'm1'");
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows("SELECT deleted_at FROM budget_moves WHERE id = 'm1'"), [
+      {'deleted_at': 1790000000},
+    ]);
+    expect((await p2.sync()).idle, isTrue);
+  });
+
   test('every allow-listed table exists with a primary key', () async {
     final snap = await DriftSyncBridge(p1.db).read();
     expect(snap.keys.toSet(), syncedTables);

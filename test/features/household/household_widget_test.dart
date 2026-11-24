@@ -313,7 +313,7 @@ void main() {
     testWidgets('Budget: no toggle without a household', (tester) async {
       await pumpApp(tester, Rig(), '/budget');
       expect(find.byKey(const Key('scope_toggle')), findsNothing);
-      expect(find.text('Spent this month'), findsOneWidget);
+      expect(find.text('Flexible left'), findsOneWidget);
     });
 
     testWidgets('Budget: Joint shows limits, who spent it, bills and goals', (tester) async {
