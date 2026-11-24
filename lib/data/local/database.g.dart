@@ -2003,6 +2003,17 @@ class $CategoriesTable extends Categories
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _iconKeyMeta = const VerificationMeta(
+    'iconKey',
+  );
+  @override
+  late final GeneratedColumn<String> iconKey = GeneratedColumn<String>(
+    'icon_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _colorMeta = const VerificationMeta('color');
   @override
   late final GeneratedColumn<String> color = GeneratedColumn<String>(
@@ -2073,6 +2084,7 @@ class $CategoriesTable extends Categories
     kind,
     isFixed,
     icon,
+    iconKey,
     color,
     sortOrder,
     parentId,
@@ -2126,6 +2138,12 @@ class $CategoriesTable extends Categories
       context.handle(
         _iconMeta,
         icon.isAcceptableOrUnknown(data['icon']!, _iconMeta),
+      );
+    }
+    if (data.containsKey('icon_key')) {
+      context.handle(
+        _iconKeyMeta,
+        iconKey.isAcceptableOrUnknown(data['icon_key']!, _iconKeyMeta),
       );
     }
     if (data.containsKey('color')) {
@@ -2191,6 +2209,10 @@ class $CategoriesTable extends Categories
         DriftSqlType.string,
         data['${effectivePrefix}icon'],
       ),
+      iconKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_key'],
+      ),
       color: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}color'],
@@ -2230,6 +2252,11 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
   final String kind;
   final bool isFixed;
   final String? icon;
+
+  /// The glyph a user picked for a custom category (a key of the Pulse
+  /// category icon family). Null for defaults, which have fixed glyphs.
+  /// Synced like any other column.
+  final String? iconKey;
   final String? color;
   final int sortOrder;
   final String? parentId;
@@ -2242,6 +2269,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     required this.kind,
     required this.isFixed,
     this.icon,
+    this.iconKey,
     this.color,
     required this.sortOrder,
     this.parentId,
@@ -2260,6 +2288,9 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     map['is_fixed'] = Variable<bool>(isFixed);
     if (!nullToAbsent || icon != null) {
       map['icon'] = Variable<String>(icon);
+    }
+    if (!nullToAbsent || iconKey != null) {
+      map['icon_key'] = Variable<String>(iconKey);
     }
     if (!nullToAbsent || color != null) {
       map['color'] = Variable<String>(color);
@@ -2281,6 +2312,9 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       kind: Value(kind),
       isFixed: Value(isFixed),
       icon: icon == null && nullToAbsent ? const Value.absent() : Value(icon),
+      iconKey: iconKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconKey),
       color: color == null && nullToAbsent
           ? const Value.absent()
           : Value(color),
@@ -2305,6 +2339,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       kind: serializer.fromJson<String>(json['kind']),
       isFixed: serializer.fromJson<bool>(json['isFixed']),
       icon: serializer.fromJson<String?>(json['icon']),
+      iconKey: serializer.fromJson<String?>(json['iconKey']),
       color: serializer.fromJson<String?>(json['color']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       parentId: serializer.fromJson<String?>(json['parentId']),
@@ -2322,6 +2357,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       'kind': serializer.toJson<String>(kind),
       'isFixed': serializer.toJson<bool>(isFixed),
       'icon': serializer.toJson<String?>(icon),
+      'iconKey': serializer.toJson<String?>(iconKey),
       'color': serializer.toJson<String?>(color),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'parentId': serializer.toJson<String?>(parentId),
@@ -2337,6 +2373,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     String? kind,
     bool? isFixed,
     Value<String?> icon = const Value.absent(),
+    Value<String?> iconKey = const Value.absent(),
     Value<String?> color = const Value.absent(),
     int? sortOrder,
     Value<String?> parentId = const Value.absent(),
@@ -2349,6 +2386,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     kind: kind ?? this.kind,
     isFixed: isFixed ?? this.isFixed,
     icon: icon.present ? icon.value : this.icon,
+    iconKey: iconKey.present ? iconKey.value : this.iconKey,
     color: color.present ? color.value : this.color,
     sortOrder: sortOrder ?? this.sortOrder,
     parentId: parentId.present ? parentId.value : this.parentId,
@@ -2363,6 +2401,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
       kind: data.kind.present ? data.kind.value : this.kind,
       isFixed: data.isFixed.present ? data.isFixed.value : this.isFixed,
       icon: data.icon.present ? data.icon.value : this.icon,
+      iconKey: data.iconKey.present ? data.iconKey.value : this.iconKey,
       color: data.color.present ? data.color.value : this.color,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
@@ -2380,6 +2419,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           ..write('kind: $kind, ')
           ..write('isFixed: $isFixed, ')
           ..write('icon: $icon, ')
+          ..write('iconKey: $iconKey, ')
           ..write('color: $color, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('parentId: $parentId, ')
@@ -2397,6 +2437,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
     kind,
     isFixed,
     icon,
+    iconKey,
     color,
     sortOrder,
     parentId,
@@ -2413,6 +2454,7 @@ class CategoryRow extends DataClass implements Insertable<CategoryRow> {
           other.kind == this.kind &&
           other.isFixed == this.isFixed &&
           other.icon == this.icon &&
+          other.iconKey == this.iconKey &&
           other.color == this.color &&
           other.sortOrder == this.sortOrder &&
           other.parentId == this.parentId &&
@@ -2427,6 +2469,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
   final Value<String> kind;
   final Value<bool> isFixed;
   final Value<String?> icon;
+  final Value<String?> iconKey;
   final Value<String?> color;
   final Value<int> sortOrder;
   final Value<String?> parentId;
@@ -2440,6 +2483,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.kind = const Value.absent(),
     this.isFixed = const Value.absent(),
     this.icon = const Value.absent(),
+    this.iconKey = const Value.absent(),
     this.color = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -2454,6 +2498,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     this.kind = const Value.absent(),
     this.isFixed = const Value.absent(),
     this.icon = const Value.absent(),
+    this.iconKey = const Value.absent(),
     this.color = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -2469,6 +2514,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Expression<String>? kind,
     Expression<bool>? isFixed,
     Expression<String>? icon,
+    Expression<String>? iconKey,
     Expression<String>? color,
     Expression<int>? sortOrder,
     Expression<String>? parentId,
@@ -2483,6 +2529,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       if (kind != null) 'kind': kind,
       if (isFixed != null) 'is_fixed': isFixed,
       if (icon != null) 'icon': icon,
+      if (iconKey != null) 'icon_key': iconKey,
       if (color != null) 'color': color,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (parentId != null) 'parent_id': parentId,
@@ -2499,6 +2546,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     Value<String>? kind,
     Value<bool>? isFixed,
     Value<String?>? icon,
+    Value<String?>? iconKey,
     Value<String?>? color,
     Value<int>? sortOrder,
     Value<String?>? parentId,
@@ -2513,6 +2561,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
       kind: kind ?? this.kind,
       isFixed: isFixed ?? this.isFixed,
       icon: icon ?? this.icon,
+      iconKey: iconKey ?? this.iconKey,
       color: color ?? this.color,
       sortOrder: sortOrder ?? this.sortOrder,
       parentId: parentId ?? this.parentId,
@@ -2542,6 +2591,9 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
     }
     if (icon.present) {
       map['icon'] = Variable<String>(icon.value);
+    }
+    if (iconKey.present) {
+      map['icon_key'] = Variable<String>(iconKey.value);
     }
     if (color.present) {
       map['color'] = Variable<String>(color.value);
@@ -2573,6 +2625,7 @@ class CategoriesCompanion extends UpdateCompanion<CategoryRow> {
           ..write('kind: $kind, ')
           ..write('isFixed: $isFixed, ')
           ..write('icon: $icon, ')
+          ..write('iconKey: $iconKey, ')
           ..write('color: $color, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('parentId: $parentId, ')
@@ -16332,6 +16385,7 @@ typedef $$CategoriesTableCreateCompanionBuilder = CategoriesCompanion Function({
   Value<String> kind,
   Value<bool> isFixed,
   Value<String?> icon,
+  Value<String?> iconKey,
   Value<String?> color,
   Value<int> sortOrder,
   Value<String?> parentId,
@@ -16346,6 +16400,7 @@ typedef $$CategoriesTableUpdateCompanionBuilder = CategoriesCompanion Function({
   Value<String> kind,
   Value<bool> isFixed,
   Value<String?> icon,
+  Value<String?> iconKey,
   Value<String?> color,
   Value<int> sortOrder,
   Value<String?> parentId,
@@ -16450,6 +16505,11 @@ class $$CategoriesTableFilterComposer
 
   ColumnFilters<String> get icon => $composableBuilder(
     column: $table.icon,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconKey => $composableBuilder(
+    column: $table.iconKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16593,6 +16653,11 @@ class $$CategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get iconKey => $composableBuilder(
+    column: $table.iconKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get color => $composableBuilder(
     column: $table.color,
     builder: (column) => ColumnOrderings(column),
@@ -16645,6 +16710,9 @@ class $$CategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get icon =>
       $composableBuilder(column: $table.icon, builder: (column) => column);
+
+  GeneratedColumn<String> get iconKey =>
+      $composableBuilder(column: $table.iconKey, builder: (column) => column);
 
   GeneratedColumn<String> get color =>
       $composableBuilder(column: $table.color, builder: (column) => column);
@@ -16775,6 +16843,7 @@ class $$CategoriesTableTableManager
                 Value<String> kind = const Value.absent(),
                 Value<bool> isFixed = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<String?> iconKey = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
@@ -16788,6 +16857,7 @@ class $$CategoriesTableTableManager
                 kind: kind,
                 isFixed: isFixed,
                 icon: icon,
+                iconKey: iconKey,
                 color: color,
                 sortOrder: sortOrder,
                 parentId: parentId,
@@ -16803,6 +16873,7 @@ class $$CategoriesTableTableManager
                 Value<String> kind = const Value.absent(),
                 Value<bool> isFixed = const Value.absent(),
                 Value<String?> icon = const Value.absent(),
+                Value<String?> iconKey = const Value.absent(),
                 Value<String?> color = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<String?> parentId = const Value.absent(),
@@ -16816,6 +16887,7 @@ class $$CategoriesTableTableManager
                 kind: kind,
                 isFixed: isFixed,
                 icon: icon,
+                iconKey: iconKey,
                 color: color,
                 sortOrder: sortOrder,
                 parentId: parentId,

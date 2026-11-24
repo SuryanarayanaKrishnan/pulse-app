@@ -39,7 +39,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 3;
+  static const currentSchemaVersion = 4;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -69,6 +69,11 @@ class PulseDatabase extends _$PulseDatabase {
       from2To3: (m, schema) async {
         await m.addColumn(schema.transactions, schema.transactions.reviewed);
         await schema.database.customStatement('UPDATE transactions SET reviewed = 1');
+      },
+      // v4: `categories.icon_key`, the glyph picked for a custom category.
+      // Null everywhere to start with; defaults resolve theirs from the slug.
+      from3To4: (m, schema) async {
+        await m.addColumn(schema.categories, schema.categories.iconKey);
       },
     ),
     beforeOpen: (details) async {

@@ -27,7 +27,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 3);
+    await verifier.migrateAndValidate(db, 4);
 
     final old = await db.select(db.transactions).getSingle();
     expect(old.reviewed, isTrue, reason: 'no backlog after an update');
@@ -37,7 +37,7 @@ void main() {
     final schema = await verifier.schemaAt(3);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 3);
+    await verifier.migrateAndValidate(db, 4);
     await db.customStatement(
       "INSERT INTO accounts (id, type, name, currency, created_at) VALUES ('a1', 'cash', 'Cash', 'AED', 0)",
     );
@@ -46,6 +46,5 @@ void main() {
         .customSelect('SELECT reviewed FROM transactions WHERE id = ?', variables: [Variable('fresh')])
         .getSingle();
     expect(row.read<int>('reviewed'), 0);
-    expect(PulseDatabase.currentSchemaVersion, 3);
   });
 }

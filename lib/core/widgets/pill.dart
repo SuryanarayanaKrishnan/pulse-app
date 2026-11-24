@@ -10,11 +10,15 @@ class Pill extends StatelessWidget {
     this.label, {
     super.key,
     this.icon,
+    this.leading,
     this.selected = false,
     this.onTap,
   });
   final String label;
   final IconData? icon;
+
+  /// A custom leading widget (a category glyph); wins over [icon].
+  final Widget? leading;
   final bool selected;
   final VoidCallback? onTap;
 
@@ -34,7 +38,10 @@ class Pill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[
+          if (leading != null) ...[
+            leading!,
+            const SizedBox(width: 6),
+          ] else if (icon != null) ...[
             Icon(icon, size: 16, color: fg),
             const SizedBox(width: 6),
           ],

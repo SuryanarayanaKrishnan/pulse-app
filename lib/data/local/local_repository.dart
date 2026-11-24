@@ -103,7 +103,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     if (known != null) return known;
     if (c.id == 'other_income') return SpendCategory.income;
     if (c.id == 'transfer') return SpendCategory.cardPayments;
-    return SpendCategory.custom(c.id, c.name, kind: _kind(c.kind));
+    return SpendCategory.custom(c.id, c.name, kind: _kind(c.kind), iconKey: c.iconKey);
   }
 
   Transaction _toTx(TxRow t, Map<String, AccountRow> accounts, Map<String, CategoryRow> cats) {
@@ -392,17 +392,33 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     final rows = await (db.select(db.categories)..where((c) => c.isHidden.equals(false) & c.isCustom.equals(true))).get();
     return [
       ...SpendCategory.defaults,
-      for (final r in rows) SpendCategory.custom(r.id, r.name, kind: _kind(r.kind)),
+      for (final r in rows) SpendCategory.custom(r.id, r.name, kind: _kind(r.kind), iconKey: r.iconKey),
     ];
   }
 
   @override
-  Future<SpendCategory> createCategory({required String name, CategoryKind kind = CategoryKind.expense}) async {
+  Future<SpendCategory> createCategory({required String name, CategoryKind kind = CategoryKind.expense, String? iconKey}) async {
     final id = newId('c_');
     await db.into(db.categories).insert(
-      CategoriesCompanion.insert(id: id, name: name.trim(), kind: Value(kind.name), isCustom: const Value(true), sortOrder: const Value(1000)),
+      CategoriesCompanion.insert(
+        id: id,
+        name: name.trim(),
+        kind: Value(kind.name),
+        isCustom: const Value(true),
+        sortOrder: const Value(1000),
+        iconKey: Value(iconKey),
+      ),
     );
-    return SpendCategory.custom(id, name.trim(), kind: kind);
+    return SpendCategory.custom(id, name.trim(), kind: kind, iconKey: iconKey);
+  }
+
+  @override
+  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async {
+    if (!category.custom) return category;
+    await (db.update(db.categories)..where((c) => c.id.equals(category.id) & c.isCustom.equals(true))).write(
+      CategoriesCompanion(iconKey: Value(iconKey)),
+    );
+    return SpendCategory.custom(category.id, category.label, kind: category.kind, iconKey: iconKey);
   }
 
   /// Limit per category in force for [month] (`yyyy-MM-01`): the latest

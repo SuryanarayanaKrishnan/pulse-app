@@ -69,7 +69,7 @@ class _CategoryPicker extends ConsumerWidget {
                   for (final x in g.value)
                     ListRow(
                       dense: true,
-                      leading: IconWell(x.icon),
+                      leading: CategoryIcon.well(x),
                       title: x.label,
                       trailing: x == selected
                           ? Icon(Icons.check_rounded, color: c.accent, size: 20)

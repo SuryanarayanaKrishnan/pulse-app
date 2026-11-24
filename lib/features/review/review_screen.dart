@@ -451,7 +451,7 @@ class _CardFace extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: Space.xl),
-            IconWell(tx.category.icon, size: 48),
+            CategoryIcon.well(tx.category, size: 48),
             const SizedBox(height: Space.xl),
             Text(
               tx.merchant,
@@ -472,7 +472,7 @@ class _CardFace extends StatelessWidget {
               animate: false,
             ),
             const SizedBox(height: Space.lg),
-            Pill(tx.category.label, icon: tx.category.icon),
+            Pill(tx.category.label, leading: CategoryIcon(tx.category, size: 18)),
             const Spacer(),
             _Line(icon: Icons.credit_card_rounded, text: tx.accountLabel),
             if (note != null) _Line(icon: Icons.stars_rounded, text: note),

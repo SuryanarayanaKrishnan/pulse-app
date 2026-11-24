@@ -93,7 +93,7 @@ class SpendByCategory extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: Space.sm + 2),
             child: Row(
               children: [
-                IconWell(e.key.icon),
+                CategoryIcon.well(e.key),
                 const SizedBox(width: Space.md),
                 Expanded(
                   child: Column(

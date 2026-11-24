@@ -16,7 +16,7 @@ class TxTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     return ListRow(
-      leading: IconWell(tx.category.icon),
+      leading: CategoryIcon.well(tx.category),
       title: tx.merchant,
       titleStyle: context.tt.bodyLarge!.copyWith(
         color: tx.excluded ? c.textTertiary : null,
