@@ -7,6 +7,7 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../wallet/add_sheets.dart';
 
 /// "12 min ago", "3 h ago", "6 days ago".
 String ago(DateTime t, {DateTime? now}) {
@@ -32,7 +33,20 @@ class WealthScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.only(bottom: 120),
           children: [
-            const ScreenHeader('Wealth', subtitle: 'Assets and liabilities'),
+            ScreenHeader(
+              'Wealth',
+              subtitle: 'Assets and liabilities',
+              trailing: [
+                RoundIconButton(
+                  icon: Icons.add_rounded,
+                  label: 'Add an asset or loan',
+                  onTap: () => showPulseSheet<void>(
+                    context,
+                    builder: (_) => const AddAssetSheet(),
+                  ),
+                ),
+              ],
+            ),
             if (nw != null) ...[
               HeroNumber(
                 label: 'Net worth',
@@ -130,7 +144,23 @@ class WealthScreen extends ConsumerWidget {
               value: assets,
               loading: const SkeletonList(rows: 4),
               onRetry: () => ref.invalidate(assetsProvider),
-              builder: (list) => _Body(list),
+              builder: (list) => list.isEmpty
+                  ? EmptyState(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: 'Nothing here yet',
+                      message:
+                          'Add what you own and owe: accounts, property, gold, '
+                          'deposits, loans. Net worth is worked out on this phone.',
+                      action: PrimaryButton(
+                        label: 'Add an asset',
+                        expand: false,
+                        onPressed: () => showPulseSheet<void>(
+                          context,
+                          builder: (_) => const AddAssetSheet(),
+                        ),
+                      ),
+                    )
+                  : _Body(list),
             ),
           ],
         ),

@@ -12,6 +12,8 @@ import '../../data/card_ranking.dart';
 import '../../data/card_util.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../../data/local/local_repository.dart';
+import '../wallet/add_sheets.dart';
 import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
@@ -50,6 +52,11 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                 'Cards',
                 subtitle: 'Your wallet',
                 trailing: [
+                  RoundIconButton(
+                    icon: Icons.add_rounded,
+                    label: 'Add a card or account',
+                    onTap: () => showAddMenu(context),
+                  ),
                   RoundIconButton(
                     icon: Icons.bolt_rounded,
                     label: 'Which card should I use?',
@@ -104,10 +111,21 @@ class _CardsView extends ConsumerWidget {
       onRetry: () => ref.invalidate(myCardsProvider),
       builder: (list) {
         if (list.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.credit_card_outlined,
             title: 'No cards yet',
-            message: 'Cards appear here once a statement or alert arrives.',
+            message:
+                'Add the cards you carry. Pulse then tracks what each one '
+                'earns and which to use, all on this phone.',
+            action: PrimaryButton(
+              label: 'Add a card',
+              expand: false,
+              onPressed: () => showPulseSheet<void>(
+                context,
+                builder: (_) => const AddCardSheet(),
+                full: true,
+              ),
+            ),
           );
         }
         final standings = cardStandings(list, txs);
@@ -236,10 +254,20 @@ class _AccountsView extends ConsumerWidget {
       onRetry: () => ref.invalidate(bankAccountsProvider),
       builder: (list) {
         if (list.isEmpty) {
-          return const EmptyState(
+          return EmptyState(
             icon: Icons.account_balance_outlined,
             title: 'No accounts yet',
-            message: 'Accounts appear once a statement or alert arrives.',
+            message:
+                'Add your bank accounts so balances and safe-to-spend are '
+                'real. Alerts then keep them current.',
+            action: PrimaryButton(
+              label: 'Add an account',
+              expand: false,
+              onPressed: () => showPulseSheet<void>(
+                context,
+                builder: (_) => const AddAccountSheet(),
+              ),
+            ),
           );
         }
         final total = list.fold<double>(0, (a, k) => a + k.balance);
@@ -324,6 +352,15 @@ class _CatalogRow extends ConsumerWidget {
           : '${Money.aed(card.annualFee, decimals: false)} a year',
     ].where((s) => s.isNotEmpty).join(' · '),
     chevron: true,
-    onTap: () => ref.read(analyticsProvider).track(AnalyticsEvent.cardAdded),
+    onTap: () {
+      ref.read(analyticsProvider).track(AnalyticsEvent.cardAdded);
+      if (ref.read(repositoryProvider) is LocalPulseRepository) {
+        showPulseSheet<void>(
+          context,
+          builder: (_) => AddCardSheet(initial: card),
+          full: true,
+        );
+      }
+    },
   );
 }

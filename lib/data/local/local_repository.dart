@@ -906,7 +906,6 @@ class LocalPulseRepository implements PulseRepository {
       labels: labels,
       changeAed: change,
       changePct: prev == 0 ? 0 : change / prev.abs() * 100,
-      updatedAt: _clock(),
     );
   }
 
