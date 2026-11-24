@@ -210,12 +210,38 @@ class AppleInboxCapturePlatform extends UnsupportedCapturePlatform {
     for (final e in raw ?? const <Object?>[]) {
       final m = Map<Object?, Object?>.from(e! as Map);
       final id = '${m['id']}';
+      if (m['kind'] == 'sms') {
+        final body = '${m['body'] ?? ''}'.trim();
+        if (body.isEmpty) {
+          garbage.add(id);
+        } else {
+          out.add(
+            CapturedEvent(
+              id: id,
+              kind: 'sms',
+              body: body,
+              sender: m['sender'] as String?,
+              timestamp: DateTime.fromMillisecondsSinceEpoch(
+                ((m['ts'] as num?) ?? 0).toInt() * 1000,
+              ),
+            ),
+          );
+        }
+        continue;
+      }
       final tx = ShortcutTransaction.tryParse(
         Uri(
           scheme: 'pulse',
           host: 'ingest',
           queryParameters: {
-            for (final k in const ['amount', 'merchant', 'card', 'currency', 'ts', 'direction'])
+            for (final k in const [
+              'amount',
+              'merchant',
+              'card',
+              'currency',
+              'ts',
+              'direction',
+            ])
               if (m[k] != null) k: '${m[k]}',
           },
         ),

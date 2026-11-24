@@ -50,6 +50,28 @@ enum ShortcutInbox {
     return id
   }
 
+  /// Appends one bank SMS forwarded by a Shortcuts "Message" automation. The
+  /// text is parsed on the phone like an Android SMS.
+  @discardableResult
+  static func appendSms(body: String, sender: String?) throws -> String {
+    let id = UUID().uuidString
+    var item: [String: Any] = [
+      "id": id,
+      "kind": "sms",
+      "body": body,
+      "ts": Int(Date().timeIntervalSince1970),
+    ]
+    if let sender = sender, !sender.isEmpty { item["sender"] = sender }
+    let data = try JSONSerialization.data(withJSONObject: item)
+    lock.lock()
+    defer { lock.unlock() }
+    try data.write(
+      to: directory.appendingPathComponent("\(id).json"),
+      options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+    )
+    return id
+  }
+
   /// Everything waiting, oldest first.
   static func peek() -> [[String: Any]] {
     lock.lock()
@@ -129,6 +151,26 @@ struct RecordPaymentIntent: AppIntent {
   }
 }
 
+/// The action a Shortcuts "Message" automation runs for a bank SMS.
+@available(iOS 16.0, *)
+struct RecordBankSmsIntent: AppIntent {
+  static let title: LocalizedStringResource = "Record Bank SMS"
+  static let description = IntentDescription(
+    "Adds a bank text message to Pulse on this phone. Nothing is sent to a server.")
+  static let openAppWhenRun: Bool = false
+
+  @Parameter(title: "Message")
+  var message: String
+
+  @Parameter(title: "Sender")
+  var sender: String?
+
+  func perform() async throws -> some IntentResult {
+    try ShortcutInbox.appendSms(body: message, sender: sender)
+    return .result()
+  }
+}
+
 @available(iOS 16.0, *)
 struct PulseShortcuts: AppShortcutsProvider {
   static var appShortcuts: [AppShortcut] {
@@ -137,6 +179,12 @@ struct PulseShortcuts: AppShortcutsProvider {
       phrases: ["Record a payment in \(.applicationName)"],
       shortTitle: "Record Payment",
       systemImageName: "creditcard"
+    )
+    AppShortcut(
+      intent: RecordBankSmsIntent(),
+      phrases: ["Record a bank text in \(.applicationName)"],
+      shortTitle: "Record Bank SMS",
+      systemImageName: "message"
     )
   }
 }

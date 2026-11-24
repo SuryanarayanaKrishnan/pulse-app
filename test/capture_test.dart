@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/capture/apple_shortcut.dart';
 import 'package:pulse/capture/capture_config.dart';
@@ -286,5 +288,51 @@ void main() {
     expect(t.length, greaterThan(40));
     expect(await IngestTokenStore(kv).token(), t);
     expect(await store.rotate(), isNot(t));
+  });
+
+  test(
+    'first Apple Pay Shortcut payment is remembered for setup check',
+    () async {
+      expect(await service.shortcutFirstSeen(), isNull);
+      platform.buffer.add(
+        CapturedEvent.fromShortcut(
+          'a1',
+          ShortcutTransaction(
+            amountMinor: 4550,
+            merchant: 'Cafe',
+            currency: 'AED',
+            timestamp: DateTime(2026, 11, 24),
+          ),
+        ),
+      );
+      await service.start();
+      await service.drain();
+      expect(await service.shortcutFirstSeen(), isNotNull);
+    },
+  );
+
+  test('iOS inbox maps a forwarded bank SMS to an sms event', () async {
+    TestWidgetsFlutterBinding.ensureInitialized();
+    const ch = MethodChannel('pulse/shortcut_inbox');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(ch, (call) async {
+          if (call.method == 'peekPending') {
+            return [
+              {
+                'id': 'u1',
+                'kind': 'sms',
+                'body': 'AED 45.00 spent at CAFE card 4821',
+                'sender': 'ADCBAlert',
+                'ts': 1795000000,
+              },
+              {'id': 'u2', 'kind': 'sms', 'body': '  '},
+            ];
+          }
+          return null;
+        });
+    final events = await AppleInboxCapturePlatform(methods: ch).peekPending();
+    expect(events, hasLength(1));
+    expect(events.single.kind, 'sms');
+    expect(events.single.sender, 'ADCBAlert');
   });
 }

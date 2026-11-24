@@ -32,6 +32,15 @@ class CaptureService {
 
   static const backfillFlagKey = 'capture.sms_backfill_done';
 
+  /// ISO time of the first Apple Pay Shortcut payment received. The guided
+  /// iPhone setup watches this to confirm the automation really runs.
+  static const shortcutSeenKey = 'capture.shortcut_first_seen';
+
+  Future<DateTime?> shortcutFirstSeen() async {
+    final v = await kv.read(shortcutSeenKey);
+    return v == null ? null : DateTime.tryParse(v);
+  }
+
   StreamSubscription<void>? _sub;
   Timer? _timer;
   bool _started = false;
@@ -87,6 +96,10 @@ class CaptureService {
             // One-time codes are never queued, parsed or stored anywhere.
             if (isOtpMessage(e.body) || isOtpMessage(e.title ?? '')) continue;
             await queue.enqueue(e.toPending(now));
+            if (e.kind == 'apple_shortcut' &&
+                await kv.read(shortcutSeenKey) == null) {
+              await kv.write(shortcutSeenKey, now.toIso8601String());
+            }
           }
           // Only after the items are durably queued.
           await platform.ackPending([for (final e in events) e.id]);
