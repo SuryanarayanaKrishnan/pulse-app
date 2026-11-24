@@ -215,6 +215,28 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen>
                 'Noon order, double-tap the back of the phone. The text is read '
                 'on the phone and the image is thrown away.',
           ),
+          const SizedBox(height: Space.xl),
+          Text(
+            'Nudge after shopping apps (optional)',
+            style: context.tt.titleMedium,
+          ),
+          const SizedBox(height: Space.sm),
+          _step(
+            context,
+            9,
+            'Add an "App is closed" automation',
+            'In Automation tap +, then App. Choose Noon, Talabat, Tabby and '
+                'Careem, pick Is Closed, and Run Immediately.',
+          ),
+          _step(
+            context,
+            10,
+            'Ask, then capture',
+            'Add Show Alert with "Log that order?" (keep the Cancel button), '
+                'then Get Latest Screenshots (1), then "Capture to '
+                '${Env.appName}". Take a screenshot of the order confirmation '
+                'before you close the app, and one tap on OK logs it.',
+          ),
           const SizedBox(height: Space.md),
           SurfaceCard(
             padding: const EdgeInsets.all(Space.md),
