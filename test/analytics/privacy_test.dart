@@ -48,6 +48,7 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.sourceConnected('gmail'),
   AnalyticsEvent.statementUploaded,
   AnalyticsEvent.transactionRecategorized(from: 'dining', to: 'My Secret Club'),
+  AnalyticsEvent.recategoriseScope('all'),
   AnalyticsEvent.budgetCreated,
   AnalyticsEvent.cardAdded,
   AnalyticsEvent.firstCapture,

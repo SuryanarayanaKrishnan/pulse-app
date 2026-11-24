@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
@@ -225,18 +226,27 @@ final householdProvider = FutureProvider<Household>(
   (ref) => ref.watch(repositoryProvider).household(),
 );
 
+final List<ProviderOrFamily> _ledgerProviders = [
+  transactionsProvider,
+  budgetProvider,
+  cashflowProvider,
+  categoryTrendsProvider,
+  safeToSpendProvider,
+  healthScoreProvider,
+  bankAccountsProvider,
+  bestByCategoryProvider,
+  netWorthProvider,
+  assetsProvider,
+];
+
 /// Refreshes everything derived from transactions.
 void invalidateLedger(WidgetRef ref) {
-  ref.invalidate(transactionsProvider);
-  ref.invalidate(budgetProvider);
-  ref.invalidate(cashflowProvider);
-  ref.invalidate(categoryTrendsProvider);
-  ref.invalidate(safeToSpendProvider);
-  ref.invalidate(healthScoreProvider);
-  ref.invalidate(bankAccountsProvider);
-  ref.invalidate(bestByCategoryProvider);
-  ref.invalidate(netWorthProvider);
-  ref.invalidate(assetsProvider);
+  _ledgerProviders.forEach(ref.invalidate);
+}
+
+/// Same, for callers that outlive their widget (an Undo snackbar).
+void invalidateLedgerIn(ProviderContainer container) {
+  _ledgerProviders.forEach(container.invalidate);
 }
 
 /// Refreshes everything after the wallet itself changed (a card, an account

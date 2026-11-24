@@ -6,6 +6,9 @@ import 'card_util.dart';
 import 'insights.dart';
 import 'models.dart';
 import 'phone.dart';
+import 'recategoriser.dart';
+import '../core/engine/merchants.dart' show normalizeMerchant;
+import '../core/engine/recategorise.dart';
 import 'repository.dart';
 import 'rules.dart';
 import 'statements.dart';
@@ -14,7 +17,7 @@ import 'wealth_service.dart';
 typedef S = SpendCategory;
 
 /// In-memory repository with realistic UAE sample data.
-class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
+class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Recategoriser {
   MockPulseRepository({
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
@@ -713,6 +716,56 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
       action: RuleAction.exclude,
     ),
   ];
+
+  // ---- scoped re-categorise (demo) -------------------------------------------------
+
+  String? _key(Transaction t) =>
+      recategoriseKey(raw: t.rawDescription ?? t.merchant, normalized: normalizeMerchant(t.merchant));
+
+  SpendCategory _cat(String? id) =>
+      [...S.defaults, ..._tx.map((t) => t.category)].firstWhere((c) => c.id == id, orElse: () => S.defaults.first);
+
+  @override
+  Future<RecatPreview?> previewRecategorise(String txId, SpendCategory to) async {
+    final t = _tx.firstWhere((e) => e.id == txId);
+    final key = _key(t);
+    if (key == null) return null;
+    final past = _tx.where((e) => e.id != txId && _key(e) == key && e.category != to);
+    return RecatPreview(merchant: t.merchant, pastCount: past.length);
+  }
+
+  @override
+  Future<RecatUndo> recategoriseScoped(String txId, SpendCategory to, RecategoriseScope scope) async {
+    final i = _tx.indexWhere((e) => e.id == txId);
+    final t = _tx[i];
+    final key = _key(t);
+    _tx[i] = t.copyWith(category: to);
+    if (scope == RecategoriseScope.once || key == null) {
+      return RecatUndo(txId: txId, txCategoryId: t.category.id);
+    }
+    // Only future captures: add the rule without applying it to history.
+    final rule = suggestMerchantRule(t, to).copyWith(id: _id('rule'));
+    _rules.add(rule);
+    final before = <String, (String?, String?)>{};
+    if (scope == RecategoriseScope.all) {
+      for (var j = 0; j < _tx.length; j++) {
+        final e = _tx[j];
+        if (e.id == txId || _key(e) != key || e.category == to) continue;
+        before[e.id] = (e.category.id, null);
+        _tx[j] = e.copyWith(category: to);
+      }
+    }
+    return RecatUndo(txId: txId, txCategoryId: t.category.id, createdRuleId: rule.id, pastBefore: before);
+  }
+
+  @override
+  Future<void> undoRecategorise(RecatUndo undo) async {
+    for (final e in {undo.txId: (undo.txCategoryId, null), ...undo.pastBefore}.entries) {
+      final j = _tx.indexWhere((t) => t.id == e.key);
+      if (j >= 0) _tx[j] = _tx[j].copyWith(category: _cat(e.value.$1));
+    }
+    if (undo.createdRuleId != null) await deleteRule(undo.createdRuleId!);
+  }
 
   @override
   Future<List<AutomationRule>> rules() => _d(List.of(_rules));

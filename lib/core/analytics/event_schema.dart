@@ -140,6 +140,9 @@ abstract final class AnalyticsSchema {
     EventSpec('manual_transaction_added', 'Everyday use', 'You add a payment by hand.', props: {
       'category': EnumProp('Its category', categories),
     }),
+    EventSpec('recategorise_scope', 'Everyday use', 'You choose how far a category change reaches.', props: {
+      'scope': EnumProp('Just that payment, future ones, or past and future', ['once', 'future', 'all']),
+    }),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
     EventSpec('card_check_shown', 'Everyday use', 'Pulse tells you whether you used the best card.', props: {
