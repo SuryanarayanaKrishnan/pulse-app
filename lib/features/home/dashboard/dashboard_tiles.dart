@@ -448,7 +448,7 @@ class _CategoryTile extends ConsumerWidget {
         children: [
           for (final l in lines.take(4))
             ListRow(
-              leading: IconWell(l.category.icon),
+              leading: CategoryIcon.well(l.category),
               title: l.category.label,
               subtitle: '${(l.spent / total * 100).round()}% of spend',
               trailing: Text(

@@ -43,7 +43,11 @@ abstract class PulseRepository {
   Future<SpendCategory> createCategory({
     required String name,
     CategoryKind kind = CategoryKind.expense,
+    String? iconKey,
   });
+
+  /// Changes the glyph of a custom category. Returns the updated category.
+  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey);
 
   /// Monthly budget for [category] (this month onwards). 0 clears it.
   Future<void> setBudget(SpendCategory category, double monthly);
@@ -185,6 +189,9 @@ abstract class PulseRepository {
 
 /// Defaults for repositories without an on-device ledger (demo data, API).
 mixin LocalOnlyFeatures implements PulseRepository {
+  @override
+  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async => category;
+
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}
 

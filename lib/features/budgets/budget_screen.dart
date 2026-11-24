@@ -189,7 +189,7 @@ class _CategoryTile extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(l.category.icon, size: 20, color: c.textSecondary),
+              CategoryIcon(l.category, size: 22),
               const Spacer(),
               if (!noBudget)
                 ProgressRing(progress: l.progress, size: 20, stroke: 3),
@@ -245,11 +245,11 @@ class _WhereItWentState extends State<_WhereItWent> {
             m.merchant,
             '${m.count} ${m.count == 1 ? 'payment' : 'payments'}',
             m.total,
-            m.category.icon,
+            CategoryIcon.well(m.category),
           ),
       ],
-      _By.cards => _entries(o.byCard, Icons.credit_card_outlined),
-      _By.accounts => _entries(o.byAccount, Icons.account_balance_outlined),
+      _By.cards => _entries(o.byCard, const IconWell(Icons.credit_card_outlined)),
+      _By.accounts => _entries(o.byAccount, const IconWell(Icons.account_balance_outlined)),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -280,7 +280,7 @@ class _WhereItWentState extends State<_WhereItWent> {
             children: [
               for (final r in rows)
                 ListRow(
-                  leading: IconWell(r.$4),
+                  leading: r.$4,
                   title: r.$1,
                   subtitle: r.$2,
                   trailing: Text(
@@ -295,9 +295,9 @@ class _WhereItWentState extends State<_WhereItWent> {
     );
   }
 
-  List<(String, String?, double, IconData)> _entries(
+  List<(String, String?, double, Widget)> _entries(
     Map<String, double> m,
-    IconData icon,
+    Widget icon,
   ) {
     final total = m.values.fold(0.0, (a, b) => a + b);
     final e = m.entries.toList()..sort((a, b) => b.value.compareTo(a.value));

@@ -59,6 +59,13 @@ class Phone {
     );
   }
 
+  Future<void> addCustomCategory(String id, String name, String? iconKey) async {
+    nowMs += 1000;
+    await db.into(db.categories).insert(
+      CategoriesCompanion.insert(id: id, name: name, isCustom: const Value(true), iconKey: Value(iconKey)),
+    );
+  }
+
   Future<void> addAccount() => db.into(db.accounts).insert(
     AccountsCompanion.insert(id: 'a1', type: 'bank', name: 'Salary'),
   );
@@ -122,6 +129,37 @@ void main() {
     expect(await p1.rows('SELECT id, reviewed FROM transactions ORDER BY id'), [
       {'id': 't1', 'reviewed': 1},
       {'id': 't2', 'reviewed': 0},
+    ]);
+    expect((await p1.sync()).idle, isTrue);
+    expect((await p2.sync()).idle, isTrue);
+  });
+
+  test('categories.icon_key is a synced column', () async {
+    expect(isSyncedColumn('categories', 'icon_key'), isTrue);
+    await p1.addCustomCategory('c_1', 'Coffee runs', 'coffee');
+    final row = (await DriftSyncBridge(p1.db).read())['categories']!['c_1']!;
+    expect(row['icon_key'], 'coffee');
+  });
+
+  test('a custom category icon picked on one phone reaches the other, then both idle', () async {
+    await p1.addCustomCategory('c_1', 'Coffee runs', 'coffee');
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows("SELECT id, icon_key FROM categories WHERE id = 'c_1'"), [
+      {'id': 'c_1', 'icon_key': 'coffee'},
+    ]);
+
+    // change it on the second phone; the first follows
+    p2.nowMs += 1000;
+    await p2.db.customStatement("UPDATE categories SET icon_key = 'paw' WHERE id = 'c_1'");
+    await p2.sync();
+    await p1.sync();
+    expect(await p1.rows("SELECT icon_key FROM categories WHERE id = 'c_1'"), [
+      {'icon_key': 'paw'},
+    ]);
+    // the seeded defaults never carry one
+    expect(await p1.rows("SELECT icon_key FROM categories WHERE id = 'groceries'"), [
+      {'icon_key': null},
     ]);
     expect((await p1.sync()).idle, isTrue);
     expect((await p2.sync()).idle, isTrue);

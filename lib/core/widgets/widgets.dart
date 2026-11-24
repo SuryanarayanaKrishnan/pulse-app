@@ -1,4 +1,5 @@
 export 'amount_text.dart';
+export 'category_icon.dart';
 export 'async_view.dart';
 export 'charts.dart';
 export 'credit_card_visual.dart';

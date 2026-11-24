@@ -103,7 +103,7 @@ class _RankedCardsScreenState extends ConsumerState<RankedCardsScreen> {
                     for (final (cat, label, pick) in best)
                       ListRow(
                         dense: true,
-                        leading: IconWell(cat.icon),
+                        leading: CategoryIcon.well(cat),
                         title: label,
                         subtitle: pick == null
                             ? 'No card earns extra here'

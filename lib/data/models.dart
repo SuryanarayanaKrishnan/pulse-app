@@ -23,23 +23,27 @@ enum CategoryKind { expense, income, transfer }
 class SpendCategory {
   const SpendCategory(
     this.id,
-    this.label,
-    this.icon, {
+    this.label, {
     this.kind = CategoryKind.expense,
     this.custom = false,
+    this.iconKey,
   });
 
-  /// A user-created category.
+  /// A user-created category. [iconKey] is the glyph they picked from the
+  /// category icon family (null: the generic tag).
   const SpendCategory.custom(
     this.id,
     this.label, {
-    this.icon = Icons.label_outline_rounded,
+    this.iconKey,
     this.kind = CategoryKind.expense,
   }) : custom = true;
 
   final String id;
   final String label;
-  final IconData icon;
+
+  /// The chosen glyph of a custom category. Defaults ignore it: their glyph
+  /// comes from the id (see `core/icons`).
+  final String? iconKey;
   final CategoryKind kind;
   final bool custom;
 
@@ -51,100 +55,81 @@ class SpendCategory {
   static const salary = SpendCategory(
     'salary',
     'Salary',
-    Icons.payments_outlined,
     kind: CategoryKind.income,
   );
   static const groceries = SpendCategory(
     'groceries',
     'Groceries',
-    Icons.shopping_basket_outlined,
   );
   static const dining = SpendCategory(
     'dining',
     'Dining & Delivery',
-    Icons.restaurant_outlined,
   );
   static const transport = SpendCategory(
     'transport',
     'Transport & Fuel',
-    Icons.local_gas_station_outlined,
   );
   static const carLoan = SpendCategory(
     'car_loan',
     'Car Loan',
-    Icons.directions_car_outlined,
   );
   static const homeLoan = SpendCategory(
     'home_loan',
     'Home Loan',
-    Icons.account_balance_outlined,
   );
   static const rent = SpendCategory(
     'rent',
     'Rent & Housing',
-    Icons.home_outlined,
   );
   static const utilities = SpendCategory(
     'utilities',
     'Utilities',
-    Icons.bolt_outlined,
   );
   static const telecom = SpendCategory(
     'telecom',
     'Telecom',
-    Icons.wifi_rounded,
   );
   static const fixedExpenses = SpendCategory(
     'fixed_expenses',
     'Fixed Expenses',
-    Icons.event_repeat_outlined,
   );
   static const education = SpendCategory(
     'education',
     'Education Fees',
-    Icons.school_outlined,
   );
   static const health = SpendCategory(
     'health',
     'Health',
-    Icons.favorite_border_rounded,
   );
   static const shopping = SpendCategory(
     'shopping',
     'Shopping',
-    Icons.shopping_bag_outlined,
   );
   static const travel = SpendCategory(
     'travel',
     'Travel',
-    Icons.flight_outlined,
   );
   static const entertainment = SpendCategory(
     'entertainment',
     'Entertainment',
-    Icons.movie_outlined,
   );
   static const family = SpendCategory(
     'family',
     'Family & Remittances',
-    Icons.people_outline_rounded,
   );
   static const savings = SpendCategory(
     'savings',
     'Savings & Investments',
-    Icons.savings_outlined,
   );
   static const cardPayments = SpendCategory(
     'cc_payment',
     'Credit Card Payments',
-    Icons.credit_card_outlined,
     kind: CategoryKind.transfer,
   );
-  static const fees = SpendCategory('fees', 'Fees', Icons.receipt_outlined);
+  static const fees = SpendCategory('fees', 'Fees');
   static const other = SpendCategory(
     'other',
     'Other',
-    Icons.more_horiz_rounded,
   );
 
   /// The income bucket.

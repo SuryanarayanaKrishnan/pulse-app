@@ -682,9 +682,19 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   Future<SpendCategory> createCategory({
     required String name,
     CategoryKind kind = CategoryKind.expense,
+    String? iconKey,
   }) {
-    final c = SpendCategory.custom(_id('custom_'), name.trim(), kind: kind);
+    final c = SpendCategory.custom(_id('custom_'), name.trim(), kind: kind, iconKey: iconKey);
     _custom.add(c);
+    return _d(c);
+  }
+
+  @override
+  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) {
+    final i = _custom.indexWhere((c) => c.id == category.id);
+    if (i < 0) return _d(category);
+    final c = SpendCategory.custom(category.id, category.label, kind: category.kind, iconKey: iconKey);
+    _custom[i] = c;
     return _d(c);
   }
 

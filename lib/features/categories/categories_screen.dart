@@ -9,6 +9,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/api/api_exception.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'icon_picker.dart';
 
 /// Categories and their monthly budgets. Defaults plus your own.
 class CategoriesScreen extends ConsumerWidget {
@@ -46,7 +47,7 @@ class CategoriesScreen extends ConsumerWidget {
         builder: (list) {
           final total = planned.values.fold(0.0, (a, b) => a + b);
           Widget row(SpendCategory x, {bool budgetable = true}) => ListRow(
-            leading: IconWell(x.icon),
+            leading: CategoryIcon.well(x),
             title: x.label,
             subtitle: [
               if (x.custom) 'Custom',
@@ -121,6 +122,13 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
     text: widget.current == null ? '' : Money.number(widget.current!),
   );
   bool _busy = false;
+  late String? _iconKey = widget.category.iconKey;
+
+  Future<void> _pickIcon(String key) async {
+    setState(() => _iconKey = key);
+    await ref.read(repositoryProvider).setCategoryIcon(widget.category, key);
+    ref.invalidate(categoriesProvider);
+  }
 
   @override
   void dispose() {
@@ -159,6 +167,12 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(hintText: '0', prefixText: 'AED  '),
         ),
+        if (widget.category.custom) ...[
+          const SizedBox(height: Space.lg),
+          Text('Icon', style: context.tt.labelMedium),
+          const SizedBox(height: Space.sm),
+          CategoryIconPicker(selected: _iconKey, onChanged: _pickIcon),
+        ],
         const SizedBox(height: Space.xl),
         PrimaryButton(
           label: 'Save',
@@ -193,6 +207,7 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
   final _name = TextEditingController();
   final _budget = TextEditingController();
   CategoryKind _kind = CategoryKind.expense;
+  String? _iconKey;
   bool _busy = false;
 
   @override
@@ -208,7 +223,7 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
     setState(() => _busy = true);
     final repo = ref.read(repositoryProvider);
     try {
-      final cat = await repo.createCategory(name: name, kind: _kind);
+      final cat = await repo.createCategory(name: name, kind: _kind, iconKey: _iconKey);
       final b = _parseAed(_budget.text);
       if (_kind == CategoryKind.expense && b != null && b > 0) {
         await repo.setBudget(cat, b);
@@ -265,6 +280,13 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
                   ),
                 )
               : const SizedBox(width: double.infinity),
+        ),
+        const SizedBox(height: Space.lg),
+        Text('Icon', style: context.tt.labelMedium),
+        const SizedBox(height: Space.sm),
+        CategoryIconPicker(
+          selected: _iconKey,
+          onChanged: (k) => setState(() => _iconKey = k),
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(label: 'Create', loading: _busy, onPressed: _save),

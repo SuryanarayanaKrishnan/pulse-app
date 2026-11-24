@@ -222,7 +222,7 @@ class _MemberSheet extends StatelessWidget {
                       for (final e in cats)
                         ListRow(
                           dense: true,
-                          leading: IconWell(e.key.icon),
+                          leading: CategoryIcon.well(e.key),
                           title: e.key.label,
                           trailing: Text(
                             Money.aed(e.value, decimals: false),

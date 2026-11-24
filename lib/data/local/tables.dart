@@ -78,6 +78,11 @@ class Categories extends Table {
   TextColumn get kind => text().withDefault(const Constant('expense'))();
   BoolColumn get isFixed => boolean().withDefault(const Constant(false))();
   TextColumn get icon => text().nullable()();
+
+  /// The glyph a user picked for a custom category (a key of the Pulse
+  /// category icon family). Null for defaults, which have fixed glyphs.
+  /// Synced like any other column.
+  TextColumn get iconKey => text().nullable()();
   TextColumn get color => text().nullable()();
   IntColumn get sortOrder => integer().withDefault(const Constant(0))();
   TextColumn get parentId => text().nullable()();

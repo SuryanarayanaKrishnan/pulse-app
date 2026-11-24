@@ -105,6 +105,7 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
             children: [
               ListRow(
                 dense: true,
+                leading: CategoryIcon(_cat, size: 22),
                 title: 'Category',
                 trailing: Text(_cat.label, style: context.tt.bodyLarge),
                 chevron: true,
@@ -284,6 +285,7 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
           children: [
             ListRow(
               dense: true,
+              leading: CategoryIcon(_cat, size: 22),
               title: 'Category',
               trailing: Text(_cat.label, style: context.tt.bodyLarge),
               chevron: true,
