@@ -43,7 +43,7 @@ jobs:
     name: Android APK
     needs: check
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
@@ -72,9 +72,11 @@ jobs:
       # The release build is signed with the debug keystore (android/app/build.gradle.kts),
       # so the APK installs directly on a phone with "install unknown apps" allowed.
       - name: Build release APK (debug-keystore signed)
+        timeout-minutes: 25
         run: flutter build apk --release --build-number ${{ github.run_number }}
 
       - name: Build debug APK
+        timeout-minutes: 15
         run: flutter build apk --debug
 
       - uses: actions/upload-artifact@v4
