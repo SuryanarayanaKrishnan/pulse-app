@@ -147,6 +147,7 @@ class SyncService {
 
   Future<void> setEnabled(bool on) async {
     await kv.write(enabledKey, on ? '1' : '0');
+    if (on && !_status.enabled) analytics.track(AnalyticsEvent.syncEnabled);
     _scheduler.enabled = on;
     _set(_status.copyWith(enabled: on, lastError: null));
     if (on) unawaited(_scheduler.syncNow());

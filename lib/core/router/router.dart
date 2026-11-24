@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/session.dart';
 import '../../features/backup/backup_screen.dart';
+import '../../features/privacy/privacy_screen.dart';
 import '../../features/sync/sync_screen.dart';
 import '../../features/backup/backup_setup_screen.dart';
 import '../../features/backup/restore_screen.dart';
@@ -55,6 +56,7 @@ abstract class Routes {
   static const backup = '/backup';
   static const backupSetup = '/backup/setup';
   static const sync = '/sync';
+  static const privacy = '/privacy';
   static const restore = '/restore';
 
   /// Replay of the first-launch tour (Settings).
@@ -174,6 +176,11 @@ GoRouter buildRouter({
         path: Routes.appleIngest,
         name: 'apple_ingest',
         builder: (c, s) => AppleIngestScreen(params: s.uri.queryParameters),
+      ),
+      GoRoute(
+        path: Routes.privacy,
+        name: 'privacy',
+        builder: (c, s) => const PrivacyScreen(),
       ),
       GoRoute(
         path: Routes.settings,

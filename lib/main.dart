@@ -5,7 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
+import 'capture/kv_store.dart';
 import 'core/analytics/analytics.dart';
+import 'core/analytics/gated_analytics.dart';
+import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
 import 'data/local/catalog_service.dart';
@@ -24,7 +27,10 @@ Future<void> main() async {
     );
   }
 
-  final analytics = buildAnalytics();
+  // Sharing is off until the person says yes; everything goes through the gate.
+  final privacy = PrivacyController(SharedPrefsKvStore());
+  await privacy.load();
+  final analytics = GatedAnalytics(buildAnalytics(), privacy);
   try {
     await analytics.init();
   } catch (e) {
@@ -56,6 +62,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
+        privacyControllerProvider.overrideWithValue(privacy),
         analyticsProvider.overrideWithValue(analytics),
         if (db != null)
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),

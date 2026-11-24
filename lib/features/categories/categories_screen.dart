@@ -133,6 +133,7 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
     try {
       await ref.read(repositoryProvider).setBudget(widget.category, value);
       ref.read(analyticsProvider).track(AnalyticsEvent.budgetCreated);
+      ref.read(analyticsProvider).track(AnalyticsEvent.firstBudgetSet);
       ref.invalidate(budgetProvider);
       if (mounted) Navigator.of(context).pop();
     } on ApiException catch (e) {

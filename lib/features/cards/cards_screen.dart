@@ -360,6 +360,7 @@ class _CatalogRow extends ConsumerWidget {
     chevron: true,
     onTap: () {
       ref.read(analyticsProvider).track(AnalyticsEvent.cardAdded);
+      ref.read(analyticsProvider).track(AnalyticsEvent.firstCardAdded);
       if (ref.read(repositoryProvider) is LocalPulseRepository) {
         showPulseSheet<void>(
           context,

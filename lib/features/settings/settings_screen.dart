@@ -9,6 +9,7 @@ import '../../backup/backup_providers.dart';
 import '../../backup/backup_state.dart';
 import '../../sync/sync_providers.dart';
 import '../sync/sync_screen.dart';
+import '../../core/analytics/privacy_controller.dart';
 import '../../core/env/env.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme_mode.dart';
@@ -124,6 +125,21 @@ class SettingsScreen extends ConsumerWidget {
                 subtitleColor: sync.lastError != null ? c.warning : null,
                 chevron: true,
                 onTap: () => context.push(Routes.sync),
+              ),
+            ],
+          ),
+          const SectionHeader('Privacy'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.privacy_tip_outlined),
+                title: 'Privacy',
+                subtitle: ref.watch(privacyControllerProvider).sharing
+                    ? 'Sharing anonymous usage'
+                    : 'Not sharing anything',
+                chevron: true,
+                onTap: () => context.push(Routes.privacy),
               ),
             ],
           ),
@@ -282,7 +298,10 @@ class SettingsScreen extends ConsumerWidget {
                 dense: true,
                 title: 'Analytics',
                 trailing: Text(
-                  Env.hasPosthog ? 'PostHog' : 'Off',
+                  Env.hasPosthog &&
+                          ref.watch(privacyControllerProvider).sharing
+                      ? 'PostHog'
+                      : 'Off',
                   style: context.tt.bodyMedium,
                 ),
               ),

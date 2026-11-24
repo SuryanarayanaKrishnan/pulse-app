@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
@@ -75,6 +76,7 @@ Future<void> confirmReceived(
 ) async {
   try {
     await ref.read(repositoryProvider).confirmSettlement(g.id, s.id);
+    ref.read(analyticsProvider).track(AnalyticsEvent.firstSplitSettled);
     Haptics.success();
     ref.invalidate(splitGroupsProvider);
     if (context.mounted) {

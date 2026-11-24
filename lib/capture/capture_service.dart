@@ -102,7 +102,9 @@ class CaptureService {
 
   Future<FlushResult> flush({bool force = false}) async {
     try {
-      return await queue.flush(force: force);
+      final r = await queue.flush(force: force);
+      if (r.sent > 0) analytics.track(AnalyticsEvent.firstCapture);
+      return r;
     } catch (e) {
       debugPrint('Capture flush failed: $e');
       return FlushResult(remaining: queue.pendingCount.value);

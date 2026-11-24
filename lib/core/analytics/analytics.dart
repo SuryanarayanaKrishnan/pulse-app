@@ -4,15 +4,32 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
 
 import '../env/env.dart';
+import 'event_schema.dart';
 
-/// Typed product-analytics events. Add new events here, never as raw strings.
+/// Typed product-analytics events. Add new events here AND in
+/// [AnalyticsSchema]; an event the schema does not list is never sent.
 @immutable
 class AnalyticsEvent {
   const AnalyticsEvent._(this.name, [this.properties = const {}]);
+
+  /// Builds an event without the typed factories. The gate re-checks every
+  /// event against [AnalyticsSchema], so this cannot widen what is sent.
+  const AnalyticsEvent.unchecked(this.name, [this.properties = const {}]);
+
   final String name;
   final Map<String, Object> properties;
 
+  /// Default categories keep their id; a category you made is just `custom`.
+  static String _category(String id) =>
+      AnalyticsSchema.categories.contains(id) && id != 'custom' ? id : 'custom';
+
+  /// Coarse duration bucket (never an exact time).
+  static String durationBucket(int seconds) => seconds < 5
+      ? 'lt_5s'
+      : (seconds < 30 ? '5_30s' : (seconds < 120 ? '30_120s' : 'gt_120s'));
+
   static const onboardingStarted = AnalyticsEvent._('onboarding_started');
+  static const onboardingCompleted = AnalyticsEvent._('onboarding_completed');
   factory AnalyticsEvent.onboardingStepCompleted(String step) =>
       AnalyticsEvent._('onboarding_step_completed', {'step': step});
   // ---- Tour. `step` is the moment key: safe_to_spend | right_card |
@@ -30,9 +47,22 @@ class AnalyticsEvent {
   factory AnalyticsEvent.transactionRecategorized({
     required String from,
     required String to,
-  }) => AnalyticsEvent._('transaction_recategorized', {'from': from, 'to': to});
+  }) => AnalyticsEvent._('transaction_recategorized', {
+    'from': _category(from),
+    'to': _category(to),
+  });
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
+
+  // ---- Funnel milestones: each is sent once per install. ----
+  static const firstCapture = AnalyticsEvent._('first_capture');
+  static const firstCardAdded = AnalyticsEvent._('first_card_added');
+  static const firstBudgetSet = AnalyticsEvent._('first_budget_set');
+  static const firstSplitSettled = AnalyticsEvent._('first_split_settled');
+
+  /// `bucket`: d1 | d7.
+  factory AnalyticsEvent.appReturned(String bucket) =>
+      AnalyticsEvent._('app_returned', {'bucket': bucket});
 
   // ---- Card check: right/wrong card after a captured payment. Never carries
   // amounts or merchants; the miss is bucketed. ----
@@ -61,7 +91,7 @@ class AnalyticsEvent {
 
   /// Manual entry is the exception; we measure how often it is needed.
   factory AnalyticsEvent.manualTransactionAdded({required String category}) =>
-      AnalyticsEvent._('manual_transaction_added', {'category': category});
+      AnalyticsEvent._('manual_transaction_added', {'category': _category(category)});
 
   // ---- Backup. Never carries amounts, names, file names or key material. ----
 
@@ -69,9 +99,9 @@ class AnalyticsEvent {
   factory AnalyticsEvent.backupEnabled({required String secretKind, required String destination}) =>
       AnalyticsEvent._('backup_enabled', {'secret_kind': secretKind, 'destination': destination});
 
-  /// `trigger`: manual | auto | daily | setup. Sizes are bucketed.
+  /// `trigger`: manual | auto | daily | setup. Size and time are bucketed.
   factory AnalyticsEvent.backupCompleted({required String trigger, required String sizeBucket, required int seconds}) =>
-      AnalyticsEvent._('backup_completed', {'trigger': trigger, 'size_bucket': sizeBucket, 'seconds': seconds});
+      AnalyticsEvent._('backup_completed', {'trigger': trigger, 'size_bucket': sizeBucket, 'duration': durationBucket(seconds)});
 
   /// `reason`: offline | signed_out | storage_full | provider_unavailable | keys_missing | other.
   factory AnalyticsEvent.backupFailed({required String trigger, required String reason}) =>
@@ -81,7 +111,8 @@ class AnalyticsEvent {
   static const backupCloudDeleted = AnalyticsEvent._('backup_cloud_deleted');
   static const backupDisabled = AnalyticsEvent._('backup_disabled');
   // ---- Cross-device sync. Never carries rows, names, amounts or key
-  // material; counts are bucketed. ----
+  // material; counts and times are bucketed. ----
+  static const syncEnabled = AnalyticsEvent._('sync_enabled');
 
   /// `trigger`: manual | auto | resume.
   factory AnalyticsEvent.syncStarted({required String trigger}) =>
@@ -89,7 +120,7 @@ class AnalyticsEvent {
 
   /// `changes_bucket`: none | few | many (sent plus received).
   factory AnalyticsEvent.syncCompleted({required String trigger, required String changesBucket, required int seconds}) =>
-      AnalyticsEvent._('sync_completed', {'trigger': trigger, 'changes_bucket': changesBucket, 'seconds': seconds});
+      AnalyticsEvent._('sync_completed', {'trigger': trigger, 'changes_bucket': changesBucket, 'duration': durationBucket(seconds)});
 
   /// `reason`: offline | signed_out | too_new | integrity | keys_missing | other.
   factory AnalyticsEvent.syncFailed({required String trigger, required String reason}) =>
@@ -147,7 +178,8 @@ class PostHogAnalytics implements Analytics {
   Future<void> init() async {
     final config = PostHogConfig(Env.posthogKey)
       ..host = Env.posthogHost
-      ..captureApplicationLifecycleEvents = true
+      // Nothing is captured behind the schema's back.
+      ..captureApplicationLifecycleEvents = false
       ..debug = kDebugMode;
     await Posthog().setup(config);
   }
