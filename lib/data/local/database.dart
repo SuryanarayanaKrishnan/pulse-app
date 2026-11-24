@@ -33,6 +33,11 @@ part 'database.g.dart';
     DocumentAttachments,
     FundHoldings,
     ValuationSnapshots,
+    HouseholdConfigs,
+    HouseholdMembers,
+    HouseholdBills,
+    HouseholdLimits,
+    HouseholdMirror,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -40,7 +45,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 5;
+  static const currentSchemaVersion = 6;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -86,6 +91,26 @@ class PulseDatabase extends _$PulseDatabase {
         await m.addColumn(schema.savingsGoals, schema.savingsGoals.paused);
         await m.addColumn(schema.savingsGoals, schema.savingsGoals.completedAt);
         await m.createTable(schema.goalContributions);
+      },
+      // v6: household planning. Ownership (`owner`, `is_private`) on the five
+      // things a household can share, and the household's own tables.
+      // Additive only: everything existing stays `me`, not private.
+      from5To6: (m, schema) async {
+        await m.addColumn(schema.accounts, schema.accounts.owner);
+        await m.addColumn(schema.accounts, schema.accounts.isPrivate);
+        await m.addColumn(schema.transactions, schema.transactions.owner);
+        await m.addColumn(schema.transactions, schema.transactions.isPrivate);
+        await m.addColumn(schema.assets, schema.assets.owner);
+        await m.addColumn(schema.assets, schema.assets.isPrivate);
+        await m.addColumn(schema.liabilities, schema.liabilities.owner);
+        await m.addColumn(schema.liabilities, schema.liabilities.isPrivate);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.owner);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.isPrivate);
+        await m.createTable(schema.householdConfigs);
+        await m.createTable(schema.householdMembers);
+        await m.createTable(schema.householdBills);
+        await m.createTable(schema.householdLimits);
+        await m.createTable(schema.householdMirror);
       },
     ),
     beforeOpen: (details) async {

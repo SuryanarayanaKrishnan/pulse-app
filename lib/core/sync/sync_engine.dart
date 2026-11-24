@@ -46,6 +46,8 @@ class SyncEngine {
     String Function()? newDeviceId,
     this.maxPerSegment = 500,
     this.flushEvery = 25,
+    this.namespace = 'sync',
+    this.keyPurpose = 'sync.segments',
   }) : _dataKey = dataKey, // ignore: prefer_initializing_formals
        _now = nowMs ?? (() => DateTime.now().millisecondsSinceEpoch),
        _newDeviceId = newDeviceId ?? _randomDeviceId;
@@ -58,6 +60,12 @@ class SyncEngine {
   final String Function() _newDeviceId;
   final int maxPerSegment;
   final int flushEvery;
+
+  /// Object-name namespace and HKDF purpose of this log. The defaults are a
+  /// user's own device sync; a household log passes its own (see
+  /// `core/household`).
+  final String namespace;
+  final String keyPurpose;
 
   SyncState? _state;
   SegmentCodec? _codec;
@@ -79,7 +87,7 @@ class SyncEngine {
       throw SyncException('signed_out', e.message);
     }
     final state = _state ??= (await store.load()) ?? SyncState(_newDeviceId());
-    final codec = _codec ??= await SegmentCodec.forDataKey(_dataKey);
+    final codec = _codec ??= await SegmentCodec.forDataKey(_dataKey, purpose: keyPurpose, ns: namespace);
     final report = SyncReport();
 
     if (state.bootstrapped) await _capture(state, report);
@@ -118,8 +126,8 @@ class SyncEngine {
 
   Future<void> _pull(SyncState state, SegmentCodec codec, SyncReport report) async {
     final byDevice = <String, List<int>>{};
-    for (final name in await transport.list(SegmentName.prefix)) {
-      final p = SegmentName.parse(name);
+    for (final name in await transport.list(SegmentName.prefixOf(namespace))) {
+      final p = SegmentName.parse(name, ns: namespace);
       if (p == null || p.$1 == state.deviceId) continue;
       byDevice.putIfAbsent(p.$1, () => []).add(p.$2);
     }
@@ -140,7 +148,7 @@ class SyncEngine {
         for (final seq in seqs) {
           if (seq < expected) continue;
           if (seq != expected) break; // a gap: wait for the missing one
-          final name = SegmentName.of(dev, seq);
+          final name = SegmentName.of(dev, seq, ns: namespace);
           final blob = await transport.read(name);
           if (blob == null) break;
           final Segment seg;
@@ -186,7 +194,7 @@ class SyncEngine {
           changes: seg.changes,
         ),
       );
-      await transport.write(SegmentName.of(state.deviceId, seg.seq), bytes);
+      await transport.write(SegmentName.of(state.deviceId, seg.seq, ns: namespace), bytes);
       state.segmentPushed();
       report.pushedSegments++;
       report.pushedChanges += seg.changes.length;

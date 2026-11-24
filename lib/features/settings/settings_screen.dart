@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../backup/backup_providers.dart';
 import '../../backup/backup_state.dart';
+import '../../household/household_providers.dart';
 import '../../sync/sync_providers.dart';
 import '../sync/sync_screen.dart';
 import '../../core/analytics/privacy_controller.dart';
@@ -32,6 +33,7 @@ class SettingsScreen extends ConsumerWidget {
     final c = context.pc;
     final backup = ref.watch(backupStateProvider);
     final sync = ref.watch(syncStatusProvider);
+    final household = ref.watch(jointDataProvider).value;
     final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
     final connected = gmail.where((g) => g.active).firstOrNull;
     final rules = ref.watch(rulesProvider).value;
@@ -147,6 +149,16 @@ class SettingsScreen extends ConsumerWidget {
           RowGroup(
             indent: ListRow.leadingInset,
             children: [
+              ListRow(
+                key: const Key('settings_household'),
+                leading: const IconWell(Icons.home_outlined),
+                title: 'Household',
+                subtitle: household == null
+                    ? 'Plan money together, privately'
+                    : '${household.config.name} · ${household.members.length} ${household.members.length == 1 ? 'member' : 'members'}',
+                chevron: true,
+                onTap: () => context.push(Routes.household),
+              ),
               ListRow(
                 leading: const IconWell(Icons.people_outline_rounded),
                 title: 'Family',

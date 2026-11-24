@@ -25,14 +25,21 @@ class Segment {
 /// Object names. Segments are immutable per (device, seq) except for a
 /// byte-identical retry; the name is the AEAD associated data, so the server
 /// cannot hand one segment out under another name.
+///
+/// [ns] is the log's namespace: `sync` for a user's own devices, and
+/// `household/<id>` for a shared household log (same layout, other key).
 class SegmentName {
   static const prefix = 'sync/';
-  static String of(String device, int seq) =>
-      '$prefix$device/${seq.toString().padLeft(10, '0')}.seg';
+  static String prefixOf(String ns) => '$ns/';
 
-  /// (device, seq), or null when [name] is not a segment name.
-  static (String, int)? parse(String name) {
-    final m = RegExp(r'^sync/([0-9a-f]{16})/(\d{10})\.seg$').firstMatch(name);
+  static String of(String device, int seq, {String ns = 'sync'}) =>
+      '$ns/$device/${seq.toString().padLeft(10, '0')}.seg';
+
+  /// (device, seq), or null when [name] is not a segment name of [ns].
+  static (String, int)? parse(String name, {String ns = 'sync'}) {
+    final m = RegExp(
+      '^${RegExp.escape(ns)}/([0-9a-f]{16})/(\\d{10})\\.seg\$',
+    ).firstMatch(name);
     if (m == null) return null;
     return (m.group(1)!, int.parse(m.group(2)!));
   }
@@ -42,11 +49,20 @@ class SegmentName {
 /// (HKDF, purpose `sync.segments`), so the sync log and the backup share one
 /// recovery secret but never one raw key. AES-256-GCM, random nonce.
 class SegmentCodec {
-  SegmentCodec._(this._key);
+  SegmentCodec._(this._key, this.ns);
   final SecretKey _key;
 
-  static Future<SegmentCodec> forDataKey(List<int> dataKey) async =>
-      SegmentCodec._(await BackupCrypto.subKey(dataKey, 'sync.segments'));
+  /// Namespace bound into every segment name (and so into the AEAD data).
+  final String ns;
+
+  /// [purpose] picks the HKDF sub-key: `sync.segments` for a user's own
+  /// devices; a household log uses `household.segments` with the household
+  /// key, so the two logs can never be read with each other's key.
+  static Future<SegmentCodec> forDataKey(
+    List<int> dataKey, {
+    String purpose = 'sync.segments',
+    String ns = 'sync',
+  }) async => SegmentCodec._(await BackupCrypto.subKey(dataKey, purpose), ns);
 
   Object? _enc(Object? v) => v is Uint8List ? {r'$b': base64.encode(v)} : v;
   Object? _dec(Object? v) =>
@@ -68,7 +84,7 @@ class SegmentCodec {
     return BackupCrypto.seal(
       _key,
       plain,
-      aad: utf8.encode(SegmentName.of(s.device, s.seq)),
+      aad: utf8.encode(SegmentName.of(s.device, s.seq, ns: ns)),
     );
   }
 
@@ -98,7 +114,7 @@ class SegmentCodec {
           ]),
       ],
     );
-    if (SegmentName.of(seg.device, seg.seq) != name) {
+    if (SegmentName.of(seg.device, seg.seq, ns: ns) != name) {
       throw const BackupIntegrityError('segment name');
     }
     return seg;

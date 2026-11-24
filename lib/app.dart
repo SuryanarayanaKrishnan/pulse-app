@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'backup/backup_providers.dart';
+import 'household/household_providers.dart';
 import 'sync/sync_providers.dart';
 import 'capture/providers.dart';
 import 'core/analytics/analytics.dart';
@@ -50,6 +51,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
       _noteOpen();
       ref.read(backupSchedulerProvider)?.onResumed();
       ref.read(syncServiceProvider)?.onResumed();
+      ref.read(householdSchedulerProvider)?.onResume();
     }
   }
 
@@ -90,6 +92,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     ref.watch(backupSchedulerProvider);
     // Same for sync: the service watches local writes while it is alive.
     ref.watch(syncServiceProvider);
+    ref.watch(householdSchedulerProvider);
     return MaterialApp.router(
       title: Env.appName,
       debugShowCheckedModeBanner: false,

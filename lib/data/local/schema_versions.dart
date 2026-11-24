@@ -4295,11 +4295,1007 @@ i1.GeneratedColumn<String> _column_169(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL',
     );
+
+final class Schema6 extends i0.VersionedSchema {
+  Schema6({required super.database}) : super(version: 6);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    accounts,
+    catalogCards,
+    userCards,
+    categories,
+    transactions,
+    budgets,
+    merchantRules,
+    statements,
+    statementLines,
+    assets,
+    liabilities,
+    salaryRecords,
+    savingsGoals,
+    goalContributions,
+    rawIngests,
+    netWorthSnapshots,
+    recurringReviews,
+    appSettings,
+    priceCache,
+    jewelleryItems,
+    documentAttachments,
+    fundHoldings,
+    valuationSnapshots,
+    householdConfigs,
+    householdMembers,
+    householdBills,
+    householdLimits,
+    householdMirror,
+    ixTransactionsPostedAt,
+    ixTransactionsAccountPosted,
+    ixTransactionsStatement,
+  ];
+  late final Shape26 accounts = Shape26(
+    source: i0.VersionedTable(
+      entityName: 'accounts',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_3,
+        _column_4,
+        _column_5,
+        _column_6,
+        _column_7,
+        _column_8,
+        _column_9,
+        _column_10,
+        _column_11,
+        _column_12,
+        _column_170,
+        _column_171,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 catalogCards = Shape1(
+    source: i0.VersionedTable(
+      entityName: 'catalog_cards',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_13,
+        _column_2,
+        _column_14,
+        _column_15,
+        _column_16,
+        _column_17,
+        _column_18,
+        _column_19,
+        _column_20,
+        _column_21,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 userCards = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'user_cards',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_22,
+        _column_23,
+        _column_24,
+        _column_25,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape23 categories = Shape23(
+    source: i0.VersionedTable(
+      entityName: 'categories',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_26,
+        _column_2,
+        _column_27,
+        _column_28,
+        _column_29,
+        _column_162,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_33,
+        _column_34,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape27 transactions = Shape27(
+    source: i0.VersionedTable(
+      entityName: 'transactions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_38,
+        _column_5,
+        _column_39,
+        _column_40,
+        _column_41,
+        _column_42,
+        _column_43,
+        _column_44,
+        _column_45,
+        _column_46,
+        _column_47,
+        _column_48,
+        _column_49,
+        _column_50,
+        _column_161,
+        _column_11,
+        _column_12,
+        _column_170,
+        _column_171,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 budgets = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'budgets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)', 'UNIQUE(category_id, month)'],
+      columns: [
+        _column_0,
+        _column_51,
+        _column_52,
+        _column_53,
+        _column_5,
+        _column_54,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape6 merchantRules = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'merchant_rules',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_55,
+        _column_56,
+        _column_57,
+        _column_58,
+        _column_59,
+        _column_37,
+        _column_60,
+        _column_61,
+        _column_46,
+        _column_47,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 statements = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'statements',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_23,
+        _column_62,
+        _column_63,
+        _column_5,
+        _column_64,
+        _column_65,
+        _column_66,
+        _column_67,
+        _column_68,
+        _column_3,
+        _column_69,
+        _column_70,
+        _column_71,
+        _column_72,
+        _column_73,
+        _column_74,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape8 statementLines = Shape8(
+    source: i0.VersionedTable(
+      entityName: 'statement_lines',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)', 'UNIQUE(statement_id, line_no)'],
+      columns: [
+        _column_0,
+        _column_75,
+        _column_76,
+        _column_77,
+        _column_78,
+        _column_38,
+        _column_5,
+        _column_39,
+        _column_79,
+        _column_80,
+        _column_81,
+        _column_82,
+        _column_83,
+        _column_84,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape28 assets = Shape28(
+    source: i0.VersionedTable(
+      entityName: 'assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_85,
+        _column_2,
+        _column_86,
+        _column_87,
+        _column_5,
+        _column_88,
+        _column_89,
+        _column_90,
+        _column_91,
+        _column_92,
+        _column_93,
+        _column_94,
+        _column_95,
+        _column_96,
+        _column_11,
+        _column_12,
+        _column_170,
+        _column_171,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape29 liabilities = Shape29(
+    source: i0.VersionedTable(
+      entityName: 'liabilities',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_23,
+        _column_85,
+        _column_2,
+        _column_97,
+        _column_5,
+        _column_98,
+        _column_99,
+        _column_100,
+        _column_101,
+        _column_102,
+        _column_103,
+        _column_11,
+        _column_12,
+        _column_170,
+        _column_171,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape11 salaryRecords = Shape11(
+    source: i0.VersionedTable(
+      entityName: 'salary_records',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_23,
+        _column_104,
+        _column_38,
+        _column_5,
+        _column_105,
+        _column_106,
+        _column_107,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape30 savingsGoals = Shape30(
+    source: i0.VersionedTable(
+      entityName: 'savings_goals',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_2,
+        _column_108,
+        _column_109,
+        _column_5,
+        _column_110,
+        _column_111,
+        _column_163,
+        _column_162,
+        _column_164,
+        _column_165,
+        _column_166,
+        _column_11,
+        _column_12,
+        _column_170,
+        _column_171,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape25 goalContributions = Shape25(
+    source: i0.VersionedTable(
+      entityName: 'goal_contributions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_167,
+        _column_38,
+        _column_168,
+        _column_169,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape13 rawIngests = Shape13(
+    source: i0.VersionedTable(
+      entityName: 'raw_ingests',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_112,
+        _column_113,
+        _column_114,
+        _column_66,
+        _column_115,
+        _column_116,
+        _column_82,
+        _column_11,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape14 netWorthSnapshots = Shape14(
+    source: i0.VersionedTable(
+      entityName: 'net_worth_snapshots',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_117,
+        _column_118,
+        _column_119,
+        _column_120,
+        _column_121,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape15 recurringReviews = Shape15(
+    source: i0.VersionedTable(
+      entityName: 'recurring_reviews',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(series_key)'],
+      columns: [_column_122, _column_123],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape16 appSettings = Shape16(
+    source: i0.VersionedTable(
+      entityName: 'app_settings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY("key")'],
+      columns: [_column_124, _column_125],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape17 priceCache = Shape17(
+    source: i0.VersionedTable(
+      entityName: 'price_cache',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(symbol)'],
+      columns: [
+        _column_126,
+        _column_127,
+        _column_128,
+        _column_20,
+        _column_129,
+        _column_130,
+        _column_131,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape18 jewelleryItems = Shape18(
+    source: i0.VersionedTable(
+      entityName: 'jewellery_items',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_2,
+        _column_132,
+        _column_133,
+        _column_134,
+        _column_135,
+        _column_136,
+        _column_137,
+        _column_42,
+        _column_138,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape19 documentAttachments = Shape19(
+    source: i0.VersionedTable(
+      entityName: 'document_attachments',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_139,
+        _column_140,
+        _column_42,
+        _column_141,
+        _column_142,
+        _column_143,
+        _column_144,
+        _column_145,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape20 fundHoldings = Shape20(
+    source: i0.VersionedTable(
+      entityName: 'fund_holdings',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_85,
+        _column_146,
+        _column_2,
+        _column_147,
+        _column_148,
+        _column_149,
+        _column_150,
+        _column_151,
+        _column_152,
+        _column_153,
+        _column_154,
+        _column_155,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape21 valuationSnapshots = Shape21(
+    source: i0.VersionedTable(
+      entityName: 'valuation_snapshots',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(subject_kind, subject_id, snapshot_date)',
+      ],
+      columns: [
+        _column_0,
+        _column_156,
+        _column_157,
+        _column_158,
+        _column_159,
+        _column_160,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape31 householdConfigs = Shape31(
+    source: i0.VersionedTable(
+      entityName: 'household_configs',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_0, _column_2, _column_172, _column_173, _column_11],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape32 householdMembers = Shape32(
+    source: i0.VersionedTable(
+      entityName: 'household_members',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_0, _column_2, _column_174],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape33 householdBills = Shape33(
+    source: i0.VersionedTable(
+      entityName: 'household_bills',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_2,
+        _column_38,
+        _column_5,
+        _column_175,
+        _column_176,
+        _column_177,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape34 householdLimits = Shape34(
+    source: i0.VersionedTable(
+      entityName: 'household_limits',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_0, _column_178, _column_53, _column_5],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape35 householdMirror = Shape35(
+    source: i0.VersionedTable(
+      entityName: 'household_mirror',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(kind, row_id)'],
+      columns: [_column_85, _column_179, _column_114],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index ixTransactionsPostedAt = i1.Index(
+    'ix_transactions_posted_at',
+    'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
+  );
+  final i1.Index ixTransactionsAccountPosted = i1.Index(
+    'ix_transactions_account_posted',
+    'CREATE INDEX ix_transactions_account_posted ON transactions (account_id, posted_at)',
+  );
+  final i1.Index ixTransactionsStatement = i1.Index(
+    'ix_transactions_statement',
+    'CREATE INDEX ix_transactions_statement ON transactions (statement_id)',
+  );
+}
+
+class Shape26 extends i0.VersionedTable {
+  Shape26({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get type =>
+      columnsByName['type']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get institution =>
+      columnsByName['institution']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get last4 =>
+      columnsByName['last4']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get creditLimitMinor =>
+      columnsByName['credit_limit_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get statementDay =>
+      columnsByName['statement_day']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get dueDay =>
+      columnsByName['due_day']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get balanceAnchorMinor =>
+      columnsByName['balance_anchor_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get balanceAnchorAt =>
+      columnsByName['balance_anchor_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deletedAt =>
+      columnsByName['deleted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get owner =>
+      columnsByName['owner']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get isPrivate =>
+      columnsByName['is_private']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<String> _column_170(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'owner',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL DEFAULT \'me\'',
+      defaultValue: const i1.CustomExpression('\'me\''),
+    );
+i1.GeneratedColumn<int> _column_171(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'is_private',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL DEFAULT 0 CHECK (is_private IN (0, 1))',
+      defaultValue: const i1.CustomExpression('0'),
+    );
+
+class Shape27 extends i0.VersionedTable {
+  Shape27({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get accountId =>
+      columnsByName['account_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get statementId =>
+      columnsByName['statement_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get categoryId =>
+      columnsByName['category_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get amountMinor =>
+      columnsByName['amount_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get direction =>
+      columnsByName['direction']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get merchantRaw =>
+      columnsByName['merchant_raw']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get merchantNormalized =>
+      columnsByName['merchant_normalized']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get notes =>
+      columnsByName['notes']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get postedAt =>
+      columnsByName['posted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get source =>
+      columnsByName['source']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get externalHash =>
+      columnsByName['external_hash']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get excludeFromBudget =>
+      columnsByName['exclude_from_budget']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get tags =>
+      columnsByName['tags']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sources =>
+      columnsByName['sources']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get statementLocked =>
+      columnsByName['statement_locked']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get appliedRuleId =>
+      columnsByName['applied_rule_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get reviewed =>
+      columnsByName['reviewed']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deletedAt =>
+      columnsByName['deleted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get owner =>
+      columnsByName['owner']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get isPrivate =>
+      columnsByName['is_private']! as i1.GeneratedColumn<int>;
+}
+
+class Shape28 extends i0.VersionedTable {
+  Shape28({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<double> get quantity =>
+      columnsByName['quantity']! as i1.GeneratedColumn<double>;
+  i1.GeneratedColumn<String> get unit =>
+      columnsByName['unit']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get costBasisMinor =>
+      columnsByName['cost_basis_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get manualValueMinor =>
+      columnsByName['manual_value_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get valuationSource =>
+      columnsByName['valuation_source']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get valuedAt =>
+      columnsByName['valued_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get acquiredOn =>
+      columnsByName['acquired_on']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get marketValueMinor =>
+      columnsByName['market_value_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get marketValuedAt =>
+      columnsByName['market_valued_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get valuationNote =>
+      columnsByName['valuation_note']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get meta =>
+      columnsByName['meta']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deletedAt =>
+      columnsByName['deleted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get owner =>
+      columnsByName['owner']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get isPrivate =>
+      columnsByName['is_private']! as i1.GeneratedColumn<int>;
+}
+
+class Shape29 extends i0.VersionedTable {
+  Shape29({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get accountId =>
+      columnsByName['account_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get lender =>
+      columnsByName['lender']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get principalMinor =>
+      columnsByName['principal_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get outstandingMinor =>
+      columnsByName['outstanding_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get interestRateBps =>
+      columnsByName['interest_rate_bps']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get emiMinor =>
+      columnsByName['emi_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get nextDueOn =>
+      columnsByName['next_due_on']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get endDate =>
+      columnsByName['end_date']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deletedAt =>
+      columnsByName['deleted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get owner =>
+      columnsByName['owner']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get isPrivate =>
+      columnsByName['is_private']! as i1.GeneratedColumn<int>;
+}
+
+class Shape30 extends i0.VersionedTable {
+  Shape30({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get targetMinor =>
+      columnsByName['target_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get savedMinor =>
+      columnsByName['saved_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get targetDate =>
+      columnsByName['target_date']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get monthlyContributionMinor =>
+      columnsByName['monthly_contribution_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get iconKey =>
+      columnsByName['icon_key']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get linkedRef =>
+      columnsByName['linked_ref']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get paused =>
+      columnsByName['paused']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get completedAt =>
+      columnsByName['completed_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get deletedAt =>
+      columnsByName['deleted_at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get owner =>
+      columnsByName['owner']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get isPrivate =>
+      columnsByName['is_private']! as i1.GeneratedColumn<int>;
+}
+
+class Shape31 extends i0.VersionedTable {
+  Shape31({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get myMemberId =>
+      columnsByName['my_member_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get shareMine =>
+      columnsByName['share_mine']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get createdAt =>
+      columnsByName['created_at']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<String> _column_172(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'my_member_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<int> _column_173(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'share_mine',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL DEFAULT 1 CHECK (share_mine IN (0, 1))',
+      defaultValue: const i1.CustomExpression('1'),
+    );
+
+class Shape32 extends i0.VersionedTable {
+  Shape32({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get joinedAt =>
+      columnsByName['joined_at']! as i1.GeneratedColumn<int>;
+}
+
+i1.GeneratedColumn<int> _column_174(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'joined_at',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NULL',
+    );
+
+class Shape33 extends i0.VersionedTable {
+  Shape33({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get amountMinor =>
+      columnsByName['amount_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get dueDay =>
+      columnsByName['due_day']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get categoryId =>
+      columnsByName['category_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get split =>
+      columnsByName['split']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<int> _column_175(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'due_day',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_176(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'category_id',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
+    );
+i1.GeneratedColumn<String> _column_177(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'split',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL DEFAULT \'{}\'',
+      defaultValue: const i1.CustomExpression('\'{}\''),
+    );
+
+class Shape34 extends i0.VersionedTable {
+  Shape34({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get categoryId =>
+      columnsByName['category_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get limitMinor =>
+      columnsByName['limit_minor']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get currency =>
+      columnsByName['currency']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_178(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'category_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
+
+class Shape35 extends i0.VersionedTable {
+  Shape35({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get rowId =>
+      columnsByName['row_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get payload =>
+      columnsByName['payload']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<String> _column_179(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'row_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
+  required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -4323,6 +5319,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from4To5(migrator, schema);
         return 5;
+      case 5:
+        final schema = Schema6(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from5To6(migrator, schema);
+        return 6;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -4334,11 +5335,13 @@ i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
   required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
   required Future<void> Function(i1.Migrator m, Schema5 schema) from4To5,
+  required Future<void> Function(i1.Migrator m, Schema6 schema) from5To6,
 }) => i0.VersionedSchema.stepByStepHelper(
   step: migrationSteps(
     from1To2: from1To2,
     from2To3: from2To3,
     from3To4: from3To4,
     from4To5: from4To5,
+    from5To6: from5To6,
   ),
 );
