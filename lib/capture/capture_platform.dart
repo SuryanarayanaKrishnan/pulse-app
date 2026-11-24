@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'capture_config.dart';
+import 'apple_shortcut.dart';
 import 'captured_event.dart';
 
 /// Runtime state of the Android capture permissions.
@@ -177,6 +178,57 @@ class MethodChannelCapturePlatform implements CapturePlatform {
       for (final e in raw ?? const <Object?>[])
         CapturedEvent.fromMap(e! as Map<Object?, Object?>),
     ];
+  }
+
+  @override
+  Future<void> ackPending(List<String> ids) =>
+      _methods.invokeMethod<void>('ackPending', {'ids': ids});
+}
+
+/// iOS: reads what the "Record Payment" App Intent (a Shortcuts Transaction
+/// automation) left in the app's native inbox, see `ios/Runner/ShortcutCapture.swift`.
+///
+/// iOS cannot read SMS or notifications, so there are no permissions to ask
+/// for: [status] reports "unsupported" and the inbox is drained on launch and
+/// whenever the app returns to the foreground.
+class AppleInboxCapturePlatform extends UnsupportedCapturePlatform {
+  AppleInboxCapturePlatform({MethodChannel? methods})
+    : _methods = methods ?? const MethodChannel('pulse/shortcut_inbox');
+
+  final MethodChannel _methods;
+
+  static bool get isAvailable => !kIsWeb && Platform.isIOS;
+
+  @override
+  bool get supported => true;
+
+  @override
+  Future<List<CapturedEvent>> peekPending() async {
+    final raw = await _methods.invokeListMethod<Object?>('peekPending');
+    final out = <CapturedEvent>[];
+    final garbage = <String>[];
+    for (final e in raw ?? const <Object?>[]) {
+      final m = Map<Object?, Object?>.from(e! as Map);
+      final id = '${m['id']}';
+      final tx = ShortcutTransaction.tryParse(
+        Uri(
+          scheme: 'pulse',
+          host: 'ingest',
+          queryParameters: {
+            for (final k in const ['amount', 'merchant', 'card', 'currency', 'ts', 'direction'])
+              if (m[k] != null) k: '${m[k]}',
+          },
+        ),
+      );
+      if (tx == null) {
+        garbage.add(id);
+      } else {
+        out.add(CapturedEvent.fromShortcut(id, tx));
+      }
+    }
+    // An item without a usable amount can never succeed: drop it now.
+    if (garbage.isNotEmpty) await ackPending(garbage);
+    return out;
   }
 
   @override

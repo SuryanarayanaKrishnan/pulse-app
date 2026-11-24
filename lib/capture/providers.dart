@@ -40,6 +40,8 @@ final ingestQueueProvider = Provider<IngestQueue>(
 final capturePlatformProvider = Provider<CapturePlatform>(
   (ref) => (!kIsWeb && Platform.isAndroid)
       ? MethodChannelCapturePlatform()
+      : (!kIsWeb && Platform.isIOS)
+      ? AppleInboxCapturePlatform()
       : const UnsupportedCapturePlatform(),
 );
 

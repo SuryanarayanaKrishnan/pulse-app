@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import '../data/api/dto.dart';
 import '../data/api/ingest_api.dart';
+import 'apple_shortcut.dart';
 import 'ingest_queue.dart';
 
 /// A raw SMS or notification handed over by the Android layer.
@@ -15,7 +16,22 @@ class CapturedEvent {
     this.sender,
     this.title,
     this.app,
+    this.shortcut,
   });
+
+  /// An item the iOS App Intent left in the native inbox: its fields are
+  /// already structured, so no parsing is needed.
+  factory CapturedEvent.fromShortcut(String id, ShortcutTransaction tx) =>
+      CapturedEvent(
+        id: id,
+        kind: 'apple_shortcut',
+        body: '',
+        timestamp: tx.timestamp,
+        shortcut: tx,
+      );
+
+  /// Set for [kind] `apple_shortcut`.
+  final ShortcutTransaction? shortcut;
 
   /// Stable id computed natively (hash of sender/app + text + day) so the live
   /// receiver and the inbox backfill produce the same id for the same message.
@@ -42,6 +58,8 @@ class CapturedEvent {
   );
 
   PendingIngest toPending(DateTime now) {
+    final tx = shortcut;
+    if (tx != null) return tx.toPending(now);
     final isSms = kind == 'sms';
     final dto = IngestRequestDto(
       rawText: body,
