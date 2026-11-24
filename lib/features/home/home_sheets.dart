@@ -1,0 +1,70 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../../core/theme/theme.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/utils/money.dart';
+import '../../core/widgets/widgets.dart';
+import '../../data/insights.dart';
+import '../../data/providers.dart';
+
+class SafeToSpendSheet extends ConsumerWidget {
+  const SafeToSpendSheet(this.v, {super.key});
+  final SafeToSpend v;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final b = ref.watch(budgetProvider).value;
+    Text num(double x, {bool minus = false}) => Text(
+      '${minus ? '−' : ''}${Money.aed(x, decimals: false)}',
+      style: PulseTheme.amount(minus ? c.textSecondary : c.textPrimary),
+    );
+    return SheetScaffold(
+      title: 'Safe to spend',
+      subtitle: 'The lower of what your budget and your cash allow',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RowGroup(
+            padding: EdgeInsets.zero,
+            children: [
+              if (b != null)
+                ListRow(
+                  dense: true,
+                  title: 'Left in budget',
+                  trailing: num(b.remaining),
+                ),
+              ListRow(
+                dense: true,
+                title: 'Bills still to come',
+                trailing: num(v.bills, minus: true),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Card dues this month',
+                subtitle: 'From your cash, not your budget',
+                trailing: num(v.cardDues, minus: true),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Goal contributions',
+                trailing: num(v.goals, minus: true),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Free until month end',
+                titleStyle: context.tt.titleMedium,
+                trailing: num(v.available),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.lg),
+          Text(
+            'Spread over ${v.daysLeft} days, that is ${Money.aed(v.today, decimals: false)} a day. It updates with every purchase.',
+            style: context.tt.bodyMedium,
+          ),
+        ],
+      ),
+    );
+  }
+}

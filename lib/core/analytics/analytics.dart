@@ -54,6 +54,15 @@ class AnalyticsEvent {
   /// `scope`: once | future | all. Never carries the merchant or counts.
   factory AnalyticsEvent.recategoriseScope(String scope) =>
       AnalyticsEvent._('recategorise_scope', {'scope': scope});
+  /// `action`: added | removed | resized | moved. `widget`: a built-in
+  /// widget kind. Never the dashboard's name.
+  factory AnalyticsEvent.dashboardCustomised({
+    required String action,
+    required String widget,
+  }) => AnalyticsEvent._('dashboard_customised', {
+    'action': action,
+    'widget': widget,
+  });
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 
