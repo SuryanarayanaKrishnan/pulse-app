@@ -9,6 +9,10 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 abstract class DatabaseKeyStore {
   /// The existing key, or a freshly generated one stored first.
   Future<String> loadOrCreate();
+
+  /// Makes [key] the database key from now on (after a restore swapped in a
+  /// database that was created with it).
+  Future<void> replace(String key);
 }
 
 /// 256 random bits, base64url without padding (safe inside a PRAGMA literal).
@@ -42,6 +46,18 @@ class SecureStorageKeyStore implements DatabaseKeyStore {
     await _storage.write(key: storageKey, value: key);
     return key;
   }
+
+  @override
+  Future<void> replace(String key) async {
+    final old = await _storage.read(key: storageKey);
+    // Keep the previous key so the pre-restore safety copy stays openable.
+    if (old != null && old.isNotEmpty) await _storage.write(key: '$storageKey.prev', value: old);
+    await _storage.write(key: storageKey, value: key);
+    _pending = Future.value(key);
+  }
+
+  /// The key the database had before the last restore, if any.
+  Future<String?> previousKey() => _storage.read(key: '$storageKey.prev');
 }
 
 /// For tests.
@@ -50,4 +66,6 @@ class MemoryKeyStore implements DatabaseKeyStore {
   String? _key;
   @override
   Future<String> loadOrCreate() async => _key ??= generateDatabaseKey();
+  @override
+  Future<void> replace(String key) async => _key = key;
 }

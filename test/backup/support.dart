@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
+import 'package:pulse/core/analytics/analytics.dart';
 import 'package:pulse/backup/db_snapshot.dart';
 import 'package:pulse/data/local/database.dart';
 
@@ -70,4 +71,19 @@ Future<Map<String, List<List<Object?>>>> fingerprint(PulseDatabase db, {Map<Stri
     ];
   }
   return out;
+}
+
+class RecordingAnalytics implements Analytics {
+  final events = <AnalyticsEvent>[];
+  @override
+  Future<void> init() async {}
+  @override
+  void track(AnalyticsEvent e) => events.add(e);
+  @override
+  void screen(String name) {}
+  @override
+  void identify(String userId) {}
+  @override
+  void reset() {}
+  List<String> get names => [for (final e in events) e.name];
 }

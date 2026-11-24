@@ -39,6 +39,30 @@ class AnalyticsEvent {
   /// Manual entry is the exception; we measure how often it is needed.
   factory AnalyticsEvent.manualTransactionAdded({required String category}) =>
       AnalyticsEvent._('manual_transaction_added', {'category': category});
+
+  // ---- Backup. Never carries amounts, names, file names or key material. ----
+
+  /// `secret_kind`: phrase | passphrase. `destination`: cloud | file.
+  factory AnalyticsEvent.backupEnabled({required String secretKind, required String destination}) =>
+      AnalyticsEvent._('backup_enabled', {'secret_kind': secretKind, 'destination': destination});
+
+  /// `trigger`: manual | auto | daily | setup. Sizes are bucketed.
+  factory AnalyticsEvent.backupCompleted({required String trigger, required String sizeBucket, required int seconds}) =>
+      AnalyticsEvent._('backup_completed', {'trigger': trigger, 'size_bucket': sizeBucket, 'seconds': seconds});
+
+  /// `reason`: offline | signed_out | storage_full | provider_unavailable | keys_missing | other.
+  factory AnalyticsEvent.backupFailed({required String trigger, required String reason}) =>
+      AnalyticsEvent._('backup_failed', {'trigger': trigger, 'reason': reason});
+  static const backupExported = AnalyticsEvent._('backup_exported');
+  static const backupPassphraseChanged = AnalyticsEvent._('backup_passphrase_changed');
+  static const backupCloudDeleted = AnalyticsEvent._('backup_cloud_deleted');
+  static const backupDisabled = AnalyticsEvent._('backup_disabled');
+  factory AnalyticsEvent.restoreStarted(String source) => AnalyticsEvent._('restore_started', {'source': source});
+  factory AnalyticsEvent.restoreCompleted(String source) => AnalyticsEvent._('restore_completed', {'source': source});
+
+  /// `reason`: wrong_passphrase | not_found | incomplete | corrupt | too_new | other.
+  factory AnalyticsEvent.restoreFailed({required String source, required String reason}) =>
+      AnalyticsEvent._('restore_failed', {'source': source, 'reason': reason});
 }
 
 /// Analytics abstraction.
