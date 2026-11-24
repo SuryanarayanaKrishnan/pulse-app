@@ -77,51 +77,6 @@ class WealthScreen extends ConsumerWidget {
                     series: [ChartSeries('Net worth', nw.series, c.accent)],
                   ),
                 ),
-              if (nw.prices.isNotEmpty) ...[
-                const SectionHeader('Live values'),
-                RowGroup(
-                  children: [
-                    for (final p in nw.prices)
-                      ListRow(
-                        dense: true,
-                        title: p.name,
-                        subtitle: '${p.source} · ${ago(p.updatedAt)}',
-                        trailing: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              p.value,
-                              style: PulseTheme.amount(c.textPrimary, size: 15),
-                            ),
-                            if (p.changePct != 0)
-                              Text(
-                                '${p.changePct > 0 ? '+' : '−'}${p.changePct.abs().toStringAsFixed(1)}%',
-                                style: context.tt.bodySmall!.copyWith(
-                                  color: p.changePct > 0
-                                      ? c.positive
-                                      : c.negative,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.gutter,
-                    Space.sm,
-                    Space.gutter,
-                    0,
-                  ),
-                  child: Text(
-                    'Gold, property and foreign holdings revalue themselves as these move.',
-                    style: context.tt.bodySmall!.copyWith(
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ),
-              ],
             ],
             AsyncView<List<Asset>>(
               value: assets,
@@ -150,6 +105,7 @@ class WealthScreen extends ConsumerWidget {
                     )
                   : _Body(list),
             ),
+            if (nw != null) _LiveValues(nw),
           ],
         ),
       ),
@@ -308,6 +264,62 @@ class _Body extends StatelessWidget {
             'Assets ${Money.aed(totalAssets, decimals: false)} · '
             'Liabilities ${Money.aed(liabilities, decimals: false)}',
             style: context.tt.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The prices Pulse values things with.
+class _LiveValues extends StatelessWidget {
+  const _LiveValues(this.nw);
+  final NetWorth nw;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    if (nw.prices.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Live values'),
+        RowGroup(
+          children: [
+            for (final p in nw.prices)
+              ListRow(
+                dense: true,
+                title: p.name,
+                subtitle: '${p.source} · ${ago(p.updatedAt)}',
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      p.value,
+                      style: PulseTheme.amount(c.textPrimary, size: 15),
+                    ),
+                    if (p.changePct != 0)
+                      Text(
+                        '${p.changePct > 0 ? '+' : '−'}${p.changePct.abs().toStringAsFixed(1)}%',
+                        style: context.tt.bodySmall!.copyWith(
+                          color: p.changePct > 0 ? c.positive : c.negative,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            0,
+          ),
+          child: Text(
+            'Gold, property and foreign holdings revalue themselves as these move.',
+            style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
           ),
         ),
       ],

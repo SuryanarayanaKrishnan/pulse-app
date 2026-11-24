@@ -295,13 +295,13 @@ JewelleryValue valueJewelleryItem(JewelleryItem i, double aedPerGram24) => value
 List<PriceInput> priceInputs(PriceBook b) {
   String src(PriceQuote q) => b.origin == PriceOrigin.bundled || q.source == null ? 'Demo value' : q.source!;
   final out = <PriceInput>[];
-  for (final k in const [22, 24]) {
+  for (final k in const [24, 22]) {
     final q = b.quote('XAU_AED_G_${k}K');
     if (q != null) {
       out.add(PriceInput(name: 'Gold ${k}K', value: 'AED ${q.price.toStringAsFixed(2)} / g', source: src(q), updatedAt: q.fetchedAt));
     }
   }
-  for (final c in const ['USD', 'INR']) {
+  for (final c in const ['INR']) {
     final q = b.quote('FX_${c}_AED');
     if (q != null) {
       out.add(PriceInput(name: '$c / AED', value: q.price.toStringAsFixed(c == 'INR' ? 4 : 4), source: src(q), updatedAt: q.fetchedAt));

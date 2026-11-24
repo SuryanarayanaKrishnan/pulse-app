@@ -45,7 +45,7 @@ void main() {
     expect(assets.firstWhere((a) => a.id == 'fund:f').kind, AssetKind.funds);
     var nw = await repo.netWorth();
     expect(nw.total, closeTo(100000 + 10340 + 1200, 0.01));
-    expect(nw.prices.map((p) => p.name), containsAll(['Gold 22K', 'USD / AED']));
+    expect(nw.prices.map((p) => p.name), containsAll(['Gold 24K', 'Gold 22K', 'INR / AED']));
     expect(nw.pricesLive, isFalse); // bundled values, not live
 
     // A cached live price revalues without any edit to the items.

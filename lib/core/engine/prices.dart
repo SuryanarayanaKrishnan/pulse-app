@@ -39,8 +39,11 @@ class PriceBook {
   Iterable<PriceQuote> get quotes => _quotes.values;
   bool get isEmpty => _quotes.isEmpty;
 
-  /// The oldest fetch time across gold and FX (what "updated" should say).
+  /// When gold was last fetched (what "updated X ago" says); without gold,
+  /// the oldest fetch across everything.
   DateTime? get fetchedAt {
+    final gold = _quotes['XAU_AED_G_24K']?.fetchedAt;
+    if (gold != null) return gold;
     DateTime? oldest;
     for (final q in _quotes.values) {
       if (oldest == null || q.fetchedAt.isBefore(oldest)) oldest = q.fetchedAt;
