@@ -18,6 +18,10 @@ class PulseTheme {
   /// Disabled in tests so no network font fetch is attempted.
   static bool useGoogleFonts = true;
 
+  /// Test hook: a font family to use when Google Fonts is off (screenshots
+  /// register a real font under this name; unit tests leave it null).
+  static String? testFontFamily;
+
   static const _tabular = [FontFeature.tabularFigures()];
 
   static bool get _iosSystemFont =>
@@ -25,6 +29,9 @@ class PulseTheme {
 
   static TextStyle _font(TextStyle base) {
     final s = base.copyWith(fontFeatures: _tabular);
+    if (!useGoogleFonts && testFontFamily != null) {
+      return s.copyWith(fontFamily: testFontFamily);
+    }
     if (_iosSystemFont || !useGoogleFonts) return s;
     return GoogleFonts.inter(textStyle: s);
   }

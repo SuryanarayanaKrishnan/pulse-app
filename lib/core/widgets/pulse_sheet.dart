@@ -7,9 +7,13 @@ Future<T?> showPulseSheet<T>(
   BuildContext context, {
   required Widget Function(BuildContext) builder,
   bool full = false,
+
+  /// Cover the tab bar too. Use for sheets with an action at the bottom.
+  bool useRootNavigator = false,
 }) {
   return showModalBottomSheet<T>(
     context: context,
+    useRootNavigator: useRootNavigator,
     isScrollControlled: true,
     useSafeArea: true,
     backgroundColor: Colors.transparent,

@@ -99,6 +99,13 @@ abstract final class AnalyticsSchema {
   ];
   static const sources = ['cloud', 'file'];
 
+  /// The built-in Home widgets (a test keeps this in step with `DashKind`).
+  static const dashboardWidgetKinds = [
+    'safe_to_spend', 'budget_progress', 'upcoming', 'card_rewards',
+    'net_worth', 'spend_by_category', 'cash_flow', 'savings_rate',
+    'split_balances', 'recent_captures', //
+  ];
+
   static const _trigger = EnumProp('What started it', triggers);
   static const _duration = EnumProp('How long it took, in coarse buckets', durations);
 
@@ -142,6 +149,10 @@ abstract final class AnalyticsSchema {
     }),
     EventSpec('recategorise_scope', 'Everyday use', 'You choose how far a category change reaches.', props: {
       'scope': EnumProp('Just that payment, future ones, or past and future', ['once', 'future', 'all']),
+    }),
+    EventSpec('dashboard_customised', 'Everyday use', 'You change a widget on your Home dashboard.', props: {
+      'action': EnumProp('What you did', ['added', 'removed', 'resized', 'moved']),
+      'widget': EnumProp('Which widget', dashboardWidgetKinds),
     }),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),

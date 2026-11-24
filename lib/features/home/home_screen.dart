@@ -4,21 +4,15 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/router/router.dart';
-import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
-import '../../data/card_util.dart';
-import '../../data/insights.dart';
 import '../../data/providers.dart';
-import '../../data/splits_util.dart';
 import '../cards/card_widgets.dart';
-import '../transactions/tx_detail_sheet.dart';
 import '../wallet/add_sheets.dart';
+import 'dashboard/dashboard_controller.dart';
+import 'dashboard/dashboard_editor.dart';
+import 'dashboard/dashboard_tiles.dart';
 import 'health_sheet.dart';
-import '../transactions/tx_tile.dart';
-import '../tour/tab_tip.dart';
-import '../tour/tour_progress.dart';
 
 /// Home answers one question: how much can I safely spend today?
 class HomeScreen extends ConsumerWidget {
@@ -39,6 +33,10 @@ class HomeScreen extends ConsumerWidget {
         accounts.isEmpty &&
         cards.isEmpty &&
         txs.isEmpty;
+    final dashState = ref.watch(dashboardProvider);
+    final dash = ref.read(dashboardProvider.notifier);
+    final editing = dashState.editing && !empty;
+    final widgets = dashState.layout.active.widgets;
     final greeting = now.hour < 12
         ? 'Good morning'
         : (now.hour < 18 ? 'Good afternoon' : 'Good evening');
@@ -61,28 +59,50 @@ class HomeScreen extends ConsumerWidget {
               ScreenHeader(
                 greeting,
                 subtitle: DateFormat('EEEE d MMMM').format(now),
-                trailing: [
-                  RoundIconButton(
-                    icon: Icons.account_circle_outlined,
-                    label: 'Settings',
-                    onTap: () => context.push(Routes.settings),
-                  ),
-                ],
+                trailing: editing
+                    ? [
+                        TextAction(
+                          'Done',
+                          onTap: () {
+                            Haptics.tap();
+                            dash.setEditing(false);
+                          },
+                        ),
+                        const SizedBox(width: Space.md),
+                      ]
+                    : [
+                        if (!empty)
+                          RoundIconButton(
+                            icon: Icons.tune_rounded,
+                            label: 'Customise',
+                            onTap: () {
+                              Haptics.tap();
+                              dash.setEditing(true);
+                            },
+                          ),
+                        RoundIconButton(
+                          icon: Icons.account_circle_outlined,
+                          label: 'Settings',
+                          onTap: () => context.push(Routes.settings),
+                        ),
+                      ],
               ),
               if (empty)
                 const _GetStarted()
               else ...[
-                const _Hero(),
-                const _WhichCard(),
-                const _Health(),
-                const _ComingUp(),
-                const _Overview(),
-                SectionHeader(
-                  'Recent',
-                  action: 'See all',
-                  onAction: () => context.push(Routes.activity),
-                ),
-                const _Recent(),
+                const DashboardChips(),
+                if (editing)
+                  const DashboardEditor()
+                else ...[
+                  for (var i = 0; i < widgets.length; i++) ...[
+                    DashTile(widgets[i], key: ValueKey(widgets[i].kind)),
+                    // Which card and health sit right under the lead widget, wherever
+                    // the user has put it.
+                    if (i == 0) ...[const _WhichCard(), const _Health()],
+                  ],
+                  if (widgets.isEmpty) ...[const _WhichCard(), const _Health()],
+                  const _Overview(),
+                ],
               ],
             ],
           ),
@@ -108,133 +128,6 @@ class _GetStarted extends StatelessWidget {
       onPressed: () => showAddMenu(context),
     ),
   );
-}
-
-class _Hero extends ConsumerWidget {
-  const _Hero();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
-    final s = ref.watch(safeToSpendProvider);
-    return s.when(
-      loading: () => const Padding(
-        padding: screenPad,
-        child: Skeleton(height: 120, radius: Radii.md),
-      ),
-      error: (e, _) => Padding(
-        padding: screenPad,
-        child: Text('Safe to spend unavailable', style: context.tt.bodyMedium),
-      ),
-      data: (v) {
-        final none = v.available <= 0;
-        return TabTip(
-          tab: TipTab.home,
-          child: Pressable(
-            onTap: () => showPulseSheet<void>(
-              context,
-              builder: (_) => _SafeToSpendSheet(v),
-            ),
-            child: HeroNumber(
-              label: 'Safe to spend today',
-              value: v.today,
-              color: none ? c.warning : null,
-              caption: none
-                  ? 'Bills, card dues and goals take what is left this month'
-                  : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
-              footer: Row(
-                children: [
-                  _Figure('Bills', v.bills),
-                  _Figure('Card dues', v.cardDues),
-                  _Figure('Goals', v.goals),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _Figure extends StatelessWidget {
-  const _Figure(this.label, this.value);
-  final String label;
-  final double value;
-  @override
-  Widget build(BuildContext context) => Expanded(
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: context.tt.bodySmall),
-        const SizedBox(height: 2),
-        Text(
-          Money.aed(value, decimals: false),
-          style: PulseTheme.amount(context.pc.textPrimary, size: 15),
-        ),
-      ],
-    ),
-  );
-}
-
-class _SafeToSpendSheet extends ConsumerWidget {
-  const _SafeToSpendSheet(this.v);
-  final SafeToSpend v;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
-    final b = ref.watch(budgetProvider).value;
-    Text num(double x, {bool minus = false}) => Text(
-      '${minus ? '−' : ''}${Money.aed(x, decimals: false)}',
-      style: PulseTheme.amount(minus ? c.textSecondary : c.textPrimary),
-    );
-    return SheetScaffold(
-      title: 'Safe to spend',
-      subtitle: 'The lower of what your budget and your cash allow',
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          RowGroup(
-            padding: EdgeInsets.zero,
-            children: [
-              if (b != null)
-                ListRow(
-                  dense: true,
-                  title: 'Left in budget',
-                  trailing: num(b.remaining),
-                ),
-              ListRow(
-                dense: true,
-                title: 'Bills still to come',
-                trailing: num(v.bills, minus: true),
-              ),
-              ListRow(
-                dense: true,
-                title: 'Card dues this month',
-                subtitle: 'From your cash, not your budget',
-                trailing: num(v.cardDues, minus: true),
-              ),
-              ListRow(
-                dense: true,
-                title: 'Goal contributions',
-                trailing: num(v.goals, minus: true),
-              ),
-              ListRow(
-                dense: true,
-                title: 'Free until month end',
-                titleStyle: context.tt.titleMedium,
-                trailing: num(v.available),
-              ),
-            ],
-          ),
-          const SizedBox(height: Space.lg),
-          Text(
-            'Spread over ${v.daysLeft} days, that is ${Money.aed(v.today, decimals: false)} a day. It updates with every purchase.',
-            style: context.tt.bodyMedium,
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 /// Pre-purchase advice, one tap from Home.
@@ -326,82 +219,20 @@ class _Health extends ConsumerWidget {
   }
 }
 
-class _ComingUp extends ConsumerWidget {
-  const _ComingUp();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final cards = ref.watch(myCardsProvider).value;
-    if (cards == null || cards.isEmpty) return const SizedBox.shrink();
-    final dues = [
-      for (final k in cards)
-        if (k.totalDue > 0) dueInfo(k),
-    ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
-    if (dues.isEmpty) return const SizedBox.shrink();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionHeader('Card payments'),
-        RowGroup(
-          indent: ListRow.leadingInset,
-          children: [
-            for (final d in dues.take(3))
-              DueRow(d, onTap: () => context.go(Routes.cards)),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
 /// Secondary figures, one row each, linking to their home.
 class _Overview extends ConsumerWidget {
   const _Overview();
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final nw = ref.watch(netWorthProvider).value;
-    final groups = ref.watch(splitGroupsProvider).value;
     final statements = ref.watch(statementsProvider).value;
     final attention = statements?.where((s) => s.needsAttention).length ?? 0;
-    final (owed, owe) = groups == null ? (0.0, 0.0) : myTotals(groups);
-    final net = owed - owe;
-    TextStyle num(Color col) => PulseTheme.amount(col);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Overview'),
+        const SectionHeader('More'),
         RowGroup(
           children: [
-            if (nw != null)
-              ListRow(
-                title: 'Net worth',
-                subtitle:
-                    '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
-                subtitleColor: nw.changePct >= 0 ? c.positive : c.negative,
-                trailing: Text(
-                  Money.aed(nw.total, decimals: false),
-                  style: num(c.textPrimary),
-                ),
-                chevron: true,
-                onTap: () => context.go(Routes.wealth),
-              ),
-            if (groups != null)
-              ListRow(
-                title: 'Splits',
-                subtitle: net.abs() < 0.01
-                    ? 'All settled'
-                    : (net > 0 ? 'You are owed' : 'You owe'),
-                trailing: Text(
-                  Money.aed(net.abs(), decimals: false),
-                  style: num(
-                    net.abs() < 0.01
-                        ? c.textSecondary
-                        : (net > 0 ? c.positive : c.textPrimary),
-                  ),
-                ),
-                chevron: true,
-                onTap: () => context.go(Routes.splits),
-              ),
             ListRow(
               title: 'Family',
               subtitle: 'Shared spending, with privacy per person',
@@ -421,34 +252,6 @@ class _Overview extends ConsumerWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _Recent extends ConsumerWidget {
-  const _Recent();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final tx = ref.watch(transactionsProvider);
-    return tx.when(
-      loading: () => const SkeletonList(rows: 4, height: 52),
-      error: (e, _) => Padding(
-        padding: screenPad,
-        child: Text('Activity unavailable', style: context.tt.bodyMedium),
-      ),
-      data: (list) => RowGroup(
-        indent: ListRow.leadingInset,
-        children: [
-          for (final t in list.take(5))
-            TxTile(
-              t,
-              onTap: () => showPulseSheet<void>(
-                context,
-                builder: (_) => TxDetailSheet(tx: t),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

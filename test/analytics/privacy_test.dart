@@ -49,6 +49,7 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.statementUploaded,
   AnalyticsEvent.transactionRecategorized(from: 'dining', to: 'My Secret Club'),
   AnalyticsEvent.recategoriseScope('all'),
+  AnalyticsEvent.dashboardCustomised(action: 'moved', widget: 'net_worth'),
   AnalyticsEvent.budgetCreated,
   AnalyticsEvent.cardAdded,
   AnalyticsEvent.firstCapture,
