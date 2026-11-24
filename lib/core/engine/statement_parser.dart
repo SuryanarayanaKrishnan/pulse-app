@@ -274,7 +274,7 @@ RegExp _labelRe(List<String> alts) => RegExp(
   final posted = layout.useSecondDate && d2 != null ? d2 : d1;
   var money = [
     for (final t in tokens)
-      if (parseMoney(t) case final m?) m,
+      ?parseMoney(t),
   ];
   if (money.isEmpty) return (null, 'row without amount');
   int? balance;
@@ -569,7 +569,7 @@ void _extractSummaryTable(
     if (hits.length < 3) continue;
     final values = [
       for (final t in RegExp(amountRe).allMatches(lines[i + 1]))
-        if (parseMoney(t[0]!) case final m?) m,
+        ?parseMoney(t[0]!),
     ];
     if (values.length != hits.length) continue;
     for (var k = 0; k < hits.length; k++) {

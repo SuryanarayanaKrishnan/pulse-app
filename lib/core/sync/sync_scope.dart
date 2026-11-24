@@ -26,6 +26,7 @@ const syncedTables = <String>{
   'savings_goals',
   'goal_contributions',
   'recurring_reviews',
+  'recurring_choices',
   'jewellery_items',
   'document_attachments',
   'fund_holdings',

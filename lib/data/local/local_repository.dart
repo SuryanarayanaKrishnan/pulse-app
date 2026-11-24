@@ -10,6 +10,7 @@ import '../goal_service.dart';
 import 'goal_store.dart';
 import '../../core/engine/merchants.dart';
 import '../../core/engine/networth.dart';
+import '../../core/engine/nw_history.dart';
 import '../../core/engine/recategorise.dart';
 import '../../core/engine/review.dart';
 import '../../core/engine/recurring.dart' as recurring;
@@ -58,7 +59,7 @@ String _monthKey(int year, int month) => '$year-${month.toString().padLeft(2, '0
 /// (splits with other people, family sharing, statement parsing, Gmail) go
 /// to [shared] when a backend is configured and report "not supported"
 /// otherwise.
-class LocalPulseRepository implements PulseRepository, Recategoriser {
+class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -1032,27 +1033,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
       [for (final a in all) if (a.isLiability) LiabilityInput('liability', 'AED', (a.value * 100).round())],
     );
     final today = _today;
-    final todayIso = today.toIso();
-    final existing = await (db.select(db.netWorthSnapshots)..where((s) => s.snapshotDate.equals(todayIso))).getSingleOrNull();
-    if (existing == null) {
-      await db.into(db.netWorthSnapshots).insert(
-        NetWorthSnapshotsCompanion.insert(
-          id: newId(),
-          snapshotDate: todayIso,
-          assetsMinor: result.totalAssetsMinor,
-          liabilitiesMinor: result.totalLiabilitiesMinor,
-          netWorthMinor: result.netWorthMinor,
-        ),
-      );
-    } else {
-      await (db.update(db.netWorthSnapshots)..where((s) => s.id.equals(existing.id))).write(
-        NetWorthSnapshotsCompanion(
-          assetsMinor: Value(result.totalAssetsMinor),
-          liabilitiesMinor: Value(result.totalLiabilitiesMinor),
-          netWorthMinor: Value(result.netWorthMinor),
-        ),
-      );
-    }
+    await _saveSnapshot(today, result);
     final snaps = await (db.select(db.netWorthSnapshots)..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
     final series = <double>[], labels = <String>[];
     for (var i = 5; i >= 0; i--) {
@@ -1081,6 +1062,118 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
       prices: book == null ? const [] : priceInputs(book),
       pricesLive: book != null && !book.isStale && book.origin == PriceOrigin.fetched,
     );
+  }
+
+  /// Stores (or refreshes) today's snapshot. At most one row a day.
+  Future<void> _saveSnapshot(CalDate today, NetWorthResult result) async {
+    final todayIso = today.toIso();
+    final existing = await (db.select(db.netWorthSnapshots)..where((s) => s.snapshotDate.equals(todayIso))).getSingleOrNull();
+    if (existing == null) {
+      await db.into(db.netWorthSnapshots).insert(
+        NetWorthSnapshotsCompanion.insert(
+          id: newId(),
+          snapshotDate: todayIso,
+          assetsMinor: result.totalAssetsMinor,
+          liabilitiesMinor: result.totalLiabilitiesMinor,
+          netWorthMinor: result.netWorthMinor,
+        ),
+      );
+    } else {
+      await (db.update(db.netWorthSnapshots)..where((s) => s.id.equals(existing.id))).write(
+        NetWorthSnapshotsCompanion(
+          assetsMinor: Value(result.totalAssetsMinor),
+          liabilitiesMinor: Value(result.totalLiabilitiesMinor),
+          netWorthMinor: Value(result.netWorthMinor),
+          breakdown: const Value('{}'),
+        ),
+      );
+    }
+  }
+
+  static const _backfillMark = '"src":"backfill"';
+
+  @override
+  Future<List<NwPoint>> netWorthHistory() async {
+    final all = await assets();
+    final result = computeNetWorth(
+      [for (final a in all) if (!a.isLiability) AssetInput('asset', 'AED', (a.value * 100).round())],
+      [for (final a in all) if (a.isLiability) LiabilityInput('liability', 'AED', (a.value * 100).round())],
+    );
+    final today = _today;
+    await _saveSnapshot(today, result);
+    await _backfillSnapshots(today, result);
+    final snaps = await (db.select(db.netWorthSnapshots)..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
+    return [
+      for (final s in snaps)
+        NwPoint(
+          CalDate.parse(s.snapshotDate),
+          s.assetsMinor,
+          s.liabilitiesMinor,
+          estimated: s.breakdown.contains(_backfillMark),
+        ),
+    ];
+  }
+
+  /// Fills the days before the first real snapshot from transactions, so a
+  /// new install has a line to show. Estimated rows are marked in
+  /// `breakdown` and never overwrite a real snapshot. Re-run only when the
+  /// ledger's reach changes.
+  Future<void> _backfillSnapshots(CalDate today, NetWorthResult result) async {
+    final accounts = await _accountMap();
+    final rows = await (db.select(db.transactions)..where((t) => t.deletedAt.isNull() & t.currency.equals('AED'))).get();
+    final flows = <NwFlow>[];
+    for (final t in rows) {
+      final a = accounts[t.accountId];
+      if (a == null || a.deletedAt != null) continue;
+      // Anything before the account's balance anchor is already in it.
+      if (a.balanceAnchorAt != null && !t.postedAt.isAfter(a.balanceAnchorAt!)) continue;
+      flows.add(NwFlow(toDubaiDate(t.postedAt), t.direction == 'credit' ? t.amountMinor : -t.amountMinor, isCard: a.type == 'credit_card'));
+    }
+    final snaps = await db.select(db.netWorthSnapshots).get();
+    final real = [for (final s in snaps) if (!s.breakdown.contains(_backfillMark)) s.snapshotDate]..sort();
+    final firstReal = real.isEmpty ? today : CalDate.parse(real.first);
+    final earliest = flows.isEmpty ? null : flows.map((f) => f.date).reduce((a, b) => a < b ? a : b);
+    final sig = '${earliest?.toIso()}|${firstReal.toIso()}|${flows.length ~/ 25}';
+    if (await db.setting('nw_backfill_sig') == sig) return;
+    final points = backfill(
+      assetsNowMinor: result.totalAssetsMinor,
+      liabilitiesNowMinor: result.totalLiabilitiesMinor,
+      flows: flows,
+      today: today,
+      firstSnapshot: firstReal,
+    );
+    final byDate = {for (final s in snaps) s.snapshotDate: s};
+    await db.batch((b) {
+      for (final p in points) {
+        final iso = p.date.toIso();
+        final old = byDate[iso];
+        if (old != null && !old.breakdown.contains(_backfillMark)) continue;
+        if (old == null) {
+          b.insert(
+            db.netWorthSnapshots,
+            NetWorthSnapshotsCompanion.insert(
+              id: newId(),
+              snapshotDate: iso,
+              assetsMinor: p.assetsMinor,
+              liabilitiesMinor: p.liabilitiesMinor,
+              netWorthMinor: p.netMinor,
+              breakdown: const Value('{$_backfillMark}'),
+            ),
+          );
+        } else {
+          b.update(
+            db.netWorthSnapshots,
+            NetWorthSnapshotsCompanion(
+              assetsMinor: Value(p.assetsMinor),
+              liabilitiesMinor: Value(p.liabilitiesMinor),
+              netWorthMinor: Value(p.netMinor),
+            ),
+            where: (s) => s.id.equals(old.id),
+          );
+        }
+      }
+    });
+    await db.putSetting('nw_backfill_sig', sig);
   }
 
   // ---- insights -----------------------------------------------------------------------------
@@ -1150,8 +1243,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
   Future<int> _billsLeft(List<TxRow> rows) async {
     final today = _today;
     final dismissed = {
-      for (final r in await db.select(db.recurringReviews).get())
-        if (r.status == 'dismissed') r.seriesKey,
+      for (final r in await db.select(db.recurringChoices).get())
+        if (r.choice == 'ignored') r.seriesKey,
     };
     final charges = [
       for (final t in rows)

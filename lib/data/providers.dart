@@ -35,6 +35,7 @@ import 'local/statement_service.dart';
 import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
+import 'recurring_providers.dart' show netWorthHistoryProvider;
 import 'repository.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
@@ -331,6 +332,7 @@ final List<ProviderOrFamily> _ledgerProviders = [
   bankAccountsProvider,
   bestByCategoryProvider,
   netWorthProvider,
+  netWorthHistoryProvider,
   assetsProvider,
 ];
 

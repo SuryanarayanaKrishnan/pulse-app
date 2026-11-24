@@ -40,6 +40,7 @@ part 'database.g.dart';
     HouseholdMirror,
     BudgetMoves,
     BudgetPrefs,
+    RecurringChoices,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -47,7 +48,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 7;
+  static const currentSchemaVersion = 8;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -127,6 +128,17 @@ class PulseDatabase extends _$PulseDatabase {
         await m.addColumn(schema.categories, schema.categories.cycleMonths);
         await m.createTable(schema.budgetMoves);
         await m.createTable(schema.budgetPrefs);
+      },
+      // v8: recurring payments. `recurring_choices` holds the user's confirm
+      // or ignore verdicts. Additive only: rows of the old, never-written
+      // `recurring_reviews` are carried over (dismissed becomes ignored).
+      from7To8: (m, schema) async {
+        await m.createTable(schema.recurringChoices);
+        await schema.database.customStatement(
+          'INSERT OR IGNORE INTO recurring_choices (series_key, choice) '
+          "SELECT series_key, CASE status WHEN 'dismissed' THEN 'ignored' WHEN 'ignored' THEN 'ignored' ELSE 'confirmed' END "
+          'FROM recurring_reviews',
+        );
       },
     ),
     beforeOpen: (details) async {

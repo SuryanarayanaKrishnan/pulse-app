@@ -728,3 +728,24 @@ class BudgetPrefs extends Table {
   @override
   Set<Column> get primaryKey => {id};
 }
+
+// ---- schema v8: recurring payments -----------------------------------------
+
+/// What the user decided about a detected recurring series: `confirmed` (it
+/// is a real subscription or bill) or `ignored` (not recurring, hide it).
+/// Keyed by the series key (the normalised merchant, plus `#<amount>` for an
+/// amount tier). Deleting the row undoes the choice. Replaces the unused
+/// `recurring_reviews`, whose rows are copied across when migrating.
+@DataClassName('RecurringChoiceRow')
+class RecurringChoices extends Table {
+  TextColumn get seriesKey => text()();
+  TextColumn get choice => text()();
+
+  /// The merchant's name when the choice was made, so a list can show it
+  /// even when the series is not detected right now.
+  TextColumn get merchant => text().withDefault(const Constant(''))();
+  DateTimeColumn get decidedAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {seriesKey};
+}

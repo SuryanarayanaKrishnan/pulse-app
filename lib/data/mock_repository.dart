@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
@@ -9,7 +10,8 @@ import 'insights.dart';
 import 'models.dart';
 import 'phone.dart';
 import 'recategoriser.dart';
-import '../core/engine/dates.dart' show CalDate;
+import '../core/engine/dates.dart' show CalDate, toDubaiDate;
+import '../core/engine/nw_history.dart';
 import '../core/engine/goals.dart';
 import '../core/engine/merchants.dart' show normalizeMerchant;
 import '../core/engine/recategorise.dart';
@@ -21,7 +23,7 @@ import 'wealth_service.dart';
 typedef S = SpendCategory;
 
 /// In-memory repository with realistic UAE sample data.
-class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Recategoriser {
+class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Recategoriser, NetWorthHistorySource {
   MockPulseRepository({
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
@@ -380,8 +382,36 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
       );
     }
 
+    // The two months before, for the bills and subscriptions above (same day
+    // of the month), so Recurring has history to find. Netflix went up this
+    // month. Nothing older: three months back stays empty.
+    var hist = 0;
+    Transaction past(String m, double a, SpendCategory c, int daysAgo, int monthsBack, String card, String acct) {
+      final base = DateTime(_now.year, _now.month, _now.day).subtract(Duration(days: daysAgo));
+      final d = DateTime(base.year, base.month - monthsBack, base.day.clamp(1, 28), 10, 5);
+      return Transaction(
+        id: 'hist${hist++}',
+        merchant: m,
+        amount: a,
+        category: c,
+        date: d,
+        source: TxSource.statement,
+        cardId: card,
+        accountLabel: acct,
+      );
+    }
+
+    final history = [
+      for (var k = 1; k <= 2; k++) ...[
+        past('Netflix', 45, S.entertainment, 21, k, 'fab-cb', 'FAB Cashback'),
+        past('Fitness First', 349, S.health, 20, k, 'fab-cb', 'FAB Cashback'),
+        past('DEWA', const [540.0, 480.0][k - 1], S.utilities, 2, k, 'enbd-current', 'Emirates NBD Current'),
+      ],
+    ];
+
     const src = TxSource.sms;
     return [
+      ...history,
       t(
         'Carrefour',
         312.40,
@@ -951,6 +981,32 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   @override
   Future<List<Asset>> assets() async =>
       _d([..._assets, ...?await wealth?.assets()]);
+
+  /// Demo history: a year of days that follow the month-end series, with
+  /// debt easing as the line climbs.
+  @override
+  Future<List<NwPoint>> netWorthHistory() async {
+    final all = [..._assets, ...?await wealth?.assets()];
+    var a = 0.0, l = 0.0;
+    for (final e in all) {
+      if (e.isLiability) {
+        l += e.value;
+      } else {
+        a += e.value;
+      }
+    }
+    final today = toDubaiDate(_now);
+    final out = <NwPoint>[];
+    for (var i = 364; i >= 0; i--) {
+      // 0.90 a year ago up to 1.0 today, with a gentle wobble.
+      final f = 0.90 + 0.10 * (364 - i) / 364 + 0.012 * math.sin((364 - i) / 9.0);
+      final debt = l * (1 + 0.25 * (1 - f) * 10);
+      final net = (a - l) * f;
+      out.add(NwPoint(today.addDays(-i), ((net + debt) * 100).round(), (debt * 100).round()));
+    }
+    out[out.length - 1] = NwPoint(today, (a * 100).round(), (l * 100).round());
+    return out;
+  }
 
   @override
   Future<NetWorth> netWorth() async {

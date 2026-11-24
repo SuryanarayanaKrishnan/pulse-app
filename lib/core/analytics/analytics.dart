@@ -76,6 +76,15 @@ class AnalyticsEvent {
   /// `mode`: flex | category. Never a category, an amount or a month.
   factory AnalyticsEvent.budgetModeChanged(String mode) => AnalyticsEvent._('budget_mode_changed', {'mode': mode});
   static const moneyMoved = AnalyticsEvent._('money_moved');
+
+  /// You confirm a detected recurring payment. `cadence`: weekly |
+  /// fortnightly | monthly | quarterly | yearly. Never the merchant or amount.
+  factory AnalyticsEvent.recurringConfirmed(String cadence) =>
+      AnalyticsEvent._('recurring_confirmed', {'cadence': cadence});
+
+  /// You open a report. `view`: category | member. Never a category, a
+  /// member, an amount or a month.
+  factory AnalyticsEvent.reportViewed(String view) => AnalyticsEvent._('report_viewed', {'view': view});
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 

@@ -170,6 +170,22 @@ class _Body extends ConsumerWidget {
               onTap: () => context.push(Routes.categories),
             ),
             ListRow(
+              key: const Key('manage_recurring'),
+              leading: const IconWell(Icons.event_repeat_rounded),
+              title: 'Recurring',
+              subtitle: 'Bills and subscriptions',
+              chevron: true,
+              onTap: () => context.push(Routes.recurring),
+            ),
+            ListRow(
+              key: const Key('manage_reports'),
+              leading: const IconWell(Icons.grid_view_rounded),
+              title: 'Reports',
+              subtitle: 'Where the month went',
+              chevron: true,
+              onTap: () => context.push(Routes.reports),
+            ),
+            ListRow(
               leading: const IconWell(Icons.auto_mode_rounded),
               title: 'Automations',
               subtitle: rules == null

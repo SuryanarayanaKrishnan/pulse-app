@@ -23,7 +23,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 7);
+    await verifier.migrateAndValidate(db, 8);
 
     final rows = await db.customSelect(
       'SELECT id, budget_group, rollover, rollover_start, rollover_start_minor, cycle_cost_minor, cycle_months '
@@ -43,14 +43,14 @@ void main() {
     for (final t in ['budget_moves', 'budget_prefs']) {
       expect((await db.customSelect('SELECT COUNT(*) AS n FROM $t').getSingle()).read<int>('n'), 0, reason: t);
     }
-    expect(PulseDatabase.currentSchemaVersion, 7);
+    expect(PulseDatabase.currentSchemaVersion, 8);
   });
 
   test('a fresh v7 database stores a group, a move and the mode', () async {
     final schema = await verifier.schemaAt(7);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 7);
+    await verifier.migrateAndValidate(db, 8);
     await db.customStatement("INSERT INTO categories (id, name, budget_group, rollover, cycle_cost_minor, cycle_months) VALUES ('fee', 'Card fee', 'nonmonthly', 1, 36500, 12)");
     final c = await db.customSelect("SELECT budget_group, cycle_months FROM categories WHERE id = 'fee'").getSingle();
     expect(c.read<String>('budget_group'), 'nonmonthly');
