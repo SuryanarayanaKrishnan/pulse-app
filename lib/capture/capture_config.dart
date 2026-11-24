@@ -64,6 +64,7 @@ class CaptureConfig {
     'rakbank',
     'adib',
     'hsbc',
+    'tabby',
   ];
 
   final List<String> bankSenderIds;
