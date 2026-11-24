@@ -43,6 +43,11 @@ class AnalyticsEvent {
   factory AnalyticsEvent.permissionDenied(String permission) =>
       AnalyticsEvent._('permission_denied', {'permission': permission});
   static const splitExpenseAdded = AnalyticsEvent._('split_expense_added');
+  factory AnalyticsEvent.splitAutoSettled({required String match, required bool partial, required String direction}) =>
+      AnalyticsEvent._('split_auto_settled', {'match': match, 'partial': partial, 'direction': direction});
+  static const splitSettleUndone = AnalyticsEvent._('split_settle_undone');
+  factory AnalyticsEvent.splitSettleAsked({required String match}) =>
+      AnalyticsEvent._('split_settle_asked', {'match': match});
 
   /// Manual entry is the exception; we measure how often it is needed.
   factory AnalyticsEvent.manualTransactionAdded({required String category}) =>

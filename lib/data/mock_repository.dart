@@ -1139,6 +1139,20 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
     return _d(out);
   }
 
+  @override
+  Future<void> undoSettlement(String groupId, String settlementId) {
+    _updateGroup(
+      groupId,
+      (g) => g.copyWith(
+        settlements: [
+          for (final s in g.settlements)
+            if (s.id != settlementId) s,
+        ],
+      ),
+    );
+    return _d(null);
+  }
+
   // ---- Monthly close -------------------------------------------------------
 
   final _passwords = <String, DateTime>{
