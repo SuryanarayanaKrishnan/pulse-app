@@ -17,6 +17,8 @@ import '../transactions/tx_detail_sheet.dart';
 import '../wallet/add_sheets.dart';
 import 'health_sheet.dart';
 import '../transactions/tx_tile.dart';
+import '../tour/tab_tip.dart';
+import '../tour/tour_progress.dart';
 
 /// Home answers one question: how much can I safely spend today?
 class HomeScreen extends ConsumerWidget {
@@ -125,24 +127,27 @@ class _Hero extends ConsumerWidget {
       ),
       data: (v) {
         final none = v.available <= 0;
-        return Pressable(
-          onTap: () => showPulseSheet<void>(
-            context,
-            builder: (_) => _SafeToSpendSheet(v),
-          ),
-          child: HeroNumber(
-            label: 'Safe to spend today',
-            value: v.today,
-            color: none ? c.warning : null,
-            caption: none
-                ? 'Bills, card dues and goals take what is left this month'
-                : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
-            footer: Row(
-              children: [
-                _Figure('Bills', v.bills),
-                _Figure('Card dues', v.cardDues),
-                _Figure('Goals', v.goals),
-              ],
+        return TabTip(
+          tab: TipTab.home,
+          child: Pressable(
+            onTap: () => showPulseSheet<void>(
+              context,
+              builder: (_) => _SafeToSpendSheet(v),
+            ),
+            child: HeroNumber(
+              label: 'Safe to spend today',
+              value: v.today,
+              color: none ? c.warning : null,
+              caption: none
+                  ? 'Bills, card dues and goals take what is left this month'
+                  : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
+              footer: Row(
+                children: [
+                  _Figure('Bills', v.bills),
+                  _Figure('Card dues', v.cardDues),
+                  _Figure('Goals', v.goals),
+                ],
+              ),
             ),
           ),
         );

@@ -9,6 +9,8 @@ import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../wallet/add_sheets.dart';
 import '../wealth/wealth_sections.dart';
+import '../tour/tab_tip.dart';
+import '../tour/tour_progress.dart';
 
 /// "12 min ago", "3 h ago", "6 days ago".
 String ago(DateTime t, {DateTime? now}) {
@@ -38,12 +40,16 @@ class WealthScreen extends ConsumerWidget {
               'Wealth',
               subtitle: 'Assets and liabilities',
               trailing: [
-                RoundIconButton(
-                  icon: Icons.add_rounded,
-                  label: 'Add an asset or loan',
-                  onTap: () => showWealthAddMenu(
-                    context,
-                    assetSheet: (_) => const AddAssetSheet(),
+                TabTip(
+                  tab: TipTab.wealth,
+                  alignEnd: true,
+                  child: RoundIconButton(
+                    icon: Icons.add_rounded,
+                    label: 'Add an asset or loan',
+                    onTap: () => showWealthAddMenu(
+                      context,
+                      assetSheet: (_) => const AddAssetSheet(),
+                    ),
                   ),
                 ),
               ],
