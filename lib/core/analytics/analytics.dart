@@ -54,6 +54,10 @@ class AnalyticsEvent {
   /// `scope`: once | future | all. Never carries the merchant or counts.
   factory AnalyticsEvent.recategoriseScope(String scope) =>
       AnalyticsEvent._('recategorise_scope', {'scope': scope});
+  /// `direction`: right (looks right) | left (fix it). Never the payment.
+  factory AnalyticsEvent.reviewSwiped(String direction) =>
+      AnalyticsEvent._('review_swiped', {'direction': direction});
+  static const reviewInboxZero = AnalyticsEvent._('review_inbox_zero');
   /// `action`: added | removed | resized | moved. `widget`: a built-in
   /// widget kind. Never the dashboard's name.
   factory AnalyticsEvent.dashboardCustomised({

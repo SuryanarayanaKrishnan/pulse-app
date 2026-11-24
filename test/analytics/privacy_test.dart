@@ -81,6 +81,9 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.restoreStarted('file'),
   AnalyticsEvent.restoreCompleted('cloud'),
   AnalyticsEvent.restoreFailed(source: 'cloud', reason: 'corrupt'),
+  AnalyticsEvent.reviewSwiped('right'),
+  AnalyticsEvent.reviewSwiped('left'),
+  AnalyticsEvent.reviewInboxZero,
 ];
 
 void main() {

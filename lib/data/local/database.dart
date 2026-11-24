@@ -39,7 +39,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 2;
+  static const currentSchemaVersion = 3;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -63,6 +63,12 @@ class PulseDatabase extends _$PulseDatabase {
         await m.createTable(schema.documentAttachments);
         await m.createTable(schema.fundHoldings);
         await m.createTable(schema.valuationSnapshots);
+      },
+      // v3: `transactions.reviewed` for swipe-to-review. Everything already in
+      // the ledger counts as reviewed, so nobody opens the app to a backlog.
+      from2To3: (m, schema) async {
+        await m.addColumn(schema.transactions, schema.transactions.reviewed);
+        await schema.database.customStatement('UPDATE transactions SET reviewed = 1');
       },
     ),
     beforeOpen: (details) async {

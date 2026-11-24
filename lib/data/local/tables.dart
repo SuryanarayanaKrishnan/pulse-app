@@ -126,6 +126,11 @@ class Transactions extends Table {
   /// A statement line confirmed it: amount/date are the bank's, final.
   BoolColumn get statementLocked => boolean().withDefault(const Constant(false))();
   TextColumn get appliedRuleId => text().nullable()();
+
+  /// The user has looked at this and it is right (swipe-to-review). Captured
+  /// payments start unreviewed; anything the user typed or edited is reviewed.
+  /// Synced like any other column.
+  BoolColumn get reviewed => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 

@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/engine/review.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../cards/card_widgets.dart';
+import '../review/review_state.dart';
 import '../wallet/add_sheets.dart';
 import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_editor.dart';
@@ -98,9 +100,9 @@ class HomeScreen extends ConsumerWidget {
                     DashTile(widgets[i], key: ValueKey(widgets[i].kind)),
                     // Which card and health sit right under the lead widget, wherever
                     // the user has put it.
-                    if (i == 0) ...[const _WhichCard(), const _Health()],
+                    if (i == 0) ...[const _WhichCard(), const _ReviewCard(), const _Health()],
                   ],
-                  if (widgets.isEmpty) ...[const _WhichCard(), const _Health()],
+                  if (widgets.isEmpty) ...[const _WhichCard(), const _ReviewCard(), const _Health()],
                   const _Overview(),
                 ],
               ],
@@ -170,6 +172,48 @@ class _WhichCard extends ConsumerWidget {
                     style: context.tt.titleSmall,
                   ),
                   Text('Before you pay', style: context.tt.bodySmall),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.textTertiary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// "N to review": one tap to the card stack. Quiet when there is nothing.
+class _ReviewCard extends ConsumerWidget {
+  const _ReviewCard();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final n = ref.watch(reviewCountProvider).value;
+    if (n == null) return const SizedBox.shrink();
+    final streak = streakLabel(ref.watch(reviewStreakProvider));
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
+      child: SurfaceCard(
+        key: const ValueKey('review-card-home'),
+        padding: const EdgeInsets.symmetric(horizontal: Space.lg, vertical: Space.md + 2),
+        onTap: () => context.push(Routes.review),
+        child: Row(
+          children: [
+            IconWell(
+              n > 0 ? Icons.layers_outlined : Icons.check_rounded,
+              color: n > 0 ? c.accent : c.textSecondary,
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(n > 0 ? '$n to review' : 'Inbox zero', style: context.tt.titleSmall),
+                  Text(
+                    n > 0 ? 'Swipe through, one at a time' : (streak ?? 'All caught up'),
+                    style: context.tt.bodySmall,
+                  ),
                 ],
               ),
             ),

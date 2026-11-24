@@ -2798,6 +2798,21 @@ class $TransactionsTable extends Transactions
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _reviewedMeta = const VerificationMeta(
+    'reviewed',
+  );
+  @override
+  late final GeneratedColumn<bool> reviewed = GeneratedColumn<bool>(
+    'reviewed',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("reviewed" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -2841,6 +2856,7 @@ class $TransactionsTable extends Transactions
     sources,
     statementLocked,
     appliedRuleId,
+    reviewed,
     createdAt,
     deletedAt,
   ];
@@ -2997,6 +3013,12 @@ class $TransactionsTable extends Transactions
         ),
       );
     }
+    if (data.containsKey('reviewed')) {
+      context.handle(
+        _reviewedMeta,
+        reviewed.isAcceptableOrUnknown(data['reviewed']!, _reviewedMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3090,6 +3112,10 @@ class $TransactionsTable extends Transactions
         DriftSqlType.string,
         data['${effectivePrefix}applied_rule_id'],
       ),
+      reviewed: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}reviewed'],
+      )!,
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3141,6 +3167,11 @@ class TxRow extends DataClass implements Insertable<TxRow> {
   /// A statement line confirmed it: amount/date are the bank's, final.
   final bool statementLocked;
   final String? appliedRuleId;
+
+  /// The user has looked at this and it is right (swipe-to-review). Captured
+  /// payments start unreviewed; anything the user typed or edited is reviewed.
+  /// Synced like any other column.
+  final bool reviewed;
   final DateTime createdAt;
   final DateTime? deletedAt;
   const TxRow({
@@ -3162,6 +3193,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     required this.sources,
     required this.statementLocked,
     this.appliedRuleId,
+    required this.reviewed,
     required this.createdAt,
     this.deletedAt,
   });
@@ -3200,6 +3232,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     if (!nullToAbsent || appliedRuleId != null) {
       map['applied_rule_id'] = Variable<String>(appliedRuleId);
     }
+    map['reviewed'] = Variable<bool>(reviewed);
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -3241,6 +3274,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       appliedRuleId: appliedRuleId == null && nullToAbsent
           ? const Value.absent()
           : Value(appliedRuleId),
+      reviewed: Value(reviewed),
       createdAt: Value(createdAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -3274,6 +3308,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       sources: serializer.fromJson<String>(json['sources']),
       statementLocked: serializer.fromJson<bool>(json['statementLocked']),
       appliedRuleId: serializer.fromJson<String?>(json['appliedRuleId']),
+      reviewed: serializer.fromJson<bool>(json['reviewed']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -3300,6 +3335,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       'sources': serializer.toJson<String>(sources),
       'statementLocked': serializer.toJson<bool>(statementLocked),
       'appliedRuleId': serializer.toJson<String?>(appliedRuleId),
+      'reviewed': serializer.toJson<bool>(reviewed),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -3324,6 +3360,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     String? sources,
     bool? statementLocked,
     Value<String?> appliedRuleId = const Value.absent(),
+    bool? reviewed,
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => TxRow(
@@ -3349,6 +3386,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     appliedRuleId: appliedRuleId.present
         ? appliedRuleId.value
         : this.appliedRuleId,
+    reviewed: reviewed ?? this.reviewed,
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -3390,6 +3428,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       appliedRuleId: data.appliedRuleId.present
           ? data.appliedRuleId.value
           : this.appliedRuleId,
+      reviewed: data.reviewed.present ? data.reviewed.value : this.reviewed,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -3416,6 +3455,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           ..write('sources: $sources, ')
           ..write('statementLocked: $statementLocked, ')
           ..write('appliedRuleId: $appliedRuleId, ')
+          ..write('reviewed: $reviewed, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -3423,7 +3463,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     accountId,
     statementId,
@@ -3442,9 +3482,10 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     sources,
     statementLocked,
     appliedRuleId,
+    reviewed,
     createdAt,
     deletedAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3467,6 +3508,7 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           other.sources == this.sources &&
           other.statementLocked == this.statementLocked &&
           other.appliedRuleId == this.appliedRuleId &&
+          other.reviewed == this.reviewed &&
           other.createdAt == this.createdAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -3490,6 +3532,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
   final Value<String> sources;
   final Value<bool> statementLocked;
   final Value<String?> appliedRuleId;
+  final Value<bool> reviewed;
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -3512,6 +3555,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     this.sources = const Value.absent(),
     this.statementLocked = const Value.absent(),
     this.appliedRuleId = const Value.absent(),
+    this.reviewed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3535,6 +3579,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     this.sources = const Value.absent(),
     this.statementLocked = const Value.absent(),
     this.appliedRuleId = const Value.absent(),
+    this.reviewed = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3563,6 +3608,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     Expression<String>? sources,
     Expression<bool>? statementLocked,
     Expression<String>? appliedRuleId,
+    Expression<bool>? reviewed,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -3586,6 +3632,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
       if (sources != null) 'sources': sources,
       if (statementLocked != null) 'statement_locked': statementLocked,
       if (appliedRuleId != null) 'applied_rule_id': appliedRuleId,
+      if (reviewed != null) 'reviewed': reviewed,
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -3611,6 +3658,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     Value<String>? sources,
     Value<bool>? statementLocked,
     Value<String?>? appliedRuleId,
+    Value<bool>? reviewed,
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -3634,6 +3682,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
       sources: sources ?? this.sources,
       statementLocked: statementLocked ?? this.statementLocked,
       appliedRuleId: appliedRuleId ?? this.appliedRuleId,
+      reviewed: reviewed ?? this.reviewed,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -3697,6 +3746,9 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     if (appliedRuleId.present) {
       map['applied_rule_id'] = Variable<String>(appliedRuleId.value);
     }
+    if (reviewed.present) {
+      map['reviewed'] = Variable<bool>(reviewed.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -3730,6 +3782,7 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
           ..write('sources: $sources, ')
           ..write('statementLocked: $statementLocked, ')
           ..write('appliedRuleId: $appliedRuleId, ')
+          ..write('reviewed: $reviewed, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -16900,6 +16953,7 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<String> sources,
       Value<bool> statementLocked,
       Value<String?> appliedRuleId,
+      Value<bool> reviewed,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -16924,6 +16978,7 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<String> sources,
       Value<bool> statementLocked,
       Value<String?> appliedRuleId,
+      Value<bool> reviewed,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -17108,6 +17163,11 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<String> get appliedRuleId => $composableBuilder(
     column: $table.appliedRuleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get reviewed => $composableBuilder(
+    column: $table.reviewed,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17332,6 +17392,11 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get reviewed => $composableBuilder(
+    column: $table.reviewed,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -17461,6 +17526,9 @@ class $$TransactionsTableAnnotationComposer
     column: $table.appliedRuleId,
     builder: (column) => column,
   );
+
+  GeneratedColumn<bool> get reviewed =>
+      $composableBuilder(column: $table.reviewed, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -17642,6 +17710,7 @@ class $$TransactionsTableTableManager
                 Value<String> sources = const Value.absent(),
                 Value<bool> statementLocked = const Value.absent(),
                 Value<String?> appliedRuleId = const Value.absent(),
+                Value<bool> reviewed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -17664,6 +17733,7 @@ class $$TransactionsTableTableManager
                 sources: sources,
                 statementLocked: statementLocked,
                 appliedRuleId: appliedRuleId,
+                reviewed: reviewed,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -17688,6 +17758,7 @@ class $$TransactionsTableTableManager
                 Value<String> sources = const Value.absent(),
                 Value<bool> statementLocked = const Value.absent(),
                 Value<String?> appliedRuleId = const Value.absent(),
+                Value<bool> reviewed = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -17710,6 +17781,7 @@ class $$TransactionsTableTableManager
                 sources: sources,
                 statementLocked: statementLocked,
                 appliedRuleId: appliedRuleId,
+                reviewed: reviewed,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
