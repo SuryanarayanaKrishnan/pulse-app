@@ -12,6 +12,8 @@ import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../../data/splits_util.dart';
 import 'split_widgets.dart';
+import '../tour/tab_tip.dart';
+import '../tour/tour_progress.dart';
 
 class SplitsScreen extends ConsumerWidget {
   const SplitsScreen({super.key});
@@ -29,19 +31,23 @@ class SplitsScreen extends ConsumerWidget {
               'Splits',
               subtitle: 'Shared expenses',
               trailing: [
-                RoundIconButton(
-                  icon: Icons.add_rounded,
-                  label: 'Add expense',
-                  onTap: () {
-                    final list = groups.value;
-                    if (list != null && list.isNotEmpty) {
-                      showPulseSheet<void>(
-                        context,
-                        full: true,
-                        builder: (_) => AddSplitSheet(groups: list),
-                      );
-                    }
-                  },
+                TabTip(
+                  tab: TipTab.splits,
+                  alignEnd: true,
+                  child: RoundIconButton(
+                    icon: Icons.add_rounded,
+                    label: 'Add expense',
+                    onTap: () {
+                      final list = groups.value;
+                      if (list != null && list.isNotEmpty) {
+                        showPulseSheet<void>(
+                          context,
+                          full: true,
+                          builder: (_) => AddSplitSheet(groups: list),
+                        );
+                      }
+                    },
+                  ),
                 ),
               ],
             ),

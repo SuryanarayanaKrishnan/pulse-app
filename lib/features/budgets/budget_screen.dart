@@ -11,6 +11,8 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import 'budget_charts.dart';
+import '../tour/tab_tip.dart';
+import '../tour/tour_progress.dart';
 
 /// Budget: spent against plan, by category, and where it went.
 class BudgetScreen extends ConsumerWidget {
@@ -118,10 +120,13 @@ class _Body extends ConsumerWidget {
           onAction: () => context.push(Routes.categories),
         ),
         const SizedBox(height: Space.sm),
-        SnapRail(
-          height: 128,
-          itemCount: lines.length,
-          itemBuilder: (context, i) => _CategoryTile(lines[i]),
+        TabTip(
+          tab: TipTab.budget,
+          child: SnapRail(
+            height: 128,
+            itemCount: lines.length,
+            itemBuilder: (context, i) => _CategoryTile(lines[i]),
+          ),
         ),
         const CashflowSection(),
         const CategoryTrendSection(),

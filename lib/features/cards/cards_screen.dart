@@ -17,6 +17,8 @@ import '../wallet/add_sheets.dart';
 import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
+import '../tour/tab_tip.dart';
+import '../tour/tour_progress.dart';
 
 enum _Wallet { cards, accounts }
 
@@ -57,10 +59,14 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     label: 'Add a card or account',
                     onTap: () => showAddMenu(context),
                   ),
-                  RoundIconButton(
-                    icon: Icons.bolt_rounded,
-                    label: 'Which card should I use?',
-                    onTap: () => showWhichCard(context, ref),
+                  TabTip(
+                    tab: TipTab.cards,
+                    alignEnd: true,
+                    child: RoundIconButton(
+                      icon: Icons.bolt_rounded,
+                      label: 'Which card should I use?',
+                      onTap: () => showWhichCard(context, ref),
+                    ),
                   ),
                 ],
               ),
