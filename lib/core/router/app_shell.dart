@@ -4,6 +4,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/providers.dart';
+import '../../features/rewards/reward_moment.dart';
 import '../analytics/analytics.dart';
 
 import '../theme/tokens.dart';
@@ -34,6 +36,11 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
+    // A capture arrived (SMS, wallet tap, Shortcut): refresh and celebrate.
+    ref.listen(captureOutcomesProvider, (_, next) {
+      final o = next.value;
+      if (o != null) onCaptured(context, ref, o);
+    });
     return Scaffold(
       extendBody: true,
       body: shell,

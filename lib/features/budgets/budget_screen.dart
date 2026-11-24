@@ -40,7 +40,21 @@ class BudgetScreen extends ConsumerWidget {
               value: b,
               onRetry: () => ref.invalidate(budgetProvider),
               loading: const SkeletonList(rows: 4, height: 96),
-              builder: (o) => _Body(o),
+              builder: (o) => (o.planned == 0 && o.spent == 0)
+                  ? EmptyState(
+                      icon: Icons.donut_small_outlined,
+                      title: 'No spending or budget yet',
+                      message:
+                          'Once card alerts arrive, or you add a payment by '
+                          'hand, spending shows up here. Set a monthly budget '
+                          'to see how much is left.',
+                      action: PrimaryButton(
+                        label: 'Set a budget',
+                        expand: false,
+                        onPressed: () => context.push(Routes.categories),
+                      ),
+                    )
+                  : _Body(o),
             ),
           ],
         ),

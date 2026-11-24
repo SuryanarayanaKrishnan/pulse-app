@@ -187,7 +187,7 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          if (!Env.useApi) ...[
+          if (Env.demoData || !Env.useApi) ...[
             const SectionHeader('Demo'),
             RowGroup(
               indent: ListRow.leadingInset,

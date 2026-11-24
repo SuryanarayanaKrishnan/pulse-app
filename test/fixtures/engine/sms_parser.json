@@ -1,0 +1,634 @@
+[
+ {
+  "sender": "ENBD",
+  "text": "Purchase of AED 45.00 with Credit Card ending 1234 at CARREFOUR, DUBAI. Avl Cr. limit is AED 20,000.00",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "EmiratesNBD",
+  "text": "Your Debit Card ending 1234 was used for AED 1,045.50 at TALABAT on 12-Mar-26. Avl bal AED 100",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 104550,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "TALABAT",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "AED 5,000.00 has been credited to your account ending 5678.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 500000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "5678",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ADCB",
+  "text": "Your Card XXX1234 was used for AED 45.00 at CARREFOUR on 12/03/2026. Avl. limit AED 5,000",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adcb",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adcb"
+ },
+ {
+  "sender": "ADCB",
+  "text": "ADCB: AED 1,000.00 credited to your account XXX5678",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adcb",
+   "amount_minor": 100000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "5678",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adcb"
+ },
+ {
+  "sender": "BankFAB",
+  "text": "Your Credit Card ending 1234 was used for a purchase of AED 45.00 at CARREFOUR on 12-Mar-26",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "fab",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "fab"
+ },
+ {
+  "sender": "FAB",
+  "text": "FAB: Your account ending 5678 has been credited with AED 1,000.00",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "fab",
+   "amount_minor": 100000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "5678",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "fab"
+ },
+ {
+  "sender": "MASHREQ",
+  "text": "AED 45.00 has been spent on your Mashreq Credit Card ending 1234 at CARREFOUR on 12-Mar-2026.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "mashreq",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "mashreq"
+ },
+ {
+  "sender": "RAKBANK",
+  "text": "Your RAKBANK Credit Card XXXX1234 has been charged AED 45.00 at CARREFOUR on 12/03/2026.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "rakbank",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "rakbank"
+ },
+ {
+  "sender": "RAKBANK",
+  "text": "Your a/c XXXX5678 has been debited with AED 300.00 for ATM",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "rakbank",
+   "amount_minor": 30000,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "ATM",
+   "last4": "5678",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "rakbank"
+ },
+ {
+  "sender": "DIB",
+  "text": "Dear Customer, your Card No. XXXX1234 was used for AED 45.00 at CARREFOUR on 12/03/2026. Available balance AED 1",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "dib",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "dib"
+ },
+ {
+  "sender": "ADIB",
+  "text": "Your Cr. Card XXX1234 was used for AED 45.00 at NOON.COM on 12-Mar-26.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adib",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "NOON.COM",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adib"
+ },
+ {
+  "sender": "ADIB",
+  "text": "Purchase transaction of AED 45.00 on card ending 1234 at CARREFOUR was successful",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adib",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adib"
+ },
+ {
+  "sender": "HSBC",
+  "text": "HSBC: AED 45.00 was spent on your card ending 1234 at CARREFOUR.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "hsbc",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "hsbc"
+ },
+ {
+  "sender": "Citibank",
+  "text": "Citibank: Your Citi Credit Card ending 1234 was charged AED 45.00 at CARREFOUR on 12/03/26.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "citi",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "citi"
+ },
+ {
+  "sender": "Citi",
+  "text": "Citi Alert: A payment of AED 500.00 was credited to your card ending 1234.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "citi",
+   "amount_minor": 50000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "citi"
+ },
+ {
+  "sender": "CBD",
+  "text": "CBD: Transaction of AED 45.00 done on your Credit Card ending 1234 at CARREFOUR.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "cbd",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "cbd"
+ },
+ {
+  "sender": "EmiratesIslamic",
+  "text": "A purchase of AED 45.00 was made on your Emirates Islamic Credit Card ending 1234 at CARREFOUR.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "eib",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "eib"
+ },
+ {
+  "sender": "LIV",
+  "text": "Liv. You spent AED 45.00 at CARREFOUR with card ending 1234.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "liv",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "liv"
+ },
+ {
+  "sender": "LIV",
+  "text": "Liv. You received AED 1,000.00 from AHMED.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "liv",
+   "amount_minor": 100000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": "AHMED",
+   "last4": null,
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "liv"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Purchase of USD 12.99 with Credit Card ending 1234 at NETFLIX.COM, LOS GATOS.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 1299,
+   "currency": "USD",
+   "direction": "debit",
+   "merchant_raw": "NETFLIX.COM",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Purchase of AED 12.345 with Credit Card ending 1234 at SHOP, DUBAI.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 1234,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "SHOP",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Purchase of AED 1,234.50 with Credit Card ending 1234 at CARREFOUR   MOE\n DUBAI.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 123450,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR MOE DUBAI",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Your OTP is 123456. Do not share. Purchase of AED 45.00 card ending 1234",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "ENBD alert: your OTP 889911 for AED 50 purchase",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Use verification code 4455 to confirm AED 20 payment",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Dear customer, visit our branch for new offers.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ADCB",
+  "text": "",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "adcb"
+ },
+ {
+  "sender": "MASHREQ",
+  "text": "Salary credited Dhs. 15000 to your account ending 9876",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "mashreq",
+   "amount_minor": 1500000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "9876",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "mashreq"
+ },
+ {
+  "sender": null,
+  "text": "Your Cr. Card XXX1234 was used for AED 45.00 at TALABAT DUBAI. Avl limit AED 100",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": null,
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "TALABAT DUBAI",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "generic"
+ },
+ {
+  "sender": null,
+  "text": "Purchase of AED 1,234.50 at CARREFOUR MOE on card ending 4321. Avl bal AED 10",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": null,
+   "amount_minor": 123450,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR MOE",
+   "last4": "4321",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "generic"
+ },
+ {
+  "sender": null,
+  "text": "Your Emirates Islamic Credit Card ending 1234: a purchase of AED 9.00 was made on your Emirates Islamic Credit Card ending 1234 at TALABAT.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "eib",
+   "amount_minor": 900,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "TALABAT",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "eib"
+ },
+ {
+  "sender": null,
+  "text": "Hello from your bank",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "generic"
+ },
+ {
+  "sender": "FAB",
+  "text": "FAB: Debit Card ending 1234: AED 45.00 spent at CARREFOUR",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "fab",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "fab"
+ },
+ {
+  "sender": "HSBC",
+  "text": "HSBC: Card ending 1234 was used for AED 45.00 at CARREFOUR on 12MAR26.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "hsbc",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "hsbc"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Cash withdrawal of AED 500.00 from card ending 1234 at ATM DUBAI MALL",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 50000,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "ATM DUBAI MALL",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Refund of AED 120.00 to card ending 1234 from NOON",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 12000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "UNKNOWN",
+  "text": "Payment of AED 500.00 has been received on your card ending 1234",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": null,
+   "amount_minor": 50000,
+   "currency": "AED",
+   "direction": "credit",
+   "merchant_raw": null,
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "generic"
+ },
+ {
+  "sender": "ADCB",
+  "text": "Your Card XXX1234 was used for AED 45.00 at CARREFOUR on 31/02/2026.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adcb",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adcb"
+ },
+ {
+  "sender": "ENBD",
+  "text": "Purchase of AED 3.50 with Credit Card ending 1234 at STARBUCKS, ABU DHABI. Avl Cr. limit is AED 20,000.00",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "enbd",
+   "amount_minor": 350,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "STARBUCKS",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "enbd"
+ },
+ {
+  "sender": "Liv",
+  "text": "Liv. You spent AED 7.00 at KFC with card ending 5678.",
+  "institution": null,
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "liv",
+   "amount_minor": 700,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "KFC",
+   "last4": "5678",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "liv"
+ },
+ {
+  "sender": null,
+  "text": "x",
+  "institution": "Emirates NBD",
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": null,
+  "resolved": "enbd"
+ },
+ {
+  "sender": null,
+  "institution": "Abu Dhabi Islamic Bank",
+  "text": "Purchase transaction of AED 45.00 on card ending 1234 at CARREFOUR was successful",
+  "received_at": "2026-03-12T09:00:00+00:00",
+  "expected": {
+   "institution": "adib",
+   "amount_minor": 4500,
+   "currency": "AED",
+   "direction": "debit",
+   "merchant_raw": "CARREFOUR",
+   "last4": "1234",
+   "posted_at": "2026-03-12T09:00:00+00:00"
+  },
+  "resolved": "adib"
+ }
+]

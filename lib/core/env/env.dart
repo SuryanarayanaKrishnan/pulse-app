@@ -6,7 +6,9 @@ class Env {
   static const appName = 'Pulse';
   static const tagline = 'Your money, in rhythm.';
 
-  /// Backend base URL (no trailing `/v1`). When empty the app runs on mock data.
+  /// Backend base URL (no trailing `/v1`). Optional: personal data and
+  /// compute live on the phone; the backend only serves shared features
+  /// (auth, splits, family, backup, the card catalog and price cache).
   static const apiBaseUrl = String.fromEnvironment('API_BASE_URL');
   static const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
   static const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -29,7 +31,11 @@ class Env {
   /// URL scheme registered in `ios/Runner/Info.plist` (`pulse://ingest?...`).
   static const urlScheme = 'pulse';
 
-  /// True when a backend is configured; otherwise the mock repository is used.
+  /// Run on the built-in demo data instead of the on-device ledger
+  /// (screenshots, demos): `--dart-define=DEMO_DATA=true`.
+  static const demoData = bool.fromEnvironment('DEMO_DATA');
+
+  /// True when a backend is configured (for shared features only).
   static bool get useApi => apiBaseUrl.isNotEmpty;
 
   static bool get hasSupabase =>

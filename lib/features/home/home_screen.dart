@@ -14,6 +14,7 @@ import '../../data/providers.dart';
 import '../../data/splits_util.dart';
 import '../cards/card_widgets.dart';
 import '../transactions/tx_detail_sheet.dart';
+import '../wallet/add_sheets.dart';
 import 'health_sheet.dart';
 import '../transactions/tx_tile.dart';
 
@@ -25,6 +26,17 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
     final now = DateTime.now();
+    // A brand-new on-device ledger has nothing to summarise yet.
+    final accounts = ref.watch(bankAccountsProvider).value;
+    final cards = ref.watch(myCardsProvider).value;
+    final txs = ref.watch(transactionsProvider).value;
+    final empty =
+        accounts != null &&
+        cards != null &&
+        txs != null &&
+        accounts.isEmpty &&
+        cards.isEmpty &&
+        txs.isEmpty;
     final greeting = now.hour < 12
         ? 'Good morning'
         : (now.hour < 18 ? 'Good afternoon' : 'Good evening');
@@ -55,23 +67,45 @@ class HomeScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const _Hero(),
-              const _WhichCard(),
-              const _Health(),
-              const _ComingUp(),
-              const _Overview(),
-              SectionHeader(
-                'Recent',
-                action: 'See all',
-                onAction: () => context.push(Routes.activity),
-              ),
-              const _Recent(),
+              if (empty)
+                const _GetStarted()
+              else ...[
+                const _Hero(),
+                const _WhichCard(),
+                const _Health(),
+                const _ComingUp(),
+                const _Overview(),
+                SectionHeader(
+                  'Recent',
+                  action: 'See all',
+                  onAction: () => context.push(Routes.activity),
+                ),
+                const _Recent(),
+              ],
             ],
           ),
         ),
       ),
     );
   }
+}
+
+/// First run: the ledger is empty, so say what to do instead of showing zeros.
+class _GetStarted extends StatelessWidget {
+  const _GetStarted();
+  @override
+  Widget build(BuildContext context) => EmptyState(
+    icon: Icons.waving_hand_outlined,
+    title: 'Let us set up your money',
+    message:
+        'Add an account or a card. Pulse then reads your bank alerts on this '
+        'phone and works out what is safe to spend. Nothing leaves the device.',
+    action: PrimaryButton(
+      label: 'Add an account or card',
+      expand: false,
+      onPressed: () => showAddMenu(context),
+    ),
+  );
 }
 
 class _Hero extends ConsumerWidget {
@@ -255,7 +289,7 @@ class _Health extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
     final h = ref.watch(healthScoreProvider).value;
-    if (h == null) return const SizedBox.shrink();
+    if (h == null || h.insufficient) return const SizedBox.shrink();
     final tone = h.score >= 60
         ? c.accent
         : h.score >= 40

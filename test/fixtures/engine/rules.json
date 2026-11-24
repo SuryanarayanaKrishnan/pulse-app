@@ -1,0 +1,657 @@
+{
+ "conditions": [
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "contains",
+     "value": "carre"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "contains",
+     "value": "MOE DUBAI"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "equals",
+     "value": "  carrefour "
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "equals",
+     "value": "carre"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "regex",
+     "value": "^carre\\w+$"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "merchant",
+     "op": "regex",
+     "value": "^lulu"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "description",
+     "op": "contains",
+     "value": "birthday"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "POS 123 SOME SHOP",
+    "merchant_normalized": "Carrefour",
+    "notes": "birthday gift",
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "description",
+     "op": "contains",
+     "value": "some shop"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "POS 123 SOME SHOP",
+    "merchant_normalized": "Carrefour",
+    "notes": "birthday gift",
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "description",
+     "op": "equals",
+     "value": "BIRTHDAY GIFT"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "POS 123 SOME SHOP",
+    "merchant_normalized": "Carrefour",
+    "notes": "birthday gift",
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "description",
+     "op": "contains",
+     "value": "x"
+    }
+   ],
+   "facts": {
+    "merchant_raw": null,
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "equals",
+     "value_minor": 5000
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "equals",
+     "value_minor": 5001
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "between",
+     "min_minor": 5000,
+     "max_minor": 6000
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "between",
+     "min_minor": 5001,
+     "max_minor": 6000
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "gte",
+     "value_minor": 5000
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "lte",
+     "value_minor": 4999
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 5000,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "amount",
+     "op": "gte",
+     "value_minor": 1
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": null,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "direction",
+     "value": "debit"
+    },
+    {
+     "field": "account",
+     "account_id": "11111111-1111-4111-8111-111111111111"
+    },
+    {
+     "field": "source",
+     "value": "sms"
+    },
+    {
+     "field": "merchant",
+     "op": "contains",
+     "value": "carrefour"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": true
+  },
+  {
+   "conditions": [
+    {
+     "field": "direction",
+     "value": "debit"
+    },
+    {
+     "field": "merchant",
+     "op": "contains",
+     "value": "carrefour"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "credit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "account",
+     "account_id": "11111111-1111-4111-8111-111111111111"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "22222222-2222-4222-8222-222222222222",
+    "source": "sms"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [
+    {
+     "field": "source",
+     "value": "sms"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "manual"
+   },
+   "matches": false
+  },
+  {
+   "conditions": [],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "matches": false
+  }
+ ],
+ "evaluations": [
+  {
+   "rules": [
+    {
+     "id": "a",
+     "priority": 1,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "category_id": "b",
+     "tags": [
+      "food"
+     ]
+    },
+    {
+     "id": "b",
+     "priority": 2,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "category_id": "c",
+     "rename_merchant": "Carrefour MOE",
+     "tags": [
+      "food",
+      "weekly"
+     ]
+    },
+    {
+     "id": "c",
+     "priority": 3,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "nothing"
+      }
+     ],
+     "category_id": "a"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "outcome": {
+    "category_id": "b",
+    "rename_merchant": "Carrefour MOE",
+    "mark_transfer": false,
+    "exclude_from_budget": false,
+    "tags": [
+     "food",
+     "weekly"
+    ],
+    "rule_ids": [
+     "a",
+     "b"
+    ],
+    "first_rule_id": "a"
+   }
+  },
+  {
+   "rules": [
+    {
+     "id": "c",
+     "priority": 3,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "nothing"
+      }
+     ],
+     "category_id": "a"
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "outcome": null
+  },
+  {
+   "rules": [
+    {
+     "id": "a",
+     "priority": 1,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "category_id": "b",
+     "tags": [
+      "food"
+     ]
+    },
+    {
+     "id": "d",
+     "priority": 4,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "mark_transfer": true,
+     "exclude_from_budget": true
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "outcome": {
+    "category_id": "b",
+    "rename_merchant": null,
+    "mark_transfer": true,
+    "exclude_from_budget": true,
+    "tags": [
+     "food"
+    ],
+    "rule_ids": [
+     "a",
+     "d"
+    ],
+    "first_rule_id": "a"
+   }
+  },
+  {
+   "rules": [
+    {
+     "id": "b",
+     "priority": 2,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "category_id": "c",
+     "rename_merchant": "Carrefour MOE",
+     "tags": [
+      "food",
+      "weekly"
+     ]
+    },
+    {
+     "id": "c",
+     "priority": 3,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "nothing"
+      }
+     ],
+     "category_id": "a"
+    },
+    {
+     "id": "d",
+     "priority": 4,
+     "conditions": [
+      {
+       "field": "merchant",
+       "op": "contains",
+       "value": "carre"
+      }
+     ],
+     "mark_transfer": true,
+     "exclude_from_budget": true
+    }
+   ],
+   "facts": {
+    "merchant_raw": "CARREFOUR MOE DUBAI AE",
+    "merchant_normalized": "Carrefour",
+    "notes": null,
+    "amount_minor": 12500,
+    "direction": "debit",
+    "account_id": "11111111-1111-4111-8111-111111111111",
+    "source": "sms"
+   },
+   "outcome": {
+    "category_id": "c",
+    "rename_merchant": "Carrefour MOE",
+    "mark_transfer": true,
+    "exclude_from_budget": true,
+    "tags": [
+     "food",
+     "weekly"
+    ],
+    "rule_ids": [
+     "b",
+     "d"
+    ],
+    "first_rule_id": "b"
+   }
+  }
+ ]
+}

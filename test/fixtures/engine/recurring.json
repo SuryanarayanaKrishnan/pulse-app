@@ -1,0 +1,1030 @@
+[
+ {
+  "name": "netflix_steady",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "netflix",
+    "merchant": "Netflix",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 5500,
+    "last_amount_minor": 5500,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 5,
+    "first_charge_on": "2026-02-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 5500,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "gym_two",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 10000,
+    "merchant": "Gym",
+    "key": "gym",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 10000,
+    "merchant": "Gym",
+    "key": "gym",
+    "category_slug": null
+   }
+  ],
+  "series": []
+ },
+ {
+  "name": "icloud_yearly",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2024-07-01",
+    "amount_minor": 36500,
+    "merchant": "Icloud",
+    "key": "icloud",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2025-07-01",
+    "amount_minor": 36500,
+    "merchant": "Icloud",
+    "key": "icloud",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "icloud",
+    "merchant": "Icloud",
+    "cadence": "yearly",
+    "interval_days": 365,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 36500,
+    "last_amount_minor": 36500,
+    "last_charge_on": "2025-07-01",
+    "next_expected_on": "2026-07-01",
+    "occurrences": 2,
+    "first_charge_on": "2024-07-01",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 1,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 3042,
+    "occurrences_between": [
+     "2026-07-01"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "spotify_increase",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 2699,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "spotify",
+    "merchant": "Spotify",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 2699,
+    "last_amount_minor": 2699,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 5,
+    "first_charge_on": "2026-02-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": {
+     "from_minor": 2199,
+     "to_minor": 2699,
+     "increase_minor": 500,
+     "pct": 22.7
+    },
+    "flags": [
+     "price_increase"
+    ],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 2699,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "dewa_variable",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 41000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 25000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 38000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 52000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "dewa",
+    "merchant": "Dewa",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "variable",
+    "typical_amount_minor": 38000,
+    "last_amount_minor": 52000,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 5,
+    "first_charge_on": "2026-02-05",
+    "category_slug": null,
+    "is_subscription": false,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 38000,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "shahid_wobble",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 2999,
+    "merchant": "Shahid",
+    "key": "shahid",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 2999,
+    "merchant": "Shahid",
+    "key": "shahid",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 2999,
+    "merchant": "Shahid",
+    "key": "shahid",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 3050,
+    "merchant": "Shahid",
+    "key": "shahid",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "shahid",
+    "merchant": "Shahid",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 2999,
+    "last_amount_minor": 3050,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 4,
+    "first_charge_on": "2026-03-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 2999,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "lapsed",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2025-11-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2025-12-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-01-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "netflix",
+    "merchant": "Netflix",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 5500,
+    "last_amount_minor": 5500,
+    "last_charge_on": "2026-02-05",
+    "next_expected_on": "2026-03-05",
+    "occurrences": 4,
+    "first_charge_on": "2025-11-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "lapsed",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 5500,
+    "occurrences_between": []
+   }
+  ]
+ },
+ {
+  "name": "due",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-02-13",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-13",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-13",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-13",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "netflix",
+    "merchant": "Netflix",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 5500,
+    "last_amount_minor": 5500,
+    "last_charge_on": "2026-05-13",
+    "next_expected_on": "2026-06-13",
+    "occurrences": 4,
+    "first_charge_on": "2026-02-13",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "due",
+    "anchor_day": 13,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 5500,
+    "occurrences_between": [
+     "2026-06-15",
+     "2026-07-13",
+     "2026-08-13",
+     "2026-09-13"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "forgotten_three",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "netflix",
+    "merchant": "Netflix",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 5500,
+    "last_amount_minor": 5500,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 3,
+    "first_charge_on": "2026-04-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 5500,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "utility_six",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-01-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 30000,
+    "merchant": "Dewa",
+    "key": "dewa",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "dewa",
+    "merchant": "Dewa",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 30000,
+    "last_amount_minor": 30000,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 6,
+    "first_charge_on": "2026-01-05",
+    "category_slug": null,
+    "is_subscription": false,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 30000,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "savings_ignored",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-02-05",
+    "amount_minor": 50000,
+    "merchant": "Savings Pot",
+    "key": "savings pot",
+    "category_slug": "savings"
+   },
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 50000,
+    "merchant": "Savings Pot",
+    "key": "savings pot",
+    "category_slug": "savings"
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 50000,
+    "merchant": "Savings Pot",
+    "key": "savings pot",
+    "category_slug": "savings"
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 50000,
+    "merchant": "Savings Pot",
+    "key": "savings pot",
+    "category_slug": "savings"
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 50000,
+    "merchant": "Savings Pot",
+    "key": "savings pot",
+    "category_slug": "savings"
+   }
+  ],
+  "series": []
+ },
+ {
+  "name": "month_end",
+  "today": "2026-06-10",
+  "charges": [
+   {
+    "posted_on": "2026-02-28",
+    "amount_minor": 500000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-31",
+    "amount_minor": 500000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-30",
+    "amount_minor": 500000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-31",
+    "amount_minor": 500000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "rent",
+    "merchant": "Rent",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 500000,
+    "last_amount_minor": 500000,
+    "last_charge_on": "2026-05-31",
+    "next_expected_on": "2026-06-30",
+    "occurrences": 4,
+    "first_charge_on": "2026-02-28",
+    "category_slug": null,
+    "is_subscription": false,
+    "status": "active",
+    "anchor_day": 31,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 500000,
+    "occurrences_between": [
+     "2026-06-30",
+     "2026-07-31",
+     "2026-08-31"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "mixed_two_series",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 5500,
+    "merchant": "Netflix",
+    "key": "netflix",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-03-09",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-09",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-09",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-09",
+    "amount_minor": 2199,
+    "merchant": "Spotify",
+    "key": "spotify",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "netflix",
+    "merchant": "Netflix",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 5500,
+    "last_amount_minor": 5500,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 4,
+    "first_charge_on": "2026-03-05",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 5500,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   },
+   {
+    "key": "spotify",
+    "merchant": "Spotify",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 2199,
+    "last_amount_minor": 2199,
+    "last_charge_on": "2026-06-09",
+    "next_expected_on": "2026-07-09",
+    "occurrences": 4,
+    "first_charge_on": "2026-03-09",
+    "category_slug": null,
+    "is_subscription": true,
+    "status": "active",
+    "anchor_day": 9,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": true,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 2199,
+    "occurrences_between": [
+     "2026-07-09",
+     "2026-08-09",
+     "2026-09-09"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "irregular",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-01-04",
+    "amount_minor": 4000,
+    "merchant": "Cafe",
+    "key": "cafe",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-02-13",
+    "amount_minor": 4000,
+    "merchant": "Cafe",
+    "key": "cafe",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-02-22",
+    "amount_minor": 4000,
+    "merchant": "Cafe",
+    "key": "cafe",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-24",
+    "amount_minor": 4000,
+    "merchant": "Cafe",
+    "key": "cafe",
+    "category_slug": null
+   }
+  ],
+  "series": []
+ },
+ {
+  "name": "same_day_split",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-03-05",
+    "amount_minor": 100000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-04-05",
+    "amount_minor": 100000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-05",
+    "amount_minor": 100000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 100000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-05",
+    "amount_minor": 20000,
+    "merchant": "Rent",
+    "key": "rent",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "rent",
+    "merchant": "Rent",
+    "cadence": "monthly",
+    "interval_days": 30,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 120000,
+    "last_amount_minor": 120000,
+    "last_charge_on": "2026-06-05",
+    "next_expected_on": "2026-07-05",
+    "occurrences": 4,
+    "first_charge_on": "2026-03-05",
+    "category_slug": null,
+    "is_subscription": false,
+    "status": "active",
+    "anchor_day": 5,
+    "price_increase": {
+     "from_minor": 100000,
+     "to_minor": 120000,
+     "increase_minor": 20000,
+     "pct": 20.0
+    },
+    "flags": [
+     "price_increase"
+    ],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 120000,
+    "occurrences_between": [
+     "2026-07-05",
+     "2026-08-05",
+     "2026-09-05"
+    ]
+   }
+  ]
+ },
+ {
+  "name": "weekly",
+  "today": "2026-06-15",
+  "charges": [
+   {
+    "posted_on": "2026-05-04",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-11",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-18",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-05-25",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-01",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   },
+   {
+    "posted_on": "2026-06-08",
+    "amount_minor": 1500,
+    "merchant": "Padel",
+    "key": "padel",
+    "category_slug": null
+   }
+  ],
+  "series": [
+   {
+    "key": "padel",
+    "merchant": "Padel",
+    "cadence": "weekly",
+    "interval_days": 7,
+    "amount_kind": "fixed",
+    "typical_amount_minor": 1500,
+    "last_amount_minor": 1500,
+    "last_charge_on": "2026-06-08",
+    "next_expected_on": "2026-06-15",
+    "occurrences": 6,
+    "first_charge_on": "2026-05-04",
+    "category_slug": null,
+    "is_subscription": false,
+    "status": "active",
+    "anchor_day": 25,
+    "price_increase": null,
+    "flags": [],
+    "forgotten": false,
+    "forgotten_reviewed": false,
+    "monthly_cost_minor": 6500,
+    "occurrences_between": [
+     "2026-06-15",
+     "2026-06-22",
+     "2026-06-29",
+     "2026-07-06",
+     "2026-07-13",
+     "2026-07-20",
+     "2026-07-27",
+     "2026-08-03",
+     "2026-08-10",
+     "2026-08-17",
+     "2026-08-24",
+     "2026-08-31",
+     "2026-09-07",
+     "2026-09-14",
+     "2026-09-21"
+    ]
+   }
+  ]
+ }
+]

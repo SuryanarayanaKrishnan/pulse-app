@@ -254,7 +254,9 @@ class TransactionDto {
 TxSource txSourceFor(String wire) => switch (wire) {
   'statement' => TxSource.statement,
   'sms' => TxSource.sms,
-  'notification' => TxSource.walletNotification,
+  'notification' ||
+  'google_wallet' ||
+  'samsung_wallet' => TxSource.walletNotification,
   'apple_shortcut' => TxSource.applePayShortcut,
   _ => TxSource.manual,
 };

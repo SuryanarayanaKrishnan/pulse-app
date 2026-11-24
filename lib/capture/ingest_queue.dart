@@ -3,8 +3,10 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../core/engine/types.dart';
 import '../data/api/api_exception.dart';
 import '../data/api/ingest_api.dart';
+import '../data/local/ingest_pipeline.dart';
 import 'kv_store.dart';
 
 /// One captured item waiting to be uploaded.
@@ -90,6 +92,25 @@ IngestSender apiIngestSender(IngestApi api) => (item) async {
   } on ApiException catch (e) {
     if (e.isUnauthorized) return SendOutcome.unauthorized;
     return e.isRetryable ? SendOutcome.retry : SendOutcome.permanent;
+  }
+};
+
+/// Builds an [IngestSender] over the on-device pipeline. A message that is
+/// not a transaction, a duplicate or waiting for an account all count as
+/// handled; only an unexpected failure is retried.
+IngestSender localIngestSender(IngestPipeline pipeline) => (item) async {
+  try {
+    await pipeline.ingest(
+      IngestInput.fromPayload(switch (item.channel) {
+        IngestChannel.sms => TxnSource.sms,
+        IngestChannel.notification => TxnSource.notification,
+        IngestChannel.appleShortcut => TxnSource.appleShortcut,
+      }, item.payload),
+    );
+    return SendOutcome.sent;
+  } on Object catch (e) {
+    debugPrint('Local ingest failed for ${item.id}: $e');
+    return SendOutcome.retry;
   }
 };
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../core/analytics/analytics.dart';
+import '../core/engine/sms_parser.dart' show isOtpMessage;
 import 'capture_config.dart';
 import 'capture_platform.dart';
 import 'ingest_queue.dart';
@@ -83,6 +84,8 @@ class CaptureService {
         if (events.isNotEmpty) {
           final now = _clock();
           for (final e in events) {
+            // One-time codes are never queued, parsed or stored anywhere.
+            if (isOtpMessage(e.body) || isOtpMessage(e.title ?? '')) continue;
             await queue.enqueue(e.toPending(now));
           }
           // Only after the items are durably queued.

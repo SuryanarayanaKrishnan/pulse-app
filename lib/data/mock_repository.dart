@@ -13,7 +13,7 @@ import 'statements.dart';
 typedef S = SpendCategory;
 
 /// In-memory repository with realistic UAE sample data.
-class MockPulseRepository implements PulseRepository {
+class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
   MockPulseRepository({
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,

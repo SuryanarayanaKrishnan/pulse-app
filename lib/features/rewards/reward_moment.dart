@@ -8,14 +8,56 @@ import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/api/api_exception.dart';
 import '../../data/card_util.dart';
+import '../../data/local/ingest_pipeline.dart';
+import '../../data/local/local_repository.dart';
 import '../../data/providers.dart';
 import '../cards/card_widgets.dart';
 
-/// Debug: runs a card tap through the mock capture pipeline and shows the
-/// moment exactly as a real capture would.
+/// Refreshes the ledger after a capture and, when a card earned something,
+/// shows the banner built from the real pipeline result.
+Future<void> onCaptured(
+  BuildContext context,
+  WidgetRef ref,
+  IngestOutcome outcome,
+) async {
+  final repo = ref.read(repositoryProvider);
+  if (repo is! LocalPulseRepository) return;
+  invalidateWallet(ref);
+  final d = await repo.momentFor(outcome);
+  if (d == null || !context.mounted) return;
+  Haptics.success();
+  showRewardBanner(
+    context,
+    RewardMoment(
+      merchant: d.tx.merchant,
+      amount: d.tx.amount,
+      card: d.card,
+      category: d.tx.category,
+      earned: d.earned,
+      rate: d.ratePct,
+      cap: d.cap,
+      nudge: d.nudge,
+    ),
+  );
+}
+
+/// Demo: runs a card tap through the capture pipeline. On-device this is a
+/// synthetic message through the real pipeline (the banner follows from
+/// [onCaptured]); with demo data it uses the mock capture.
 Future<void> simulateCardTap(BuildContext context, WidgetRef ref) async {
   final repo = ref.read(repositoryProvider);
+  if (repo is LocalPulseRepository) {
+    try {
+      await repo.simulateCapture();
+    } on ApiException catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
+      }
+    }
+    return;
+  }
   final before = await ref.read(myCardsProvider.future);
   final tx = await repo.simulateCapture();
   final card = before.where((c) => c.id == tx.cardId).firstOrNull;
