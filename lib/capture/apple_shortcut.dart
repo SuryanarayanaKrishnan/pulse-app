@@ -21,6 +21,7 @@ class ShortcutTransaction {
     this.card,
     this.last4,
     this.direction = 'debit',
+    this.viaScreenshot = false,
   });
 
   final int amountMinor;
@@ -30,6 +31,20 @@ class ShortcutTransaction {
   final String? card;
   final String? last4;
   final String direction;
+
+  /// Read from a screenshot: the app shows a light Undo/Edit confirmation.
+  final bool viaScreenshot;
+
+  ShortcutTransaction asScreenshot() => ShortcutTransaction(
+    amountMinor: amountMinor,
+    merchant: merchant,
+    currency: currency,
+    timestamp: timestamp,
+    card: card,
+    last4: last4,
+    direction: direction,
+    viaScreenshot: true,
+  );
 
   /// Parses a deep link. Returns null when it is not an ingest link or has no
   /// usable positive amount.
@@ -102,7 +117,7 @@ class ShortcutTransaction {
     final amount = (amountMinor / 100).toStringAsFixed(2);
     final dto = IngestRequestDto(
       rawText:
-          'Apple Pay $merchant $currency $amount${card == null ? '' : ' $card'}',
+          '${viaScreenshot ? 'Screenshot' : 'Apple Pay'} $merchant $currency $amount${card == null ? '' : ' $card'}',
       institution: null,
       receivedAt: timestamp,
       externalId: externalId,

@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'backup/backup_providers.dart';
 import 'household/household_providers.dart';
 import 'sync/sync_providers.dart';
+import 'capture/capture_confirmation.dart';
 import 'capture/providers.dart';
 import 'core/analytics/analytics.dart';
 import 'core/analytics/privacy_controller.dart';
@@ -29,6 +30,15 @@ class PulseApp extends ConsumerStatefulWidget {
 class _PulseAppState extends ConsumerState<PulseApp>
     with WidgetsBindingObserver {
   late final GoRouter _router;
+  StreamSubscription<CaptureReply>? _confirmSub;
+
+  Future<void> _onCaptureReply(CaptureReply r) async {
+    final db = ref.read(localDatabaseProvider);
+    if (r.action == CaptureAction.undo && db != null) {
+      await undoCapturedTransaction(db, r.txId);
+    }
+    _router.go(Routes.activity);
+  }
 
   @override
   void initState() {
@@ -37,6 +47,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // No-op off Android. Drains buffered SMS/notifications into the offline
     // queue and uploads them.
     ref.read(captureServiceProvider).start();
+    _confirmSub = ref.read(captureConfirmerProvider).replies.listen(_onCaptureReply);
     _refreshWealth();
     _noteOpen();
     _vaultCheckIn();
@@ -97,6 +108,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
 
   @override
   void dispose() {
+    _confirmSub?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     _router.dispose();
     super.dispose();
