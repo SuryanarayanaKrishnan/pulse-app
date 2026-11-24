@@ -33,6 +33,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
+import 'statement_service.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -64,8 +65,12 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     required this.pipeline,
     this.shared,
     this.wealth,
+    this.statementService,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
+
+  /// Statement PDFs read on this device; without it uploads need the server.
+  final LocalStatementService? statementService;
 
   /// Jewellery, funds and prices (optional so older call sites still work).
   final WealthService? wealth;
@@ -1329,17 +1334,29 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
       _needsServer('Settling up', (s) => s.undoSettlement(groupId, settlementId));
 
   @override
-  Future<List<Statement>> statements() => _orDefault(const [], (s) => s.statements());
+  Future<List<Statement>> statements() {
+    final svc = statementService;
+    return svc != null ? svc.statements() : _orDefault(const [], (s) => s.statements());
+  }
 
   @override
   Future<Reconciliation> reconciliation(String statementId) => _needsServer('Statements', (s) => s.reconciliation(statementId));
 
   @override
-  Future<UploadResult> uploadStatement({required Uint8List bytes, required String filename, String? institution}) =>
-      _needsServer('Statement upload', (s) => s.uploadStatement(bytes: bytes, filename: filename, institution: institution));
+  Future<UploadResult> uploadStatement({required Uint8List bytes, required String filename, String? institution}) async {
+    final svc = statementService;
+    if (svc == null) {
+      return _needsServer('Statement upload', (s) => s.uploadStatement(bytes: bytes, filename: filename, institution: institution));
+    }
+    final r = await svc.upload(bytes: bytes, filename: filename, institution: institution);
+    return UploadResult(id: r.id, duplicate: r.duplicate);
+  }
 
   @override
-  Future<void> reprocessStatement(String statementId) => _needsServer('Statements', (s) => s.reprocessStatement(statementId));
+  Future<void> reprocessStatement(String statementId) {
+    final svc = statementService;
+    return svc != null ? svc.reprocess(statementId) : _needsServer('Statements', (s) => s.reprocessStatement(statementId));
+  }
 
   @override
   Future<List<StatementPassword>> statementPasswords() => _orDefault(const [], (s) => s.statementPasswords());
