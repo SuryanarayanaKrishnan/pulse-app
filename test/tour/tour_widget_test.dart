@@ -178,6 +178,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Budgets that build themselves'), findsOneWidget);
     expect(find.textContaining('Restore from backup'), findsOneWidget);
+    // One page of value, no further intro pages.
+    expect(find.text('Continue'), findsNothing);
+    expect(find.textContaining('Start fresh'), findsOneWidget);
     expect(kv.data['tour.seen'], '1');
   });
 

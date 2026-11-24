@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:flutter/foundation.dart';
 
+import '../../core/engine/card_value.dart';
 import '../../core/engine/dates.dart';
 import '../../core/engine/dedupe.dart';
 import '../../core/engine/institutions.dart';
@@ -147,6 +148,7 @@ class RewardOutcome {
     this.capUsedAed,
     this.nudge,
     this.suggestedAccountId,
+    this.check,
   });
   final String accountId, cardTitle;
   final int earnedValueMinor;
@@ -157,6 +159,10 @@ class RewardOutcome {
   /// this purchase. Null when uncapped.
   final double? capLimitAed, capUsedAed;
   final String? nudge, suggestedAccountId;
+
+  /// Right/wrong card result for this payment; null when there is nothing
+  /// to compare (a single card, nothing earnable).
+  final CardCheck? check;
 }
 
 class IngestOutcome {
@@ -511,6 +517,12 @@ class IngestPipeline {
       capUsedAed: capUsed,
       nudge: nudge?.message,
       suggestedAccountId: nudge?.suggestedCardId,
+      check: checkCard(
+        paidCardId: account.id,
+        before: await rankablesFor(db, cards, today, excludeTxId: txId),
+        spend: Spend(amountMinor, slug, key),
+        unverifiedCardIds: {for (final c in cards) if (c.catalog.verifiedOn == null) c.account.id},
+      ),
     );
   }
 }

@@ -21,7 +21,9 @@ import '../../core/engine/prices.dart';
 import '../repository.dart';
 import '../rules.dart';
 import '../statements.dart';
+import '../../core/engine/card_value.dart';
 import 'card_cycles.dart';
+import 'card_value_report.dart';
 import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
@@ -1104,6 +1106,9 @@ class LocalPulseRepository implements PulseRepository {
     return _txById(id);
   }
 
+  /// Rewards, benefits, rings and hints per owned card, all on the device.
+  Future<CardValueReport> cardValueReport() => buildCardValueReport(db, _today);
+
   /// The banner content for a capture outcome that earned something.
   Future<RewardMomentData?> momentFor(IngestOutcome o) async {
     final r = o.reward;
@@ -1119,6 +1124,7 @@ class LocalPulseRepository implements PulseRepository {
       ratePct: r.ratePct,
       cap: r.capLimitAed == null ? null : RewardCap(limit: r.capLimitAed!, used: r.capUsedAed ?? 0),
       nudge: r.nudge,
+      check: r.check,
     );
   }
 
@@ -1219,10 +1225,12 @@ class RewardMomentData {
     required this.ratePct,
     this.cap,
     this.nudge,
+    this.check,
   });
   final Transaction tx;
   final CreditCard card;
   final double earned, ratePct;
   final RewardCap? cap;
   final String? nudge;
+  final CardCheck? check;
 }

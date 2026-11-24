@@ -16,6 +16,7 @@ import 'local/wealth_store.dart';
 import 'wealth_models.dart';
 import 'wealth_service.dart';
 import 'insights.dart';
+import 'local/card_value_report.dart';
 import 'local/catalog_service.dart';
 import 'local/database.dart';
 import 'local/ingest_pipeline.dart';
@@ -150,6 +151,12 @@ final captureOutcomesProvider = StreamProvider<IngestOutcome>(
   (ref) => ref.watch(ingestPipelineProvider)?.results ?? const Stream.empty(),
 );
 
+/// Card value report (rankings, rings, hints); empty off-device (demo data).
+final cardValueProvider = FutureProvider<CardValueReport>((ref) async {
+  final repo = ref.watch(repositoryProvider);
+  return repo is LocalPulseRepository ? repo.cardValueReport() : const CardValueReport();
+});
+
 final transactionsProvider = FutureProvider<List<Transaction>>(
   (ref) => ref.watch(repositoryProvider).transactions(),
 );
@@ -236,6 +243,7 @@ void invalidateLedger(WidgetRef ref) {
 /// or an asset was added or removed).
 void invalidateWallet(WidgetRef ref) {
   ref.invalidate(myCardsProvider);
+  ref.invalidate(cardValueProvider);
   ref.invalidate(catalogProvider);
   invalidateLedger(ref);
 }

@@ -8,6 +8,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/card_ranking.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../cards/card_value_widgets.dart';
 import '../cards/card_widgets.dart';
 import '../transactions/tx_detail_sheet.dart';
 import '../transactions/tx_tile.dart';
@@ -180,6 +181,7 @@ class CardDetailBody extends ConsumerWidget {
           ),
           ('Earned this month', Money.aed(earned), c.positive),
         ]),
+        CardValueSection(card.id),
         const SectionHeader('Payment'),
         PaymentDetails(card),
         const SectionHeader('Rewards'),
