@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/analytics/analytics.dart';
 import '../core/env/env.dart';
-import '../data/api/ingest_api.dart';
 import '../data/providers.dart';
 import 'apple_shortcut.dart';
 import 'capture_config.dart';
@@ -16,18 +15,19 @@ import 'kv_store.dart';
 
 final kvStoreProvider = Provider<KvStore>((ref) => SharedPrefsKvStore());
 
-final ingestApiProvider = Provider<IngestApi>(
-  (ref) => IngestApi(ref.watch(dioProvider)),
-);
-
-/// Uploads through the API when configured. In mock mode the queue drains
-/// into the void so the demo never accumulates a backlog.
+/// Hands each queued capture to the on-device pipeline. Nothing is uploaded:
+/// the queue is only a durable inbox between the native layer and the
+/// pipeline. Without a database (tests, demo data) the queue drains into the
+/// void so it never builds a backlog.
 final ingestSenderProvider = Provider<IngestSender>((ref) {
-  if (Env.useApi) return apiIngestSender(ref.watch(ingestApiProvider));
-  return (item) async {
-    debugPrint('[ingest:mock] ${item.channel.wire} ${item.id}');
-    return SendOutcome.sent;
-  };
+  final pipeline = ref.watch(ingestPipelineProvider);
+  if (pipeline == null || Env.demoData) {
+    return (item) async {
+      debugPrint('[ingest:demo] ${item.channel.wire} ${item.id}');
+      return SendOutcome.sent;
+    };
+  }
+  return localIngestSender(pipeline);
 });
 
 final ingestQueueProvider = Provider<IngestQueue>(

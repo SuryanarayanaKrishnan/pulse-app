@@ -7,6 +7,10 @@ import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
 import 'card_ranking.dart';
 import 'insights.dart';
+import 'local/catalog_service.dart';
+import 'local/database.dart';
+import 'local/ingest_pipeline.dart';
+import 'local/local_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
 import 'rules.dart';
@@ -16,12 +20,48 @@ import 'repository.dart';
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
 final dioProvider = Provider<Dio>((ref) => buildApiClient());
 
-/// API-backed when `API_BASE_URL` is defined, mock data otherwise (the demo
-/// default).
-final repositoryProvider = Provider<PulseRepository>(
-  (ref) => Env.useApi
-      ? ApiPulseRepository(ref.watch(dioProvider))
-      : MockPulseRepository(),
+/// The encrypted on-device database. Opened in `main`; null in widget tests
+/// and previews, which then run on demo data.
+final localDatabaseProvider = Provider<PulseDatabase?>((ref) => null);
+
+/// The card catalog (bundled, refreshed from the backend when configured).
+final catalogServiceProvider = Provider<CatalogService?>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  return db == null ? null : CatalogService(db: db);
+});
+
+/// The on-device ingest pipeline every capture channel feeds.
+final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (db == null) return null;
+  final p = IngestPipeline(db);
+  ref.onDispose(p.dispose);
+  return p;
+});
+
+/// What runs where:
+///  * on-device (default): [LocalPulseRepository] over the encrypted DB;
+///  * `DEMO_DATA=true` (or no database, as in tests): [MockPulseRepository];
+///  * with `API_BASE_URL`, [ApiPulseRepository] serves only the shared
+///    features (splits, family, statements, Gmail).
+final repositoryProvider = Provider<PulseRepository>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  final catalog = ref.watch(catalogServiceProvider);
+  final pipeline = ref.watch(ingestPipelineProvider);
+  if (Env.demoData || db == null || catalog == null || pipeline == null) {
+    return MockPulseRepository();
+  }
+  return LocalPulseRepository(
+    db: db,
+    catalog: catalog,
+    pipeline: pipeline,
+    shared: Env.useApi ? ApiPulseRepository(ref.watch(dioProvider)) : null,
+  );
+});
+
+/// Every capture that produced a new transaction, as it happens.
+final captureOutcomesProvider = StreamProvider<IngestOutcome>(
+  (ref) => ref.watch(ingestPipelineProvider)?.results ?? const Stream.empty(),
 );
 
 final transactionsProvider = FutureProvider<List<Transaction>>(
@@ -100,4 +140,16 @@ void invalidateLedger(WidgetRef ref) {
   ref.invalidate(categoryTrendsProvider);
   ref.invalidate(safeToSpendProvider);
   ref.invalidate(healthScoreProvider);
+  ref.invalidate(bankAccountsProvider);
+  ref.invalidate(bestByCategoryProvider);
+  ref.invalidate(netWorthProvider);
+  ref.invalidate(assetsProvider);
+}
+
+/// Refreshes everything after the wallet itself changed (a card, an account
+/// or an asset was added or removed).
+void invalidateWallet(WidgetRef ref) {
+  ref.invalidate(myCardsProvider);
+  ref.invalidate(catalogProvider);
+  invalidateLedger(ref);
 }
