@@ -10,6 +10,8 @@ import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../auth/session.dart';
+import '../tour/tour_progress.dart';
+import '../tour/tour_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
@@ -75,6 +77,18 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final progress = ref.watch(tourProgressProvider);
+    if (!progress.loaded) {
+      return const Scaffold(body: SizedBox.shrink());
+    }
+    // First launch: the short tour comes first, then the usual intro below
+    // (with Restore from backup).
+    if (progress.shouldShowTour) {
+      return TourScreen(
+        onFinished: (_) =>
+            ref.read(tourProgressProvider.notifier).markTourSeen(),
+      );
+    }
     final c = context.pc;
     final last = _page == _pages.length - 1;
     return Scaffold(

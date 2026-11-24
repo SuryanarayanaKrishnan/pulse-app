@@ -17,6 +17,7 @@ import '../auth/session.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
+import '../tour/tour_progress.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
 
@@ -187,6 +188,33 @@ class SettingsScreen extends ConsumerWidget {
               value: ref.watch(themeModeProvider),
               onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
             ),
+          ),
+          const SectionHeader('Tour'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.play_circle_outline_rounded),
+                title: 'Replay the tour',
+                subtitle: 'Four short moments, about 20 seconds',
+                chevron: true,
+                onTap: () => context.push(Routes.tour),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.lightbulb_outline_rounded),
+                title: 'Reset tips',
+                subtitle: 'Show the first-visit tip on each tab again',
+                onTap: () async {
+                  await ref.read(tourProgressProvider.notifier).resetTips();
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Tips will show again on each tab'),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
           const SectionHeader('Preferences'),
           RowGroup(

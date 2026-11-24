@@ -26,6 +26,7 @@ import '../../features/splits/splits_screen.dart';
 import '../../features/wealth/document_screens.dart';
 import '../../features/wealth/fund_screens.dart';
 import '../../features/wealth/jewellery_screens.dart';
+import '../../features/tour/tour_screen.dart';
 import '../../features/transactions/activity_screen.dart';
 import '../analytics/analytics.dart';
 import '../env/env.dart';
@@ -53,6 +54,9 @@ abstract class Routes {
   static const backup = '/backup';
   static const backupSetup = '/backup/setup';
   static const restore = '/restore';
+
+  /// Replay of the first-launch tour (Settings).
+  static const tour = '/tour';
 
   /// `/group/<id>`
   static const group = '/group';
@@ -169,6 +173,11 @@ GoRouter buildRouter({
         path: Routes.settings,
         name: 'settings',
         builder: (c, s) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.tour,
+        name: 'tour',
+        builder: (c, s) => TourScreen(onFinished: (_) => c.pop()),
       ),
       GoRoute(
         path: Routes.categories,
