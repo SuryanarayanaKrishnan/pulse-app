@@ -192,6 +192,29 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen>
                 'Message to the Shortcut Input and Sender to its sender. '
                 'One-time codes are dropped on the phone.',
           ),
+          const SizedBox(height: Space.xl),
+          Text(
+            'Any app notification or order screen (optional)',
+            style: context.tt.titleMedium,
+          ),
+          const SizedBox(height: Space.sm),
+          _step(
+            context,
+            7,
+            'Make a Capture shortcut',
+            'In Shortcuts tap +, add Take Screenshot, then the "Capture to '
+                '${Env.appName}" action. Turn on Show in Share Sheet so you '
+                'can also send it an image.',
+          ),
+          _step(
+            context,
+            8,
+            'Bind it to Back Tap',
+            'Settings, Accessibility, Touch, Back Tap, Double Tap, then pick '
+                'that shortcut. When a notification shows, or on a Tabby or '
+                'Noon order, double-tap the back of the phone. The text is read '
+                'on the phone and the image is thrown away.',
+          ),
           const SizedBox(height: Space.md),
           SurfaceCard(
             padding: const EdgeInsets.all(Space.md),

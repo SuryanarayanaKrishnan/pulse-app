@@ -12,6 +12,7 @@
 import AppIntents
 import Flutter
 import Foundation
+import Vision
 
 // MARK: - Inbox
 
@@ -62,6 +63,24 @@ enum ShortcutInbox {
       "ts": Int(Date().timeIntervalSince1970),
     ]
     if let sender = sender, !sender.isEmpty { item["sender"] = sender }
+    let data = try JSONSerialization.data(withJSONObject: item)
+    lock.lock()
+    defer { lock.unlock() }
+    try data.write(
+      to: directory.appendingPathComponent("\(id).json"),
+      options: [.atomic, .completeFileProtectionUntilFirstUserAuthentication]
+    )
+    return id
+  }
+
+  /// Appends text recognised on a screenshot. Only the text is kept.
+  @discardableResult
+  static func appendOcr(text: String) throws -> String {
+    let id = UUID().uuidString
+    let item: [String: Any] = [
+      "id": id, "kind": "ocr", "body": text,
+      "ts": Int(Date().timeIntervalSince1970),
+    ]
     let data = try JSONSerialization.data(withJSONObject: item)
     lock.lock()
     defer { lock.unlock() }
@@ -171,6 +190,34 @@ struct RecordBankSmsIntent: AppIntent {
   }
 }
 
+/// "Capture to Pulse": reads a screenshot with Apple Vision on this phone and
+/// keeps only the recognised text. The image is never saved or sent anywhere.
+/// Bind a Shortcut (Take Screenshot, then this action) to Back Tap, or run it
+/// from the share sheet on an image.
+@available(iOS 16.0, *)
+struct CaptureScreenshotIntent: AppIntent {
+  static let title: LocalizedStringResource = "Capture to Pulse"
+  static let description = IntentDescription(
+    "Reads a screenshot on this phone and adds the payment it shows to Pulse.")
+  static let openAppWhenRun: Bool = false
+
+  @Parameter(title: "Screenshot", supportedTypeIdentifiers: ["public.image"])
+  var screenshot: IntentFile
+
+  func perform() async throws -> some IntentResult {
+    let request = VNRecognizeTextRequest()
+    request.recognitionLevel = .accurate
+    request.usesLanguageCorrection = false
+    let handler = VNImageRequestHandler(data: screenshot.data, options: [:])
+    try handler.perform([request])
+    let text = (request.results ?? [])
+      .compactMap { $0.topCandidates(1).first?.string }
+      .joined(separator: "\n")
+    if !text.isEmpty { try ShortcutInbox.appendOcr(text: text) }
+    return .result()
+  }
+}
+
 @available(iOS 16.0, *)
 struct PulseShortcuts: AppShortcutsProvider {
   static var appShortcuts: [AppShortcut] {
@@ -185,6 +232,12 @@ struct PulseShortcuts: AppShortcutsProvider {
       phrases: ["Record a bank text in \(.applicationName)"],
       shortTitle: "Record Bank SMS",
       systemImageName: "message"
+    )
+    AppShortcut(
+      intent: CaptureScreenshotIntent(),
+      phrases: ["Capture a screenshot to \(.applicationName)"],
+      shortTitle: "Capture to Pulse",
+      systemImageName: "camera.viewfinder"
     )
   }
 }

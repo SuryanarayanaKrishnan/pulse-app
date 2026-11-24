@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'capture_config.dart';
 import 'apple_shortcut.dart';
 import 'captured_event.dart';
+import 'screenshot_text.dart';
 
 /// Runtime state of the Android capture permissions.
 @immutable
@@ -210,6 +211,21 @@ class AppleInboxCapturePlatform extends UnsupportedCapturePlatform {
     for (final e in raw ?? const <Object?>[]) {
       final m = Map<Object?, Object?>.from(e! as Map);
       final id = '${m['id']}';
+      if (m['kind'] == 'ocr') {
+        // Text read from a screenshot on this phone. Unparseable text is dropped.
+        final tx = parseScreenshotText(
+          '${m['body'] ?? ''}',
+          now: DateTime.fromMillisecondsSinceEpoch(
+            ((m['ts'] as num?) ?? 0).toInt() * 1000,
+          ),
+        );
+        if (tx == null) {
+          garbage.add(id);
+        } else {
+          out.add(CapturedEvent.fromShortcut(id, tx));
+        }
+        continue;
+      }
       if (m['kind'] == 'sms') {
         final body = '${m['body'] ?? ''}'.trim();
         if (body.isEmpty) {
