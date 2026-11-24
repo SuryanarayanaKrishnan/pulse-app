@@ -1,3 +1,6 @@
+import '../core/engine/receipts/receipt_source.dart';
+import '../features/splits/auto_settle.dart';
+import 'local/receipt_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
@@ -276,13 +279,14 @@ final statementPasswordStoreProvider = Provider<StatementPasswordStore>(
   (ref) => SecureStatementPasswordStore(),
 );
 /// Reads statement PDFs on this device; null with demo data or no database.
-final localStatementServiceProvider = Provider<LocalStatementService?>((ref) {
+final Provider<LocalStatementService?> localStatementServiceProvider = Provider<LocalStatementService?>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (Env.demoData || db == null) return null;
   return LocalStatementService(
     db: db,
     passwords: ref.watch(statementPasswordStoreProvider),
     locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
+    onTransfer: (c, minor) => ref.read(autoSettleServiceProvider).handle(c, minor),
   );
 });
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
@@ -355,3 +359,18 @@ void invalidateWallet(WidgetRef ref) {
   ref.invalidate(catalogProvider);
   invalidateLedger(ref);
 }
+
+/// Where receipt emails come from. Gmail is a stub until the owner creates an
+/// OAuth client (docs/RECEIPTS.md), so this is not configured today.
+final receiptSourceProvider = Provider<ReceiptSource>((ref) => GmailReceiptSource.fromEnvironment());
+
+/// Links receipt emails to card charges on this device; null with demo data
+/// or no database.
+final receiptServiceProvider = Provider<ReceiptService?>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return null;
+  return ReceiptService(db: db, source: ref.watch(receiptSourceProvider), analytics: ref.watch(analyticsProvider));
+});
+
+/// Held receipts still waiting for their card charge.
+final receiptsWaitingProvider = FutureProvider<int>((ref) async => await ref.watch(receiptServiceProvider)?.waitingCount() ?? 0);

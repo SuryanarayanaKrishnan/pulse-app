@@ -173,6 +173,9 @@ abstract final class AnalyticsSchema {
     EventSpec('report_viewed', 'Everyday use', 'You open a spending report.', props: {
       'view': EnumProp('By category or by household member', ['category', 'member']),
     }),
+    EventSpec('receipt_matched', 'Everyday use', 'An email receipt is linked to a payment on this phone.', props: {
+      'merchant': EnumProp('Which shop family (never the order, items or amounts)', ['noon', 'talabat', 'careem', 'other']),
+    }),
     EventSpec('money_moved', 'Everyday use', 'You move money between two categories in a month.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),

@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "verified": false,
+  "note": "INVENTED example offers for development. They are not real issuer terms, are not verified, and must be replaced by checked data before anyone relies on them.",
+  "offers": [
+    {"id": "example-noon-one", "merchant": "noon", "card_title_contains": ["noon one", "noon"], "unit": "cashback", "rate": 0.05, "label": "Example: 5% cashback on noon with a noon-branded card"},
+    {"id": "example-talabat-dining", "merchant": "talabat", "card_title_contains": ["dining", "foodie"], "unit": "cashback", "rate": 0.06, "label": "Example: 6% cashback on Talabat with a dining card"},
+    {"id": "example-careem-travel", "merchant": "careem", "card_title_contains": ["travel", "ride"], "unit": "cashback", "rate": 0.04, "label": "Example: 4% cashback on Careem with a travel card"}
+  ]
+}

@@ -104,6 +104,10 @@ class AnalyticsEvent {
   // ---- Card check: right/wrong card after a captured payment. Never carries
   // amounts or merchants; the miss is bucketed. ----
   /// `result`: right | wrong.
+  /// `merchant`: noon | talabat | careem | other. Nothing else is sent.
+  factory AnalyticsEvent.receiptMatched(String merchant) =>
+      AnalyticsEvent._('receipt_matched', {'merchant': merchant});
+
   factory AnalyticsEvent.cardCheckShown({required String result, required bool estimated}) =>
       AnalyticsEvent._('card_check_shown', {'result': result, 'estimated': estimated});
 

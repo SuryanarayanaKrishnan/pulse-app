@@ -183,7 +183,7 @@ class AutoSettleService {
   }
 }
 
-final autoSettleServiceProvider = Provider<AutoSettleService>((ref) {
+final Provider<AutoSettleService> autoSettleServiceProvider = Provider<AutoSettleService>((ref) {
   return AutoSettleService(
     repo: ref.watch(repositoryProvider),
     analytics: ref.watch(analyticsProvider),

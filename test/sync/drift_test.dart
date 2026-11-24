@@ -439,6 +439,30 @@ void main() {
     await restored.db.close();
   });
 
+  test('receipts: only the link and extracted notes sync; no table could carry an email body', () async {
+    for (final c in ['receipt_ref', 'receipt_notes']) {
+      expect(isSyncedColumn('transactions', c), isTrue, reason: c);
+    }
+    // Held receipts live in app_settings, which never syncs.
+    expect(syncedTables, isNot(contains('app_settings')));
+    await p1.addAccount();
+    await p1.addTx('t1', 'NOON.COM', 16250);
+    p1.nowMs += 1000;
+    await p1.db.customStatement("UPDATE transactions SET receipt_ref = 'msg-1', receipt_notes = 'Coupon: -AED 15.00' WHERE id = 't1'");
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows('SELECT receipt_ref, receipt_notes FROM transactions'), [
+      {'receipt_ref': 'msg-1', 'receipt_notes': 'Coupon: -AED 15.00'},
+    ]);
+    final cols = <String>{
+      for (final t in syncedTables)
+        for (final r in await p1.rows('PRAGMA table_info($t)')) '${r['name']}',
+    };
+    for (final bad in ['body', 'html', 'raw_email', 'email', 'raw_body', 'snippet']) {
+      expect(cols.contains(bad), isFalse, reason: 'no synced column named $bad');
+    }
+  });
+
   test('the state file is replaced atomically and survives a restart', () async {
     await p1.addAccount();
     await p1.sync();

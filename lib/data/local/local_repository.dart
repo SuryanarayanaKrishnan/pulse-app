@@ -132,6 +132,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       isIncome: income,
       excluded: t.excludeFromBudget,
       reviewed: t.reviewed,
+      receiptNotes: t.receiptNotes,
+      receiptRef: t.receiptRef,
       confidence: categoryConfidence(
         hasCategory: t.categoryId != null,
         isOther: t.categoryId == 'other',

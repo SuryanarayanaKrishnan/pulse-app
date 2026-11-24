@@ -160,6 +160,14 @@ class Transactions extends Table {
   /// payments start unreviewed; anything the user typed or edited is reviewed.
   /// Synced like any other column.
   BoolColumn get reviewed => boolean().withDefault(const Constant(false))();
+
+  /// Link to the receipt email that explained this charge (a message id, not
+  /// the email itself). Null when no receipt was matched. Synced.
+  TextColumn get receiptRef => text().nullable()();
+
+  /// Item-level notes extracted from that receipt (items, fees, promos).
+  /// Extracted fields only: raw email bodies are never stored or synced.
+  TextColumn get receiptNotes => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 

@@ -3287,6 +3287,28 @@ class $TransactionsTable extends Transactions
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _receiptRefMeta = const VerificationMeta(
+    'receiptRef',
+  );
+  @override
+  late final GeneratedColumn<String> receiptRef = GeneratedColumn<String>(
+    'receipt_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receiptNotesMeta = const VerificationMeta(
+    'receiptNotes',
+  );
+  @override
+  late final GeneratedColumn<String> receiptNotes = GeneratedColumn<String>(
+    'receipt_notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -3356,6 +3378,8 @@ class $TransactionsTable extends Transactions
     statementLocked,
     appliedRuleId,
     reviewed,
+    receiptRef,
+    receiptNotes,
     createdAt,
     deletedAt,
     owner,
@@ -3520,6 +3544,21 @@ class $TransactionsTable extends Transactions
         reviewed.isAcceptableOrUnknown(data['reviewed']!, _reviewedMeta),
       );
     }
+    if (data.containsKey('receipt_ref')) {
+      context.handle(
+        _receiptRefMeta,
+        receiptRef.isAcceptableOrUnknown(data['receipt_ref']!, _receiptRefMeta),
+      );
+    }
+    if (data.containsKey('receipt_notes')) {
+      context.handle(
+        _receiptNotesMeta,
+        receiptNotes.isAcceptableOrUnknown(
+          data['receipt_notes']!,
+          _receiptNotesMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -3629,6 +3668,14 @@ class $TransactionsTable extends Transactions
         DriftSqlType.bool,
         data['${effectivePrefix}reviewed'],
       )!,
+      receiptRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_ref'],
+      ),
+      receiptNotes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_notes'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -3693,6 +3740,14 @@ class TxRow extends DataClass implements Insertable<TxRow> {
   /// payments start unreviewed; anything the user typed or edited is reviewed.
   /// Synced like any other column.
   final bool reviewed;
+
+  /// Link to the receipt email that explained this charge (a message id, not
+  /// the email itself). Null when no receipt was matched. Synced.
+  final String? receiptRef;
+
+  /// Item-level notes extracted from that receipt (items, fees, promos).
+  /// Extracted fields only: raw email bodies are never stored or synced.
+  final String? receiptNotes;
   final DateTime createdAt;
   final DateTime? deletedAt;
 
@@ -3722,6 +3777,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     required this.statementLocked,
     this.appliedRuleId,
     required this.reviewed,
+    this.receiptRef,
+    this.receiptNotes,
     required this.createdAt,
     this.deletedAt,
     required this.owner,
@@ -3763,6 +3820,12 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       map['applied_rule_id'] = Variable<String>(appliedRuleId);
     }
     map['reviewed'] = Variable<bool>(reviewed);
+    if (!nullToAbsent || receiptRef != null) {
+      map['receipt_ref'] = Variable<String>(receiptRef);
+    }
+    if (!nullToAbsent || receiptNotes != null) {
+      map['receipt_notes'] = Variable<String>(receiptNotes);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
@@ -3807,6 +3870,12 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           ? const Value.absent()
           : Value(appliedRuleId),
       reviewed: Value(reviewed),
+      receiptRef: receiptRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptRef),
+      receiptNotes: receiptNotes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptNotes),
       createdAt: Value(createdAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -3843,6 +3912,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       statementLocked: serializer.fromJson<bool>(json['statementLocked']),
       appliedRuleId: serializer.fromJson<String?>(json['appliedRuleId']),
       reviewed: serializer.fromJson<bool>(json['reviewed']),
+      receiptRef: serializer.fromJson<String?>(json['receiptRef']),
+      receiptNotes: serializer.fromJson<String?>(json['receiptNotes']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       owner: serializer.fromJson<String>(json['owner']),
@@ -3872,6 +3943,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
       'statementLocked': serializer.toJson<bool>(statementLocked),
       'appliedRuleId': serializer.toJson<String?>(appliedRuleId),
       'reviewed': serializer.toJson<bool>(reviewed),
+      'receiptRef': serializer.toJson<String?>(receiptRef),
+      'receiptNotes': serializer.toJson<String?>(receiptNotes),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'owner': serializer.toJson<String>(owner),
@@ -3899,6 +3972,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     bool? statementLocked,
     Value<String?> appliedRuleId = const Value.absent(),
     bool? reviewed,
+    Value<String?> receiptRef = const Value.absent(),
+    Value<String?> receiptNotes = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
     String? owner,
@@ -3927,6 +4002,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
         ? appliedRuleId.value
         : this.appliedRuleId,
     reviewed: reviewed ?? this.reviewed,
+    receiptRef: receiptRef.present ? receiptRef.value : this.receiptRef,
+    receiptNotes: receiptNotes.present ? receiptNotes.value : this.receiptNotes,
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     owner: owner ?? this.owner,
@@ -3971,6 +4048,12 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           ? data.appliedRuleId.value
           : this.appliedRuleId,
       reviewed: data.reviewed.present ? data.reviewed.value : this.reviewed,
+      receiptRef: data.receiptRef.present
+          ? data.receiptRef.value
+          : this.receiptRef,
+      receiptNotes: data.receiptNotes.present
+          ? data.receiptNotes.value
+          : this.receiptNotes,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
       owner: data.owner.present ? data.owner.value : this.owner,
@@ -4000,6 +4083,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           ..write('statementLocked: $statementLocked, ')
           ..write('appliedRuleId: $appliedRuleId, ')
           ..write('reviewed: $reviewed, ')
+          ..write('receiptRef: $receiptRef, ')
+          ..write('receiptNotes: $receiptNotes, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('owner: $owner, ')
@@ -4029,6 +4114,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
     statementLocked,
     appliedRuleId,
     reviewed,
+    receiptRef,
+    receiptNotes,
     createdAt,
     deletedAt,
     owner,
@@ -4057,6 +4144,8 @@ class TxRow extends DataClass implements Insertable<TxRow> {
           other.statementLocked == this.statementLocked &&
           other.appliedRuleId == this.appliedRuleId &&
           other.reviewed == this.reviewed &&
+          other.receiptRef == this.receiptRef &&
+          other.receiptNotes == this.receiptNotes &&
           other.createdAt == this.createdAt &&
           other.deletedAt == this.deletedAt &&
           other.owner == this.owner &&
@@ -4083,6 +4172,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
   final Value<bool> statementLocked;
   final Value<String?> appliedRuleId;
   final Value<bool> reviewed;
+  final Value<String?> receiptRef;
+  final Value<String?> receiptNotes;
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
   final Value<String> owner;
@@ -4108,6 +4199,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     this.statementLocked = const Value.absent(),
     this.appliedRuleId = const Value.absent(),
     this.reviewed = const Value.absent(),
+    this.receiptRef = const Value.absent(),
+    this.receiptNotes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.owner = const Value.absent(),
@@ -4134,6 +4227,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     this.statementLocked = const Value.absent(),
     this.appliedRuleId = const Value.absent(),
     this.reviewed = const Value.absent(),
+    this.receiptRef = const Value.absent(),
+    this.receiptNotes = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.owner = const Value.absent(),
@@ -4165,6 +4260,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     Expression<bool>? statementLocked,
     Expression<String>? appliedRuleId,
     Expression<bool>? reviewed,
+    Expression<String>? receiptRef,
+    Expression<String>? receiptNotes,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
     Expression<String>? owner,
@@ -4191,6 +4288,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
       if (statementLocked != null) 'statement_locked': statementLocked,
       if (appliedRuleId != null) 'applied_rule_id': appliedRuleId,
       if (reviewed != null) 'reviewed': reviewed,
+      if (receiptRef != null) 'receipt_ref': receiptRef,
+      if (receiptNotes != null) 'receipt_notes': receiptNotes,
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (owner != null) 'owner': owner,
@@ -4219,6 +4318,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     Value<bool>? statementLocked,
     Value<String?>? appliedRuleId,
     Value<bool>? reviewed,
+    Value<String?>? receiptRef,
+    Value<String?>? receiptNotes,
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
     Value<String>? owner,
@@ -4245,6 +4346,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
       statementLocked: statementLocked ?? this.statementLocked,
       appliedRuleId: appliedRuleId ?? this.appliedRuleId,
       reviewed: reviewed ?? this.reviewed,
+      receiptRef: receiptRef ?? this.receiptRef,
+      receiptNotes: receiptNotes ?? this.receiptNotes,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       owner: owner ?? this.owner,
@@ -4313,6 +4416,12 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
     if (reviewed.present) {
       map['reviewed'] = Variable<bool>(reviewed.value);
     }
+    if (receiptRef.present) {
+      map['receipt_ref'] = Variable<String>(receiptRef.value);
+    }
+    if (receiptNotes.present) {
+      map['receipt_notes'] = Variable<String>(receiptNotes.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -4353,6 +4462,8 @@ class TransactionsCompanion extends UpdateCompanion<TxRow> {
           ..write('statementLocked: $statementLocked, ')
           ..write('appliedRuleId: $appliedRuleId, ')
           ..write('reviewed: $reviewed, ')
+          ..write('receiptRef: $receiptRef, ')
+          ..write('receiptNotes: $receiptNotes, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('owner: $owner, ')
@@ -21444,6 +21555,8 @@ typedef $$TransactionsTableCreateCompanionBuilder =
       Value<bool> statementLocked,
       Value<String?> appliedRuleId,
       Value<bool> reviewed,
+      Value<String?> receiptRef,
+      Value<String?> receiptNotes,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<String> owner,
@@ -21471,6 +21584,8 @@ typedef $$TransactionsTableUpdateCompanionBuilder =
       Value<bool> statementLocked,
       Value<String?> appliedRuleId,
       Value<bool> reviewed,
+      Value<String?> receiptRef,
+      Value<String?> receiptNotes,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<String> owner,
@@ -21662,6 +21777,16 @@ class $$TransactionsTableFilterComposer
 
   ColumnFilters<bool> get reviewed => $composableBuilder(
     column: $table.reviewed,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptRef => $composableBuilder(
+    column: $table.receiptRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptNotes => $composableBuilder(
+    column: $table.receiptNotes,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21901,6 +22026,16 @@ class $$TransactionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get receiptRef => $composableBuilder(
+    column: $table.receiptRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptNotes => $composableBuilder(
+    column: $table.receiptNotes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -22043,6 +22178,16 @@ class $$TransactionsTableAnnotationComposer
 
   GeneratedColumn<bool> get reviewed =>
       $composableBuilder(column: $table.reviewed, builder: (column) => column);
+
+  GeneratedColumn<String> get receiptRef => $composableBuilder(
+    column: $table.receiptRef,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiptNotes => $composableBuilder(
+    column: $table.receiptNotes,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -22231,6 +22376,8 @@ class $$TransactionsTableTableManager
                 Value<bool> statementLocked = const Value.absent(),
                 Value<String?> appliedRuleId = const Value.absent(),
                 Value<bool> reviewed = const Value.absent(),
+                Value<String?> receiptRef = const Value.absent(),
+                Value<String?> receiptNotes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> owner = const Value.absent(),
@@ -22256,6 +22403,8 @@ class $$TransactionsTableTableManager
                 statementLocked: statementLocked,
                 appliedRuleId: appliedRuleId,
                 reviewed: reviewed,
+                receiptRef: receiptRef,
+                receiptNotes: receiptNotes,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 owner: owner,
@@ -22283,6 +22432,8 @@ class $$TransactionsTableTableManager
                 Value<bool> statementLocked = const Value.absent(),
                 Value<String?> appliedRuleId = const Value.absent(),
                 Value<bool> reviewed = const Value.absent(),
+                Value<String?> receiptRef = const Value.absent(),
+                Value<String?> receiptNotes = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<String> owner = const Value.absent(),
@@ -22308,6 +22459,8 @@ class $$TransactionsTableTableManager
                 statementLocked: statementLocked,
                 appliedRuleId: appliedRuleId,
                 reviewed: reviewed,
+                receiptRef: receiptRef,
+                receiptNotes: receiptNotes,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 owner: owner,

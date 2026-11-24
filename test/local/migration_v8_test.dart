@@ -22,7 +22,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
 
     final rows = await db.customSelect('SELECT series_key, choice, merchant FROM recurring_choices ORDER BY series_key').get();
     expect([for (final r in rows) (r.read<String>('series_key'), r.read<String>('choice'), r.read<String>('merchant'))], [
@@ -33,14 +33,14 @@ void main() {
     expect((await db.customSelect('SELECT mode FROM budget_prefs').getSingle()).read<String>('mode'), 'category');
     expect((await db.customSelect("SELECT name FROM categories WHERE id = 'dining'").getSingle()).read<String>('name'), 'Dining');
     expect((await db.customSelect('SELECT COUNT(*) AS n FROM recurring_reviews').getSingle()).read<int>('n'), 2);
-    expect(PulseDatabase.currentSchemaVersion, 8);
+    expect(PulseDatabase.currentSchemaVersion, 9);
   });
 
   test('a fresh v8 database stores and clears a choice', () async {
     final schema = await verifier.schemaAt(8);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
     await db.customStatement("INSERT INTO recurring_choices (series_key, choice) VALUES ('x', 'ignored')");
     final r = await db.customSelect('SELECT choice, merchant, decided_at FROM recurring_choices').getSingle();
     expect(r.read<String>('choice'), 'ignored');

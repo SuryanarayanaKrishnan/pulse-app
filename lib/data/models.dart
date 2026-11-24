@@ -195,10 +195,17 @@ class Transaction {
     this.rawDescription,
     this.reviewed = true,
     this.confidence = 1,
+    this.receiptNotes,
+    this.receiptRef,
   });
 
   final String id;
   final String merchant;
+
+  /// Item-level notes taken from a matched email receipt (extracted fields
+  /// only), and the id of that email. Null when no receipt was matched.
+  final String? receiptNotes;
+  final String? receiptRef;
 
   /// Always positive; direction given by [isIncome].
   final double amount;
@@ -245,6 +252,8 @@ class Transaction {
     rawDescription: rawDescription,
     reviewed: reviewed ?? this.reviewed,
     confidence: confidence ?? this.confidence,
+    receiptNotes: receiptNotes,
+    receiptRef: receiptRef,
   );
 }
 

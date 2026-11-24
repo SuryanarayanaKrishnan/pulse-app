@@ -30,7 +30,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
 
     for (final t in ['accounts', 'transactions', 'assets', 'liabilities', 'savings_goals']) {
       final r = await db.customSelect('SELECT owner, is_private FROM $t').getSingle();
@@ -40,14 +40,14 @@ void main() {
     for (final t in ['household_configs', 'household_members', 'household_bills', 'household_limits', 'household_mirror']) {
       expect((await db.customSelect('SELECT COUNT(*) AS n FROM $t').getSingle()).read<int>('n'), 0, reason: t);
     }
-    expect(PulseDatabase.currentSchemaVersion, 8);
+    expect(PulseDatabase.currentSchemaVersion, 9);
   });
 
   test('a fresh v6 database stores ownership and a household', () async {
     final schema = await verifier.schemaAt(6);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 8);
+    await verifier.migrateAndValidate(db, 9);
     await db.customStatement("INSERT INTO accounts (id, type, name, owner, is_private) VALUES ('a1', 'bank', 'Joint', 'shared', 1)");
     final r = await db.customSelect('SELECT owner, is_private FROM accounts WHERE id = ?', variables: [Variable('a1')]).getSingle();
     expect(r.read<String>('owner'), 'shared');
