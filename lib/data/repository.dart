@@ -126,6 +126,9 @@ abstract class PulseRepository {
     String settlementId,
   );
 
+  /// Remove a settlement again (the Undo of an auto-settle).
+  Future<void> undoSettlement(String groupId, String settlementId);
+
   // ---- monthly close ---------------------------------------------------------
 
   Future<List<Statement>> statements();
@@ -209,6 +212,10 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<RulePreviewSummary?> previewRule(AutomationRule rule) async => null;
+
+  @override
+  Future<void> undoSettlement(String groupId, String settlementId) =>
+      _unsupported('Settling up');
 }
 
 Future<T> _unsupported<T>(String what) => Future.error(
