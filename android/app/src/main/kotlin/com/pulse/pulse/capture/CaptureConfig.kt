@@ -99,7 +99,7 @@ class CaptureConfig private constructor(context: Context) {
             "com.samsung.android.samsungpay.gear",
         )
 
-        val DEFAULT_BANK_HINTS = listOf("enbd", "emiratesnbd", "adcb", "mashreq", "rakbank", "adib", "hsbc")
+        val DEFAULT_BANK_HINTS = listOf("enbd", "emiratesnbd", "adcb", "mashreq", "rakbank", "adib", "hsbc", "tabby")
 
         private val OTP = Regex(
             "\\b(otp|one[- ]?time (password|pin|code)|verification code|passcode|cvv)\\b",
