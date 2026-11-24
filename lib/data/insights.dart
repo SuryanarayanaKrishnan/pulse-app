@@ -109,7 +109,15 @@ class HealthFactor {
 }
 
 class HealthScore {
-  const HealthScore(this.score, this.factors, this.readiness);
+  const HealthScore(
+    this.score,
+    this.factors,
+    this.readiness, {
+    this.insufficient = false,
+  });
+
+  /// Not enough data to score yet (an empty on-device ledger).
+  final bool insufficient;
 
   /// 0..100.
   final int score;

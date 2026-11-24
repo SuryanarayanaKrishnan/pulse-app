@@ -192,3 +192,10 @@ bool hasMerchantRule(
         _ => false,
       },
 );
+
+/// What saving a rule would do to history.
+class RulePreviewSummary {
+  const RulePreviewSummary({required this.matched, required this.wouldChange});
+  final int matched;
+  final int wouldChange;
+}

@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'api/api_exception.dart';
 import 'insights.dart';
 import 'models.dart';
 import 'rules.dart';
@@ -55,6 +56,39 @@ abstract class PulseRepository {
 
   Future<List<CreditCard>> myCards();
   Future<List<CreditCard>> cardCatalog();
+
+  /// Adds a card from the catalog to the wallet. On-device only.
+  Future<CreditCard> addCard({
+    required String catalogId,
+    required String last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+    double owed = 0,
+  });
+
+  /// Removes a card from the wallet (its transactions stay).
+  Future<void> removeCard(String id);
+
+  /// Adds a bank account, wallet or cash pot with an opening balance.
+  Future<BankAccount> addBankAccount({
+    required String bank,
+    required String name,
+    required BankAccountKind kind,
+    String? last4,
+    double balance = 0,
+  });
+
+  /// Adds something you own (property, gold, deposits, stocks...).
+  Future<Asset> addAsset({
+    required String name,
+    required AssetKind kind,
+    required double value,
+  });
+
+  /// How many past transactions [rule] would match, and how many of those
+  /// it would change. Null when the repository cannot say.
+  Future<RulePreviewSummary?> previewRule(AutomationRule rule);
 
   /// Bank accounts and wallets (not credit cards).
   Future<List<BankAccount>> bankAccounts();
@@ -141,3 +175,45 @@ abstract class PulseRepository {
   /// you this is your own privacy setting.
   Future<void> setSharing(String memberId, SharingLevel level);
 }
+
+/// Defaults for repositories without an on-device ledger (demo data, API).
+mixin LocalOnlyFeatures implements PulseRepository {
+  @override
+  Future<CreditCard> addCard({
+    required String catalogId,
+    required String last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+    double owed = 0,
+  }) => _unsupported('Adding cards');
+
+  @override
+  Future<void> removeCard(String id) => _unsupported('Removing cards');
+
+  @override
+  Future<BankAccount> addBankAccount({
+    required String bank,
+    required String name,
+    required BankAccountKind kind,
+    String? last4,
+    double balance = 0,
+  }) => _unsupported('Adding accounts');
+
+  @override
+  Future<Asset> addAsset({
+    required String name,
+    required AssetKind kind,
+    required double value,
+  }) => _unsupported('Adding assets');
+
+  @override
+  Future<RulePreviewSummary?> previewRule(AutomationRule rule) async => null;
+}
+
+Future<T> _unsupported<T>(String what) => Future.error(
+  ApiException(
+    message: '$what is not available in this mode.',
+    code: 'not_supported',
+  ),
+);

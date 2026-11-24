@@ -18,7 +18,7 @@ import 'dto.dart';
 ///  * Card rewards, minimum due and the card catalog have no backend source.
 ///  * Net-worth history does not exist, so the series is flat.
 ///  * Budget trend is built from the monthly budgets' spent figures.
-class ApiPulseRepository implements PulseRepository {
+class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
   ApiPulseRepository(this._dio, {DateTime Function()? clock})
     : _clock = clock ?? DateTime.now;
 

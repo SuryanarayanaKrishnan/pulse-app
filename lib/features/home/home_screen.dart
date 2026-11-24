@@ -255,7 +255,7 @@ class _Health extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
     final h = ref.watch(healthScoreProvider).value;
-    if (h == null) return const SizedBox.shrink();
+    if (h == null || h.insufficient) return const SizedBox.shrink();
     final tone = h.score >= 60
         ? c.accent
         : h.score >= 40
