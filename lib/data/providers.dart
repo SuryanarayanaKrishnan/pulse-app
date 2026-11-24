@@ -31,12 +31,25 @@ final dioProvider = Provider<Dio>((ref) => buildApiClient());
 
 /// The encrypted on-device database. Opened in `main`; null in widget tests
 /// and previews, which then run on demo data.
-final localDatabaseProvider = Provider<PulseDatabase?>((ref) => null);
+final localDatabaseProvider = Provider<PulseDatabase?>((ref) => ref.watch(databaseHolderProvider));
+
+/// Holds the open database so a restore can swap in the restored one without
+/// restarting the app: everything that watches [localDatabaseProvider]
+/// rebuilds on [DatabaseHolder.replace].
+class DatabaseHolder extends Notifier<PulseDatabase?> {
+  DatabaseHolder([this._initial]);
+  final PulseDatabase? _initial;
+  @override
+  PulseDatabase? build() => _initial;
+  void replace(PulseDatabase db) => state = db;
+}
+
+final databaseHolderProvider = NotifierProvider<DatabaseHolder, PulseDatabase?>(DatabaseHolder.new);
 
 /// The card catalog (bundled, refreshed from the backend when configured).
 final catalogServiceProvider = Provider<CatalogService?>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  return db == null ? null : CatalogService(db: db);
+  return db == null ? null : CatalogService(db: db, dio: Env.useApi ? ref.watch(dioProvider) : null);
 });
 
 /// The on-device ingest pipeline every capture channel feeds.

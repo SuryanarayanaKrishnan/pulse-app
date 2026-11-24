@@ -5,6 +5,8 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../backup/backup_providers.dart';
+import '../../backup/backup_state.dart';
 import '../../core/env/env.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme_mode.dart';
@@ -24,6 +26,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
+    final backup = ref.watch(backupStateProvider);
     final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
     final connected = gmail.where((g) => g.active).firstOrNull;
     final rules = ref.watch(rulesProvider).value;
@@ -88,6 +91,27 @@ class SettingsScreen extends ConsumerWidget {
                 subtitleColor: attention == 0 ? null : c.warning,
                 chevron: true,
                 onTap: () => context.push(Routes.statements),
+              ),
+            ],
+          ),
+          const SectionHeader('Your data'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.cloud_done_outlined),
+                title: 'Backup',
+                subtitle: backup.enabled
+                    ? (backup.destination == BackupDestination.file
+                          ? 'File only, encrypted'
+                          : backedUpAgo(backup.lastSuccess, DateTime.now()))
+                    : 'Keep your data safe when you change phones',
+                subtitleColor:
+                    backup.cloud && backup.needsAttention(DateTime.now())
+                    ? c.warning
+                    : null,
+                chevron: true,
+                onTap: () => context.push(Routes.backup),
               ),
             ],
           ),

@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'backup/backup_providers.dart';
 import 'capture/providers.dart';
 import 'core/analytics/analytics.dart';
 import 'core/env/env.dart';
@@ -42,6 +43,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     if (state == AppLifecycleState.resumed) {
       ref.read(captureServiceProvider).onResumed();
       _refreshWealth();
+      ref.read(backupSchedulerProvider)?.onResumed();
     }
   }
 
@@ -71,12 +73,16 @@ class _PulseAppState extends ConsumerState<PulseApp>
   }
 
   @override
-  Widget build(BuildContext context) => MaterialApp.router(
-    title: Env.appName,
-    debugShowCheckedModeBanner: false,
-    theme: PulseTheme.light,
-    darkTheme: PulseTheme.dark,
-    themeMode: ref.watch(themeModeProvider),
-    routerConfig: _router,
-  );
+  Widget build(BuildContext context) {
+    // Keeps the backup change-watcher alive for the life of the app.
+    ref.watch(backupSchedulerProvider);
+    return MaterialApp.router(
+      title: Env.appName,
+      debugShowCheckedModeBanner: false,
+      theme: PulseTheme.light,
+      darkTheme: PulseTheme.dark,
+      themeMode: ref.watch(themeModeProvider),
+      routerConfig: _router,
+    );
+  }
 }
