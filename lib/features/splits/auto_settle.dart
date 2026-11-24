@@ -119,6 +119,7 @@ class AutoSettleService {
         direction: p.fromMe ? 'debit' : 'credit',
       ),
     );
+    analytics.track(AnalyticsEvent.firstSplitSettled);
     onChanged?.call();
     final name = p.contact.name;
     final text = p.fromMe

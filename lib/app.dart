@@ -6,6 +6,7 @@ import 'backup/backup_providers.dart';
 import 'sync/sync_providers.dart';
 import 'capture/providers.dart';
 import 'core/analytics/analytics.dart';
+import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
@@ -33,6 +34,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // queue and uploads them.
     ref.read(captureServiceProvider).start();
     _refreshWealth();
+    _noteOpen();
     _router = buildRouter(
       session: ref.read(sessionProvider),
       analytics: ref.read(analyticsProvider),
@@ -45,9 +47,16 @@ class _PulseAppState extends ConsumerState<PulseApp>
     if (state == AppLifecycleState.resumed) {
       ref.read(captureServiceProvider).onResumed();
       _refreshWealth();
+      _noteOpen();
       ref.read(backupSchedulerProvider)?.onResumed();
       ref.read(syncServiceProvider)?.onResumed();
     }
+  }
+
+  /// Day-1 / day-7 return buckets (only while sharing is on).
+  void _noteOpen() {
+    final b = ref.read(privacyControllerProvider).returnBucket();
+    if (b != null) ref.read(analyticsProvider).track(AnalyticsEvent.appReturned(b));
   }
 
   /// In the background on open and resume: re-register reminders, fetch fresh

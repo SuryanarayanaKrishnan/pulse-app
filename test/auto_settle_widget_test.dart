@@ -146,12 +146,12 @@ void main() {
     expect(find.textContaining('paid you back'), findsOneWidget);
     expect(find.textContaining('30.00 still open'), findsOneWidget);
     expect(repo.group.settlements, hasLength(1));
-    expect(rec.names, ['split_auto_settled']);
+    expect(rec.names, ['split_auto_settled', 'first_split_settled']);
 
     await t.tap(find.text('Undo'));
     await _settle(t);
     expect(repo.group.settlements, isEmpty);
-    expect(rec.names, ['split_auto_settled', 'split_settle_undone']);
+    expect(rec.names, ['split_auto_settled', 'first_split_settled', 'split_settle_undone']);
   });
 
   testWidgets('unsure match asks once, remembers yes, then auto-settles', (

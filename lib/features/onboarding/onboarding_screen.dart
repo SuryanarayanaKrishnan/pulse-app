@@ -10,6 +10,7 @@ import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../auth/session.dart';
+import '../privacy/consent_prompt.dart';
 import '../tour/tour_progress.dart';
 import '../tour/tour_screen.dart';
 
@@ -35,6 +36,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     ref
         .read(analyticsProvider)
         .track(AnalyticsEvent.onboardingStepCompleted('intro_1'));
+    ref.read(analyticsProvider).track(AnalyticsEvent.onboardingCompleted);
     ref.read(sessionProvider).finishOnboarding();
   }
 
@@ -48,8 +50,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     // (with Restore from backup).
     if (progress.shouldShowTour) {
       return TourScreen(
-        onFinished: (_) =>
-            ref.read(tourProgressProvider.notifier).markTourSeen(),
+        onFinished: (_) {
+          ref.read(tourProgressProvider.notifier).markTourSeen();
+          // After the tour, ask once about anonymous usage (default stays off).
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) askForUsageSharingOnce(context, ref);
+          });
+        },
       );
     }
     final c = context.pc;
