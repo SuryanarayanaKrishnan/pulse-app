@@ -28,6 +28,7 @@ import 'local/ingest_pipeline.dart';
 import 'local/local_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
+import 'local/statement_service.dart';
 import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
@@ -173,6 +174,7 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
     catalog: catalog,
     pipeline: pipeline,
     wealth: wealth,
+    statementService: ref.watch(localStatementServiceProvider),
     shared: Env.useApi ? ApiPulseRepository(ref.watch(dioProvider)) : null,
   );
 });
@@ -222,6 +224,16 @@ final statementsProvider = FutureProvider<List<Statement>>(
 final statementPasswordStoreProvider = Provider<StatementPasswordStore>(
   (ref) => SecureStatementPasswordStore(),
 );
+/// Reads statement PDFs on this device; null with demo data or no database.
+final localStatementServiceProvider = Provider<LocalStatementService?>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return null;
+  return LocalStatementService(
+    db: db,
+    passwords: ref.watch(statementPasswordStoreProvider),
+    locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
+  );
+});
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );

@@ -378,6 +378,8 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
     try {
       await ref.read(statementPasswordStoreProvider).save(_inst!, _pw.text);
       _pw.clear();
+      // Locked statements waiting for this password open now.
+      await ref.read(localStatementServiceProvider)?.retryLocked();
       Haptics.success();
       ref.invalidate(statementPasswordsProvider);
       ref.invalidate(statementsProvider);
