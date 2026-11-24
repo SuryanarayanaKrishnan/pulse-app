@@ -8,8 +8,11 @@ Future<T?> showPulseSheet<T>(
   required Widget Function(BuildContext) builder,
   bool full = false,
 
-  /// Cover the tab bar too. Use for sheets with an action at the bottom.
-  bool useRootNavigator = false,
+  /// Open above the whole app, tab bar included. On by default: a sheet on
+  /// the tab's own navigator sits under the floating tab bar, which then
+  /// hides its bottom buttons. Pass false only for something meant to stay
+  /// inside a tab.
+  bool useRootNavigator = true,
 }) {
   return showModalBottomSheet<T>(
     context: context,

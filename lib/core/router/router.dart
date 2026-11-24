@@ -13,6 +13,7 @@ import '../../features/auth/sign_in_screen.dart';
 import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
 import '../../features/categories/categories_screen.dart';
+import '../../features/review/review_screen.dart';
 import '../../features/splits/group_screen.dart';
 import '../../features/statements/statements_screen.dart';
 import '../../features/cards/cards_screen.dart';
@@ -57,6 +58,7 @@ abstract class Routes {
   static const backupSetup = '/backup/setup';
   static const sync = '/sync';
   static const privacy = '/privacy';
+  static const review = '/review';
   static const restore = '/restore';
 
   /// Replay of the first-launch tour (Settings).
@@ -176,6 +178,11 @@ GoRouter buildRouter({
         path: Routes.appleIngest,
         name: 'apple_ingest',
         builder: (c, s) => AppleIngestScreen(params: s.uri.queryParameters),
+      ),
+      GoRoute(
+        path: Routes.review,
+        name: 'review',
+        pageBuilder: (c, s) => fade(s, const ReviewScreen()),
       ),
       GoRoute(
         path: Routes.privacy,

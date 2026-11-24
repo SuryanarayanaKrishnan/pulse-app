@@ -150,6 +150,10 @@ abstract final class AnalyticsSchema {
     EventSpec('recategorise_scope', 'Everyday use', 'You choose how far a category change reaches.', props: {
       'scope': EnumProp('Just that payment, future ones, or past and future', ['once', 'future', 'all']),
     }),
+    EventSpec('review_swiped', 'Everyday use', 'You swipe a payment in Review.', props: {
+      'direction': EnumProp('Right if it looked right, left if you fixed it', ['right', 'left']),
+    }),
+    EventSpec('review_inbox_zero', 'Everyday use', 'You finish everything in Review.'),
     EventSpec('dashboard_customised', 'Everyday use', 'You change a widget on your Home dashboard.', props: {
       'action': EnumProp('What you did', ['added', 'removed', 'resized', 'moved']),
       'widget': EnumProp('Which widget', dashboardWidgetKinds),
@@ -232,7 +236,7 @@ abstract final class AnalyticsSchema {
     '/onboarding', '/sign-in', '/connect', '/home', '/budget', '/cards',
     '/splits', '/wealth', '/activity', '/settings', '/categories',
     '/automations', '/statements', '/family', '/cards-ranked', '/legacy',
-    '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', //
+    '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
   ];
 
   static final _byName = {for (final e in events) e.name: e};

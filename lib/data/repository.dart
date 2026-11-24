@@ -24,6 +24,10 @@ abstract class PulseRepository {
     SpendCategory category, {
     bool remember = false,
   });
+  /// Marks transactions reviewed (or not). Repositories without a ledger of
+  /// their own ignore it.
+  Future<void> setReviewed(Iterable<String> txIds, bool reviewed);
+
   Future<Transaction> addManualTransaction({
     required String merchant,
     required double amount,
@@ -181,6 +185,9 @@ abstract class PulseRepository {
 
 /// Defaults for repositories without an on-device ledger (demo data, API).
 mixin LocalOnlyFeatures implements PulseRepository {
+  @override
+  Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}
+
   @override
   Future<CreditCard> addCard({
     required String catalogId,

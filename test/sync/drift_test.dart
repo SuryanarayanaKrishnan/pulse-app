@@ -95,6 +95,38 @@ void main() {
     expect(isSyncedColumn('raw_ingests', 'payload'), isFalse);
   });
 
+  test('transactions.reviewed is a synced column, not device-local', () async {
+    expect(isSyncedColumn('transactions', 'reviewed'), isTrue);
+    await p1.addAccount();
+    await p1.addTx('t1', 'Carrefour', 1200);
+    final row = (await DriftSyncBridge(p1.db).read())['transactions']!['t1']!;
+    expect(row.containsKey('reviewed'), isTrue);
+    expect(row['reviewed'], 0);
+  });
+
+  test('a review on one phone reaches the other, and both stay idle after', () async {
+    await p1.addAccount();
+    await p1.addTx('t1', 'Carrefour', 1200);
+    await p1.addTx('t2', 'Noon', 5000);
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows('SELECT id, reviewed FROM transactions ORDER BY id'), [
+      {'id': 't1', 'reviewed': 0},
+      {'id': 't2', 'reviewed': 0},
+    ]);
+
+    p2.nowMs += 1000;
+    await p2.db.customStatement("UPDATE transactions SET reviewed = 1 WHERE id = 't1'");
+    await p2.sync();
+    await p1.sync();
+    expect(await p1.rows('SELECT id, reviewed FROM transactions ORDER BY id'), [
+      {'id': 't1', 'reviewed': 1},
+      {'id': 't2', 'reviewed': 0},
+    ]);
+    expect((await p1.sync()).idle, isTrue);
+    expect((await p2.sync()).idle, isTrue);
+  });
+
   test('every allow-listed table exists with a primary key', () async {
     final snap = await DriftSyncBridge(p1.db).read();
     expect(snap.keys.toSet(), syncedTables);

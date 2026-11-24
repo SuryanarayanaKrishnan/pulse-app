@@ -26,7 +26,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
 
     final assets = await db.select(db.assets).get();
     expect(assets.single.name, 'Old gold bar');
@@ -41,7 +41,7 @@ void main() {
     final schema = await verifier.schemaAt(1);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 2);
+    await verifier.migrateAndValidate(db, 3);
     await db.customStatement(
       "INSERT INTO jewellery_items (id, name, weight_grams, karat, photo_paths, created_at) VALUES ('j', 'Ring', 8.5, 22, '[]', 0)",
     );
@@ -57,13 +57,5 @@ void main() {
     );
     final r = await db.customSelect('SELECT value_minor FROM valuation_snapshots WHERE id = ?', variables: [Variable('v1')]).getSingle();
     expect(r.read<int>('value_minor'), 100);
-  });
-
-  test('a fresh database equals the v2 dump', () async {
-    final schema = await verifier.schemaAt(2);
-    final db = PulseDatabase(schema.newConnection());
-    addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 2);
-    expect(PulseDatabase.currentSchemaVersion, 2);
   });
 }

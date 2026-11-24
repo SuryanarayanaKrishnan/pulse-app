@@ -208,6 +208,8 @@ class Transaction {
     this.isIncome = false,
     this.excluded = false,
     this.rawDescription,
+    this.reviewed = true,
+    this.confidence = 1,
   });
 
   final String id;
@@ -228,6 +230,12 @@ class Transaction {
   /// The text as captured (SMS body line, statement description), before
   /// merchant clean-up.
   final String? rawDescription;
+
+  /// You have looked at it and it is right (swipe-to-review).
+  final bool reviewed;
+
+  /// How sure Pulse is of the category, 0 to 1.
+  final double confidence;
   String get description => rawDescription ?? merchant;
 
   double get signed => isIncome ? amount : -amount;
@@ -236,6 +244,8 @@ class Transaction {
     SpendCategory? category,
     String? merchant,
     bool? excluded,
+    bool? reviewed,
+    double? confidence,
   }) => Transaction(
     id: id,
     merchant: merchant ?? this.merchant,
@@ -248,6 +258,8 @@ class Transaction {
     isIncome: isIncome,
     excluded: excluded ?? this.excluded,
     rawDescription: rawDescription,
+    reviewed: reviewed ?? this.reviewed,
+    confidence: confidence ?? this.confidence,
   );
 }
 

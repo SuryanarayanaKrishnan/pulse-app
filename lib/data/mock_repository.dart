@@ -366,6 +366,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
         cardId: card,
         accountLabel: acct,
         isIncome: income,
+        // Recent captured payments wait for a look; older and typed ones do not.
+        reviewed: !s.automatic || daysAgo > 7,
+        confidence: n % 4 == 1 ? 0.4 : 0.8,
       );
     }
 
@@ -618,11 +621,17 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     bool remember = false,
   }) async {
     final i = _tx.indexWhere((e) => e.id == txId);
-    _tx[i] = _tx[i].copyWith(category: category);
+    _tx[i] = _tx[i].copyWith(category: category, reviewed: true);
     if (remember) {
       await saveRule(suggestMerchantRule(_tx[i], category));
     }
     return _d(_tx[i]);
+  }
+
+  @override
+  Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {
+    final ids = txIds.toSet();
+    _tx = [for (final t in _tx) ids.contains(t.id) ? t.copyWith(reviewed: reviewed) : t];
   }
 
   @override
@@ -739,7 +748,7 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     final i = _tx.indexWhere((e) => e.id == txId);
     final t = _tx[i];
     final key = _key(t);
-    _tx[i] = t.copyWith(category: to);
+    _tx[i] = t.copyWith(category: to, reviewed: true);
     if (scope == RecategoriseScope.once || key == null) {
       return RecatUndo(txId: txId, txCategoryId: t.category.id);
     }

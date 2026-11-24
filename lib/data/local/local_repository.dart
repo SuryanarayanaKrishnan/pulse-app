@@ -8,6 +8,7 @@ import '../../core/engine/dues.dart' show nextDueFromDay;
 import '../../core/engine/merchants.dart';
 import '../../core/engine/networth.dart';
 import '../../core/engine/recategorise.dart';
+import '../../core/engine/review.dart';
 import '../../core/engine/recurring.dart' as recurring;
 import '../../core/engine/cashflow.dart' as flow;
 import '../../core/engine/rewards.dart';
@@ -122,6 +123,22 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
       accountLabel: acct == null ? 'Account' : _label(acct),
       isIncome: income,
       excluded: t.excludeFromBudget,
+      reviewed: t.reviewed,
+      confidence: categoryConfidence(
+        hasCategory: t.categoryId != null,
+        isOther: t.categoryId == 'other',
+        ruleApplied: t.appliedRuleId != null,
+        fromStatement: t.statementLocked,
+      ),
+    );
+  }
+
+  @override
+  Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {
+    final ids = txIds.toList();
+    if (ids.isEmpty) return;
+    await (db.update(db.transactions)..where((t) => t.id.isIn(ids))).write(
+      TransactionsCompanion(reviewed: Value(reviewed)),
     );
   }
 
@@ -173,7 +190,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     final catId = await _categoryId(category);
     final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingle();
     await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
-      TransactionsCompanion(categoryId: Value(catId)),
+      TransactionsCompanion(categoryId: Value(catId), reviewed: const Value(true)),
     );
     if (remember) {
       final key = merchantKey(row.merchantNormalized ?? row.merchantRaw);
@@ -233,7 +250,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     final catId = await _categoryId(to);
     return db.transaction(() async {
       final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingle();
-      await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(TransactionsCompanion(categoryId: Value(catId)));
+      await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(TransactionsCompanion(categoryId: Value(catId), reviewed: const Value(true)));
       final key = recategoriseKey(normalized: row.merchantNormalized, raw: row.merchantRaw, direction: Direction.tryParse(row.direction));
       if (scope == RecategoriseScope.once || key == null) {
         return RecatUndo(txId: txId, txCategoryId: row.categoryId);
@@ -362,6 +379,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
         postedAt: _clock().toUtc(),
         source: 'manual',
         sources: const Value('["manual"]'),
+        reviewed: const Value(true),
       ),
     );
     return _txById(id);
