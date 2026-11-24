@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../features/auth/session.dart';
 import '../../features/backup/backup_screen.dart';
+import '../../features/sync/sync_screen.dart';
 import '../../features/backup/backup_setup_screen.dart';
 import '../../features/backup/restore_screen.dart';
 import '../../features/capture/apple_ingest_screen.dart';
@@ -53,6 +54,7 @@ abstract class Routes {
   static const legacy = '/legacy';
   static const backup = '/backup';
   static const backupSetup = '/backup/setup';
+  static const sync = '/sync';
   static const restore = '/restore';
 
   /// Replay of the first-launch tour (Settings).
@@ -137,6 +139,10 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.backup,
         pageBuilder: (c, s) => fade(s, const BackupScreen()),
+      ),
+      GoRoute(
+        path: Routes.sync,
+        pageBuilder: (c, s) => fade(s, const SyncScreen()),
       ),
       GoRoute(
         path: Routes.backupSetup,
