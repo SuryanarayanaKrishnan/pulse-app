@@ -78,14 +78,23 @@ Future<CycleResult> cycleState(
   ]);
 }
 
-/// All owned cards with their current cycle, ready to rank.
-Future<List<RankableCard>> rankables(PulseDatabase db, List<OwnedCard> cards, CalDate today) async => [
+/// All owned cards with their current cycle, ready to rank. With
+/// [excludeTxId] that transaction is left out ("before this payment").
+Future<List<RankableCard>> rankablesFor(
+  PulseDatabase db,
+  List<OwnedCard> cards,
+  CalDate today, {
+  String? excludeTxId,
+}) async => [
   for (final c in cards)
     RankableCard(
       id: c.account.id,
       title: c.title,
       spec: c.spec,
-      state: await cycleState(db, c, today),
+      state: await cycleState(db, c, today, excludeTxId: excludeTxId),
       createdOrder: c.order,
     ),
 ];
+
+Future<List<RankableCard>> rankables(PulseDatabase db, List<OwnedCard> cards, CalDate today) =>
+    rankablesFor(db, cards, today);

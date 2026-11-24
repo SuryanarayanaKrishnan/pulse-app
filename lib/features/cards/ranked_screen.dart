@@ -11,6 +11,7 @@ import '../../data/card_util.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../wallet/wallet_sections.dart';
+import 'card_value_widgets.dart';
 import 'card_widgets.dart';
 
 /// Your cards ranked by how you use them, what they earn and what they
@@ -91,6 +92,7 @@ class _RankedCardsScreenState extends ConsumerState<RankedCardsScreen> {
                   ],
                 ),
               ),
+              const NetValueRanking(),
               const SectionHeader('Best card for each category'),
               if (best == null)
                 const SkeletonList(rows: 3, height: 44)

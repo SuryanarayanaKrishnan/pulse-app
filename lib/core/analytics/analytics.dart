@@ -33,6 +33,16 @@ class AnalyticsEvent {
   }) => AnalyticsEvent._('transaction_recategorized', {'from': from, 'to': to});
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
+
+  // ---- Card check: right/wrong card after a captured payment. Never carries
+  // amounts or merchants; the miss is bucketed. ----
+  /// `result`: right | wrong.
+  factory AnalyticsEvent.cardCheckShown({required String result, required bool estimated}) =>
+      AnalyticsEvent._('card_check_shown', {'result': result, 'estimated': estimated});
+
+  /// `missed_bucket`: lt_5 | 5_20 | gt_20 (AED).
+  factory AnalyticsEvent.cardCheckWrong({required String missedBucket}) =>
+      AnalyticsEvent._('card_check_wrong', {'missed_bucket': missedBucket});
   factory AnalyticsEvent.cardRecommendationViewed(String category) =>
       AnalyticsEvent._('card_recommendation_viewed', {'category': category});
 

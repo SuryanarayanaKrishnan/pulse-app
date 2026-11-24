@@ -13,6 +13,8 @@ import '../../data/card_util.dart';
 import '../../data/local/ingest_pipeline.dart';
 import '../../data/local/local_repository.dart';
 import '../../data/providers.dart';
+import '../../core/analytics/analytics.dart';
+import '../cards/card_check_nudge.dart';
 import '../cards/card_widgets.dart';
 
 /// Refreshes the ledger after a capture and, when a card earned something,
@@ -41,6 +43,10 @@ Future<void> onCaptured(
       nudge: d.nudge,
     ),
   );
+  final check = d.check;
+  if (check != null && context.mounted) {
+    showCardCheckNudge(context, ref.read(analyticsProvider), check);
+  }
 }
 
 /// Demo: runs a card tap through the capture pipeline. On-device this is a
