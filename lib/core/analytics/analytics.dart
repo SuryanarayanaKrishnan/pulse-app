@@ -51,6 +51,9 @@ class AnalyticsEvent {
     'from': _category(from),
     'to': _category(to),
   });
+  /// `scope`: once | future | all. Never carries the merchant or counts.
+  factory AnalyticsEvent.recategoriseScope(String scope) =>
+      AnalyticsEvent._('recategorise_scope', {'scope': scope});
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 

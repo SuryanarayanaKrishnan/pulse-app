@@ -10,6 +10,7 @@ import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../../data/rules.dart';
 import '../categories/category_picker.dart';
+import 'recategorise_sheet.dart';
 
 /// Transaction detail. Re-categorising offers to turn the choice into a rule.
 class TxDetailSheet extends ConsumerStatefulWidget {
@@ -37,6 +38,10 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       _suggestion = null;
       _ruleSaved = false;
     });
+    // Repositories that can scope the change ask how far it should reach.
+    if (await recategoriseWithScope(context, ref, tx: widget.tx, to: picked)) {
+      return;
+    }
     await ref.read(repositoryProvider).recategorise(widget.tx.id, picked);
     ref
         .read(analyticsProvider)

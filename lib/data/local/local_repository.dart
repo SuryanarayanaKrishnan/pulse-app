@@ -7,6 +7,7 @@ import '../../core/engine/dates.dart';
 import '../../core/engine/dues.dart' show nextDueFromDay;
 import '../../core/engine/merchants.dart';
 import '../../core/engine/networth.dart';
+import '../../core/engine/recategorise.dart';
 import '../../core/engine/recurring.dart' as recurring;
 import '../../core/engine/cashflow.dart' as flow;
 import '../../core/engine/rewards.dart';
@@ -18,6 +19,7 @@ import '../insights.dart';
 import '../models.dart';
 import '../wealth_service.dart';
 import '../../core/engine/prices.dart';
+import '../recategoriser.dart';
 import '../repository.dart';
 import '../rules.dart';
 import '../statements.dart';
@@ -52,7 +54,7 @@ String _monthKey(int year, int month) => '$year-${month.toString().padLeft(2, '0
 /// (splits with other people, family sharing, statement parsing, Gmail) go
 /// to [shared] when a backend is configured and report "not supported"
 /// otherwise.
-class LocalPulseRepository implements PulseRepository {
+class LocalPulseRepository implements PulseRepository, Recategoriser {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -200,6 +202,124 @@ class LocalPulseRepository implements PulseRepository {
     }
     return _txById(txId);
   }
+
+  // ---- scoped re-categorise ----------------------------------------------------------
+
+  RecatRow _recatRow(TxRow t) => RecatRow(
+    id: t.id,
+    categoryId: t.categoryId,
+    merchantRaw: t.merchantRaw,
+    merchantNormalized: t.merchantNormalized,
+    direction: Direction.tryParse(t.direction),
+  );
+
+  @override
+  Future<RecatPreview?> previewRecategorise(String txId, SpendCategory to) async {
+    final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingleOrNull();
+    if (row == null) return null;
+    final key = recategoriseKey(normalized: row.merchantNormalized, raw: row.merchantRaw, direction: Direction.tryParse(row.direction));
+    if (key == null) return null;
+    final plan = planRecategorise(
+      key: key,
+      targetCategoryId: await _categoryId(to),
+      rows: [for (final t in await _txRows()) _recatRow(t)],
+      excludeId: txId,
+    );
+    return RecatPreview(merchant: row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key, pastCount: plan.pastCount);
+  }
+
+  @override
+  Future<RecatUndo> recategoriseScoped(String txId, SpendCategory to, RecategoriseScope scope) async {
+    final catId = await _categoryId(to);
+    return db.transaction(() async {
+      final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingle();
+      await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(TransactionsCompanion(categoryId: Value(catId)));
+      final key = recategoriseKey(normalized: row.merchantNormalized, raw: row.merchantRaw, direction: Direction.tryParse(row.direction));
+      if (scope == RecategoriseScope.once || key == null) {
+        return RecatUndo(txId: txId, txCategoryId: row.categoryId);
+      }
+      final label = row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key;
+      final conditions = jsonEncode([
+        {'field': 'merchant', 'op': 'equals', 'value': key},
+      ]);
+      final existing = await (db.select(db.merchantRules)..where((r) => r.merchantKey.equals(key))).getSingleOrNull();
+      String ruleId;
+      Map<String, Object?>? replaced;
+      if (existing != null) {
+        ruleId = existing.id;
+        replaced = {
+          'category_id': existing.categoryId,
+          'conditions': existing.conditions,
+          'name': existing.name,
+          'is_active': existing.isActive,
+        };
+        await (db.update(db.merchantRules)..where((r) => r.id.equals(existing.id))).write(
+          MerchantRulesCompanion(categoryId: Value(catId), conditions: Value(conditions), isActive: const Value(true)),
+        );
+      } else {
+        ruleId = newId();
+        await db.into(db.merchantRules).insert(
+          MerchantRulesCompanion.insert(
+            id: ruleId,
+            merchantKey: Value(key),
+            name: Value('$label is ${to.label}'),
+            priority: const Value(1000),
+            conditions: Value(conditions),
+            categoryId: Value(catId),
+          ),
+        );
+      }
+      final before = <String, (String?, String?)>{};
+      if (scope == RecategoriseScope.all) {
+        final rows = await _txRows();
+        final plan = planRecategorise(key: key, targetCategoryId: catId, rows: [for (final t in rows) _recatRow(t)], excludeId: txId);
+        final byId = {for (final t in rows) t.id: t};
+        for (final id in plan.pastIds) {
+          before[id] = (byId[id]!.categoryId, byId[id]!.appliedRuleId);
+          await (db.update(db.transactions)..where((t) => t.id.equals(id))).write(
+            TransactionsCompanion(categoryId: Value(catId), appliedRuleId: Value(ruleId)),
+          );
+        }
+      }
+      return RecatUndo(
+        txId: txId,
+        txCategoryId: row.categoryId,
+        createdRuleId: replaced == null ? ruleId : null,
+        replacedRule: replaced == null ? null : {'id': ruleId, ...replaced},
+        pastBefore: before,
+      );
+    });
+  }
+
+  @override
+  Future<void> undoRecategorise(RecatUndo undo) => db.transaction(() async {
+    for (final e in undo.pastBefore.entries) {
+      await (db.update(db.transactions)..where((t) => t.id.equals(e.key))).write(
+        TransactionsCompanion(categoryId: Value(e.value.$1), appliedRuleId: Value(e.value.$2)),
+      );
+    }
+    await (db.update(db.transactions)..where((t) => t.id.equals(undo.txId))).write(
+      TransactionsCompanion(categoryId: Value(undo.txCategoryId)),
+    );
+    final created = undo.createdRuleId;
+    if (created != null) {
+      await (db.update(db.transactions)..where((t) => t.appliedRuleId.equals(created))).write(
+        const TransactionsCompanion(appliedRuleId: Value(null)),
+      );
+      await (db.delete(db.merchantRules)..where((r) => r.id.equals(created))).go();
+    }
+    final old = undo.replacedRule;
+    if (old != null) {
+      await (db.update(db.merchantRules)..where((r) => r.id.equals(old['id']! as String))).write(
+        MerchantRulesCompanion(
+          categoryId: Value(old['category_id'] as String?),
+          conditions: Value(old['conditions']! as String),
+          name: Value(old['name'] as String?),
+          isActive: Value(old['is_active'] as bool),
+        ),
+      );
+    }
+  });
 
   Future<AccountRow> _cashAccount() async {
     final existing = await (db.select(db.accounts)
