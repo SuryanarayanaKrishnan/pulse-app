@@ -27,7 +27,13 @@ Color statusColor(BuildContext context, DueStatus s) => switch (s) {
   DueStatus.upcoming => context.pc.textSecondary,
 };
 
-const _remindOptions = <int?, String>{null: 'None', 7: '1 week', 14: '2 weeks', 30: '1 month', 90: '3 months'};
+const _remindOptions = <int?, String>{
+  null: 'None',
+  7: '1 week',
+  14: '2 weeks',
+  30: '1 month',
+  90: '3 months',
+};
 
 /// Add or edit a document: photo or scan, category, optional date + reminder.
 /// Files stay in app-private storage; only metadata is stored in the database.
@@ -42,10 +48,13 @@ class AddDocumentSheet extends ConsumerStatefulWidget {
 class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
   late final _title = TextEditingController(text: widget.initial?.title);
   late final _notes = TextEditingController(text: widget.initial?.notes);
-  late DocCategory _category = widget.initial?.category ?? DocCategory.titleDeed;
+  late DocCategory _category =
+      widget.initial?.category ?? DocCategory.titleDeed;
   late String _dueKind = widget.initial?.dueKind ?? _category.defaultDueKind;
   late CalDate? _due = widget.initial?.dueOn;
-  late int? _remind = widget.initial == null ? 30 : widget.initial!.remindDaysBefore;
+  late int? _remind = widget.initial == null
+      ? 30
+      : widget.initial!.remindDaysBefore;
   late List<String> _existing = [...?widget.initial?.filePaths];
   final _removed = <String>[];
   final _added = <String>[];
@@ -58,9 +67,13 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
     super.dispose();
   }
 
-  bool get _valid => _title.text.trim().isNotEmpty || widget.initial != null || _category != DocCategory.other;
+  bool get _valid =>
+      _title.text.trim().isNotEmpty ||
+      widget.initial != null ||
+      _category != DocCategory.other;
 
-  String get _effectiveTitle => _title.text.trim().isEmpty ? _category.label : _title.text.trim();
+  String get _effectiveTitle =>
+      _title.text.trim().isEmpty ? _category.label : _title.text.trim();
 
   Future<void> _save() async {
     setState(() => _busy = true);
@@ -72,7 +85,11 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
         final ok = await svc.requestReminderPermission();
         if (!ok && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notifications are off, so there will be no alert. The date still shows under Upcoming.')),
+            const SnackBar(
+              content: Text(
+                'Notifications are off, so there will be no alert. The date still shows under Upcoming.',
+              ),
+            ),
           );
         }
       }
@@ -88,12 +105,18 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
         notificationId: old?.notificationId,
         createdAt: old?.createdAt ?? DateTime.now(),
       );
-      await svc.saveDocument(doc, newFileSources: _added, removedFiles: _removed);
+      await svc.saveDocument(
+        doc,
+        newFileSources: _added,
+        removedFiles: _removed,
+      );
       invalidateWealth(ref);
       if (mounted) Navigator.of(context).pop(doc.id);
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('That did not save. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('That did not save. Try again.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -114,16 +137,21 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
             runSpacing: Space.sm,
             children: [
               for (final k in DocCategory.values)
-                Pill(k.label, icon: docIcon(k), selected: _category == k, onTap: () => setState(() {
-                  _category = k;
-                  _dueKind = k.defaultDueKind;
-                })),
+                Pill(
+                  k.label,
+                  icon: docIcon(k),
+                  selected: _category == k,
+                  onTap: () => setState(() {
+                    _category = k;
+                    _dueKind = k.defaultDueKind;
+                  }),
+                ),
             ],
           ),
           const SizedBox(height: Space.lg),
           PhotoPickerRow(
             document: true,
-            cameraLabel: 'Scan or photo',
+            cameraLabel: 'Scan',
             existing: _existing,
             added: _added,
             onAdd: (p) => setState(() => _added.add(p)),
@@ -146,7 +174,11 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
             children: [
               for (final k in const ['expiry', 'maturity', 'renewal'])
                 Pill(
-                  k == 'expiry' ? 'Expires' : k == 'maturity' ? 'Matures' : 'Renews',
+                  k == 'expiry'
+                      ? 'Expires'
+                      : k == 'maturity'
+                      ? 'Matures'
+                      : 'Renews',
                   selected: _dueKind == k,
                   onTap: () => setState(() => _dueKind = k),
                 ),
@@ -157,11 +189,17 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
             children: [
               Expanded(
                 child: PrimaryButton(
-                  label: _due == null ? 'Pick a date (optional)' : formatDate(_due!),
+                  label: _due == null
+                      ? 'Pick a date (optional)'
+                      : formatDate(_due!),
                   icon: Icons.event_outlined,
                   secondary: true,
                   onPressed: () async {
-                    final d = await pickDate(context, initial: _due, future: true);
+                    final d = await pickDate(
+                      context,
+                      initial: _due,
+                      future: true,
+                    );
                     if (d != null) setState(() => _due = d);
                   },
                 ),
@@ -171,7 +209,10 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
                 IconButton(
                   tooltip: 'Clear date',
                   onPressed: () => setState(() => _due = null),
-                  icon: Icon(Icons.close_rounded, color: context.pc.textTertiary),
+                  icon: Icon(
+                    Icons.close_rounded,
+                    color: context.pc.textTertiary,
+                  ),
                 ),
               ],
             ],
@@ -183,12 +224,19 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
               runSpacing: Space.sm,
               children: [
                 for (final e in _remindOptions.entries)
-                  Pill(e.value, selected: _remind == e.key, onTap: () => setState(() => _remind = e.key)),
+                  Pill(
+                    e.value,
+                    selected: _remind == e.key,
+                    onTap: () => setState(() => _remind = e.key),
+                  ),
               ],
             ),
             Padding(
               padding: const EdgeInsets.only(top: Space.sm),
-              child: Text('A notification at 9:00, scheduled on this phone.', style: context.tt.bodySmall),
+              child: Text(
+                'A notification at 9:00, scheduled on this phone.',
+                style: context.tt.bodySmall,
+              ),
             ),
           ],
           const SizedBox(height: Space.lg),
@@ -197,10 +245,16 @@ class _AddDocumentSheetState extends ConsumerState<AddDocumentSheet> {
             minLines: 1,
             maxLines: 3,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(hintText: 'Notes, like a policy or deposit number (optional)'),
+            decoration: const InputDecoration(
+              hintText: 'Notes, like a policy or deposit number (optional)',
+            ),
           ),
           const SizedBox(height: Space.xl),
-          PrimaryButton(label: editing ? 'Save changes' : 'Save document', loading: _busy, onPressed: _valid ? _save : null),
+          PrimaryButton(
+            label: editing ? 'Save changes' : 'Save document',
+            loading: _busy,
+            onPressed: _valid ? _save : null,
+          ),
         ],
       ),
     );
@@ -230,40 +284,68 @@ class DocumentDetailScreen extends ConsumerWidget {
             IconButton(
               tooltip: 'Edit',
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => showPulseSheet<void>(context, full: true, builder: (_) => AddDocumentSheet(initial: d)),
+              onPressed: () => showPulseSheet<void>(
+                context,
+                full: true,
+                builder: (_) => AddDocumentSheet(initial: d),
+              ),
             ),
         ],
       ),
       body: d == null
           ? (docs.isLoading
                 ? const SkeletonList(rows: 3)
-                : const EmptyState(icon: Icons.description_outlined, title: 'Document not found', message: 'It may have been deleted.'))
+                : const EmptyState(
+                    icon: Icons.description_outlined,
+                    title: 'Document not found',
+                    message: 'It may have been deleted.',
+                  ))
           : ListView(
               padding: const EdgeInsets.only(bottom: 60),
               children: [
                 PhotoStrip(d.filePaths, size: 120, document: true),
                 if (d.filePaths.isEmpty)
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-                    child: Text('No photo attached. Edit to add one.', style: context.tt.bodySmall),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Space.gutter,
+                    ),
+                    child: Text(
+                      'No photo attached. Edit to add one.',
+                      style: context.tt.bodySmall,
+                    ),
                   ),
                 const SectionHeader('Details'),
                 RowGroup(
                   children: [
-                    ListRow(dense: true, title: 'Type', trailing: Text(d.category.label, style: PulseTheme.amount(c.textPrimary, size: 15))),
+                    ListRow(
+                      dense: true,
+                      title: 'Type',
+                      trailing: Text(
+                        d.category.label,
+                        style: PulseTheme.amount(c.textPrimary, size: 15),
+                      ),
+                    ),
                     if (d.dueOn != null) ...[
                       ListRow(
                         dense: true,
                         title: d.dueLabel,
                         subtitle: dueText(d.dueOn!, svc.today),
-                        subtitleColor: statusColor(context, dueStatus(d.dueOn!, svc.today)),
-                        trailing: Text(formatDate(d.dueOn!), style: PulseTheme.amount(c.textPrimary, size: 15)),
+                        subtitleColor: statusColor(
+                          context,
+                          dueStatus(d.dueOn!, svc.today),
+                        ),
+                        trailing: Text(
+                          formatDate(d.dueOn!),
+                          style: PulseTheme.amount(c.textPrimary, size: 15),
+                        ),
                       ),
                       ListRow(
                         dense: true,
                         title: 'Reminder',
                         trailing: Text(
-                          d.remindDaysBefore == null ? 'Off' : '${_remindOptions[d.remindDaysBefore] ?? '${d.remindDaysBefore} days'} before',
+                          d.remindDaysBefore == null
+                              ? 'Off'
+                              : '${_remindOptions[d.remindDaysBefore] ?? '${d.remindDaysBefore} days'} before',
                           style: PulseTheme.amount(c.textPrimary, size: 15),
                         ),
                       ),
@@ -272,7 +354,12 @@ class DocumentDetailScreen extends ConsumerWidget {
                 ),
                 if (d.notes != null) ...[
                   const SectionHeader('Notes'),
-                  Padding(padding: const EdgeInsets.symmetric(horizontal: Space.gutter), child: Text(d.notes!, style: context.tt.bodyMedium)),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: Space.gutter,
+                    ),
+                    child: Text(d.notes!, style: context.tt.bodyMedium),
+                  ),
                 ],
                 const SizedBox(height: Space.xl),
                 Padding(
@@ -286,10 +373,18 @@ class DocumentDetailScreen extends ConsumerWidget {
                         context: context,
                         builder: (ctx) => AlertDialog(
                           title: Text('Delete ${d.title}?'),
-                          content: const Text('The photos and its reminder are removed from this phone.'),
+                          content: const Text(
+                            'The photos and its reminder are removed from this phone.',
+                          ),
                           actions: [
-                            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-                            TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: const Text('Delete'),
+                            ),
                           ],
                         ),
                       );

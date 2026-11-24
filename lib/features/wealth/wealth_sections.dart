@@ -18,7 +18,10 @@ import 'jewellery_screens.dart';
 import 'wealth_widgets.dart';
 
 /// What can be added from Wealth.
-Future<void> showWealthAddMenu(BuildContext context, {required Widget Function(BuildContext) assetSheet}) => showPulseSheet<void>(
+Future<void> showWealthAddMenu(
+  BuildContext context, {
+  required Widget Function(BuildContext) assetSheet,
+}) => showPulseSheet<void>(
   context,
   builder: (sheet) {
     final c = context.pc;
@@ -55,7 +58,10 @@ Future<void> showWealthAddMenu(BuildContext context, {required Widget Function(B
             onTap: () => open((_) => const AddDocumentSheet()),
           ),
           ListRow(
-            leading: IconWell(Icons.account_balance_wallet_outlined, color: c.accent),
+            leading: IconWell(
+              Icons.account_balance_wallet_outlined,
+              color: c.accent,
+            ),
             title: 'Other asset or loan',
             subtitle: 'Property, deposits, stocks, debts',
             chevron: true,
@@ -88,7 +94,11 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     if (mounted) {
       setState(() => _busy = false);
       if (svc.prices.lastError != null) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Offline. Showing the last saved prices.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Offline. Showing the last saved prices.'),
+          ),
+        );
       }
     }
   }
@@ -100,9 +110,13 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     if (book == null) return const SizedBox.shrink();
     final at = book.fetchedAt;
     final canFetch = ref.watch(priceServiceProvider).canFetch;
-    final fresh = at != null && DateTime.now().difference(at) < const Duration(hours: 1);
+    final fresh =
+        at != null && DateTime.now().difference(at) < const Duration(hours: 1);
     final (label, color) = book.origin == PriceOrigin.bundled
-        ? ('Demo prices${canFetch ? '' : ' · connect a price service for live ones'}', c.warning)
+        ? (
+            'Demo prices${canFetch ? '' : ' · connect a price service for live ones'}',
+            c.warning,
+          )
         : fresh
         ? ('Live · updated ${ago(at)}', c.positive)
         : ('Saved prices · updated ${ago(at!)}', c.warning);
@@ -112,15 +126,29 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
         children: [
           Dot(color, size: 6),
           const SizedBox(width: 6),
-          Expanded(child: Text(label, key: const Key('price-status'), style: context.tt.bodySmall)),
+          Expanded(
+            child: Text(
+              label,
+              key: const Key('price-status'),
+              style: context.tt.bodySmall,
+            ),
+          ),
           if (canFetch)
             IconButton(
               tooltip: 'Refresh prices',
               visualDensity: VisualDensity.compact,
               onPressed: _busy ? null : _refresh,
               icon: _busy
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Icon(Icons.refresh_rounded, size: 20, color: c.textSecondary),
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(
+                      Icons.refresh_rounded,
+                      size: 20,
+                      color: c.textSecondary,
+                    ),
             ),
         ],
       ),
@@ -147,15 +175,26 @@ class UpcomingSection extends ConsumerWidget {
               ListRow(
                 dense: true,
                 leading: IconWell(
-                  u.kind == UpcomingKind.sip ? Icons.autorenew_rounded : Icons.event_available_outlined,
+                  u.kind == UpcomingKind.sip
+                      ? Icons.autorenew_rounded
+                      : Icons.event_available_outlined,
                   color: statusColor(context, u.status),
                 ),
                 title: u.title,
                 subtitle: u.detail,
-                subtitleColor: u.status == DueStatus.upcoming ? null : statusColor(context, u.status),
-                trailing: Text(formatDate(u.date), style: PulseTheme.amount(c.textSecondary, size: 13)),
+                subtitleColor: u.status == DueStatus.upcoming
+                    ? null
+                    : statusColor(context, u.status),
+                trailing: Text(
+                  formatDate(u.date),
+                  style: PulseTheme.amount(c.textSecondary, size: 13),
+                ),
                 chevron: true,
-                onTap: () => context.push(u.kind == UpcomingKind.sip ? '${Routes.fund}/${u.refId}' : '${Routes.document}/${u.refId}'),
+                onTap: () => context.push(
+                  u.kind == UpcomingKind.sip
+                      ? '${Routes.fund}/${u.refId}'
+                      : '${Routes.document}/${u.refId}',
+                ),
               ),
           ],
         ),
@@ -175,39 +214,71 @@ class JewellerySection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SectionHeader('Gold and jewellery', action: 'Add', onAction: () => showPulseSheet<void>(context, full: true, builder: (_) => const AddJewellerySheet())),
+          SectionHeader(
+            'Gold and jewellery',
+            action: 'Add',
+            onAction: () => showPulseSheet<void>(
+              context,
+              full: true,
+              builder: (_) => const AddJewellerySheet(),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text('Add a piece with a photo, its weight and karat. Pulse values it from the gold price, on this phone.', style: context.tt.bodySmall),
+            child: Text(
+              'Add a piece with a photo, its weight and karat. Pulse values it from the gold price, on this phone.',
+              style: context.tt.bodySmall,
+            ),
           ),
         ],
       );
     }
     final total = list.fold<int>(0, (a, v) => a + v.value.valueMinor);
-    final paid = list.every((v) => v.item.purchasePriceMinor != null) ? list.fold<int>(0, (a, v) => a + v.item.purchasePriceMinor!) : null;
+    final paid = list.every((v) => v.item.purchasePriceMinor != null)
+        ? list.fold<int>(0, (a, v) => a + v.item.purchasePriceMinor!)
+        : null;
     final grams = list.fold<double>(0, (a, v) => a + v.item.weightGrams);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader('Gold and jewellery', action: 'Add', onAction: () => showPulseSheet<void>(context, full: true, builder: (_) => const AddJewellerySheet())),
+        SectionHeader(
+          'Gold and jewellery',
+          action: 'Add',
+          onAction: () => showPulseSheet<void>(
+            context,
+            full: true,
+            builder: (_) => const AddJewellerySheet(),
+          ),
+        ),
         RowGroup(
           children: [
             for (final v in list)
               ListRow(
-                leading: _Thumb(v.item.photoPaths.firstOrNull, Icons.diamond_outlined),
+                leading: _Thumb(
+                  v.item.photoPaths.firstOrNull,
+                  Icons.diamond_outlined,
+                ),
                 title: v.item.name,
-                subtitle: '${v.item.weightGrams.toStringAsFixed(v.item.weightGrams == v.item.weightGrams.roundToDouble() ? 0 : 1)} g · ${v.item.purityLabel}',
+                subtitle:
+                    '${v.item.weightGrams.toStringAsFixed(v.item.weightGrams == v.item.weightGrams.roundToDouble() ? 0 : 1)} g · ${v.item.purityLabel}',
                 chevron: true,
                 onTap: () => context.push('${Routes.jewellery}/${v.item.id}'),
                 trailing: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(Money.aed(v.value.valueMinor / 100, decimals: false), style: PulseTheme.amount(c.textPrimary, size: 15)),
+                    Text(
+                      Money.aed(v.value.valueMinor / 100, decimals: false),
+                      style: PulseTheme.amount(c.textPrimary, size: 15),
+                    ),
                     if (v.value.gainPct != null)
                       Text(
                         pctText(v.value.gainPct!),
-                        style: context.tt.bodySmall!.copyWith(color: v.value.gainPct! >= 0 ? c.positive : c.negative),
+                        style: context.tt.bodySmall!.copyWith(
+                          color: v.value.gainPct! >= 0
+                              ? c.positive
+                              : c.negative,
+                        ),
                       ),
                   ],
                 ),
@@ -215,7 +286,12 @@ class JewellerySection extends ConsumerWidget {
           ],
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            0,
+          ),
           child: Text(
             '${list.length} ${list.length == 1 ? 'piece' : 'pieces'} · ${grams.toStringAsFixed(1)} g · ${Money.aed(total / 100, decimals: false)}'
             '${paid == null || paid <= 0 ? '' : ' · ${pctText((total - paid) / paid * 100)} vs paid'}',
@@ -234,7 +310,11 @@ class FundsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
     final list = ref.watch(fundsProvider).value ?? const [];
-    void add() => showPulseSheet<void>(context, full: true, builder: (_) => const AddFundSheet());
+    void add() => showPulseSheet<void>(
+      context,
+      full: true,
+      builder: (_) => const AddFundSheet(),
+    );
     if (list.isEmpty) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -242,7 +322,10 @@ class FundsSection extends ConsumerWidget {
           SectionHeader('Mutual funds', action: 'Add', onAction: add),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text('Search an Indian fund by name or enter any fund by hand. Units and cost stay on this phone.', style: context.tt.bodySmall),
+            child: Text(
+              'Search an Indian fund by name or enter any fund by hand. Units and cost stay on this phone.',
+              style: context.tt.bodySmall,
+            ),
           ),
         ],
       );
@@ -266,13 +349,22 @@ class FundsSection extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      v.value.valueAedMinor == null ? '–' : Money.aed(v.value.valueAedMinor! / 100, decimals: false),
+                      v.value.valueAedMinor == null
+                          ? '–'
+                          : Money.aed(
+                              v.value.valueAedMinor! / 100,
+                              decimals: false,
+                            ),
                       style: PulseTheme.amount(c.textPrimary, size: 15),
                     ),
                     if (v.value.gainPct != null)
                       Text(
                         pctText(v.value.gainPct!),
-                        style: context.tt.bodySmall!.copyWith(color: v.value.gainPct! >= 0 ? c.positive : c.negative),
+                        style: context.tt.bodySmall!.copyWith(
+                          color: v.value.gainPct! >= 0
+                              ? c.positive
+                              : c.negative,
+                        ),
                       ),
                   ],
                 ),
@@ -283,7 +375,7 @@ class FundsSection extends ConsumerWidget {
     );
   }
 
-  static String _units(double u) => u == u.roundToDouble() ? u.toStringAsFixed(0) : u.toStringAsFixed(2);
+  static String _units(double u) => fmtNum(u, maxDecimals: 2);
 }
 
 class DocumentsSection extends ConsumerWidget {
@@ -292,7 +384,11 @@ class DocumentsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final docs = ref.watch(documentsProvider).value ?? const [];
-    void add() => showPulseSheet<void>(context, full: true, builder: (_) => const AddDocumentSheet());
+    void add() => showPulseSheet<void>(
+      context,
+      full: true,
+      builder: (_) => const AddDocumentSheet(),
+    );
     final today = ref.watch(wealthServiceProvider).today;
     if (docs.isEmpty) {
       return Column(
@@ -301,7 +397,10 @@ class DocumentsSection extends ConsumerWidget {
           SectionHeader('Documents', action: 'Add', onAction: add),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text('Keep photos of title deeds, certificates and policies on this phone, with reminders before they expire.', style: context.tt.bodySmall),
+            child: Text(
+              'Keep photos of title deeds, certificates and policies on this phone, with reminders before they expire.',
+              style: context.tt.bodySmall,
+            ),
           ),
         ],
       );
@@ -315,12 +414,22 @@ class DocumentsSection extends ConsumerWidget {
             for (final d in docs)
               ListRow(
                 dense: true,
-                leading: _Thumb(d.filePaths.firstOrNull, docIcon(d.category), document: true),
+                leading: _Thumb(
+                  d.filePaths.firstOrNull,
+                  docIcon(d.category),
+                  document: true,
+                ),
                 title: d.title,
                 subtitle: d.dueOn == null
-                    ? d.category.label
-                    : '${d.category.label} · ${d.dueLabel.toLowerCase()} ${dueText(d.dueOn!, today)}',
-                subtitleColor: d.dueOn == null ? null : (dueStatus(d.dueOn!, today) == DueStatus.upcoming ? null : statusColor(context, dueStatus(d.dueOn!, today))),
+                    ? (d.title == d.category.label
+                          ? 'Photo on this phone'
+                          : d.category.label)
+                    : '${d.title == d.category.label ? '' : '${d.category.label} · '}${d.dueLabel} ${dueText(d.dueOn!, today)}',
+                subtitleColor: d.dueOn == null
+                    ? null
+                    : (dueStatus(d.dueOn!, today) == DueStatus.upcoming
+                          ? null
+                          : statusColor(context, dueStatus(d.dueOn!, today))),
                 chevron: true,
                 onTap: () => context.push('${Routes.document}/${d.id}'),
               ),
@@ -342,6 +451,10 @@ class _Thumb extends StatelessWidget {
       ? IconWell(fallback, color: context.pc.accent, size: 40)
       : ClipRRect(
           borderRadius: BorderRadius.circular(Radii.sm),
-          child: SizedBox(width: 40, height: 40, child: AttachmentImage(path!, document: document)),
+          child: SizedBox(
+            width: 40,
+            height: 40,
+            child: AttachmentImage(path!, document: document),
+          ),
         );
 }

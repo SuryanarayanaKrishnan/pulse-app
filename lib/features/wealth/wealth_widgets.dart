@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -23,16 +24,36 @@ int? parseMinor(String s) {
 }
 
 String formatDate(CalDate d) {
-  const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const m = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   return '${d.day} ${m[d.month - 1]} ${d.year}';
 }
 
 /// "+4.2%" / "-1.0%".
-String pctText(double p) => '${p >= 0 ? '+' : '−'}${p.abs().toStringAsFixed(1)}%';
+String pctText(double p) =>
+    '${p >= 0 ? '+' : '−'}${p.abs().toStringAsFixed(1)}%';
 
-Future<CalDate?> pickDate(BuildContext context, {CalDate? initial, bool future = false}) async {
+Future<CalDate?> pickDate(
+  BuildContext context, {
+  CalDate? initial,
+  bool future = false,
+}) async {
   final now = DateTime.now();
-  final init = initial == null ? now : DateTime(initial.year, initial.month, initial.day);
+  final init = initial == null
+      ? now
+      : DateTime(initial.year, initial.month, initial.day);
   final d = await showDatePicker(
     context: context,
     initialDate: init,
@@ -45,7 +66,12 @@ Future<CalDate?> pickDate(BuildContext context, {CalDate? initial, bool future =
 /// A photo from app-private storage, or a drawn placeholder for the demo
 /// (`demo:n`) and the web build, where files do not exist.
 class AttachmentImage extends StatelessWidget {
-  const AttachmentImage(this.path, {super.key, this.fit = BoxFit.cover, this.document = false});
+  const AttachmentImage(
+    this.path, {
+    super.key,
+    this.fit = BoxFit.cover,
+    this.document = false,
+  });
   final String path;
   final BoxFit fit;
   final bool document;
@@ -54,14 +80,22 @@ class AttachmentImage extends StatelessWidget {
   Widget build(BuildContext context) {
     if (path.startsWith('demo:') || kIsWeb) {
       final n = int.tryParse(path.split(':').last) ?? 0;
-      return CustomPaint(painter: _DemoPhotoPainter(n, document, context.pc.isDark), child: const SizedBox.expand());
+      return CustomPaint(
+        painter: _DemoPhotoPainter(n, document, context.pc.isDark),
+        child: const SizedBox.expand(),
+      );
     }
     return Image.file(
       File(path),
       fit: fit,
       errorBuilder: (_, _, _) => ColoredBox(
         color: context.pc.surfaceElevated,
-        child: Center(child: Icon(Icons.broken_image_outlined, color: context.pc.textTertiary)),
+        child: Center(
+          child: Icon(
+            Icons.broken_image_outlined,
+            color: context.pc.textTertiary,
+          ),
+        ),
       ),
     );
   }
@@ -76,14 +110,29 @@ class _DemoPhotoPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     if (document) {
-      canvas.drawRect(rect, Paint()..color = dark ? const Color(0xFF2B2A27) : const Color(0xFFF1EEE6));
-      final ink = Paint()..color = (dark ? const Color(0xFFB9B4A8) : const Color(0xFF6E6A60)).withValues(alpha: 0.55);
+      canvas.drawRect(
+        rect,
+        Paint()
+          ..color = dark ? const Color(0xFF2B2A27) : const Color(0xFFF1EEE6),
+      );
+      final ink = Paint()
+        ..color = (dark ? const Color(0xFFB9B4A8) : const Color(0xFF6E6A60))
+            .withValues(alpha: 0.55);
       final w = size.width, h = size.height;
-      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(w * .12, h * .12, w * .5, h * .06), const Radius.circular(3)), ink);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(w * .12, h * .12, w * .5, h * .06),
+          const Radius.circular(3),
+        ),
+        ink,
+      );
       for (var i = 0; i < 7; i++) {
         final len = (i % 3 == 2) ? .5 : .76;
         canvas.drawRRect(
-          RRect.fromRectAndRadius(Rect.fromLTWH(w * .12, h * (.28 + i * .075), w * len, h * .022), const Radius.circular(2)),
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(w * .12, h * (.28 + i * .075), w * len, h * .022),
+            const Radius.circular(2),
+          ),
           ink..color = ink.color.withValues(alpha: 0.35),
         );
       }
@@ -106,8 +155,22 @@ class _DemoPhotoPainter extends CustomPainter {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: dark
-              ? [Color.lerp(const Color(0xFF2A2420), const Color(0xFF3A2F22), hue * 3)!, const Color(0xFF14110E)]
-              : [Color.lerp(const Color(0xFFF3E8D4), const Color(0xFFE9D7B5), hue * 3)!, const Color(0xFFD8C39B)],
+              ? [
+                  Color.lerp(
+                    const Color(0xFF2A2420),
+                    const Color(0xFF3A2F22),
+                    hue * 3,
+                  )!,
+                  const Color(0xFF14110E),
+                ]
+              : [
+                  Color.lerp(
+                    const Color(0xFFF3E8D4),
+                    const Color(0xFFE9D7B5),
+                    hue * 3,
+                  )!,
+                  const Color(0xFFD8C39B),
+                ],
         ).createShader(rect),
     );
     final c = Offset(size.width * (.5 + (n % 3 - 1) * .04), size.height * .52);
@@ -126,16 +189,26 @@ class _DemoPhotoPainter extends CustomPainter {
           ).createShader(Rect.fromCircle(center: c, radius: r)),
       );
     }
-    canvas.drawCircle(Offset(c.dx + r * .62, c.dy - r * .72), r * .09, Paint()..color = Colors.white.withValues(alpha: 0.85));
+    canvas.drawCircle(
+      Offset(c.dx + r * .62, c.dy - r * .72),
+      r * .09,
+      Paint()..color = Colors.white.withValues(alpha: 0.85),
+    );
   }
 
   @override
-  bool shouldRepaint(_DemoPhotoPainter old) => old.n != n || old.document != document || old.dark != dark;
+  bool shouldRepaint(_DemoPhotoPainter old) =>
+      old.n != n || old.document != document || old.dark != dark;
 }
 
 /// Thumbnails of an item's photos; tap one to open the full-screen viewer.
 class PhotoStrip extends StatelessWidget {
-  const PhotoStrip(this.paths, {super.key, this.size = 92, this.document = false});
+  const PhotoStrip(
+    this.paths, {
+    super.key,
+    this.size = 92,
+    this.document = false,
+  });
   final List<String> paths;
   final double size;
   final bool document;
@@ -157,7 +230,11 @@ class PhotoStrip extends StatelessWidget {
             onTap: () => showPhotoViewer(context, paths, i, document: document),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(Radii.md),
-              child: SizedBox(width: size, height: size, child: AttachmentImage(paths[i], document: document)),
+              child: SizedBox(
+                width: size,
+                height: size,
+                child: AttachmentImage(paths[i], document: document),
+              ),
             ),
           ),
         ),
@@ -166,18 +243,29 @@ class PhotoStrip extends StatelessWidget {
   }
 }
 
-Future<void> showPhotoViewer(BuildContext context, List<String> paths, int index, {bool document = false}) =>
-    Navigator.of(context, rootNavigator: true).push(
-      PageRouteBuilder<void>(
-        opaque: true,
-        pageBuilder: (_, _, _) => PhotoViewer(paths: paths, initial: index, document: document),
-        transitionsBuilder: (_, a, _, child) => FadeTransition(opacity: a, child: child),
-      ),
-    );
+Future<void> showPhotoViewer(
+  BuildContext context,
+  List<String> paths,
+  int index, {
+  bool document = false,
+}) => Navigator.of(context, rootNavigator: true).push(
+  PageRouteBuilder<void>(
+    opaque: true,
+    pageBuilder: (_, _, _) =>
+        PhotoViewer(paths: paths, initial: index, document: document),
+    transitionsBuilder: (_, a, _, child) =>
+        FadeTransition(opacity: a, child: child),
+  ),
+);
 
 /// Full-screen gallery: swipe between photos, pinch to zoom, tap to close.
 class PhotoViewer extends StatefulWidget {
-  const PhotoViewer({super.key, required this.paths, this.initial = 0, this.document = false});
+  const PhotoViewer({
+    super.key,
+    required this.paths,
+    this.initial = 0,
+    this.document = false,
+  });
   final List<String> paths;
   final int initial;
   final bool document;
@@ -208,7 +296,13 @@ class _PhotoViewerState extends State<PhotoViewer> {
           itemBuilder: (_, i) => InteractiveViewer(
             minScale: 1,
             maxScale: 5,
-            child: Center(child: AttachmentImage(widget.paths[i], fit: BoxFit.contain, document: widget.document)),
+            child: Center(
+              child: AttachmentImage(
+                widget.paths[i],
+                fit: BoxFit.contain,
+                document: widget.document,
+              ),
+            ),
           ),
         ),
         SafeArea(
@@ -222,7 +316,10 @@ class _PhotoViewerState extends State<PhotoViewer> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
                 const Spacer(),
-                Text('${_index + 1} / ${widget.paths.length}', style: const TextStyle(color: Colors.white70)),
+                Text(
+                  '${_index + 1} / ${widget.paths.length}',
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(width: Space.md),
               ],
             ),
@@ -252,14 +349,22 @@ class PhotoPickerRow extends ConsumerWidget {
   final bool document;
   final String cameraLabel;
 
-  Future<void> _pick(BuildContext context, WidgetRef ref, PhotoSource source) async {
+  Future<void> _pick(
+    BuildContext context,
+    WidgetRef ref,
+    PhotoSource source,
+  ) async {
     try {
       final path = await ref.read(photoPickerProvider).pick(source);
       if (path != null) onAdd(path);
     } on Object {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not open the camera or photos. Check the permission in Settings.')),
+          const SnackBar(
+            content: Text(
+              'Could not open the camera or photos. Check the permission in Settings.',
+            ),
+          ),
         );
       }
     }
@@ -274,7 +379,11 @@ class PhotoPickerRow extends ConsumerWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(Radii.md),
-            child: SizedBox(width: 72, height: 72, child: AttachmentImage(path, document: document)),
+            child: SizedBox(
+              width: 72,
+              height: 72,
+              child: AttachmentImage(path, document: document),
+            ),
           ),
           Positioned(
             top: -6,
@@ -287,8 +396,15 @@ class PhotoPickerRow extends ConsumerWidget {
                 child: Container(
                   width: 24,
                   height: 24,
-                  decoration: BoxDecoration(color: context.pc.textPrimary, shape: BoxShape.circle),
-                  child: Icon(Icons.close_rounded, size: 14, color: context.pc.bg),
+                  decoration: BoxDecoration(
+                    color: context.pc.textPrimary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.close_rounded,
+                    size: 14,
+                    color: context.pc.bg,
+                  ),
                 ),
               ),
             ),
@@ -327,7 +443,7 @@ class PhotoPickerRow extends ConsumerWidget {
             const SizedBox(width: Space.sm),
             Expanded(
               child: PrimaryButton(
-                label: 'From gallery',
+                label: 'Gallery',
                 icon: Icons.photo_library_outlined,
                 secondary: true,
                 onPressed: () => _pick(context, ref, PhotoSource.gallery),
@@ -336,7 +452,10 @@ class PhotoPickerRow extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: Space.xs),
-        Text('Kept on this phone only. Never uploaded.', style: context.tt.bodySmall!.copyWith(color: context.pc.textTertiary)),
+        Text(
+          'Kept on this phone only. Never uploaded.',
+          style: context.tt.bodySmall!.copyWith(color: context.pc.textTertiary),
+        ),
       ],
     );
   }
@@ -361,3 +480,8 @@ void leave(BuildContext context) {
     context.go('/wealth');
   }
 }
+
+/// 12,345.678 style: thousands separators, up to [maxDecimals] decimals,
+/// trailing zeros dropped.
+String fmtNum(double v, {int maxDecimals = 3}) =>
+    NumberFormat('#,##0.${'#' * maxDecimals}', 'en_US').format(v);

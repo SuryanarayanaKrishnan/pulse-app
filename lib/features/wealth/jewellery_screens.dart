@@ -32,14 +32,20 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
     text: widget.initial == null ? '' : _fmtG(widget.initial!.weightGrams),
   );
   late final _price = TextEditingController(
-    text: widget.initial?.purchasePriceMinor == null ? '' : (widget.initial!.purchasePriceMinor! / 100).toStringAsFixed(0),
+    text: widget.initial?.purchasePriceMinor == null
+        ? ''
+        : (widget.initial!.purchasePriceMinor! / 100).toStringAsFixed(0),
   );
   late final _making = TextEditingController(
-    text: widget.initial?.makingChargesMinor == null ? '' : (widget.initial!.makingChargesMinor! / 100).toStringAsFixed(0),
+    text: widget.initial?.makingChargesMinor == null
+        ? ''
+        : (widget.initial!.makingChargesMinor! / 100).toStringAsFixed(0),
   );
   late final _notes = TextEditingController(text: widget.initial?.notes);
   late final _fineness = TextEditingController(
-    text: widget.initial?.purityOverride == null ? '' : (widget.initial!.purityOverride! * 1000).round().toString(),
+    text: widget.initial?.purityOverride == null
+        ? ''
+        : (widget.initial!.purityOverride! * 1000).round().toString(),
   );
   late int _karat = widget.initial?.karat ?? 22;
   late bool _custom = widget.initial?.purityOverride != null;
@@ -49,7 +55,8 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
   final _added = <String>[];
   bool _busy = false;
 
-  static String _fmtG(double g) => g == g.roundToDouble() ? g.toStringAsFixed(0) : g.toString();
+  static String _fmtG(double g) =>
+      g == g.roundToDouble() ? g.toStringAsFixed(0) : g.toString();
 
   @override
   void dispose() {
@@ -70,7 +77,10 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
     return f == null || f <= 0 || f > 1000 ? null : f / 1000;
   }
 
-  bool get _valid => _name.text.trim().isNotEmpty && _w != null && (!_custom || _purity != null);
+  bool get _valid =>
+      _name.text.trim().isNotEmpty &&
+      _w != null &&
+      (!_custom || _purity != null);
 
   void _nudge(double delta) {
     final w = ((_w ?? 0) + delta).clamp(0.0, 100000.0);
@@ -96,12 +106,18 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
         photoPaths: _existing,
         createdAt: old?.createdAt ?? DateTime.now(),
       );
-      await svc.saveJewellery(item, newPhotoSources: _added, removedPhotos: _removed);
+      await svc.saveJewellery(
+        item,
+        newPhotoSources: _added,
+        removedPhotos: _removed,
+      );
       invalidateWealth(ref);
       if (mounted) Navigator.of(context).pop(item.id);
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('That did not save. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('That did not save. Try again.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -144,14 +160,19 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
           TextField(
             controller: _name,
             textCapitalization: TextCapitalization.sentences,
-            decoration: const InputDecoration(hintText: 'Name, like "Wedding necklace"'),
+            decoration: const InputDecoration(
+              hintText: 'Name, like "Wedding necklace"',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _weight,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Weight of the gold', suffixText: 'g'),
+            decoration: const InputDecoration(
+              hintText: 'Weight of the gold',
+              suffixText: 'g',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const FieldLabel('Karat'),
@@ -160,11 +181,19 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             runSpacing: Space.sm,
             children: [
               for (final k in jewelleryKarats)
-                Pill('${k}K', selected: !_custom && _karat == k, onTap: () => setState(() {
-                  _custom = false;
-                  _karat = k;
-                })),
-              Pill('Other', selected: _custom, onTap: () => setState(() => _custom = true)),
+                Pill(
+                  '${k}K',
+                  selected: !_custom && _karat == k,
+                  onTap: () => setState(() {
+                    _custom = false;
+                    _karat = k;
+                  }),
+                ),
+              Pill(
+                'Other',
+                selected: _custom,
+                onTap: () => setState(() => _custom = true),
+              ),
             ],
           ),
           if (_custom) ...[
@@ -172,7 +201,10 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             TextField(
               controller: _fineness,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(hintText: 'Fineness stamp, like 900', suffixText: 'parts per 1000'),
+              decoration: const InputDecoration(
+                hintText: 'Fineness stamp, like 900',
+                suffixText: 'parts per 1000',
+              ),
               onChanged: (_) => setState(() {}),
             ),
           ] else
@@ -199,14 +231,20 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
           TextField(
             controller: _price,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Total paid', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Total paid',
+              prefixText: 'AED  ',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _making,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Making charges (included above)', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Making charges (included above)',
+              prefixText: 'AED  ',
+            ),
           ),
           const SizedBox(height: Space.md),
           Row(
@@ -224,7 +262,11 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
               ),
               if (_date != null) ...[
                 const SizedBox(width: Space.sm),
-                IconButton(tooltip: 'Clear date', onPressed: () => setState(() => _date = null), icon: Icon(Icons.close_rounded, color: c.textTertiary)),
+                IconButton(
+                  tooltip: 'Clear date',
+                  onPressed: () => setState(() => _date = null),
+                  icon: Icon(Icons.close_rounded, color: c.textTertiary),
+                ),
               ],
             ],
           ),
@@ -237,7 +279,11 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             decoration: const InputDecoration(hintText: 'Notes (optional)'),
           ),
           const SizedBox(height: Space.xl),
-          PrimaryButton(label: editing ? 'Save changes' : 'Add piece', loading: _busy, onPressed: _valid ? _save : null),
+          PrimaryButton(
+            label: editing ? 'Save changes' : 'Add piece',
+            loading: _busy,
+            onPressed: _valid ? _save : null,
+          ),
         ],
       ),
     );
@@ -272,14 +318,19 @@ class _ConfirmCard extends StatelessWidget {
     final gain = gainMinor;
     return Container(
       padding: const EdgeInsets.all(Space.lg),
-      decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(Radii.lg)),
+      decoration: BoxDecoration(
+        color: c.surfaceElevated,
+        borderRadius: BorderRadius.circular(Radii.lg),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Worth today', style: context.tt.labelMedium),
           const SizedBox(height: Space.xs),
           Text(
-            valueMinor == null ? '–' : Money.aed(valueMinor! / 100, decimals: false),
+            valueMinor == null
+                ? '–'
+                : Money.aed(valueMinor! / 100, decimals: false),
             key: const Key('jewellery-preview-value'),
             style: PulseTheme.amount(c.textPrimary, size: 28),
           ),
@@ -288,20 +339,37 @@ class _ConfirmCard extends StatelessWidget {
               padding: const EdgeInsets.only(top: 2),
               child: Text(
                 '${Money.aed(gain / 100, decimals: false, sign: true)} (${pctText(gainPct!)}) vs paid',
-                style: context.tt.bodySmall!.copyWith(color: gain >= 0 ? c.positive : c.negative),
+                style: context.tt.bodySmall!.copyWith(
+                  color: gain >= 0 ? c.positive : c.negative,
+                ),
               ),
             ),
           const SizedBox(height: Space.xs),
           Text(
-            pureGrams == null ? note : '${pureGrams!.toStringAsFixed(2)} g pure gold · $note',
+            pureGrams == null
+                ? note
+                : '${pureGrams!.toStringAsFixed(2)} g pure gold · $note',
             style: context.tt.bodySmall,
           ),
           const SizedBox(height: Space.md),
           Row(
             children: [
-              Expanded(child: Text('Does the weight look right? Adjust it.', style: context.tt.bodySmall)),
-              IconButton(tooltip: 'Less 0.1 g', onPressed: onMinus, icon: const Icon(Icons.remove_circle_outline_rounded)),
-              IconButton(tooltip: 'More 0.1 g', onPressed: onPlus, icon: const Icon(Icons.add_circle_outline_rounded)),
+              Expanded(
+                child: Text(
+                  'Does the weight look right? Adjust it.',
+                  style: context.tt.bodySmall,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Less 0.1 g',
+                onPressed: onMinus,
+                icon: const Icon(Icons.remove_circle_outline_rounded),
+              ),
+              IconButton(
+                tooltip: 'More 0.1 g',
+                onPressed: onPlus,
+                icon: const Icon(Icons.add_circle_outline_rounded),
+              ),
             ],
           ),
           Text(
@@ -338,14 +406,22 @@ class JewelleryDetailScreen extends ConsumerWidget {
             IconButton(
               tooltip: 'Edit',
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => showPulseSheet<void>(context, full: true, builder: (_) => AddJewellerySheet(initial: view.item)),
+              onPressed: () => showPulseSheet<void>(
+                context,
+                full: true,
+                builder: (_) => AddJewellerySheet(initial: view.item),
+              ),
             ),
         ],
       ),
       body: view == null
           ? (list.isLoading
                 ? const SkeletonList(rows: 4)
-                : const EmptyState(icon: Icons.diamond_outlined, title: 'Piece not found', message: 'It may have been deleted.'))
+                : const EmptyState(
+                    icon: Icons.diamond_outlined,
+                    title: 'Piece not found',
+                    message: 'It may have been deleted.',
+                  ))
           : _DetailBody(view, book),
     );
   }
@@ -362,7 +438,8 @@ class _DetailBody extends ConsumerWidget {
     final i = view.item, v = view.value;
     final history = ref.watch(jewelleryHistoryProvider(i.id)).value ?? const [];
     final gain = v.gainMinor, pct = v.gainPct;
-    String g(double x) => x == x.roundToDouble() ? x.toStringAsFixed(0) : x.toStringAsFixed(2);
+    String g(double x) =>
+        x == x.roundToDouble() ? x.toStringAsFixed(0) : x.toStringAsFixed(2);
     return ListView(
       padding: const EdgeInsets.only(bottom: 60),
       children: [
@@ -374,10 +451,17 @@ class _DetailBody extends ConsumerWidget {
           caption: gain == null || pct == null
               ? 'Add what you paid to see gain or loss'
               : '${Money.aed(gain / 100, decimals: false, sign: true)} (${pctText(pct)}) vs paid',
-          captionColor: gain == null ? c.textTertiary : (gain >= 0 ? c.positive : c.negative),
+          captionColor: gain == null
+              ? c.textTertiary
+              : (gain >= 0 ? c.positive : c.negative),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, 0),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.xs,
+            Space.gutter,
+            0,
+          ),
           child: Text(
             'Melt value: ${g(i.weightGrams)} g × ${i.purityLabel.split(' · ').first} × AED ${v.pricePerGram.toStringAsFixed(2)}/g (24K)'
             '${book?.origin == PriceOrigin.bundled ? ' · demo price' : ''}',
@@ -391,13 +475,19 @@ class _DetailBody extends ConsumerWidget {
             child: InspectLineChart(
               labels: [
                 for (final (k, p) in history.indexed)
-                  k == 0 || k == history.length - 1 || k == history.length ~/ 2 ? formatShort(p.date) : '',
+                  k == 0 || k == history.length - 1 || k == history.length ~/ 2
+                      ? formatShort(p.date)
+                      : '',
               ],
               title: (k) => formatDate(history[k].date),
               fill: true,
               height: 140,
               format: (x) => Money.aed(x, decimals: false),
-              series: [ChartSeries('Value', [for (final p in history) p.valueMinor / 100], c.accent)],
+              series: [
+                ChartSeries('Value', [
+                  for (final p in history) p.valueMinor / 100,
+                ], c.accent),
+              ],
             ),
           )
         else
@@ -414,14 +504,28 @@ class _DetailBody extends ConsumerWidget {
             _kv(context, 'Weight', '${g(i.weightGrams)} g'),
             _kv(context, 'Purity', i.purityLabel),
             _kv(context, 'Pure gold', '${g(v.pureGrams)} g'),
-            if (i.purchasePriceMinor != null) _kv(context, 'Paid', Money.aed(i.purchasePriceMinor! / 100, decimals: false)),
-            if (i.makingChargesMinor != null) _kv(context, 'Making charges', Money.aed(i.makingChargesMinor! / 100, decimals: false)),
-            if (i.purchaseDate != null) _kv(context, 'Bought', formatDate(i.purchaseDate!)),
+            if (i.purchasePriceMinor != null)
+              _kv(
+                context,
+                'Paid',
+                Money.aed(i.purchasePriceMinor! / 100, decimals: false),
+              ),
+            if (i.makingChargesMinor != null)
+              _kv(
+                context,
+                'Making charges',
+                Money.aed(i.makingChargesMinor! / 100, decimals: false),
+              ),
+            if (i.purchaseDate != null)
+              _kv(context, 'Bought', formatDate(i.purchaseDate!)),
           ],
         ),
         if (i.notes != null) ...[
           const SectionHeader('Notes'),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: Space.gutter), child: Text(i.notes!, style: context.tt.bodyMedium)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
+            child: Text(i.notes!, style: context.tt.bodyMedium),
+          ),
         ],
         const SizedBox(height: Space.xl),
         Padding(
@@ -434,22 +538,42 @@ class _DetailBody extends ConsumerWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
-          child: Text('Photos and details stay on this phone and are removed from it when you delete.', style: context.tt.bodySmall!.copyWith(color: c.textTertiary)),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.md,
+            Space.gutter,
+            0,
+          ),
+          child: Text(
+            'Photos and details stay on this phone and are removed from it when you delete.',
+            style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+          ),
         ),
       ],
     );
   }
 
-  Future<void> _confirmDelete(BuildContext context, WidgetRef ref, JewelleryItem i) async {
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    JewelleryItem i,
+  ) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Delete ${i.name}?'),
-        content: const Text('Its photos and value history are removed from this phone.'),
+        content: const Text(
+          'Its photos and value history are removed from this phone.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -462,11 +586,27 @@ class _DetailBody extends ConsumerWidget {
   Widget _kv(BuildContext context, String k, String v) => ListRow(
     dense: true,
     title: k,
-    trailing: Text(v, style: PulseTheme.amount(context.pc.textPrimary, size: 15)),
+    trailing: Text(
+      v,
+      style: PulseTheme.amount(context.pc.textPrimary, size: 15),
+    ),
   );
 }
 
 String formatShort(CalDate d) {
-  const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const m = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   return '${d.day} ${m[d.month - 1]}';
 }

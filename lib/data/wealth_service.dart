@@ -224,7 +224,7 @@ class WealthService {
         kind: UpcomingKind.document,
         refId: d.id,
         title: d.title,
-        detail: '${d.dueLabel} ${dueText(due, t)} · ${d.category.label}',
+        detail: '${d.dueLabel} ${dueText(due, t)}',
         date: due,
         status: dueStatus(due, t),
       ));
@@ -236,10 +236,11 @@ class WealthService {
       out.add(UpcomingItem(
         kind: UpcomingKind.sip,
         refId: f.id,
-        title: '${f.name} SIP',
-        detail: 'SIP ${dueText(next, t)} · ${f.currency} ${(f.sipAmountMinor! / 100).toStringAsFixed(0)}',
+        title: f.name,
+        detail: 'SIP ${dueText(next, t)} · ${f.currency} ${_money(f.sipAmountMinor! / 100)}',
         date: next,
-        status: dueStatus(next, t),
+        // A regular debit, not something to worry about.
+        status: DueStatus.upcoming,
       ));
     }
     out.sort((a, b) => a.date.compareTo(b.date));
@@ -277,6 +278,8 @@ class WealthService {
     }
     return out;
   }
+
+  static String _money(double v) => v.toStringAsFixed(0).replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (_) => ',');
 
   static String _units(double u) => u == u.roundToDouble() ? u.toStringAsFixed(0) : u.toStringAsFixed(3);
 }

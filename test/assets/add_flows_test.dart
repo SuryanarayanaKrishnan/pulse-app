@@ -107,7 +107,7 @@ void main() {
       await tester.pump();
       expect(tester.widget<Text>(find.byKey(const Key('jewellery-preview-value'))).data, 'AED 3,560'); // 10.1 x .75 x 470
 
-      await tester.tap(find.text('From gallery'));
+      await tester.tap(find.text('Gallery'));
       await tester.pump();
       expect(rig.picker.taken, [PhotoSource.gallery]);
 
@@ -154,7 +154,7 @@ void main() {
       await pumpSheet(tester, rig, const AddDocumentSheet());
       await tester.tap(find.text('FD certificate'));
       await tester.pump();
-      await tester.tap(find.text('Scan or photo'));
+      await tester.tap(find.text('Scan'));
       await tester.pump();
       expect(rig.picker.taken, [PhotoSource.camera]);
 
