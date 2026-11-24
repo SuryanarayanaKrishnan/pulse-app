@@ -1,0 +1,2192 @@
+{
+ "dues": [
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "upcoming",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 60000,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "upcoming",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 0,
+    "remaining_total_due_minor": 340000,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 400000,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "paid",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 0,
+    "remaining_total_due_minor": 0,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-17",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-17",
+    "days_left": 2,
+    "status": "due_soon",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "urgent",
+      "message": "ENBD Visa ...1234 is due in 2 days (2026-06-17): minimum AED 100.00, full statement AED 4,000.00."
+     },
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-10",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-10",
+    "days_left": -5,
+    "status": "overdue",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "urgent",
+      "message": "ENBD Visa ...1234 was due 2026-06-10: pay at least AED 100.00 now (AED 4,000.00 clears the statement)."
+     },
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-15",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-15",
+    "days_left": 0,
+    "status": "due_soon",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "urgent",
+      "message": "ENBD Visa ...1234 is due today (2026-06-15): minimum AED 100.00, full statement AED 4,000.00."
+     },
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 200000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "upcoming",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 20.0,
+    "available_credit_minor": 800000,
+    "nudges": []
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 350000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "upcoming",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 35.0,
+    "available_credit_minor": 650000,
+    "nudges": [
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 35% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": "2026-06-01",
+    "due_date": "2026-06-25",
+    "min_due_minor": 10000,
+    "total_due_minor": 400000,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 900000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "statement",
+    "due_date": "2026-06-25",
+    "days_left": 10,
+    "status": "upcoming",
+    "minimum_due_minor": 10000,
+    "total_due_minor": 400000,
+    "remaining_minimum_due_minor": 10000,
+    "remaining_total_due_minor": 400000,
+    "utilisation_pct": 90.0,
+    "available_credit_minor": 100000,
+    "nudges": [
+     {
+      "level": "warn",
+      "message": "ENBD Visa ...1234 is 90% of its limit used."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": 20,
+    "statement_date": null,
+    "due_date": null,
+    "min_due_minor": null,
+    "total_due_minor": null,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "account_settings",
+    "due_date": "2026-06-20",
+    "days_left": 5,
+    "status": "due_soon",
+    "minimum_due_minor": null,
+    "total_due_minor": null,
+    "remaining_minimum_due_minor": null,
+    "remaining_total_due_minor": null,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "warn",
+      "message": "ENBD Visa ...1234 is due 2026-06-20; add the statement for exact amounts."
+     },
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": 1000000,
+    "due_day": null,
+    "statement_date": null,
+    "due_date": null,
+    "min_due_minor": null,
+    "total_due_minor": null,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": 450000
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "none",
+    "due_date": null,
+    "days_left": null,
+    "status": "unknown",
+    "minimum_due_minor": null,
+    "total_due_minor": null,
+    "remaining_minimum_due_minor": null,
+    "remaining_total_due_minor": null,
+    "utilisation_pct": 45.0,
+    "available_credit_minor": 550000,
+    "nudges": [
+     {
+      "level": "info",
+      "message": "ENBD Visa ...1234 is 45% used; keeping cards under 30% of the limit is commonly advised."
+     }
+    ]
+   }
+  },
+  {
+   "input": {
+    "account_id": "a",
+    "name": "ENBD Visa",
+    "last4": "1234",
+    "credit_limit_minor": null,
+    "due_day": 10,
+    "statement_date": null,
+    "due_date": null,
+    "min_due_minor": null,
+    "total_due_minor": null,
+    "paid_since_statement_minor": 0,
+    "owed_now_minor": null
+   },
+   "today": "2026-06-15",
+   "output": {
+    "source": "account_settings",
+    "due_date": "2026-07-10",
+    "days_left": 25,
+    "status": "upcoming",
+    "minimum_due_minor": null,
+    "total_due_minor": null,
+    "remaining_minimum_due_minor": null,
+    "remaining_total_due_minor": null,
+    "utilisation_pct": null,
+    "available_credit_minor": null,
+    "nudges": []
+   }
+  }
+ ],
+ "next_due": [
+  {
+   "today": "2026-06-15",
+   "day": 10,
+   "out": "2026-07-10"
+  },
+  {
+   "today": "2026-01-31",
+   "day": 31,
+   "out": "2026-01-31"
+  },
+  {
+   "today": "2026-02-05",
+   "day": 31,
+   "out": "2026-02-28"
+  },
+  {
+   "today": "2026-12-20",
+   "day": 5,
+   "out": "2027-01-05"
+  }
+ ],
+ "cashflow": {
+  "today": "2026-06-15",
+  "months": 3,
+  "flows": [
+   {
+    "day": "2026-05-01",
+    "amount_minor": 1000000,
+    "is_credit": true,
+    "slug": "salary",
+    "excluded": false
+   },
+   {
+    "day": "2026-05-03",
+    "amount_minor": 300000,
+    "is_credit": false,
+    "slug": "groceries",
+    "excluded": false
+   },
+   {
+    "day": "2026-05-04",
+    "amount_minor": 100000,
+    "is_credit": false,
+    "slug": "savings",
+    "excluded": false
+   },
+   {
+    "day": "2026-05-05",
+    "amount_minor": 500000,
+    "is_credit": false,
+    "slug": "cc_payment",
+    "excluded": false
+   },
+   {
+    "day": "2026-05-06",
+    "amount_minor": 50000,
+    "is_credit": true,
+    "slug": "transfer",
+    "excluded": false
+   },
+   {
+    "day": "2026-05-07",
+    "amount_minor": 20000,
+    "is_credit": false,
+    "slug": "shopping",
+    "excluded": true
+   },
+   {
+    "day": "2026-06-01",
+    "amount_minor": 1000000,
+    "is_credit": true,
+    "slug": "salary",
+    "excluded": false
+   },
+   {
+    "day": "2026-06-02",
+    "amount_minor": 1200000,
+    "is_credit": false,
+    "slug": "rent",
+    "excluded": false
+   },
+   {
+    "day": "2025-12-31",
+    "amount_minor": 99,
+    "is_credit": false,
+    "slug": "dining",
+    "excluded": false
+   },
+   {
+    "day": "2026-01-01",
+    "amount_minor": 77,
+    "is_credit": false,
+    "slug": null,
+    "excluded": false
+   }
+  ],
+  "out": [
+   {
+    "month": "2026-04-01",
+    "income": 0,
+    "spend": 0,
+    "saved": 0,
+    "net": 0,
+    "rate": null
+   },
+   {
+    "month": "2026-05-01",
+    "income": 1000000,
+    "spend": 300000,
+    "saved": 100000,
+    "net": 700000,
+    "rate": 0.7
+   },
+   {
+    "month": "2026-06-01",
+    "income": 1000000,
+    "spend": 1200000,
+    "saved": 0,
+    "net": -200000,
+    "rate": -0.2
+   }
+  ],
+  "months_back": [
+   {
+    "today": "2026-02-10",
+    "n": 4,
+    "out": [
+     "2025-11-01",
+     "2025-12-01",
+     "2026-01-01",
+     "2026-02-01"
+    ]
+   },
+   {
+    "today": "2026-01-01",
+    "n": 1,
+    "out": [
+     "2026-01-01"
+    ]
+   },
+   {
+    "today": "2026-12-31",
+    "n": 13,
+    "out": [
+     "2025-12-01",
+     "2026-01-01",
+     "2026-02-01",
+     "2026-03-01",
+     "2026-04-01",
+     "2026-05-01",
+     "2026-06-01",
+     "2026-07-01",
+     "2026-08-01",
+     "2026-09-01",
+     "2026-10-01",
+     "2026-11-01",
+     "2026-12-01"
+    ]
+   }
+  ]
+ },
+ "projection": {
+  "start": 100000,
+  "today": "2026-06-15",
+  "days": 6,
+  "daily": 10000,
+  "events": [
+   {
+    "day": "2026-06-17",
+    "label": "Netflix",
+    "amount_minor": -5000,
+    "kind": "bill"
+   },
+   {
+    "day": "2026-06-20",
+    "label": "Salary (expected)",
+    "amount_minor": 1000000,
+    "kind": "salary"
+   }
+  ],
+  "out": [
+   {
+    "day": "2026-06-15",
+    "balance": 100000,
+    "events": []
+   },
+   {
+    "day": "2026-06-16",
+    "balance": 90000,
+    "events": []
+   },
+   {
+    "day": "2026-06-17",
+    "balance": 75000,
+    "events": [
+     "Netflix"
+    ]
+   },
+   {
+    "day": "2026-06-18",
+    "balance": 65000,
+    "events": []
+   },
+   {
+    "day": "2026-06-19",
+    "balance": 55000,
+    "events": []
+   },
+   {
+    "day": "2026-06-20",
+    "balance": 1045000,
+    "events": [
+     "Salary (expected)"
+    ]
+   },
+   {
+    "day": "2026-06-21",
+    "balance": 1035000,
+    "events": []
+   }
+  ]
+ },
+ "commitments": [
+  {
+   "kind": "bill",
+   "label": "DEWA",
+   "amount_minor": 40000,
+   "due_on": "2026-06-20"
+  },
+  {
+   "kind": "card_due",
+   "label": "ENBD Visa",
+   "amount_minor": 400000,
+   "due_on": "2026-06-25"
+  },
+  {
+   "kind": "goal",
+   "label": "Holiday",
+   "amount_minor": 50000,
+   "due_on": null
+  }
+ ],
+ "safe_to_spend": [
+  {
+   "liquid": 1000000,
+   "today": "2026-06-15",
+   "end": "2026-06-30",
+   "out": {
+    "liquid_minor": 1000000,
+    "committed_minor": 490000,
+    "safe_minor": 510000,
+    "per_day_minor": 34000,
+    "days_left": 15,
+    "status": "ok",
+    "by_kind": {
+     "bill": 40000,
+     "card_due": 400000,
+     "goal": 50000
+    }
+   }
+  },
+  {
+   "liquid": 300000,
+   "today": "2026-06-15",
+   "end": "2026-06-30",
+   "out": {
+    "liquid_minor": 300000,
+    "committed_minor": 490000,
+    "safe_minor": -190000,
+    "per_day_minor": 0,
+    "days_left": 15,
+    "status": "shortfall",
+    "by_kind": {
+     "bill": 40000,
+     "card_due": 400000,
+     "goal": 50000
+    }
+   }
+  },
+  {
+   "liquid": null,
+   "today": "2026-06-15",
+   "end": "2026-06-30",
+   "out": {
+    "liquid_minor": null,
+    "committed_minor": 490000,
+    "safe_minor": null,
+    "per_day_minor": null,
+    "days_left": 15,
+    "status": "unknown",
+    "by_kind": {
+     "bill": 40000,
+     "card_due": 400000,
+     "goal": 50000
+    }
+   }
+  },
+  {
+   "liquid": 490000,
+   "today": "2026-06-15",
+   "end": "2026-06-30",
+   "out": {
+    "liquid_minor": 490000,
+    "committed_minor": 490000,
+    "safe_minor": 0,
+    "per_day_minor": 0,
+    "days_left": 15,
+    "status": "ok",
+    "by_kind": {
+     "bill": 40000,
+     "card_due": 400000,
+     "goal": 50000
+    }
+   }
+  }
+ ],
+ "health_inputs": {
+  "savings": [
+   0.2,
+   0.1,
+   -0.3,
+   null,
+   0.0,
+   0.55
+  ],
+  "util": [
+   [
+    0,
+    10000
+   ],
+   [
+    1000,
+    10000
+   ],
+   [
+    3000,
+    10000
+   ],
+   [
+    5000,
+    10000
+   ],
+   [
+    8000,
+    10000
+   ],
+   [
+    10000,
+    10000
+   ],
+   [
+    null,
+    10000
+   ],
+   [
+    500,
+    null
+   ],
+   [
+    2000,
+    10000
+   ],
+   [
+    4000,
+    10000
+   ]
+  ],
+  "ontime": [
+   [
+    5,
+    6
+   ],
+   [
+    0,
+    0
+   ],
+   [
+    6,
+    6
+   ],
+   [
+    0,
+    4
+   ]
+  ],
+  "runway": [
+   [
+    600000,
+    100000
+   ],
+   [
+    300000,
+    100000
+   ],
+   [
+    null,
+    100000
+   ],
+   [
+    100000,
+    0
+   ],
+   [
+    -5,
+    100000
+   ]
+  ]
+ },
+ "health_components": {
+  "savings": [
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": 100,
+    "value": 0.2,
+    "detail": "You kept 20% of income over 3 months (target 20%)"
+   },
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": 50,
+    "value": 0.1,
+    "detail": "You kept 10% of income over 3 months (target 20%)"
+   },
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": 0,
+    "value": -0.3,
+    "detail": "You kept -30% of income over 3 months (target 20%)"
+   },
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": null,
+    "value": null,
+    "detail": "No income recorded in recent months"
+   },
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": 0,
+    "value": 0.0,
+    "detail": "You kept 0% of income over 3 months (target 20%)"
+   },
+   {
+    "key": "savings_rate",
+    "weight": 30,
+    "score": 100,
+    "value": 0.55,
+    "detail": "You kept 55% of income over 3 months (target 20%)"
+   }
+  ],
+  "util": [
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 100,
+    "value": 0.0,
+    "detail": "Cards are 0% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 100,
+    "value": 10.0,
+    "detail": "Cards are 10% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 70,
+    "value": 30.0,
+    "detail": "Cards are 30% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 30,
+    "value": 50.0,
+    "detail": "Cards are 50% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 0,
+    "value": 80.0,
+    "detail": "Cards are 80% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 0,
+    "value": 100.0,
+    "detail": "Cards are 100% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": null,
+    "value": null,
+    "detail": "No credit-card limit and balance known"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": null,
+    "value": null,
+    "detail": "No credit-card limit and balance known"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 85,
+    "value": 20.0,
+    "detail": "Cards are 20% used overall"
+   },
+   {
+    "key": "credit_utilisation",
+    "weight": 25,
+    "score": 50,
+    "value": 40.0,
+    "detail": "Cards are 40% used overall"
+   }
+  ],
+  "ontime": [
+   {
+    "key": "on_time_payments",
+    "weight": 25,
+    "score": 83,
+    "value": 0.8333,
+    "detail": "5 of 6 recent card statements had at least the minimum paid by the due date"
+   },
+   {
+    "key": "on_time_payments",
+    "weight": 25,
+    "score": null,
+    "value": null,
+    "detail": "No past card statements to judge"
+   },
+   {
+    "key": "on_time_payments",
+    "weight": 25,
+    "score": 100,
+    "value": 1.0,
+    "detail": "6 of 6 recent card statements had at least the minimum paid by the due date"
+   },
+   {
+    "key": "on_time_payments",
+    "weight": 25,
+    "score": 0,
+    "value": 0.0,
+    "detail": "0 of 4 recent card statements had at least the minimum paid by the due date"
+   }
+  ],
+  "runway": [
+   {
+    "key": "emergency_runway",
+    "weight": 20,
+    "score": 100,
+    "value": 6.0,
+    "detail": "Your cash covers about 6.0 months of spending (target 6)"
+   },
+   {
+    "key": "emergency_runway",
+    "weight": 20,
+    "score": 50,
+    "value": 3.0,
+    "detail": "Your cash covers about 3.0 months of spending (target 6)"
+   },
+   {
+    "key": "emergency_runway",
+    "weight": 20,
+    "score": null,
+    "value": null,
+    "detail": "Need a known balance and some spending history"
+   },
+   {
+    "key": "emergency_runway",
+    "weight": 20,
+    "score": null,
+    "value": null,
+    "detail": "Need a known balance and some spending history"
+   },
+   {
+    "key": "emergency_runway",
+    "weight": 20,
+    "score": 0,
+    "value": 0.0,
+    "detail": "Your cash covers about 0.0 months of spending (target 6)"
+   }
+  ]
+ },
+ "health_overall": [
+  {
+   "input": [
+    0.2,
+    [
+     0,
+     10000
+    ],
+    [
+     6,
+     6
+    ],
+    [
+     300000,
+     100000
+    ]
+   ],
+   "score": 90,
+   "band": "strong",
+   "coverage": 1.0,
+   "summary": "Health score 90 (strong): strongest on saving, most room to improve on emergency cushion."
+  },
+  {
+   "input": [
+    0.1,
+    [
+     null,
+     null
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     null,
+     null
+    ]
+   ],
+   "score": null,
+   "band": null,
+   "coverage": 0.3,
+   "summary": "Not enough data yet for a score: add balances and statements."
+  },
+  {
+   "input": [
+    0.2,
+    [
+     0,
+     10000
+    ],
+    [
+     0,
+     0
+    ],
+    [
+     null,
+     null
+    ]
+   ],
+   "score": 100,
+   "band": "strong",
+   "coverage": 0.55,
+   "summary": "Health score 100 (strong), based on saving only."
+  },
+  {
+   "input": [
+    0.05,
+    [
+     4000,
+     10000
+    ],
+    [
+     3,
+     6
+    ],
+    [
+     150000,
+     100000
+    ]
+   ],
+   "score": 38,
+   "band": "needs_attention",
+   "coverage": 1.0,
+   "summary": "Health score 38 (needs attention): strongest on credit use, most room to improve on saving."
+  },
+  {
+   "input": [
+    null,
+    [
+     null,
+     null
+    ],
+    [
+     4,
+     4
+    ],
+    [
+     200000,
+     100000
+    ]
+   ],
+   "score": null,
+   "band": null,
+   "coverage": 0.45,
+   "summary": "Not enough data yet for a score: add balances and statements."
+  }
+ ],
+ "net_worth": [
+  {
+   "assets": [
+    [
+     "cash",
+     "AED",
+     500000,
+     null
+    ],
+    [
+     "gold",
+     "AED",
+     1200000,
+     1000000
+    ],
+    [
+     "vehicle",
+     "AED",
+     null,
+     4000000
+    ]
+   ],
+   "liabilities": [
+    [
+     "auto_loan",
+     "AED",
+     2500000
+    ],
+    [
+     "credit_card",
+     "AED",
+     300000
+    ]
+   ],
+   "fx": {},
+   "out": {
+    "total_assets_minor": 5700000,
+    "total_liabilities_minor": 2800000,
+    "net_worth_minor": 2900000,
+    "assets_by_kind": {
+     "cash": 500000,
+     "gold": 1200000,
+     "vehicle": 4000000
+    },
+    "liabilities_by_kind": {
+     "auto_loan": 2500000,
+     "credit_card": 300000
+    },
+    "unconverted": []
+   }
+  },
+  {
+   "assets": [
+    [
+     "stock",
+     "USD",
+     100000,
+     null
+    ],
+    [
+     "crypto",
+     "BTC",
+     5,
+     null
+    ]
+   ],
+   "liabilities": [
+    [
+     "mortgage",
+     "USD",
+     10000
+    ]
+   ],
+   "fx": {
+    "USD": "3.6725"
+   },
+   "out": {
+    "total_assets_minor": 367250,
+    "total_liabilities_minor": 36725,
+    "net_worth_minor": 330525,
+    "assets_by_kind": {
+     "stock": 367250
+    },
+    "liabilities_by_kind": {
+     "mortgage": 36725
+    },
+    "unconverted": [
+     "BTC"
+    ]
+   }
+  },
+  {
+   "assets": [],
+   "liabilities": [],
+   "fx": {},
+   "out": {
+    "total_assets_minor": 0,
+    "total_liabilities_minor": 0,
+    "net_worth_minor": 0,
+    "assets_by_kind": {},
+    "liabilities_by_kind": {},
+    "unconverted": []
+   }
+  },
+  {
+   "assets": [],
+   "liabilities": [
+    [
+     "other",
+     "AED",
+     100
+    ]
+   ],
+   "fx": {},
+   "out": {
+    "total_assets_minor": 0,
+    "total_liabilities_minor": 100,
+    "net_worth_minor": -100,
+    "assets_by_kind": {},
+    "liabilities_by_kind": {
+     "other": 100
+    },
+    "unconverted": []
+   }
+  },
+  {
+   "assets": [
+    [
+     "stock",
+     "USD",
+     1,
+     null
+    ]
+   ],
+   "liabilities": [],
+   "fx": {
+    "USD": "2.5"
+   },
+   "out": {
+    "total_assets_minor": 2,
+    "total_liabilities_minor": 0,
+    "net_worth_minor": 2,
+    "assets_by_kind": {
+     "stock": 2
+    },
+    "liabilities_by_kind": {},
+    "unconverted": []
+   }
+  },
+  {
+   "assets": [
+    [
+     "stock",
+     "USD",
+     3,
+     null
+    ]
+   ],
+   "liabilities": [],
+   "fx": {
+    "USD": "2.5"
+   },
+   "out": {
+    "total_assets_minor": 8,
+    "total_liabilities_minor": 0,
+    "net_worth_minor": 8,
+    "assets_by_kind": {
+     "stock": 8
+    },
+    "liabilities_by_kind": {},
+    "unconverted": []
+   }
+  }
+ ],
+ "salary_detect": [
+  {
+   "text": "SALARY CREDIT FROM ACME TRADING LLC",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": "Acme Trading LLC"
+   }
+  },
+  {
+   "text": "SALARY CREDIT FROM ACME TRADING LLC",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CREDIT FROM ACME TRADING LLC",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CREDIT FROM ACME TRADING LLC",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": "Acme Trading LLC"
+   }
+  },
+  {
+   "text": "WPS SALARY - ACME LLC",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "Acme LLC"
+   }
+  },
+  {
+   "text": "WPS SALARY - ACME LLC",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "WPS SALARY - ACME LLC",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "WPS SALARY - ACME LLC",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "Acme LLC"
+   }
+  },
+  {
+   "text": "WPS PAYMENT ABC CONTRACTING FZE 0098321",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "ABC Contracting FZE"
+   }
+  },
+  {
+   "text": "WPS PAYMENT ABC CONTRACTING FZE 0098321",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "WPS PAYMENT ABC CONTRACTING FZE 0098321",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "WPS PAYMENT ABC CONTRACTING FZE 0098321",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "ABC Contracting FZE"
+   }
+  },
+  {
+   "text": "Wage Protection System credit Emirates Group",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "Emirates Group"
+   }
+  },
+  {
+   "text": "Wage Protection System credit Emirates Group",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "Wage Protection System credit Emirates Group",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "Wage Protection System credit Emirates Group",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "wps",
+    "employer": "Emirates Group"
+   }
+  },
+  {
+   "text": "PAYROLL MARCH 2026 FROM EMIRATES GROUP",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "payroll",
+    "employer": "Emirates Group"
+   }
+  },
+  {
+   "text": "PAYROLL MARCH 2026 FROM EMIRATES GROUP",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYROLL MARCH 2026 FROM EMIRATES GROUP",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYROLL MARCH 2026 FROM EMIRATES GROUP",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "payroll",
+    "employer": "Emirates Group"
+   }
+  },
+  {
+   "text": "PAYROLL: Globex Corp",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "payroll",
+    "employer": "Globex Corp"
+   }
+  },
+  {
+   "text": "PAYROLL: Globex Corp",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYROLL: Globex Corp",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYROLL: Globex Corp",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "payroll",
+    "employer": "Globex Corp"
+   }
+  },
+  {
+   "text": "SAL CR ACME LLC 25/03/2026",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": "Acme LLC"
+   }
+  },
+  {
+   "text": "SAL CR ACME LLC 25/03/2026",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SAL CR ACME LLC 25/03/2026",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SAL CR ACME LLC 25/03/2026",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": "Acme LLC"
+   }
+  },
+  {
+   "text": "SALARY FEB 2026",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "SALARY FEB 2026",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY FEB 2026",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY FEB 2026",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "SALARY TRANSFER REF 123456789",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "SALARY TRANSFER REF 123456789",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY TRANSFER REF 123456789",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY TRANSFER REF 123456789",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "salary",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "salary",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "salary",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "salary",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": "SALARY ADVANCE FROM ACME",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ADVANCE FROM ACME",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ADVANCE FROM ACME",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ADVANCE FROM ACME",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY LOAN DISBURSEMENT",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY LOAN DISBURSEMENT",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY LOAN DISBURSEMENT",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY LOAN DISBURSEMENT",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ACCOUNT FEE REFUND",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ACCOUNT FEE REFUND",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ACCOUNT FEE REFUND",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY ACCOUNT FEE REFUND",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "REVERSAL OF SALARY",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "REVERSAL OF SALARY",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "REVERSAL OF SALARY",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "REVERSAL OF SALARY",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CERTIFICATE CHARGE",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CERTIFICATE CHARGE",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CERTIFICATE CHARGE",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "SALARY CERTIFICATE CHARGE",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "CARREFOUR MOE DUBAI",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "CARREFOUR MOE DUBAI",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "CARREFOUR MOE DUBAI",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "CARREFOUR MOE DUBAI",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYMENT RECEIVED - THANK YOU",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYMENT RECEIVED - THANK YOU",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYMENT RECEIVED - THANK YOU",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "PAYMENT RECEIVED - THANK YOU",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "TRANSFER FROM AHMED",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "TRANSFER FROM AHMED",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "TRANSFER FROM AHMED",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "TRANSFER FROM AHMED",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "",
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "",
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "",
+   "direction": "credit",
+   "amount": 49999,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": "",
+   "direction": "credit",
+   "amount": 50000,
+   "sms": null,
+   "out": null
+  },
+  {
+   "text": null,
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": "Salary credited Dhs. 15000 to your account ending 9876",
+   "out": {
+    "matched_by": "salary",
+    "employer": null
+   }
+  },
+  {
+   "text": null,
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": "AED 15,000.00 salary credited to account ending 9876 from ACME LLC on 25-Mar-2026. Avl bal AED 20,000",
+   "out": {
+    "matched_by": "salary",
+    "employer": "Acme LLC"
+   }
+  },
+  {
+   "text": null,
+   "direction": "credit",
+   "amount": 1500000,
+   "sms": "AED 15,000 credited to your account",
+   "out": null
+  },
+  {
+   "text": null,
+   "direction": "debit",
+   "amount": 1500000,
+   "sms": "Salary credited Dhs. 15000 to your account ending 9876",
+   "out": null
+  }
+ ],
+ "salary_summary": [
+  {
+   "today": "2026-04-01",
+   "payments": [],
+   "out": {
+    "currency": null,
+    "months_observed": 0,
+    "is_recurring": false,
+    "average_monthly_minor": null,
+    "typical_day": null,
+    "next_expected_on": null,
+    "latest_month_minor": null,
+    "previous_month_minor": null,
+    "monthly": [],
+    "employers": []
+   }
+  },
+  {
+   "today": "2026-03-26",
+   "payments": [
+    {
+     "received_on": "2026-03-25",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    }
+   ],
+   "out": {
+    "currency": "AED",
+    "months_observed": 1,
+    "is_recurring": false,
+    "average_monthly_minor": 1500000,
+    "typical_day": 25,
+    "next_expected_on": null,
+    "latest_month_minor": 1500000,
+    "previous_month_minor": null,
+    "monthly": [
+     [
+      "2026-03-01",
+      1500000
+     ]
+    ],
+    "employers": [
+     [
+      "Acme LLC",
+      1,
+      1500000
+     ]
+    ]
+   }
+  },
+  {
+   "today": "2026-03-28",
+   "payments": [
+    {
+     "received_on": "2026-01-25",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-02-25",
+     "amount_minor": 1600000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-03-26",
+     "amount_minor": 1700000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    }
+   ],
+   "out": {
+    "currency": "AED",
+    "months_observed": 3,
+    "is_recurring": true,
+    "average_monthly_minor": 1600000,
+    "typical_day": 25,
+    "next_expected_on": "2026-04-25",
+    "latest_month_minor": 1700000,
+    "previous_month_minor": 1600000,
+    "monthly": [
+     [
+      "2026-03-01",
+      1700000
+     ],
+     [
+      "2026-02-01",
+      1600000
+     ],
+     [
+      "2026-01-01",
+      1500000
+     ]
+    ],
+    "employers": [
+     [
+      "Acme LLC",
+      3,
+      1700000
+     ]
+    ]
+   }
+  },
+  {
+   "today": "2026-06-30",
+   "payments": [
+    {
+     "received_on": "2026-01-25",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-02-25",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-03-25",
+     "amount_minor": 1500000,
+     "employer": "Other",
+     "currency": "AED"
+    }
+   ],
+   "out": {
+    "currency": "AED",
+    "months_observed": 3,
+    "is_recurring": true,
+    "average_monthly_minor": 1500000,
+    "typical_day": 25,
+    "next_expected_on": null,
+    "latest_month_minor": 1500000,
+    "previous_month_minor": 1500000,
+    "monthly": [
+     [
+      "2026-03-01",
+      1500000
+     ],
+     [
+      "2026-02-01",
+      1500000
+     ],
+     [
+      "2026-01-01",
+      1500000
+     ]
+    ],
+    "employers": [
+     [
+      "Other",
+      1,
+      1500000
+     ],
+     [
+      "Acme LLC",
+      2,
+      1500000
+     ]
+    ]
+   }
+  },
+  {
+   "today": "2026-12-31",
+   "payments": [
+    {
+     "received_on": "2026-01-30",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-02-27",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    },
+    {
+     "received_on": "2026-12-30",
+     "amount_minor": 1500000,
+     "employer": "Acme LLC",
+     "currency": "AED"
+    }
+   ],
+   "out": {
+    "currency": "AED",
+    "months_observed": 3,
+    "is_recurring": true,
+    "average_monthly_minor": 1500000,
+    "typical_day": 30,
+    "next_expected_on": "2027-01-30",
+    "latest_month_minor": 1500000,
+    "previous_month_minor": 1500000,
+    "monthly": [
+     [
+      "2026-12-01",
+      1500000
+     ],
+     [
+      "2026-02-01",
+      1500000
+     ],
+     [
+      "2026-01-01",
+      1500000
+     ]
+    ],
+    "employers": [
+     [
+      "Acme LLC",
+      3,
+      1500000
+     ]
+    ]
+   }
+  }
+ ],
+ "goals": [
+  {
+   "today": "2026-06-15",
+   "target": "2026-12-15",
+   "months_left": 6,
+   "required_100k": 16667,
+   "required_0": 0,
+   "reserve_plan": 30000,
+   "reserve_small": 10000,
+   "reserve_none": 16667
+  },
+  {
+   "today": "2026-06-15",
+   "target": "2026-12-14",
+   "months_left": 5,
+   "required_100k": 20000,
+   "required_0": 0,
+   "reserve_plan": 30000,
+   "reserve_small": 10000,
+   "reserve_none": 20000
+  },
+  {
+   "today": "2026-06-15",
+   "target": "2026-06-20",
+   "months_left": 1,
+   "required_100k": 100000,
+   "required_0": 0,
+   "reserve_plan": 30000,
+   "reserve_small": 10000,
+   "reserve_none": 100000
+  },
+  {
+   "today": "2026-06-15",
+   "target": "2026-06-01",
+   "months_left": null,
+   "required_100k": null,
+   "required_0": 0,
+   "reserve_plan": 30000,
+   "reserve_small": 10000,
+   "reserve_none": 0
+  },
+  {
+   "today": "2026-06-15",
+   "target": null,
+   "months_left": null,
+   "required_100k": null,
+   "required_0": 0,
+   "reserve_plan": 30000,
+   "reserve_small": 10000,
+   "reserve_none": 0
+  }
+ ]
+}

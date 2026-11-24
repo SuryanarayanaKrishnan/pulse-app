@@ -1,0 +1,6329 @@
+{
+ "cards": [
+  {
+   "card": "emirates-nbd-skywards-infinite",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "40000",
+   "earned_value_minor": 142800,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": null,
+     "used": "40000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 2678,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 2142,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 536,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "3000",
+     "value_minor": 10710,
+     "rule": "Travel and Emirates",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-skywards-infinite",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "7063.5",
+   "earned_value_minor": 25217,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "4423.5",
+     "pct": null
+    },
+    "Dining": {
+     "cap": null,
+     "used": "240",
+     "pct": null
+    },
+    "Travel and Emirates": {
+     "cap": null,
+     "used": "2400",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 2678,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 2142,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 536,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "3000",
+     "value_minor": 10710,
+     "rule": "Travel and Emirates",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-skywards-infinite",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "150.0",
+   "earned_value_minor": 536,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "150.0",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 2678,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 2142,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 536,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "3000",
+     "value_minor": 10710,
+     "rule": "Travel and Emirates",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-skywards-infinite",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 2678,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 2142,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 536,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "3000",
+     "value_minor": 10710,
+     "rule": "Travel and Emirates",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-go4it",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "20000",
+   "earned_value_minor": 20000,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "20000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "800",
+     "value_minor": 800,
+     "rule": "Online shopping",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-go4it",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "4469",
+   "earned_value_minor": 4469,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "3269",
+     "pct": null
+    },
+    "Online shopping": {
+     "cap": "2000",
+     "used": "1200",
+     "pct": "60.0"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "800",
+     "value_minor": 800,
+     "rule": "Online shopping",
+     "headroom": "800",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-go4it",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "100",
+   "earned_value_minor": 100,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "800",
+     "value_minor": 800,
+     "rule": "Online shopping",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-nbd-go4it",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "800",
+     "value_minor": 800,
+     "rule": "Online shopping",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-lulu-platinum",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "20000",
+   "earned_value_minor": 20000,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "20000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Lulu",
+     "headroom": "1000",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-lulu-platinum",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "3619",
+   "earned_value_minor": 3619,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "1000",
+     "used": "500",
+     "pct": "50.0"
+    },
+    "Base": {
+     "cap": null,
+     "used": "2119",
+     "pct": null
+    },
+    "Lulu": {
+     "cap": "1000",
+     "used": "1000",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Lulu",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-lulu-platinum",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "100",
+   "earned_value_minor": 100,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Lulu",
+     "headroom": "1000",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-lulu-platinum",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Lulu",
+     "headroom": "1000",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-touchpoints-platinum",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "3000",
+   "earned_value_minor": 3000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "3000",
+     "used": "3000",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 750,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 600,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 150,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1500.0",
+     "value_minor": 1500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-touchpoints-platinum",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "6208.5",
+   "earned_value_minor": 6208,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "4948.5",
+     "pct": null
+    },
+    "Dining": {
+     "cap": "3000",
+     "used": "360",
+     "pct": "12.00"
+    },
+    "Fuel": {
+     "cap": "1500",
+     "used": "900",
+     "pct": "60.0"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "300",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "2640",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 750,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 600,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 150,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1500.0",
+     "value_minor": 1500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-touchpoints-platinum",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "150.0",
+   "earned_value_minor": 150,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "150.0",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "300",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "3000",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 750,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 600,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 150,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1500.0",
+     "value_minor": 1500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "adcb-touchpoints-platinum",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "300",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "3000",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "750.0",
+     "value_minor": 750,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "600.0",
+     "value_minor": 600,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "150.0",
+     "value_minor": 150,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1500.0",
+     "value_minor": 1500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "first-abu-dhabi-bank-cashback-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "100",
+   "earned_value_minor": 10000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "100",
+     "used": "100",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "25.00",
+     "value_minor": 2500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "first-abu-dhabi-bank-cashback-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "111.09",
+   "earned_value_minor": 11109,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "100",
+     "used": "87.50",
+     "pct": "87.500"
+    },
+    "Dining": {
+     "cap": "100",
+     "used": "3.60",
+     "pct": "3.600"
+    },
+    "Base": {
+     "cap": null,
+     "used": "19.99",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "96.40",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "12.50",
+     "value_minor": 1250,
+     "rule": "Groceries",
+     "headroom": "12.50",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "first-abu-dhabi-bank-cashback-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "1.00",
+   "earned_value_minor": 100,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "1.00",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "25.00",
+     "value_minor": 2500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "first-abu-dhabi-bank-cashback-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "25.00",
+     "value_minor": 2500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-cashback-credit-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "300",
+   "earned_value_minor": 30000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "300",
+     "used": "300",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-cashback-credit-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "29.200",
+   "earned_value_minor": 2920,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "18.250",
+     "pct": null
+    },
+    "Dining": {
+     "cap": "300",
+     "used": "6.00",
+     "pct": "2.00"
+    },
+    "Entertainment": {
+     "cap": "300",
+     "used": "4.95",
+     "pct": "1.6500"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "294.00",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-cashback-credit-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "0.500",
+   "earned_value_minor": 50,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "0.500",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "300",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-cashback-credit-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "300",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-solitaire",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "40000",
+   "earned_value_minor": 100000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining and travel": {
+     "cap": null,
+     "used": "40000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 500,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 5000,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-solitaire",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "4789",
+   "earned_value_minor": 11972,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "2949",
+     "pct": null
+    },
+    "Dining and travel": {
+     "cap": null,
+     "used": "1840",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 500,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 5000,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-solitaire",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "100",
+   "earned_value_minor": 250,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 500,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 5000,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-solitaire",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 500,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 5000,
+     "rule": "Dining and travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-noon-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "100.000",
+   "earned_value_minor": 10000,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100.000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "24.00",
+     "value_minor": 2400,
+     "rule": "Noon",
+     "headroom": "250",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-noon-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "52.345",
+   "earned_value_minor": 5234,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "16.345",
+     "pct": null
+    },
+    "Noon": {
+     "cap": "250",
+     "used": "36.00",
+     "pct": "14.400"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "24.00",
+     "value_minor": 2400,
+     "rule": "Noon",
+     "headroom": "214.00",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-noon-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "0.500",
+   "earned_value_minor": 50,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "0.500",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "24.00",
+     "value_minor": 2400,
+     "rule": "Noon",
+     "headroom": "250",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "mashreq-noon-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "24.00",
+     "value_minor": 2400,
+     "rule": "Noon",
+     "headroom": "250",
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "dubai-islamic-bank-cashback-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "100.000",
+   "earned_value_minor": 10000,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100.000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "dubai-islamic-bank-cashback-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "69.845",
+   "earned_value_minor": 6984,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "150",
+     "used": "52.50",
+     "pct": "35.00"
+    },
+    "Base": {
+     "cap": null,
+     "used": "8.345",
+     "pct": null
+    },
+    "Fuel": {
+     "cap": "100",
+     "used": "9.00",
+     "pct": "9.00"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "97.50",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "dubai-islamic-bank-cashback-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "0.500",
+   "earned_value_minor": 50,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "0.500",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "dubai-islamic-bank-cashback-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "rakbank-titanium-credit-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "150",
+   "earned_value_minor": 15000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "150",
+     "used": "150",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "rakbank-titanium-credit-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "78.49",
+   "earned_value_minor": 7849,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "150",
+     "used": "52.50",
+     "pct": "35.00"
+    },
+    "Dining": {
+     "cap": "150",
+     "used": "6.00",
+     "pct": "4.00"
+    },
+    "Base": {
+     "cap": null,
+     "used": "19.99",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "144.00",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "97.50",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "rakbank-titanium-credit-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "1.00",
+   "earned_value_minor": 0,
+   "min_spend_met": false,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "1.00",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "rakbank-titanium-credit-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": false,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "150",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "hsbc-cashback-credit-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "100",
+   "earned_value_minor": 10000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "100",
+     "used": "100",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "hsbc-cashback-credit-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "78.49",
+   "earned_value_minor": 7849,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "100",
+     "used": "52.50",
+     "pct": "52.500"
+    },
+    "Dining": {
+     "cap": "100",
+     "used": "6.00",
+     "pct": "6.00"
+    },
+    "Base": {
+     "cap": null,
+     "used": "19.99",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "94.00",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "47.50",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "hsbc-cashback-credit-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "1.00",
+   "earned_value_minor": 100,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "1.00",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "hsbc-cashback-credit-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "5.00",
+     "value_minor": 500,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "15.00",
+     "value_minor": 1500,
+     "rule": "Groceries",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "4.00",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "1.00",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "10.00",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-islamic-skywards-platinum",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "40000",
+   "earned_value_minor": 142800,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": null,
+     "used": "40000",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1785,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1428,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 357,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 7140,
+     "rule": "Travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-islamic-skywards-platinum",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "4789",
+   "earned_value_minor": 17097,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "2949",
+     "pct": null
+    },
+    "Dining": {
+     "cap": null,
+     "used": "240",
+     "pct": null
+    },
+    "Travel": {
+     "cap": null,
+     "used": "1600",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1785,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1428,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 357,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 7140,
+     "rule": "Travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-islamic-skywards-platinum",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "100",
+   "earned_value_minor": 357,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1785,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1428,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 357,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 7140,
+     "rule": "Travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "emirates-islamic-skywards-platinum",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 714,
+     "rule": "Dining",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "500",
+     "value_minor": 1785,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 1428,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 357,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "2000",
+     "value_minor": 7140,
+     "rule": "Travel",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "liv-liv-credit-card",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "100",
+   "earned_value_minor": 10000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "100",
+     "used": "100",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "liv-liv-credit-card",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "24.820",
+   "earned_value_minor": 2482,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "18.250",
+     "pct": null
+    },
+    "Dining": {
+     "cap": "100",
+     "used": "3.60",
+     "pct": "3.600"
+    },
+    "Entertainment": {
+     "cap": "100",
+     "used": "2.97",
+     "pct": "2.9700"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "96.40",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "liv-liv-credit-card",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "0.500",
+   "earned_value_minor": 50,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "0.500",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "liv-liv-credit-card",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "3.00",
+     "value_minor": 300,
+     "rule": "Dining",
+     "headroom": "100",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "2.500",
+     "value_minor": 250,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "2.000",
+     "value_minor": 200,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "0.500",
+     "value_minor": 50,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "5.000",
+     "value_minor": 500,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "standard-chartered-manhattan-rewards",
+   "spends": [
+    [
+     1500000,
+     "dining",
+     null
+    ],
+    [
+     500000,
+     "dining",
+     null
+    ]
+   ],
+   "set": "dining_heavy",
+   "spend_minor": 2000000,
+   "earned_units": "2000",
+   "earned_value_minor": 2000,
+   "min_spend_met": true,
+   "usage": {
+    "Dining": {
+     "cap": "2000",
+     "used": "2000",
+     "pct": "100"
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Dining",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Groceries",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "standard-chartered-manhattan-rewards",
+   "spends": [
+    [
+     25000,
+     "groceries",
+     "carrefour"
+    ],
+    [
+     12000,
+     "dining",
+     "talabat"
+    ],
+    [
+     80000,
+     "travel",
+     "emirates"
+    ],
+    [
+     5000,
+     null,
+     null
+    ],
+    [
+     30000,
+     "fees",
+     null
+    ],
+    [
+     60000,
+     "shopping",
+     "noon food"
+    ],
+    [
+     45000,
+     "transport",
+     "enoc"
+    ],
+    [
+     150000,
+     "groceries",
+     "lulu"
+    ],
+    [
+     9900,
+     "entertainment",
+     null
+    ]
+   ],
+   "set": "mixed",
+   "spend_minor": 416900,
+   "earned_units": "4239",
+   "earned_value_minor": 4239,
+   "min_spend_met": true,
+   "usage": {
+    "Groceries": {
+     "cap": "2000",
+     "used": "2000",
+     "pct": "100"
+    },
+    "Dining": {
+     "cap": "2000",
+     "used": "240",
+     "pct": "12.00"
+    },
+    "Base": {
+     "cap": null,
+     "used": "1999",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 200,
+     "rule": "Dining",
+     "headroom": "1760",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": "Groceries",
+     "headroom": "0",
+     "capped": true
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "standard-chartered-manhattan-rewards",
+   "spends": [
+    [
+     10000,
+     null,
+     null
+    ]
+   ],
+   "set": "small",
+   "spend_minor": 10000,
+   "earned_units": "100",
+   "earned_value_minor": 100,
+   "min_spend_met": true,
+   "usage": {
+    "Base": {
+     "cap": null,
+     "used": "100",
+     "pct": null
+    }
+   },
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 200,
+     "rule": "Dining",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Groceries",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  },
+  {
+   "card": "standard-chartered-manhattan-rewards",
+   "spends": [],
+   "set": "none",
+   "spend_minor": 0,
+   "earned_units": "0",
+   "earned_value_minor": 0,
+   "min_spend_met": true,
+   "usage": {},
+   "quotes": [
+    {
+     "spend": [
+      10000,
+      "dining",
+      null
+     ],
+     "units": "200",
+     "value_minor": 200,
+     "rule": "Dining",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      50000,
+      "groceries",
+      "lulu"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Groceries",
+     "headroom": "2000",
+     "capped": false
+    },
+    {
+     "spend": [
+      40000,
+      "shopping",
+      "noon"
+     ],
+     "units": "400",
+     "value_minor": 400,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      20000,
+      "fees",
+      null
+     ],
+     "units": "0",
+     "value_minor": 0,
+     "rule": null,
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      10000,
+      null,
+      null
+     ],
+     "units": "100",
+     "value_minor": 100,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    },
+    {
+     "spend": [
+      100000,
+      "travel",
+      "emirates airline"
+     ],
+     "units": "1000",
+     "value_minor": 1000,
+     "rule": "Base",
+     "headroom": null,
+     "capped": false
+    }
+   ]
+  }
+ ],
+ "cycle_bounds": [
+  {
+   "today": "2026-03-10",
+   "day": null,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-10",
+   "day": 1,
+   "start": "2026-03-02",
+   "end": "2026-04-01"
+  },
+  {
+   "today": "2026-03-10",
+   "day": 15,
+   "start": "2026-02-16",
+   "end": "2026-03-15"
+  },
+  {
+   "today": "2026-03-10",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-03-10",
+   "day": 28,
+   "start": "2026-03-01",
+   "end": "2026-03-28"
+  },
+  {
+   "today": "2026-03-10",
+   "day": 31,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-20",
+   "day": null,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-20",
+   "day": 1,
+   "start": "2026-03-02",
+   "end": "2026-04-01"
+  },
+  {
+   "today": "2026-03-20",
+   "day": 15,
+   "start": "2026-03-16",
+   "end": "2026-04-15"
+  },
+  {
+   "today": "2026-03-20",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-03-20",
+   "day": 28,
+   "start": "2026-03-01",
+   "end": "2026-03-28"
+  },
+  {
+   "today": "2026-03-20",
+   "day": 31,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-15",
+   "day": null,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-15",
+   "day": 1,
+   "start": "2026-03-02",
+   "end": "2026-04-01"
+  },
+  {
+   "today": "2026-03-15",
+   "day": 15,
+   "start": "2026-02-16",
+   "end": "2026-03-15"
+  },
+  {
+   "today": "2026-03-15",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-03-15",
+   "day": 28,
+   "start": "2026-03-01",
+   "end": "2026-03-28"
+  },
+  {
+   "today": "2026-03-15",
+   "day": 31,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-01-05",
+   "day": null,
+   "start": "2026-01-01",
+   "end": "2026-01-31"
+  },
+  {
+   "today": "2026-01-05",
+   "day": 1,
+   "start": "2026-01-02",
+   "end": "2026-02-01"
+  },
+  {
+   "today": "2026-01-05",
+   "day": 15,
+   "start": "2025-12-16",
+   "end": "2026-01-15"
+  },
+  {
+   "today": "2026-01-05",
+   "day": 20,
+   "start": "2025-12-21",
+   "end": "2026-01-20"
+  },
+  {
+   "today": "2026-01-05",
+   "day": 28,
+   "start": "2025-12-29",
+   "end": "2026-01-28"
+  },
+  {
+   "today": "2026-01-05",
+   "day": 31,
+   "start": "2026-01-01",
+   "end": "2026-01-31"
+  },
+  {
+   "today": "2026-12-25",
+   "day": null,
+   "start": "2026-12-01",
+   "end": "2026-12-31"
+  },
+  {
+   "today": "2026-12-25",
+   "day": 1,
+   "start": "2026-12-02",
+   "end": "2027-01-01"
+  },
+  {
+   "today": "2026-12-25",
+   "day": 15,
+   "start": "2026-12-16",
+   "end": "2027-01-15"
+  },
+  {
+   "today": "2026-12-25",
+   "day": 20,
+   "start": "2026-12-21",
+   "end": "2027-01-20"
+  },
+  {
+   "today": "2026-12-25",
+   "day": 28,
+   "start": "2026-11-29",
+   "end": "2026-12-28"
+  },
+  {
+   "today": "2026-12-25",
+   "day": 31,
+   "start": "2026-12-01",
+   "end": "2026-12-31"
+  },
+  {
+   "today": "2026-03-01",
+   "day": null,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-01",
+   "day": 1,
+   "start": "2026-02-02",
+   "end": "2026-03-01"
+  },
+  {
+   "today": "2026-03-01",
+   "day": 15,
+   "start": "2026-02-16",
+   "end": "2026-03-15"
+  },
+  {
+   "today": "2026-03-01",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-03-01",
+   "day": 28,
+   "start": "2026-03-01",
+   "end": "2026-03-28"
+  },
+  {
+   "today": "2026-03-01",
+   "day": 31,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-05",
+   "day": null,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-03-05",
+   "day": 1,
+   "start": "2026-03-02",
+   "end": "2026-04-01"
+  },
+  {
+   "today": "2026-03-05",
+   "day": 15,
+   "start": "2026-02-16",
+   "end": "2026-03-15"
+  },
+  {
+   "today": "2026-03-05",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-03-05",
+   "day": 28,
+   "start": "2026-03-01",
+   "end": "2026-03-28"
+  },
+  {
+   "today": "2026-03-05",
+   "day": 31,
+   "start": "2026-03-01",
+   "end": "2026-03-31"
+  },
+  {
+   "today": "2026-02-28",
+   "day": null,
+   "start": "2026-02-01",
+   "end": "2026-02-28"
+  },
+  {
+   "today": "2026-02-28",
+   "day": 1,
+   "start": "2026-02-02",
+   "end": "2026-03-01"
+  },
+  {
+   "today": "2026-02-28",
+   "day": 15,
+   "start": "2026-02-16",
+   "end": "2026-03-15"
+  },
+  {
+   "today": "2026-02-28",
+   "day": 20,
+   "start": "2026-02-21",
+   "end": "2026-03-20"
+  },
+  {
+   "today": "2026-02-28",
+   "day": 28,
+   "start": "2026-01-29",
+   "end": "2026-02-28"
+  },
+  {
+   "today": "2026-02-28",
+   "day": 31,
+   "start": "2026-02-01",
+   "end": "2026-02-28"
+  },
+  {
+   "today": "2024-02-29",
+   "day": null,
+   "start": "2024-02-01",
+   "end": "2024-02-29"
+  },
+  {
+   "today": "2024-02-29",
+   "day": 1,
+   "start": "2024-02-02",
+   "end": "2024-03-01"
+  },
+  {
+   "today": "2024-02-29",
+   "day": 15,
+   "start": "2024-02-16",
+   "end": "2024-03-15"
+  },
+  {
+   "today": "2024-02-29",
+   "day": 20,
+   "start": "2024-02-21",
+   "end": "2024-03-20"
+  },
+  {
+   "today": "2024-02-29",
+   "day": 28,
+   "start": "2024-02-29",
+   "end": "2024-03-28"
+  },
+  {
+   "today": "2024-02-29",
+   "day": 31,
+   "start": "2024-02-01",
+   "end": "2024-02-29"
+  },
+  {
+   "today": "2026-05-01",
+   "day": null,
+   "start": "2026-05-01",
+   "end": "2026-05-31"
+  },
+  {
+   "today": "2026-05-01",
+   "day": 1,
+   "start": "2026-04-02",
+   "end": "2026-05-01"
+  },
+  {
+   "today": "2026-05-01",
+   "day": 15,
+   "start": "2026-04-16",
+   "end": "2026-05-15"
+  },
+  {
+   "today": "2026-05-01",
+   "day": 20,
+   "start": "2026-04-21",
+   "end": "2026-05-20"
+  },
+  {
+   "today": "2026-05-01",
+   "day": 28,
+   "start": "2026-04-29",
+   "end": "2026-05-28"
+  },
+  {
+   "today": "2026-05-01",
+   "day": 31,
+   "start": "2026-05-01",
+   "end": "2026-05-31"
+  }
+ ]
+}

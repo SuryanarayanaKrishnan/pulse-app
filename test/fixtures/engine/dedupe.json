@@ -1,0 +1,428 @@
+{
+ "scores": [
+  {
+   "a": "CARREFOUR",
+   "b": "Carrefour",
+   "score": 100
+  },
+  {
+   "a": "MAF CARREFOUR HYPERMARKET",
+   "b": "Carrefour Moe",
+   "score": 100
+  },
+  {
+   "a": "TALABAT",
+   "b": "Talabat Mart",
+   "score": 100
+  },
+  {
+   "a": "STARBUCKS",
+   "b": "COSTA COFFEE",
+   "score": 45
+  },
+  {
+   "a": "Joes Cafe",
+   "b": "JOES CAFE DUBAI AE",
+   "score": 100
+  },
+  {
+   "a": "JOES CAFE",
+   "b": "Joe's Coffee House",
+   "score": 70
+  },
+  {
+   "a": "NOON",
+   "b": "NOON.COM DUBAI",
+   "score": 100
+  },
+  {
+   "a": "AL FARDAN EXCHANGE",
+   "b": "Fardan Money Transfer",
+   "score": 56
+  },
+  {
+   "a": "",
+   "b": "x",
+   "score": null
+  },
+  {
+   "a": null,
+   "b": "x",
+   "score": null
+  },
+  {
+   "a": "SOME LONG RANDOM SHOP NAME LLC",
+   "b": "RANDOM SHOP",
+   "score": 100
+  },
+  {
+   "a": "Apple Pay",
+   "b": "APPLE.COM/BILL",
+   "score": 64
+  },
+  {
+   "a": "Ahmed Al Mansoori",
+   "b": "AHMED MANSOORI",
+   "score": 100
+  },
+  {
+   "a": "Zara",
+   "b": "ZARA HOME DUBAI MALL",
+   "score": 100
+  },
+  {
+   "a": "abc",
+   "b": "xyz",
+   "score": 0
+  },
+  {
+   "a": "Lulu Hypermarket Al Barsha",
+   "b": "LULU",
+   "score": 100
+  },
+  {
+   "a": "ENOC STN 123",
+   "b": "ENOC",
+   "score": 100
+  },
+  {
+   "a": "Pizza Palace",
+   "b": "Palace Pizza Dubai",
+   "score": 100
+  }
+ ],
+ "matches": [
+  {
+   "name": "exact",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "CARREFOUR MOE DUBAI",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "CARREFOUR",
+     "merchant_normalized": "Carrefour",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": [
+    {
+     "line": 0,
+     "txn": 0,
+     "score": 100
+    }
+   ]
+  },
+  {
+   "name": "date_window",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "CARREFOUR MOE",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-15T09:00:00+00:00",
+     "merchant_raw": "CARREFOUR",
+     "merchant_normalized": "Carrefour",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": [
+    {
+     "line": 0,
+     "txn": 0,
+     "score": 100
+    }
+   ]
+  },
+  {
+   "name": "outside_window",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "CARREFOUR MOE",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-16T09:00:00+00:00",
+     "merchant_raw": "CARREFOUR",
+     "merchant_normalized": "Carrefour",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": []
+  },
+  {
+   "name": "wrong_amount",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "CARREFOUR MOE",
+     "amount_minor": 4501,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "CARREFOUR",
+     "merchant_normalized": "Carrefour",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": []
+  },
+  {
+   "name": "wrong_direction",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "CARREFOUR MOE",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "credit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "CARREFOUR",
+     "merchant_normalized": "Carrefour",
+     "amount_minor": 4500,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": []
+  },
+  {
+   "name": "weak_lone",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "ZZQ 77",
+     "amount_minor": 1000,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-13T09:00:00+00:00",
+     "merchant_raw": "Apple Pay",
+     "merchant_normalized": null,
+     "amount_minor": 1000,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": []
+  },
+  {
+   "name": "weak_two_candidates",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "ZZQ 77",
+     "amount_minor": 1000,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "Apple Pay",
+     "merchant_normalized": null,
+     "amount_minor": 1000,
+     "currency": "AED",
+     "direction": "debit"
+    },
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "Wallet",
+     "merchant_normalized": null,
+     "amount_minor": 1000,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": []
+  },
+  {
+   "name": "foreign",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "NETFLIX.COM",
+     "amount_minor": 4770,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": 1299,
+     "foreign_currency": "USD"
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "NETFLIX.COM",
+     "merchant_normalized": "Netflix",
+     "amount_minor": 1299,
+     "currency": "USD",
+     "direction": "debit"
+    }
+   ],
+   "matches": [
+    {
+     "line": 0,
+     "txn": 0,
+     "score": 100
+    }
+   ]
+  },
+  {
+   "name": "two_coffees",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "STARBUCKS",
+     "amount_minor": 1800,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    },
+    {
+     "posted_on": "2026-03-12",
+     "description": "STARBUCKS",
+     "amount_minor": 1800,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "STARBUCKS",
+     "merchant_normalized": "Starbucks",
+     "amount_minor": 1800,
+     "currency": "AED",
+     "direction": "debit"
+    },
+    {
+     "posted_at": "2026-03-12T15:00:00+00:00",
+     "merchant_raw": "STARBUCKS",
+     "merchant_normalized": "Starbucks",
+     "amount_minor": 1800,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": [
+    {
+     "line": 0,
+     "txn": 0,
+     "score": 100
+    },
+    {
+     "line": 1,
+     "txn": 1,
+     "score": 100
+    }
+   ]
+  },
+  {
+   "name": "greedy_best",
+   "lines": [
+    {
+     "posted_on": "2026-03-12",
+     "description": "TALABAT",
+     "amount_minor": 5000,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    },
+    {
+     "posted_on": "2026-03-12",
+     "description": "KFC",
+     "amount_minor": 5000,
+     "currency": "AED",
+     "direction": "debit",
+     "foreign_amount_minor": null,
+     "foreign_currency": null
+    }
+   ],
+   "txns": [
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "KFC",
+     "merchant_normalized": "KFC",
+     "amount_minor": 5000,
+     "currency": "AED",
+     "direction": "debit"
+    },
+    {
+     "posted_at": "2026-03-12T09:00:00+00:00",
+     "merchant_raw": "TALABAT",
+     "merchant_normalized": "Talabat",
+     "amount_minor": 5000,
+     "currency": "AED",
+     "direction": "debit"
+    }
+   ],
+   "matches": [
+    {
+     "line": 0,
+     "txn": 1,
+     "score": 100
+    },
+    {
+     "line": 1,
+     "txn": 0,
+     "score": 100
+    }
+   ]
+  }
+ ]
+}

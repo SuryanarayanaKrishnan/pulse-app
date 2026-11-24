@@ -1,0 +1,572 @@
+{
+ "version": 1,
+ "updated_on": "2026-11-26",
+ "notice": "Illustrative figures taken from memory of public product pages. verified_on is null until a card has been checked against the issuer's published terms (then source holds the URL).",
+ "cards": [
+  {
+   "id": "emirates-nbd-skywards-infinite",
+   "issuer": "Emirates NBD",
+   "name": "Skywards Infinite",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 3000000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.0357,
+    "base_rate": 1.5,
+    "rules": [
+     {
+      "name": "Travel and Emirates",
+      "rate": 3,
+      "categories": [
+       "travel"
+      ],
+      "merchants": [
+       "emirates"
+      ]
+     },
+     {
+      "name": "Dining",
+      "rate": 2,
+      "categories": [
+       "dining"
+      ]
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "emirates-nbd-go4it",
+   "issuer": "Emirates NBD",
+   "name": "Go4it",
+   "network": "mastercard",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 500000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.01,
+    "base_rate": 1,
+    "rules": [
+     {
+      "name": "Online shopping",
+      "rate": 2,
+      "categories": [
+       "shopping"
+      ],
+      "monthly_cap_units": 2000
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "adcb-lulu-platinum",
+   "issuer": "ADCB",
+   "name": "Lulu Platinum",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 500000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.01,
+    "base_rate": 1,
+    "rules": [
+     {
+      "name": "Lulu",
+      "rate": 5,
+      "merchants": [
+       "lulu"
+      ],
+      "monthly_cap_units": 1000
+     },
+     {
+      "name": "Groceries",
+      "rate": 2,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 1000
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "adcb-touchpoints-platinum",
+   "issuer": "ADCB",
+   "name": "Touchpoints Platinum",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 1000000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.01,
+    "base_rate": 1.5,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 3,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 3000
+     },
+     {
+      "name": "Fuel",
+      "rate": 2,
+      "categories": [
+       "transport"
+      ],
+      "monthly_cap_units": 1500
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "first-abu-dhabi-bank-cashback-card",
+   "issuer": "First Abu Dhabi Bank",
+   "name": "Cashback Card",
+   "network": "mastercard",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 800000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.01,
+    "rules": [
+     {
+      "name": "Groceries",
+      "rate": 0.05,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 100
+     },
+     {
+      "name": "Dining",
+      "rate": 0.03,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 100
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "mashreq-cashback-credit-card",
+   "issuer": "Mashreq",
+   "name": "Cashback Credit Card",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 400000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.005,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 0.05,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 300
+     },
+     {
+      "name": "Entertainment",
+      "rate": 0.05,
+      "categories": [
+       "entertainment"
+      ],
+      "monthly_cap_units": 300
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "mashreq-solitaire",
+   "issuer": "Mashreq",
+   "name": "Solitaire",
+   "network": "visa",
+   "annual_fee_minor": 120000,
+   "min_salary_minor": 2500000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.025,
+    "base_rate": 1,
+    "rules": [
+     {
+      "name": "Dining and travel",
+      "rate": 2,
+      "categories": [
+       "dining",
+       "travel"
+      ]
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ],
+    "fee_waiver_spend_minor": 12000000
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "mashreq-noon-card",
+   "issuer": "Mashreq",
+   "name": "Noon Card",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 500000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.005,
+    "rules": [
+     {
+      "name": "Noon",
+      "rate": 0.06,
+      "merchants": [
+       "noon"
+      ],
+      "monthly_cap_units": 250
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "dubai-islamic-bank-cashback-card",
+   "issuer": "Dubai Islamic Bank",
+   "name": "Cashback Card",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 500000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.005,
+    "rules": [
+     {
+      "name": "Groceries",
+      "rate": 0.03,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 150
+     },
+     {
+      "name": "Fuel",
+      "rate": 0.02,
+      "categories": [
+       "transport"
+      ],
+      "monthly_cap_units": 100
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "rakbank-titanium-credit-card",
+   "issuer": "RAKBANK",
+   "name": "Titanium Credit Card",
+   "network": "mastercard",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 500000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.01,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 0.05,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 150
+     },
+     {
+      "name": "Groceries",
+      "rate": 0.03,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 150
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ],
+    "min_monthly_spend_minor": 200000
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "hsbc-cashback-credit-card",
+   "issuer": "HSBC",
+   "name": "Cashback Credit Card",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 800000,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.01,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 0.05,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 100
+     },
+     {
+      "name": "Groceries",
+      "rate": 0.03,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 100
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "emirates-islamic-skywards-platinum",
+   "issuer": "Emirates Islamic",
+   "name": "Skywards Platinum",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 1500000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.0357,
+    "base_rate": 1,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 2,
+      "categories": [
+       "dining"
+      ]
+     },
+     {
+      "name": "Travel",
+      "rate": 2,
+      "categories": [
+       "travel"
+      ]
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "liv-liv-credit-card",
+   "issuer": "Liv",
+   "name": "Liv Credit Card",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 0,
+   "reward_structure": {
+    "unit": "cashback",
+    "point_value_aed": 1,
+    "base_rate": 0.005,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 0.03,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 100
+     },
+     {
+      "name": "Entertainment",
+      "rate": 0.03,
+      "categories": [
+       "entertainment"
+      ],
+      "monthly_cap_units": 100
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  },
+  {
+   "id": "standard-chartered-manhattan-rewards",
+   "issuer": "Standard Chartered",
+   "name": "Manhattan Rewards",
+   "network": "visa",
+   "annual_fee_minor": 0,
+   "min_salary_minor": 1000000,
+   "reward_structure": {
+    "unit": "points",
+    "point_value_aed": 0.01,
+    "base_rate": 1,
+    "rules": [
+     {
+      "name": "Dining",
+      "rate": 2,
+      "categories": [
+       "dining"
+      ],
+      "monthly_cap_units": 2000
+     },
+     {
+      "name": "Groceries",
+      "rate": 2,
+      "categories": [
+       "groceries"
+      ],
+      "monthly_cap_units": 2000
+     }
+    ],
+    "excluded_categories": [
+     "fees",
+     "cc_payment",
+     "transfer",
+     "rent",
+     "education",
+     "utilities"
+    ]
+   },
+   "perks": {},
+   "verified_on": null,
+   "source": null
+  }
+ ]
+}

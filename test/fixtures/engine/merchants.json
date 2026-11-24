@@ -1,0 +1,1514 @@
+[
+ {
+  "raw": "CARREFOUR MOE DUBAI AE",
+  "direction": null,
+  "clean": "CARREFOUR MOE",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "CARREFOUR MOE DUBAI AE",
+  "direction": "debit",
+  "clean": "CARREFOUR MOE",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "CARREFOUR MOE DUBAI AE",
+  "direction": "credit",
+  "clean": "CARREFOUR MOE",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "MAF CARREFOUR HYPERMARKET 0123",
+  "direction": null,
+  "clean": "MAF CARREFOUR HYPERMARKET",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "MAF CARREFOUR HYPERMARKET 0123",
+  "direction": "debit",
+  "clean": "MAF CARREFOUR HYPERMARKET",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "MAF CARREFOUR HYPERMARKET 0123",
+  "direction": "credit",
+  "clean": "MAF CARREFOUR HYPERMARKET",
+  "normalized": "Carrefour",
+  "category": "groceries",
+  "key": "carrefour"
+ },
+ {
+  "raw": "POS-LULU HYPERMARKET AL BARSHA 1234",
+  "direction": null,
+  "clean": "LULU HYPERMARKET AL BARSHA",
+  "normalized": "Lulu",
+  "category": "groceries",
+  "key": "lulu"
+ },
+ {
+  "raw": "POS-LULU HYPERMARKET AL BARSHA 1234",
+  "direction": "debit",
+  "clean": "LULU HYPERMARKET AL BARSHA",
+  "normalized": "Lulu",
+  "category": "groceries",
+  "key": "lulu"
+ },
+ {
+  "raw": "POS-LULU HYPERMARKET AL BARSHA 1234",
+  "direction": "credit",
+  "clean": "LULU HYPERMARKET AL BARSHA",
+  "normalized": "Lulu",
+  "category": "groceries",
+  "key": "lulu"
+ },
+ {
+  "raw": "TALABAT DUBAI ARE",
+  "direction": null,
+  "clean": "TALABAT",
+  "normalized": "Talabat",
+  "category": "dining",
+  "key": "talabat"
+ },
+ {
+  "raw": "TALABAT DUBAI ARE",
+  "direction": "debit",
+  "clean": "TALABAT",
+  "normalized": "Talabat",
+  "category": "dining",
+  "key": "talabat"
+ },
+ {
+  "raw": "TALABAT DUBAI ARE",
+  "direction": "credit",
+  "clean": "TALABAT",
+  "normalized": "Talabat",
+  "category": "dining",
+  "key": "talabat"
+ },
+ {
+  "raw": "DELIVEROO.AE",
+  "direction": null,
+  "clean": "DELIVEROO.AE",
+  "normalized": "Deliveroo",
+  "category": "dining",
+  "key": "deliveroo"
+ },
+ {
+  "raw": "DELIVEROO.AE",
+  "direction": "debit",
+  "clean": "DELIVEROO.AE",
+  "normalized": "Deliveroo",
+  "category": "dining",
+  "key": "deliveroo"
+ },
+ {
+  "raw": "DELIVEROO.AE",
+  "direction": "credit",
+  "clean": "DELIVEROO.AE",
+  "normalized": "Deliveroo",
+  "category": "dining",
+  "key": "deliveroo"
+ },
+ {
+  "raw": "CAREEM *RIDE DUBAI",
+  "direction": null,
+  "clean": "CAREEM *RIDE",
+  "normalized": "Careem",
+  "category": "transport",
+  "key": "careem"
+ },
+ {
+  "raw": "CAREEM *RIDE DUBAI",
+  "direction": "debit",
+  "clean": "CAREEM *RIDE",
+  "normalized": "Careem",
+  "category": "transport",
+  "key": "careem"
+ },
+ {
+  "raw": "CAREEM *RIDE DUBAI",
+  "direction": "credit",
+  "clean": "CAREEM *RIDE",
+  "normalized": "Careem",
+  "category": "transport",
+  "key": "careem"
+ },
+ {
+  "raw": "CAREEM FOOD",
+  "direction": null,
+  "clean": "CAREEM FOOD",
+  "normalized": "Careem Food",
+  "category": "dining",
+  "key": "careem food"
+ },
+ {
+  "raw": "CAREEM FOOD",
+  "direction": "debit",
+  "clean": "CAREEM FOOD",
+  "normalized": "Careem Food",
+  "category": "dining",
+  "key": "careem food"
+ },
+ {
+  "raw": "CAREEM FOOD",
+  "direction": "credit",
+  "clean": "CAREEM FOOD",
+  "normalized": "Careem Food",
+  "category": "dining",
+  "key": "careem food"
+ },
+ {
+  "raw": "UBER *EATS",
+  "direction": null,
+  "clean": "UBER *EATS",
+  "normalized": "Uber Eats",
+  "category": "dining",
+  "key": "uber eats"
+ },
+ {
+  "raw": "UBER *EATS",
+  "direction": "debit",
+  "clean": "UBER *EATS",
+  "normalized": "Uber Eats",
+  "category": "dining",
+  "key": "uber eats"
+ },
+ {
+  "raw": "UBER *EATS",
+  "direction": "credit",
+  "clean": "UBER *EATS",
+  "normalized": "Uber Eats",
+  "category": "dining",
+  "key": "uber eats"
+ },
+ {
+  "raw": "PAYFORT*NOON.COM",
+  "direction": null,
+  "clean": "NOON.COM",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "PAYFORT*NOON.COM",
+  "direction": "debit",
+  "clean": "NOON.COM",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "PAYFORT*NOON.COM",
+  "direction": "credit",
+  "clean": "NOON.COM",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "NOON FOOD",
+  "direction": null,
+  "clean": "NOON FOOD",
+  "normalized": "Noon Food",
+  "category": "dining",
+  "key": "noon food"
+ },
+ {
+  "raw": "NOON FOOD",
+  "direction": "debit",
+  "clean": "NOON FOOD",
+  "normalized": "Noon Food",
+  "category": "dining",
+  "key": "noon food"
+ },
+ {
+  "raw": "NOON FOOD",
+  "direction": "credit",
+  "clean": "NOON FOOD",
+  "normalized": "Noon Food",
+  "category": "dining",
+  "key": "noon food"
+ },
+ {
+  "raw": "AMAZON.AE",
+  "direction": null,
+  "clean": "AMAZON.AE",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "AMAZON.AE",
+  "direction": "debit",
+  "clean": "AMAZON.AE",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "AMAZON.AE",
+  "direction": "credit",
+  "clean": "AMAZON.AE",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "AMZN MKTP AE",
+  "direction": null,
+  "clean": "AMZN MKTP",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "AMZN MKTP AE",
+  "direction": "debit",
+  "clean": "AMZN MKTP",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "AMZN MKTP AE",
+  "direction": "credit",
+  "clean": "AMZN MKTP",
+  "normalized": "Amazon.ae",
+  "category": "shopping",
+  "key": "amazon.ae"
+ },
+ {
+  "raw": "ENOC STN 123 DUBAI",
+  "direction": null,
+  "clean": "ENOC STN",
+  "normalized": "ENOC",
+  "category": "transport",
+  "key": "enoc"
+ },
+ {
+  "raw": "ENOC STN 123 DUBAI",
+  "direction": "debit",
+  "clean": "ENOC STN",
+  "normalized": "ENOC",
+  "category": "transport",
+  "key": "enoc"
+ },
+ {
+  "raw": "ENOC STN 123 DUBAI",
+  "direction": "credit",
+  "clean": "ENOC STN",
+  "normalized": "ENOC",
+  "category": "transport",
+  "key": "enoc"
+ },
+ {
+  "raw": "ADNOC DISTRIBUTION",
+  "direction": null,
+  "clean": "ADNOC DISTRIBUTION",
+  "normalized": "ADNOC",
+  "category": "transport",
+  "key": "adnoc"
+ },
+ {
+  "raw": "ADNOC DISTRIBUTION",
+  "direction": "debit",
+  "clean": "ADNOC DISTRIBUTION",
+  "normalized": "ADNOC",
+  "category": "transport",
+  "key": "adnoc"
+ },
+ {
+  "raw": "ADNOC DISTRIBUTION",
+  "direction": "credit",
+  "clean": "ADNOC DISTRIBUTION",
+  "normalized": "ADNOC",
+  "category": "transport",
+  "key": "adnoc"
+ },
+ {
+  "raw": "DEWA 98765",
+  "direction": null,
+  "clean": "DEWA",
+  "normalized": "DEWA",
+  "category": "utilities",
+  "key": "dewa"
+ },
+ {
+  "raw": "DEWA 98765",
+  "direction": "debit",
+  "clean": "DEWA",
+  "normalized": "DEWA",
+  "category": "utilities",
+  "key": "dewa"
+ },
+ {
+  "raw": "DEWA 98765",
+  "direction": "credit",
+  "clean": "DEWA",
+  "normalized": "DEWA",
+  "category": "utilities",
+  "key": "dewa"
+ },
+ {
+  "raw": "SEWA BILL PAYMENT",
+  "direction": null,
+  "clean": "SEWA BILL PAYMENT",
+  "normalized": "SEWA",
+  "category": "utilities",
+  "key": "sewa"
+ },
+ {
+  "raw": "SEWA BILL PAYMENT",
+  "direction": "debit",
+  "clean": "SEWA BILL PAYMENT",
+  "normalized": "SEWA",
+  "category": "utilities",
+  "key": "sewa"
+ },
+ {
+  "raw": "SEWA BILL PAYMENT",
+  "direction": "credit",
+  "clean": "SEWA BILL PAYMENT",
+  "normalized": "SEWA",
+  "category": "utilities",
+  "key": "sewa"
+ },
+ {
+  "raw": "ETISALAT",
+  "direction": null,
+  "clean": "ETISALAT",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "ETISALAT",
+  "direction": "debit",
+  "clean": "ETISALAT",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "ETISALAT",
+  "direction": "credit",
+  "clean": "ETISALAT",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "E& (ETISALAT) DUBAI",
+  "direction": null,
+  "clean": "E& (ETISALAT)",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "E& (ETISALAT) DUBAI",
+  "direction": "debit",
+  "clean": "E& (ETISALAT)",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "E& (ETISALAT) DUBAI",
+  "direction": "credit",
+  "clean": "E& (ETISALAT)",
+  "normalized": "e&",
+  "category": "telecom",
+  "key": "e&"
+ },
+ {
+  "raw": "DU TELECOM",
+  "direction": null,
+  "clean": "DU TELECOM",
+  "normalized": "du",
+  "category": "telecom",
+  "key": "du"
+ },
+ {
+  "raw": "DU TELECOM",
+  "direction": "debit",
+  "clean": "DU TELECOM",
+  "normalized": "du",
+  "category": "telecom",
+  "key": "du"
+ },
+ {
+  "raw": "DU TELECOM",
+  "direction": "credit",
+  "clean": "DU TELECOM",
+  "normalized": "du",
+  "category": "telecom",
+  "key": "du"
+ },
+ {
+  "raw": "SALIK RECHARGE",
+  "direction": null,
+  "clean": "SALIK RECHARGE",
+  "normalized": "Salik",
+  "category": "transport",
+  "key": "salik"
+ },
+ {
+  "raw": "SALIK RECHARGE",
+  "direction": "debit",
+  "clean": "SALIK RECHARGE",
+  "normalized": "Salik",
+  "category": "transport",
+  "key": "salik"
+ },
+ {
+  "raw": "SALIK RECHARGE",
+  "direction": "credit",
+  "clean": "SALIK RECHARGE",
+  "normalized": "Salik",
+  "category": "transport",
+  "key": "salik"
+ },
+ {
+  "raw": "RTA NOL TOP UP",
+  "direction": null,
+  "clean": "RTA NOL TOP UP",
+  "normalized": "RTA",
+  "category": "transport",
+  "key": "rta"
+ },
+ {
+  "raw": "RTA NOL TOP UP",
+  "direction": "debit",
+  "clean": "RTA NOL TOP UP",
+  "normalized": "RTA",
+  "category": "transport",
+  "key": "rta"
+ },
+ {
+  "raw": "RTA NOL TOP UP",
+  "direction": "credit",
+  "clean": "RTA NOL TOP UP",
+  "normalized": "RTA",
+  "category": "transport",
+  "key": "rta"
+ },
+ {
+  "raw": "TABBY FZ-LLC",
+  "direction": null,
+  "clean": "TABBY FZ-LLC",
+  "normalized": "Tabby",
+  "category": "shopping",
+  "key": "tabby"
+ },
+ {
+  "raw": "TABBY FZ-LLC",
+  "direction": "debit",
+  "clean": "TABBY FZ-LLC",
+  "normalized": "Tabby",
+  "category": "shopping",
+  "key": "tabby"
+ },
+ {
+  "raw": "TABBY FZ-LLC",
+  "direction": "credit",
+  "clean": "TABBY FZ-LLC",
+  "normalized": "Tabby",
+  "category": "shopping",
+  "key": "tabby"
+ },
+ {
+  "raw": "TAMARA",
+  "direction": null,
+  "clean": "TAMARA",
+  "normalized": "Tamara",
+  "category": "shopping",
+  "key": "tamara"
+ },
+ {
+  "raw": "TAMARA",
+  "direction": "debit",
+  "clean": "TAMARA",
+  "normalized": "Tamara",
+  "category": "shopping",
+  "key": "tamara"
+ },
+ {
+  "raw": "TAMARA",
+  "direction": "credit",
+  "clean": "TAMARA",
+  "normalized": "Tamara",
+  "category": "shopping",
+  "key": "tamara"
+ },
+ {
+  "raw": "NETFLIX.COM",
+  "direction": null,
+  "clean": "NETFLIX.COM",
+  "normalized": "Netflix",
+  "category": "fixed_expenses",
+  "key": "netflix"
+ },
+ {
+  "raw": "NETFLIX.COM",
+  "direction": "debit",
+  "clean": "NETFLIX.COM",
+  "normalized": "Netflix",
+  "category": "fixed_expenses",
+  "key": "netflix"
+ },
+ {
+  "raw": "NETFLIX.COM",
+  "direction": "credit",
+  "clean": "NETFLIX.COM",
+  "normalized": "Netflix",
+  "category": "fixed_expenses",
+  "key": "netflix"
+ },
+ {
+  "raw": "EMIRATES AIRLINE",
+  "direction": null,
+  "clean": "EMIRATES AIRLINE",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "EMIRATES AIRLINE",
+  "direction": "debit",
+  "clean": "EMIRATES AIRLINE",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "EMIRATES AIRLINE",
+  "direction": "credit",
+  "clean": "EMIRATES AIRLINE",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "Refund Co",
+  "direction": null,
+  "clean": "REFUND CO",
+  "normalized": "Refund Co",
+  "category": null,
+  "key": "refund co"
+ },
+ {
+  "raw": "Refund Co",
+  "direction": "debit",
+  "clean": "REFUND CO",
+  "normalized": "Refund Co",
+  "category": null,
+  "key": "refund co"
+ },
+ {
+  "raw": "Refund Co",
+  "direction": "credit",
+  "clean": "REFUND CO",
+  "normalized": "Refund Co",
+  "category": null,
+  "key": "refund co"
+ },
+ {
+  "raw": "JOES CAFE DUBAI AE 12345",
+  "direction": null,
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "JOES CAFE DUBAI AE 12345",
+  "direction": "debit",
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "JOES CAFE DUBAI AE 12345",
+  "direction": "credit",
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "JOES CAFE",
+  "direction": null,
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "JOES CAFE",
+  "direction": "debit",
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "JOES CAFE",
+  "direction": "credit",
+  "clean": "JOES CAFE",
+  "normalized": "Joes Cafe",
+  "category": null,
+  "key": "joes cafe"
+ },
+ {
+  "raw": "EMIRATES NBD",
+  "direction": null,
+  "clean": "EMIRATES NBD",
+  "normalized": "Emirates Nbd",
+  "category": null,
+  "key": "emirates nbd"
+ },
+ {
+  "raw": "EMIRATES NBD",
+  "direction": "debit",
+  "clean": "EMIRATES NBD",
+  "normalized": "Emirates Nbd",
+  "category": null,
+  "key": "emirates nbd"
+ },
+ {
+  "raw": "EMIRATES NBD",
+  "direction": "credit",
+  "clean": "EMIRATES NBD",
+  "normalized": "Emirates Nbd",
+  "category": null,
+  "key": "emirates nbd"
+ },
+ {
+  "raw": "DUBAI COFFEE ROASTERS",
+  "direction": null,
+  "clean": "DUBAI COFFEE ROASTERS",
+  "normalized": "Dubai Coffee Roasters",
+  "category": null,
+  "key": "dubai coffee roasters"
+ },
+ {
+  "raw": "DUBAI COFFEE ROASTERS",
+  "direction": "debit",
+  "clean": "DUBAI COFFEE ROASTERS",
+  "normalized": "Dubai Coffee Roasters",
+  "category": null,
+  "key": "dubai coffee roasters"
+ },
+ {
+  "raw": "DUBAI COFFEE ROASTERS",
+  "direction": "credit",
+  "clean": "DUBAI COFFEE ROASTERS",
+  "normalized": "Dubai Coffee Roasters",
+  "category": null,
+  "key": "dubai coffee roasters"
+ },
+ {
+  "raw": "MAXIM'S CAFE",
+  "direction": null,
+  "clean": "MAXIM'S CAFE",
+  "normalized": "Maxim'S Cafe",
+  "category": null,
+  "key": "maxim's cafe"
+ },
+ {
+  "raw": "MAXIM'S CAFE",
+  "direction": "debit",
+  "clean": "MAXIM'S CAFE",
+  "normalized": "Maxim'S Cafe",
+  "category": null,
+  "key": "maxim's cafe"
+ },
+ {
+  "raw": "MAXIM'S CAFE",
+  "direction": "credit",
+  "clean": "MAXIM'S CAFE",
+  "normalized": "Maxim'S Cafe",
+  "category": null,
+  "key": "maxim's cafe"
+ },
+ {
+  "raw": "SALARY JAN",
+  "direction": null,
+  "clean": "SALARY JAN",
+  "normalized": "Salary",
+  "category": "salary",
+  "key": "salary"
+ },
+ {
+  "raw": "SALARY JAN",
+  "direction": "debit",
+  "clean": "SALARY JAN",
+  "normalized": "Salary Jan",
+  "category": null,
+  "key": "salary jan"
+ },
+ {
+  "raw": "SALARY JAN",
+  "direction": "credit",
+  "clean": "SALARY JAN",
+  "normalized": "Salary",
+  "category": "salary",
+  "key": "salary"
+ },
+ {
+  "raw": "PAYMENT RECEIVED - THANK YOU",
+  "direction": null,
+  "clean": "PAYMENT RECEIVED - THANK YOU",
+  "normalized": "Card Payment",
+  "category": "cc_payment",
+  "key": "card payment"
+ },
+ {
+  "raw": "PAYMENT RECEIVED - THANK YOU",
+  "direction": "debit",
+  "clean": "PAYMENT RECEIVED - THANK YOU",
+  "normalized": "Payment Received - Thank You",
+  "category": null,
+  "key": "payment received - thank you"
+ },
+ {
+  "raw": "PAYMENT RECEIVED - THANK YOU",
+  "direction": "credit",
+  "clean": "PAYMENT RECEIVED - THANK YOU",
+  "normalized": "Card Payment",
+  "category": "cc_payment",
+  "key": "card payment"
+ },
+ {
+  "raw": "ANNUAL FEE",
+  "direction": null,
+  "clean": "ANNUAL FEE",
+  "normalized": "Bank Fees",
+  "category": "fees",
+  "key": "bank fees"
+ },
+ {
+  "raw": "ANNUAL FEE",
+  "direction": "debit",
+  "clean": "ANNUAL FEE",
+  "normalized": "Bank Fees",
+  "category": "fees",
+  "key": "bank fees"
+ },
+ {
+  "raw": "ANNUAL FEE",
+  "direction": "credit",
+  "clean": "ANNUAL FEE",
+  "normalized": "Annual Fee",
+  "category": null,
+  "key": "annual fee"
+ },
+ {
+  "raw": "POS PURCHASE  PAYFORT*NOON DUBAI AE",
+  "direction": null,
+  "clean": "NOON",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "POS PURCHASE  PAYFORT*NOON DUBAI AE",
+  "direction": "debit",
+  "clean": "NOON",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "POS PURCHASE  PAYFORT*NOON DUBAI AE",
+  "direction": "credit",
+  "clean": "NOON",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "shop  1234",
+  "direction": null,
+  "clean": "SHOP",
+  "normalized": "Shop",
+  "category": null,
+  "key": "shop"
+ },
+ {
+  "raw": "shop  1234",
+  "direction": "debit",
+  "clean": "SHOP",
+  "normalized": "Shop",
+  "category": null,
+  "key": "shop"
+ },
+ {
+  "raw": "shop  1234",
+  "direction": "credit",
+  "clean": "SHOP",
+  "normalized": "Shop",
+  "category": null,
+  "key": "shop"
+ },
+ {
+  "raw": "HOME LOAN INSTALMENT",
+  "direction": null,
+  "clean": "HOME LOAN INSTALMENT",
+  "normalized": "Home Loan",
+  "category": "home_loan",
+  "key": "home loan"
+ },
+ {
+  "raw": "HOME LOAN INSTALMENT",
+  "direction": "debit",
+  "clean": "HOME LOAN INSTALMENT",
+  "normalized": "Home Loan",
+  "category": "home_loan",
+  "key": "home loan"
+ },
+ {
+  "raw": "HOME LOAN INSTALMENT",
+  "direction": "credit",
+  "clean": "HOME LOAN INSTALMENT",
+  "normalized": "Home Loan Instalment",
+  "category": null,
+  "key": "home loan instalment"
+ },
+ {
+  "raw": "MORTGAGE PAYMENT",
+  "direction": null,
+  "clean": "MORTGAGE PAYMENT",
+  "normalized": "Home Loan",
+  "category": "home_loan",
+  "key": "home loan"
+ },
+ {
+  "raw": "MORTGAGE PAYMENT",
+  "direction": "debit",
+  "clean": "MORTGAGE PAYMENT",
+  "normalized": "Home Loan",
+  "category": "home_loan",
+  "key": "home loan"
+ },
+ {
+  "raw": "MORTGAGE PAYMENT",
+  "direction": "credit",
+  "clean": "MORTGAGE PAYMENT",
+  "normalized": "Mortgage Payment",
+  "category": null,
+  "key": "mortgage payment"
+ },
+ {
+  "raw": "CAR LOAN EMI",
+  "direction": null,
+  "clean": "CAR LOAN EMI",
+  "normalized": "Car Loan",
+  "category": "car_loan",
+  "key": "car loan"
+ },
+ {
+  "raw": "CAR LOAN EMI",
+  "direction": "debit",
+  "clean": "CAR LOAN EMI",
+  "normalized": "Car Loan",
+  "category": "car_loan",
+  "key": "car loan"
+ },
+ {
+  "raw": "CAR LOAN EMI",
+  "direction": "credit",
+  "clean": "CAR LOAN EMI",
+  "normalized": "Car Loan Emi",
+  "category": null,
+  "key": "car loan emi"
+ },
+ {
+  "raw": "AL ANSARI EXCHANGE",
+  "direction": null,
+  "clean": "AL ANSARI EXCHANGE",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "AL ANSARI EXCHANGE",
+  "direction": "debit",
+  "clean": "AL ANSARI EXCHANGE",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "AL ANSARI EXCHANGE",
+  "direction": "credit",
+  "clean": "AL ANSARI EXCHANGE",
+  "normalized": "Al Ansari Exchange",
+  "category": null,
+  "key": "al ansari exchange"
+ },
+ {
+  "raw": "WESTERN UNION MONEY TRANSFER",
+  "direction": null,
+  "clean": "WESTERN UNION MONEY TRANSFER",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "WESTERN UNION MONEY TRANSFER",
+  "direction": "debit",
+  "clean": "WESTERN UNION MONEY TRANSFER",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "WESTERN UNION MONEY TRANSFER",
+  "direction": "credit",
+  "clean": "WESTERN UNION MONEY TRANSFER",
+  "normalized": "Transfer",
+  "category": "transfer",
+  "key": "transfer"
+ },
+ {
+  "raw": "ORIENT INSURANCE PREMIUM",
+  "direction": null,
+  "clean": "ORIENT INSURANCE PREMIUM",
+  "normalized": "Insurance",
+  "category": "fixed_expenses",
+  "key": "insurance"
+ },
+ {
+  "raw": "ORIENT INSURANCE PREMIUM",
+  "direction": "debit",
+  "clean": "ORIENT INSURANCE PREMIUM",
+  "normalized": "Insurance",
+  "category": "fixed_expenses",
+  "key": "insurance"
+ },
+ {
+  "raw": "ORIENT INSURANCE PREMIUM",
+  "direction": "credit",
+  "clean": "ORIENT INSURANCE PREMIUM",
+  "normalized": "Orient Insurance Premium",
+  "category": null,
+  "key": "orient insurance premium"
+ },
+ {
+  "raw": "MOBILE TRANSFER",
+  "direction": null,
+  "clean": "MOBILE TRANSFER",
+  "normalized": "Transfer",
+  "category": "transfer",
+  "key": "transfer"
+ },
+ {
+  "raw": "MOBILE TRANSFER",
+  "direction": "debit",
+  "clean": "MOBILE TRANSFER",
+  "normalized": "Transfer",
+  "category": "transfer",
+  "key": "transfer"
+ },
+ {
+  "raw": "MOBILE TRANSFER",
+  "direction": "credit",
+  "clean": "MOBILE TRANSFER",
+  "normalized": "Transfer",
+  "category": "transfer",
+  "key": "transfer"
+ },
+ {
+  "raw": "MCDONALD'S DUBAI MALL",
+  "direction": null,
+  "clean": "MCDONALD'S DUBAI MALL",
+  "normalized": "McDonald's",
+  "category": "dining",
+  "key": "mcdonald's"
+ },
+ {
+  "raw": "MCDONALD'S DUBAI MALL",
+  "direction": "debit",
+  "clean": "MCDONALD'S DUBAI MALL",
+  "normalized": "McDonald's",
+  "category": "dining",
+  "key": "mcdonald's"
+ },
+ {
+  "raw": "MCDONALD'S DUBAI MALL",
+  "direction": "credit",
+  "clean": "MCDONALD'S DUBAI MALL",
+  "normalized": "McDonald's",
+  "category": "dining",
+  "key": "mcdonald's"
+ },
+ {
+  "raw": "STARBUCKS COFFEE ABU DHABI AE",
+  "direction": null,
+  "clean": "STARBUCKS COFFEE",
+  "normalized": "Starbucks",
+  "category": "dining",
+  "key": "starbucks"
+ },
+ {
+  "raw": "STARBUCKS COFFEE ABU DHABI AE",
+  "direction": "debit",
+  "clean": "STARBUCKS COFFEE",
+  "normalized": "Starbucks",
+  "category": "dining",
+  "key": "starbucks"
+ },
+ {
+  "raw": "STARBUCKS COFFEE ABU DHABI AE",
+  "direction": "credit",
+  "clean": "STARBUCKS COFFEE",
+  "normalized": "Starbucks",
+  "category": "dining",
+  "key": "starbucks"
+ },
+ {
+  "raw": "KFC",
+  "direction": null,
+  "clean": "KFC",
+  "normalized": "KFC",
+  "category": "dining",
+  "key": "kfc"
+ },
+ {
+  "raw": "KFC",
+  "direction": "debit",
+  "clean": "KFC",
+  "normalized": "KFC",
+  "category": "dining",
+  "key": "kfc"
+ },
+ {
+  "raw": "KFC",
+  "direction": "credit",
+  "clean": "KFC",
+  "normalized": "KFC",
+  "category": "dining",
+  "key": "kfc"
+ },
+ {
+  "raw": "SPOTIFY P1234",
+  "direction": null,
+  "clean": "SPOTIFY P",
+  "normalized": "Spotify",
+  "category": "fixed_expenses",
+  "key": "spotify"
+ },
+ {
+  "raw": "SPOTIFY P1234",
+  "direction": "debit",
+  "clean": "SPOTIFY P",
+  "normalized": "Spotify",
+  "category": "fixed_expenses",
+  "key": "spotify"
+ },
+ {
+  "raw": "SPOTIFY P1234",
+  "direction": "credit",
+  "clean": "SPOTIFY P",
+  "normalized": "Spotify",
+  "category": "fixed_expenses",
+  "key": "spotify"
+ },
+ {
+  "raw": "APPLE.COM/BILL",
+  "direction": null,
+  "clean": "APPLE.COM/BILL",
+  "normalized": "Apple",
+  "category": "fixed_expenses",
+  "key": "apple"
+ },
+ {
+  "raw": "APPLE.COM/BILL",
+  "direction": "debit",
+  "clean": "APPLE.COM/BILL",
+  "normalized": "Apple",
+  "category": "fixed_expenses",
+  "key": "apple"
+ },
+ {
+  "raw": "APPLE.COM/BILL",
+  "direction": "credit",
+  "clean": "APPLE.COM/BILL",
+  "normalized": "Apple",
+  "category": "fixed_expenses",
+  "key": "apple"
+ },
+ {
+  "raw": "GOOGLE *YOUTUBE PREMIUM",
+  "direction": null,
+  "clean": "GOOGLE *YOUTUBE PREMIUM",
+  "normalized": "Google",
+  "category": "fixed_expenses",
+  "key": "google"
+ },
+ {
+  "raw": "GOOGLE *YOUTUBE PREMIUM",
+  "direction": "debit",
+  "clean": "GOOGLE *YOUTUBE PREMIUM",
+  "normalized": "Google",
+  "category": "fixed_expenses",
+  "key": "google"
+ },
+ {
+  "raw": "GOOGLE *YOUTUBE PREMIUM",
+  "direction": "credit",
+  "clean": "GOOGLE *YOUTUBE PREMIUM",
+  "normalized": "Google",
+  "category": "fixed_expenses",
+  "key": "google"
+ },
+ {
+  "raw": "VOX CINEMAS MOE",
+  "direction": null,
+  "clean": "VOX CINEMAS MOE",
+  "normalized": "VOX Cinemas",
+  "category": "entertainment",
+  "key": "vox cinemas"
+ },
+ {
+  "raw": "VOX CINEMAS MOE",
+  "direction": "debit",
+  "clean": "VOX CINEMAS MOE",
+  "normalized": "VOX Cinemas",
+  "category": "entertainment",
+  "key": "vox cinemas"
+ },
+ {
+  "raw": "VOX CINEMAS MOE",
+  "direction": "credit",
+  "clean": "VOX CINEMAS MOE",
+  "normalized": "VOX Cinemas",
+  "category": "entertainment",
+  "key": "vox cinemas"
+ },
+ {
+  "raw": "H&M MALL OF THE EMIRATES",
+  "direction": null,
+  "clean": "H&M MALL OF THE EMIRATES",
+  "normalized": "H&M",
+  "category": "shopping",
+  "key": "h&m"
+ },
+ {
+  "raw": "H&M MALL OF THE EMIRATES",
+  "direction": "debit",
+  "clean": "H&M MALL OF THE EMIRATES",
+  "normalized": "H&M",
+  "category": "shopping",
+  "key": "h&m"
+ },
+ {
+  "raw": "H&M MALL OF THE EMIRATES",
+  "direction": "credit",
+  "clean": "H&M MALL OF THE EMIRATES",
+  "normalized": "H&M",
+  "category": "shopping",
+  "key": "h&m"
+ },
+ {
+  "raw": "SHARAF DG DUBAI",
+  "direction": null,
+  "clean": "SHARAF DG",
+  "normalized": "Sharaf DG",
+  "category": "shopping",
+  "key": "sharaf dg"
+ },
+ {
+  "raw": "SHARAF DG DUBAI",
+  "direction": "debit",
+  "clean": "SHARAF DG",
+  "normalized": "Sharaf DG",
+  "category": "shopping",
+  "key": "sharaf dg"
+ },
+ {
+  "raw": "SHARAF DG DUBAI",
+  "direction": "credit",
+  "clean": "SHARAF DG",
+  "normalized": "Sharaf DG",
+  "category": "shopping",
+  "key": "sharaf dg"
+ },
+ {
+  "raw": "ASTER PHARMACY",
+  "direction": null,
+  "clean": "ASTER PHARMACY",
+  "normalized": "Aster",
+  "category": "health",
+  "key": "aster"
+ },
+ {
+  "raw": "ASTER PHARMACY",
+  "direction": "debit",
+  "clean": "ASTER PHARMACY",
+  "normalized": "Aster",
+  "category": "health",
+  "key": "aster"
+ },
+ {
+  "raw": "ASTER PHARMACY",
+  "direction": "credit",
+  "clean": "ASTER PHARMACY",
+  "normalized": "Aster",
+  "category": "health",
+  "key": "aster"
+ },
+ {
+  "raw": "EMIRATES SKYWARDS",
+  "direction": null,
+  "clean": "EMIRATES SKYWARDS",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "EMIRATES SKYWARDS",
+  "direction": "debit",
+  "clean": "EMIRATES SKYWARDS",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "EMIRATES SKYWARDS",
+  "direction": "credit",
+  "clean": "EMIRATES SKYWARDS",
+  "normalized": "Emirates Airline",
+  "category": "travel",
+  "key": "emirates airline"
+ },
+ {
+  "raw": "ATM WITHDRAWAL DUBAI MALL",
+  "direction": null,
+  "clean": "ATM WITHDRAWAL DUBAI MALL",
+  "normalized": "ATM Withdrawal",
+  "category": "other",
+  "key": "atm withdrawal"
+ },
+ {
+  "raw": "ATM WITHDRAWAL DUBAI MALL",
+  "direction": "debit",
+  "clean": "ATM WITHDRAWAL DUBAI MALL",
+  "normalized": "ATM Withdrawal",
+  "category": "other",
+  "key": "atm withdrawal"
+ },
+ {
+  "raw": "ATM WITHDRAWAL DUBAI MALL",
+  "direction": "credit",
+  "clean": "ATM WITHDRAWAL DUBAI MALL",
+  "normalized": "ATM Withdrawal",
+  "category": "other",
+  "key": "atm withdrawal"
+ },
+ {
+  "raw": "WISE PAYMENTS LTD",
+  "direction": null,
+  "clean": "WISE PAYMENTS LTD",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "WISE PAYMENTS LTD",
+  "direction": "debit",
+  "clean": "WISE PAYMENTS LTD",
+  "normalized": "Remittance",
+  "category": "family",
+  "key": "remittance"
+ },
+ {
+  "raw": "WISE PAYMENTS LTD",
+  "direction": "credit",
+  "clean": "WISE PAYMENTS LTD",
+  "normalized": "Wise Payments Ltd",
+  "category": null,
+  "key": "wise payments ltd"
+ },
+ {
+  "raw": "EJARI RENT",
+  "direction": null,
+  "clean": "EJARI RENT",
+  "normalized": "Ejari",
+  "category": "rent",
+  "key": "ejari"
+ },
+ {
+  "raw": "EJARI RENT",
+  "direction": "debit",
+  "clean": "EJARI RENT",
+  "normalized": "Ejari",
+  "category": "rent",
+  "key": "ejari"
+ },
+ {
+  "raw": "EJARI RENT",
+  "direction": "credit",
+  "clean": "EJARI RENT",
+  "normalized": "Ejari",
+  "category": "rent",
+  "key": "ejari"
+ },
+ {
+  "raw": "GEMS EDUCATION",
+  "direction": null,
+  "clean": "GEMS EDUCATION",
+  "normalized": "GEMS Education",
+  "category": "education",
+  "key": "gems education"
+ },
+ {
+  "raw": "GEMS EDUCATION",
+  "direction": "debit",
+  "clean": "GEMS EDUCATION",
+  "normalized": "GEMS Education",
+  "category": "education",
+  "key": "gems education"
+ },
+ {
+  "raw": "GEMS EDUCATION",
+  "direction": "credit",
+  "clean": "GEMS EDUCATION",
+  "normalized": "GEMS Education",
+  "category": "education",
+  "key": "gems education"
+ },
+ {
+  "raw": "WPS PAYMENT ABC LLC",
+  "direction": null,
+  "clean": "WPS PAYMENT ABC LLC",
+  "normalized": "Salary",
+  "category": "salary",
+  "key": "salary"
+ },
+ {
+  "raw": "WPS PAYMENT ABC LLC",
+  "direction": "debit",
+  "clean": "WPS PAYMENT ABC LLC",
+  "normalized": "Wps Payment Abc Llc",
+  "category": null,
+  "key": "wps payment abc llc"
+ },
+ {
+  "raw": "WPS PAYMENT ABC LLC",
+  "direction": "credit",
+  "clean": "WPS PAYMENT ABC LLC",
+  "normalized": "Salary",
+  "category": "salary",
+  "key": "salary"
+ },
+ {
+  "raw": "  spaced   out  merchant  ",
+  "direction": null,
+  "clean": "SPACED OUT MERCHANT",
+  "normalized": "Spaced Out Merchant",
+  "category": null,
+  "key": "spaced out merchant"
+ },
+ {
+  "raw": "  spaced   out  merchant  ",
+  "direction": "debit",
+  "clean": "SPACED OUT MERCHANT",
+  "normalized": "Spaced Out Merchant",
+  "category": null,
+  "key": "spaced out merchant"
+ },
+ {
+  "raw": "  spaced   out  merchant  ",
+  "direction": "credit",
+  "clean": "SPACED OUT MERCHANT",
+  "normalized": "Spaced Out Merchant",
+  "category": null,
+  "key": "spaced out merchant"
+ },
+ {
+  "raw": "ZOMATO LONDON GB",
+  "direction": null,
+  "clean": "ZOMATO",
+  "normalized": "Zomato",
+  "category": "dining",
+  "key": "zomato"
+ },
+ {
+  "raw": "ZOMATO LONDON GB",
+  "direction": "debit",
+  "clean": "ZOMATO",
+  "normalized": "Zomato",
+  "category": "dining",
+  "key": "zomato"
+ },
+ {
+  "raw": "ZOMATO LONDON GB",
+  "direction": "credit",
+  "clean": "ZOMATO",
+  "normalized": "Zomato",
+  "category": "dining",
+  "key": "zomato"
+ },
+ {
+  "raw": "ECOM Visa NOON MINUTES 556677",
+  "direction": null,
+  "clean": "NOON MINUTES",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "ECOM Visa NOON MINUTES 556677",
+  "direction": "debit",
+  "clean": "NOON MINUTES",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "ECOM Visa NOON MINUTES 556677",
+  "direction": "credit",
+  "clean": "NOON MINUTES",
+  "normalized": "Noon",
+  "category": "shopping",
+  "key": "noon"
+ },
+ {
+  "raw": "",
+  "direction": null,
+  "clean": "",
+  "normalized": null,
+  "category": null,
+  "key": null
+ },
+ {
+  "raw": "",
+  "direction": "debit",
+  "clean": "",
+  "normalized": null,
+  "category": null,
+  "key": null
+ },
+ {
+  "raw": "",
+  "direction": "credit",
+  "clean": "",
+  "normalized": null,
+  "category": null,
+  "key": null
+ }
+]

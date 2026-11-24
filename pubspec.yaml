@@ -51,7 +51,11 @@ dependencies:
   flutter_contacts: ^2.6.0
   share_plus: ^13.3.1
   file_picker: ^13.4.1
-
+  drift: ^2.35.4
+  sqlite3: ^3.9.2
+  path: ^1.9.1
+  path_provider: ^2.1.6
+  flutter_secure_storage: ^11.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -62,6 +66,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+  drift_dev: ^2.35.3
+  build_runner: ^2.17.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -74,10 +80,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  assets:
+    - assets/catalog/cards.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
@@ -104,3 +108,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Local database encryption: SQLite3 MultipleCiphers (MIT) instead of the end-of-life
+# sqlcipher_flutter_libs. Selected through the sqlite3 build hook.
+hooks:
+  user_defines:
+    sqlite3:
+      source: sqlite3mc
