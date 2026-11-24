@@ -17,6 +17,9 @@ concurrency:
 
 jobs:
   build-and-upload:
+    # Skipped (no macOS minutes used) until TestFlight is set up: a tag push
+    # must not burn 10x minutes on a build that cannot sign.
+    if: ${{ vars.IOS_BUNDLE_ID != '' }}
     runs-on: macos-15
     timeout-minutes: 45
     env:
