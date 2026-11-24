@@ -47,9 +47,29 @@ class SafeToSpendSheet extends ConsumerWidget {
               ),
               ListRow(
                 dense: true,
-                title: 'Goal contributions',
+                title: 'Set aside for goals',
+                subtitle: v.goals > 0 ? '${Money.aed(v.goals, decimals: false)} set aside for goals' : 'Nothing set aside right now',
                 trailing: num(v.goals, minus: true),
+                chevron: false,
               ),
+              for (final g in v.goalLines)
+                ListRow(
+                  key: ValueKey('goal_line_${g.id}'),
+                  dense: true,
+                  title: g.name,
+                  subtitle: 'Tap to pause',
+                  trailing: num(g.amount, minus: true),
+                  onTap: () async {
+                    await ref.read(goalServiceProvider).setPaused(g.id, true);
+                    invalidateGoals(ref);
+                    if (context.mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('${g.name} is paused. Safe to spend is updated.')),
+                      );
+                    }
+                  },
+                ),
               ListRow(
                 dense: true,
                 title: 'Free until month end',

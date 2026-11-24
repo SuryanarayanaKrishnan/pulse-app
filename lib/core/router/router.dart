@@ -19,6 +19,8 @@ import '../../features/statements/statements_screen.dart';
 import '../../features/cards/cards_screen.dart';
 import '../../features/cards/ranked_screen.dart';
 import '../../features/family/family_screen.dart';
+import '../../features/goals/goal_detail_screen.dart';
+import '../../features/goals/goals_screen.dart';
 import '../../features/family/legacy_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
@@ -59,6 +61,7 @@ abstract class Routes {
   static const sync = '/sync';
   static const privacy = '/privacy';
   static const review = '/review';
+  static const goals = '/goals';
   static const restore = '/restore';
 
   /// Replay of the first-launch tour (Settings).
@@ -183,6 +186,16 @@ GoRouter buildRouter({
         path: Routes.review,
         name: 'review',
         pageBuilder: (c, s) => fade(s, const ReviewScreen()),
+      ),
+      GoRoute(
+        path: Routes.goals,
+        name: 'goals',
+        builder: (c, s) => const GoalsScreen(),
+      ),
+      GoRoute(
+        path: '${Routes.goals}/:id',
+        name: 'goal',
+        builder: (c, s) => GoalDetailScreen(goalId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: Routes.privacy,

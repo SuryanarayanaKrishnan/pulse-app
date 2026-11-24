@@ -26,7 +26,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 4);
+    await verifier.migrateAndValidate(db, 5);
 
     final rows = {for (final c in await db.select(db.categories).get()) c.id: c};
     expect(rows.keys, containsAll(['groceries', 'c_old']));
@@ -34,11 +34,11 @@ void main() {
     expect(rows['groceries']!.icon, 'shopping-basket');
   });
 
-  test('a fresh v4 database stores and reads an icon key', () async {
+  test('a v4 database upgraded to the current schema stores and reads an icon key', () async {
     final schema = await verifier.schemaAt(4);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 4);
+    await verifier.migrateAndValidate(db, 5);
     await db.customStatement(
       "INSERT INTO categories (id, name, kind, is_fixed, sort_order, is_custom, is_hidden, icon_key) "
       "VALUES ('c_new', 'Coffee', 'expense', 0, 1000, 1, 0, 'coffee')",
@@ -47,6 +47,6 @@ void main() {
         .customSelect('SELECT icon_key FROM categories WHERE id = ?', variables: [Variable('c_new')])
         .getSingle();
     expect(r.read<String>('icon_key'), 'coffee');
-    expect(PulseDatabase.currentSchemaVersion, 4);
+    expect(PulseDatabase.currentSchemaVersion, 5);
   });
 }

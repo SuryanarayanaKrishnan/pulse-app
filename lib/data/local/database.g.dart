@@ -9479,6 +9479,62 @@ class $SavingsGoalsTable extends SavingsGoals
         type: DriftSqlType.int,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('save'),
+  );
+  static const VerificationMeta _iconKeyMeta = const VerificationMeta(
+    'iconKey',
+  );
+  @override
+  late final GeneratedColumn<String> iconKey = GeneratedColumn<String>(
+    'icon_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _linkedRefMeta = const VerificationMeta(
+    'linkedRef',
+  );
+  @override
+  late final GeneratedColumn<String> linkedRef = GeneratedColumn<String>(
+    'linked_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _pausedMeta = const VerificationMeta('paused');
+  @override
+  late final GeneratedColumn<bool> paused = GeneratedColumn<bool>(
+    'paused',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("paused" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -9511,6 +9567,11 @@ class $SavingsGoalsTable extends SavingsGoals
     currency,
     targetDate,
     monthlyContributionMinor,
+    kind,
+    iconKey,
+    linkedRef,
+    paused,
+    completedAt,
     createdAt,
     deletedAt,
   ];
@@ -9577,6 +9638,39 @@ class $SavingsGoalsTable extends SavingsGoals
         ),
       );
     }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    }
+    if (data.containsKey('icon_key')) {
+      context.handle(
+        _iconKeyMeta,
+        iconKey.isAcceptableOrUnknown(data['icon_key']!, _iconKeyMeta),
+      );
+    }
+    if (data.containsKey('linked_ref')) {
+      context.handle(
+        _linkedRefMeta,
+        linkedRef.isAcceptableOrUnknown(data['linked_ref']!, _linkedRefMeta),
+      );
+    }
+    if (data.containsKey('paused')) {
+      context.handle(
+        _pausedMeta,
+        paused.isAcceptableOrUnknown(data['paused']!, _pausedMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -9626,6 +9720,26 @@ class $SavingsGoalsTable extends SavingsGoals
         DriftSqlType.int,
         data['${effectivePrefix}monthly_contribution_minor'],
       ),
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      iconKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}icon_key'],
+      ),
+      linkedRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}linked_ref'],
+      ),
+      paused: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}paused'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -9647,10 +9761,27 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
   final String id;
   final String name;
   final int targetMinor;
+
+  /// The starting amount: what you already had (save), or the balance owed
+  /// when you began (pay down). Contributions are rows in `goal_contributions`.
   final int savedMinor;
   final String currency;
   final String? targetDate;
   final int? monthlyContributionMinor;
+
+  /// save | pay down: `save` | `paydown`.
+  final String kind;
+
+  /// A glyph key from the category icon family.
+  final String? iconKey;
+
+  /// An Asset id as the Wealth list knows it (`account:..`, an asset, a
+  /// liability or `card:..`). Null: contributions are logged by hand.
+  final String? linkedRef;
+
+  /// Paused goals reserve nothing from safe-to-spend.
+  final bool paused;
+  final DateTime? completedAt;
   final DateTime createdAt;
   final DateTime? deletedAt;
   const GoalRow({
@@ -9661,6 +9792,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
     required this.currency,
     this.targetDate,
     this.monthlyContributionMinor,
+    required this.kind,
+    this.iconKey,
+    this.linkedRef,
+    required this.paused,
+    this.completedAt,
     required this.createdAt,
     this.deletedAt,
   });
@@ -9679,6 +9815,17 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
       map['monthly_contribution_minor'] = Variable<int>(
         monthlyContributionMinor,
       );
+    }
+    map['kind'] = Variable<String>(kind);
+    if (!nullToAbsent || iconKey != null) {
+      map['icon_key'] = Variable<String>(iconKey);
+    }
+    if (!nullToAbsent || linkedRef != null) {
+      map['linked_ref'] = Variable<String>(linkedRef);
+    }
+    map['paused'] = Variable<bool>(paused);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || deletedAt != null) {
@@ -9700,6 +9847,17 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
       monthlyContributionMinor: monthlyContributionMinor == null && nullToAbsent
           ? const Value.absent()
           : Value(monthlyContributionMinor),
+      kind: Value(kind),
+      iconKey: iconKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(iconKey),
+      linkedRef: linkedRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(linkedRef),
+      paused: Value(paused),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
       createdAt: Value(createdAt),
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
@@ -9722,6 +9880,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
       monthlyContributionMinor: serializer.fromJson<int?>(
         json['monthlyContributionMinor'],
       ),
+      kind: serializer.fromJson<String>(json['kind']),
+      iconKey: serializer.fromJson<String?>(json['iconKey']),
+      linkedRef: serializer.fromJson<String?>(json['linkedRef']),
+      paused: serializer.fromJson<bool>(json['paused']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
     );
@@ -9739,6 +9902,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
       'monthlyContributionMinor': serializer.toJson<int?>(
         monthlyContributionMinor,
       ),
+      'kind': serializer.toJson<String>(kind),
+      'iconKey': serializer.toJson<String?>(iconKey),
+      'linkedRef': serializer.toJson<String?>(linkedRef),
+      'paused': serializer.toJson<bool>(paused),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
     };
@@ -9752,6 +9920,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
     String? currency,
     Value<String?> targetDate = const Value.absent(),
     Value<int?> monthlyContributionMinor = const Value.absent(),
+    String? kind,
+    Value<String?> iconKey = const Value.absent(),
+    Value<String?> linkedRef = const Value.absent(),
+    bool? paused,
+    Value<DateTime?> completedAt = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
   }) => GoalRow(
@@ -9764,6 +9937,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
     monthlyContributionMinor: monthlyContributionMinor.present
         ? monthlyContributionMinor.value
         : this.monthlyContributionMinor,
+    kind: kind ?? this.kind,
+    iconKey: iconKey.present ? iconKey.value : this.iconKey,
+    linkedRef: linkedRef.present ? linkedRef.value : this.linkedRef,
+    paused: paused ?? this.paused,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
   );
@@ -9784,6 +9962,13 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
       monthlyContributionMinor: data.monthlyContributionMinor.present
           ? data.monthlyContributionMinor.value
           : this.monthlyContributionMinor,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      iconKey: data.iconKey.present ? data.iconKey.value : this.iconKey,
+      linkedRef: data.linkedRef.present ? data.linkedRef.value : this.linkedRef,
+      paused: data.paused.present ? data.paused.value : this.paused,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
     );
@@ -9799,6 +9984,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
           ..write('currency: $currency, ')
           ..write('targetDate: $targetDate, ')
           ..write('monthlyContributionMinor: $monthlyContributionMinor, ')
+          ..write('kind: $kind, ')
+          ..write('iconKey: $iconKey, ')
+          ..write('linkedRef: $linkedRef, ')
+          ..write('paused: $paused, ')
+          ..write('completedAt: $completedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt')
           ..write(')'))
@@ -9814,6 +10004,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
     currency,
     targetDate,
     monthlyContributionMinor,
+    kind,
+    iconKey,
+    linkedRef,
+    paused,
+    completedAt,
     createdAt,
     deletedAt,
   );
@@ -9828,6 +10023,11 @@ class GoalRow extends DataClass implements Insertable<GoalRow> {
           other.currency == this.currency &&
           other.targetDate == this.targetDate &&
           other.monthlyContributionMinor == this.monthlyContributionMinor &&
+          other.kind == this.kind &&
+          other.iconKey == this.iconKey &&
+          other.linkedRef == this.linkedRef &&
+          other.paused == this.paused &&
+          other.completedAt == this.completedAt &&
           other.createdAt == this.createdAt &&
           other.deletedAt == this.deletedAt);
 }
@@ -9840,6 +10040,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
   final Value<String> currency;
   final Value<String?> targetDate;
   final Value<int?> monthlyContributionMinor;
+  final Value<String> kind;
+  final Value<String?> iconKey;
+  final Value<String?> linkedRef;
+  final Value<bool> paused;
+  final Value<DateTime?> completedAt;
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
   final Value<int> rowid;
@@ -9851,6 +10056,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
     this.currency = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.monthlyContributionMinor = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.iconKey = const Value.absent(),
+    this.linkedRef = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -9863,6 +10073,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
     this.currency = const Value.absent(),
     this.targetDate = const Value.absent(),
     this.monthlyContributionMinor = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.iconKey = const Value.absent(),
+    this.linkedRef = const Value.absent(),
+    this.paused = const Value.absent(),
+    this.completedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -9877,6 +10092,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
     Expression<String>? currency,
     Expression<String>? targetDate,
     Expression<int>? monthlyContributionMinor,
+    Expression<String>? kind,
+    Expression<String>? iconKey,
+    Expression<String>? linkedRef,
+    Expression<bool>? paused,
+    Expression<DateTime>? completedAt,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
     Expression<int>? rowid,
@@ -9890,6 +10110,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
       if (targetDate != null) 'target_date': targetDate,
       if (monthlyContributionMinor != null)
         'monthly_contribution_minor': monthlyContributionMinor,
+      if (kind != null) 'kind': kind,
+      if (iconKey != null) 'icon_key': iconKey,
+      if (linkedRef != null) 'linked_ref': linkedRef,
+      if (paused != null) 'paused': paused,
+      if (completedAt != null) 'completed_at': completedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (rowid != null) 'rowid': rowid,
@@ -9904,6 +10129,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
     Value<String>? currency,
     Value<String?>? targetDate,
     Value<int?>? monthlyContributionMinor,
+    Value<String>? kind,
+    Value<String?>? iconKey,
+    Value<String?>? linkedRef,
+    Value<bool>? paused,
+    Value<DateTime?>? completedAt,
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
     Value<int>? rowid,
@@ -9917,6 +10147,11 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
       targetDate: targetDate ?? this.targetDate,
       monthlyContributionMinor:
           monthlyContributionMinor ?? this.monthlyContributionMinor,
+      kind: kind ?? this.kind,
+      iconKey: iconKey ?? this.iconKey,
+      linkedRef: linkedRef ?? this.linkedRef,
+      paused: paused ?? this.paused,
+      completedAt: completedAt ?? this.completedAt,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       rowid: rowid ?? this.rowid,
@@ -9949,6 +10184,21 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
         monthlyContributionMinor.value,
       );
     }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (iconKey.present) {
+      map['icon_key'] = Variable<String>(iconKey.value);
+    }
+    if (linkedRef.present) {
+      map['linked_ref'] = Variable<String>(linkedRef.value);
+    }
+    if (paused.present) {
+      map['paused'] = Variable<bool>(paused.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -9971,6 +10221,466 @@ class SavingsGoalsCompanion extends UpdateCompanion<GoalRow> {
           ..write('currency: $currency, ')
           ..write('targetDate: $targetDate, ')
           ..write('monthlyContributionMinor: $monthlyContributionMinor, ')
+          ..write('kind: $kind, ')
+          ..write('iconKey: $iconKey, ')
+          ..write('linkedRef: $linkedRef, ')
+          ..write('paused: $paused, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $GoalContributionsTable extends GoalContributions
+    with TableInfo<$GoalContributionsTable, GoalContributionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GoalContributionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _goalIdMeta = const VerificationMeta('goalId');
+  @override
+  late final GeneratedColumn<String> goalId = GeneratedColumn<String>(
+    'goal_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _onDateMeta = const VerificationMeta('onDate');
+  @override
+  late final GeneratedColumn<String> onDate = GeneratedColumn<String>(
+    'on_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    goalId,
+    amountMinor,
+    onDate,
+    note,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'goal_contributions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<GoalContributionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('goal_id')) {
+      context.handle(
+        _goalIdMeta,
+        goalId.isAcceptableOrUnknown(data['goal_id']!, _goalIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_goalIdMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('on_date')) {
+      context.handle(
+        _onDateMeta,
+        onDate.isAcceptableOrUnknown(data['on_date']!, _onDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_onDateMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  GoalContributionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return GoalContributionRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      goalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}goal_id'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      onDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}on_date'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $GoalContributionsTable createAlias(String alias) {
+    return $GoalContributionsTable(attachedDatabase, alias);
+  }
+}
+
+class GoalContributionRow extends DataClass
+    implements Insertable<GoalContributionRow> {
+  final String id;
+  final String goalId;
+  final int amountMinor;
+  final String onDate;
+  final String? note;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const GoalContributionRow({
+    required this.id,
+    required this.goalId,
+    required this.amountMinor,
+    required this.onDate,
+    this.note,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['goal_id'] = Variable<String>(goalId);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['on_date'] = Variable<String>(onDate);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  GoalContributionsCompanion toCompanion(bool nullToAbsent) {
+    return GoalContributionsCompanion(
+      id: Value(id),
+      goalId: Value(goalId),
+      amountMinor: Value(amountMinor),
+      onDate: Value(onDate),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory GoalContributionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return GoalContributionRow(
+      id: serializer.fromJson<String>(json['id']),
+      goalId: serializer.fromJson<String>(json['goalId']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      onDate: serializer.fromJson<String>(json['onDate']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'goalId': serializer.toJson<String>(goalId),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'onDate': serializer.toJson<String>(onDate),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  GoalContributionRow copyWith({
+    String? id,
+    String? goalId,
+    int? amountMinor,
+    String? onDate,
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => GoalContributionRow(
+    id: id ?? this.id,
+    goalId: goalId ?? this.goalId,
+    amountMinor: amountMinor ?? this.amountMinor,
+    onDate: onDate ?? this.onDate,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  GoalContributionRow copyWithCompanion(GoalContributionsCompanion data) {
+    return GoalContributionRow(
+      id: data.id.present ? data.id.value : this.id,
+      goalId: data.goalId.present ? data.goalId.value : this.goalId,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      onDate: data.onDate.present ? data.onDate.value : this.onDate,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalContributionRow(')
+          ..write('id: $id, ')
+          ..write('goalId: $goalId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('onDate: $onDate, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, goalId, amountMinor, onDate, note, createdAt, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is GoalContributionRow &&
+          other.id == this.id &&
+          other.goalId == this.goalId &&
+          other.amountMinor == this.amountMinor &&
+          other.onDate == this.onDate &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class GoalContributionsCompanion extends UpdateCompanion<GoalContributionRow> {
+  final Value<String> id;
+  final Value<String> goalId;
+  final Value<int> amountMinor;
+  final Value<String> onDate;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const GoalContributionsCompanion({
+    this.id = const Value.absent(),
+    this.goalId = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.onDate = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GoalContributionsCompanion.insert({
+    required String id,
+    required String goalId,
+    required int amountMinor,
+    required String onDate,
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       goalId = Value(goalId),
+       amountMinor = Value(amountMinor),
+       onDate = Value(onDate);
+  static Insertable<GoalContributionRow> custom({
+    Expression<String>? id,
+    Expression<String>? goalId,
+    Expression<int>? amountMinor,
+    Expression<String>? onDate,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (goalId != null) 'goal_id': goalId,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (onDate != null) 'on_date': onDate,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GoalContributionsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? goalId,
+    Value<int>? amountMinor,
+    Value<String>? onDate,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return GoalContributionsCompanion(
+      id: id ?? this.id,
+      goalId: goalId ?? this.goalId,
+      amountMinor: amountMinor ?? this.amountMinor,
+      onDate: onDate ?? this.onDate,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (goalId.present) {
+      map['goal_id'] = Variable<String>(goalId.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (onDate.present) {
+      map['on_date'] = Variable<String>(onDate.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GoalContributionsCompanion(')
+          ..write('id: $id, ')
+          ..write('goalId: $goalId, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('onDate: $onDate, ')
+          ..write('note: $note, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('rowid: $rowid')
@@ -14615,6 +15325,8 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   late final $LiabilitiesTable liabilities = $LiabilitiesTable(this);
   late final $SalaryRecordsTable salaryRecords = $SalaryRecordsTable(this);
   late final $SavingsGoalsTable savingsGoals = $SavingsGoalsTable(this);
+  late final $GoalContributionsTable goalContributions =
+      $GoalContributionsTable(this);
   late final $RawIngestsTable rawIngests = $RawIngestsTable(this);
   late final $NetWorthSnapshotsTable netWorthSnapshots =
       $NetWorthSnapshotsTable(this);
@@ -14659,6 +15371,7 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     liabilities,
     salaryRecords,
     savingsGoals,
+    goalContributions,
     rawIngests,
     netWorthSnapshots,
     recurringReviews,
@@ -21545,6 +22258,11 @@ typedef $$SavingsGoalsTableCreateCompanionBuilder =
       Value<String> currency,
       Value<String?> targetDate,
       Value<int?> monthlyContributionMinor,
+      Value<String> kind,
+      Value<String?> iconKey,
+      Value<String?> linkedRef,
+      Value<bool> paused,
+      Value<DateTime?> completedAt,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -21558,6 +22276,11 @@ typedef $$SavingsGoalsTableUpdateCompanionBuilder =
       Value<String> currency,
       Value<String?> targetDate,
       Value<int?> monthlyContributionMinor,
+      Value<String> kind,
+      Value<String?> iconKey,
+      Value<String?> linkedRef,
+      Value<bool> paused,
+      Value<DateTime?> completedAt,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<int> rowid,
@@ -21604,6 +22327,31 @@ class $$SavingsGoalsTableFilterComposer
 
   ColumnFilters<int> get monthlyContributionMinor => $composableBuilder(
     column: $table.monthlyContributionMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get iconKey => $composableBuilder(
+    column: $table.iconKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linkedRef => $composableBuilder(
+    column: $table.linkedRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -21662,6 +22410,31 @@ class $$SavingsGoalsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get iconKey => $composableBuilder(
+    column: $table.iconKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get linkedRef => $composableBuilder(
+    column: $table.linkedRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get paused => $composableBuilder(
+    column: $table.paused,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -21711,6 +22484,23 @@ class $$SavingsGoalsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get iconKey =>
+      $composableBuilder(column: $table.iconKey, builder: (column) => column);
+
+  GeneratedColumn<String> get linkedRef =>
+      $composableBuilder(column: $table.linkedRef, builder: (column) => column);
+
+  GeneratedColumn<bool> get paused =>
+      $composableBuilder(column: $table.paused, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -21756,6 +22546,11 @@ class $$SavingsGoalsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<String?> targetDate = const Value.absent(),
                 Value<int?> monthlyContributionMinor = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> iconKey = const Value.absent(),
+                Value<String?> linkedRef = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -21767,6 +22562,11 @@ class $$SavingsGoalsTableTableManager
                 currency: currency,
                 targetDate: targetDate,
                 monthlyContributionMinor: monthlyContributionMinor,
+                kind: kind,
+                iconKey: iconKey,
+                linkedRef: linkedRef,
+                paused: paused,
+                completedAt: completedAt,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -21780,6 +22580,11 @@ class $$SavingsGoalsTableTableManager
                 Value<String> currency = const Value.absent(),
                 Value<String?> targetDate = const Value.absent(),
                 Value<int?> monthlyContributionMinor = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String?> iconKey = const Value.absent(),
+                Value<String?> linkedRef = const Value.absent(),
+                Value<bool> paused = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -21791,6 +22596,11 @@ class $$SavingsGoalsTableTableManager
                 currency: currency,
                 targetDate: targetDate,
                 monthlyContributionMinor: monthlyContributionMinor,
+                kind: kind,
+                iconKey: iconKey,
+                linkedRef: linkedRef,
+                paused: paused,
+                completedAt: completedAt,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 rowid: rowid,
@@ -21824,6 +22634,270 @@ typedef $$SavingsGoalsTableProcessedTableManager =
       $$SavingsGoalsTableUpdateCompanionBuilder,
       (GoalRow, BaseReferences<_$PulseDatabase, $SavingsGoalsTable, GoalRow>),
       GoalRow,
+      PrefetchHooks Function()
+    >;
+typedef $$GoalContributionsTableCreateCompanionBuilder =
+    GoalContributionsCompanion Function({
+      required String id,
+      required String goalId,
+      required int amountMinor,
+      required String onDate,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$GoalContributionsTableUpdateCompanionBuilder =
+    GoalContributionsCompanion Function({
+      Value<String> id,
+      Value<String> goalId,
+      Value<int> amountMinor,
+      Value<String> onDate,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$GoalContributionsTableFilterComposer
+    extends Composer<_$PulseDatabase, $GoalContributionsTable> {
+  $$GoalContributionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get goalId => $composableBuilder(
+    column: $table.goalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get onDate => $composableBuilder(
+    column: $table.onDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GoalContributionsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $GoalContributionsTable> {
+  $$GoalContributionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get goalId => $composableBuilder(
+    column: $table.goalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get onDate => $composableBuilder(
+    column: $table.onDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GoalContributionsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $GoalContributionsTable> {
+  $$GoalContributionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get goalId =>
+      $composableBuilder(column: $table.goalId, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get onDate =>
+      $composableBuilder(column: $table.onDate, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$GoalContributionsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $GoalContributionsTable,
+          GoalContributionRow,
+          $$GoalContributionsTableFilterComposer,
+          $$GoalContributionsTableOrderingComposer,
+          $$GoalContributionsTableAnnotationComposer,
+          $$GoalContributionsTableCreateCompanionBuilder,
+          $$GoalContributionsTableUpdateCompanionBuilder,
+          (
+            GoalContributionRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $GoalContributionsTable,
+              GoalContributionRow
+            >,
+          ),
+          GoalContributionRow,
+          PrefetchHooks Function()
+        > {
+  $$GoalContributionsTableTableManager(
+    _$PulseDatabase db,
+    $GoalContributionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GoalContributionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GoalContributionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GoalContributionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> goalId = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> onDate = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalContributionsCompanion(
+                id: id,
+                goalId: goalId,
+                amountMinor: amountMinor,
+                onDate: onDate,
+                note: note,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String goalId,
+                required int amountMinor,
+                required String onDate,
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GoalContributionsCompanion.insert(
+                id: id,
+                goalId: goalId,
+                amountMinor: amountMinor,
+                onDate: onDate,
+                note: note,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GoalContributionsTable, GoalContributionRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $GoalContributionsTable,
+                    GoalContributionRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GoalContributionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $GoalContributionsTable,
+      GoalContributionRow,
+      $$GoalContributionsTableFilterComposer,
+      $$GoalContributionsTableOrderingComposer,
+      $$GoalContributionsTableAnnotationComposer,
+      $$GoalContributionsTableCreateCompanionBuilder,
+      $$GoalContributionsTableUpdateCompanionBuilder,
+      (
+        GoalContributionRow,
+        BaseReferences<
+          _$PulseDatabase,
+          $GoalContributionsTable,
+          GoalContributionRow
+        >,
+      ),
+      GoalContributionRow,
       PrefetchHooks Function()
     >;
 typedef $$RawIngestsTableCreateCompanionBuilder = RawIngestsCompanion Function({
@@ -24382,6 +25456,8 @@ class $PulseDatabaseManager {
       $$SalaryRecordsTableTableManager(_db, _db.salaryRecords);
   $$SavingsGoalsTableTableManager get savingsGoals =>
       $$SavingsGoalsTableTableManager(_db, _db.savingsGoals);
+  $$GoalContributionsTableTableManager get goalContributions =>
+      $$GoalContributionsTableTableManager(_db, _db.goalContributions);
   $$RawIngestsTableTableManager get rawIngests =>
       $$RawIngestsTableTableManager(_db, _db.rawIngests);
   $$NetWorthSnapshotsTableTableManager get netWorthSnapshots =>

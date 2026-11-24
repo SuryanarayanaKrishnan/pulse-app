@@ -15,6 +15,8 @@ import '../../transactions/tx_detail_sheet.dart';
 import '../../transactions/tx_tile.dart';
 import '../../tour/tab_tip.dart';
 import '../../tour/tour_progress.dart';
+import '../../goals/goal_widgets.dart';
+import '../../goals/goals_screen.dart';
 import '../home_sheets.dart';
 import 'dashboard_layout.dart';
 
@@ -39,6 +41,7 @@ class DashTile extends ConsumerWidget {
       DashKind.savingsRate => _SavingsTile(compact: compact),
       DashKind.splitBalances => _SplitsTile(compact: compact),
       DashKind.recentCaptures => _RecentTile(compact: compact),
+      DashKind.goals => _GoalsTile(compact: compact),
     };
   }
 }
@@ -676,6 +679,57 @@ class _RecentTile extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+// ---- Goals ----
+
+/// Goals on Home. Quiet when there are none; otherwise what is set aside this
+/// month and whether anything has slipped.
+class _GoalsTile extends ConsumerWidget {
+  const _GoalsTile({required this.compact});
+  final bool compact;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(goalsProvider).value;
+    if (list == null || list.isEmpty) return const SizedBox.shrink();
+    final c = context.pc;
+    final sum = goalSummary(list);
+    void open() => context.push(Routes.goals);
+    final line = sum.active == 0
+        ? 'All reached'
+        : '${sum.active} ${sum.active == 1 ? 'goal' : 'goals'}'
+              '${sum.behind > 0 ? ' · ${sum.behind} a little behind' : ' · on track'}';
+    if (compact) {
+      return _compactRow(
+        context,
+        title: 'Goals',
+        subtitle: line,
+        subtitleColor: sum.behind > 0 ? c.warning : null,
+        trailing: Text(aedMinor(sum.reservedMinor), style: _num(context)),
+        onTap: open,
+      );
+    }
+    final active = list.where((g) => !g.state.done).toList();
+    return _Section(
+      'Goals',
+      action: 'See all',
+      onAction: open,
+      RowGroup(
+        indent: ListRow.leadingInset,
+        children: [
+          for (final g in (active.isEmpty ? list : active).take(3)) GoalRow(g),
+          ListRow(
+            dense: true,
+            title: 'Set aside this month',
+            subtitle: line,
+            trailing: Text(aedMinor(sum.reservedMinor), style: _num(context)),
+            onTap: open,
+          ),
+        ],
       ),
     );
   }

@@ -165,6 +165,44 @@ void main() {
     expect((await p2.sync()).idle, isTrue);
   });
 
+  test('goal columns and contributions are synced, not device-local', () async {
+    for (final col in ['kind', 'icon_key', 'linked_ref', 'paused', 'completed_at', 'saved_minor']) {
+      expect(isSyncedColumn('savings_goals', col), isTrue, reason: col);
+    }
+    expect(syncedTables, contains('goal_contributions'));
+    expect(isSyncedColumn('goal_contributions', 'amount_minor'), isTrue);
+  });
+
+  test('a goal, a contribution and a pause travel to the other phone, then both idle', () async {
+    p1.nowMs += 1000;
+    await p1.db.customStatement(
+      "INSERT INTO savings_goals (id, name, target_minor, saved_minor, kind, icon_key, linked_ref, paused) "
+      "VALUES ('g1', 'Trip to Japan', 2000000, 300000, 'save', 'travel', NULL, 0)",
+    );
+    await p1.db.customStatement(
+      "INSERT INTO goal_contributions (id, goal_id, amount_minor, on_date, note) VALUES ('c1', 'g1', 150000, '2026-11-02', 'Bonus')",
+    );
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows("SELECT id, name, kind, icon_key, saved_minor, paused FROM savings_goals"), [
+      {'id': 'g1', 'name': 'Trip to Japan', 'kind': 'save', 'icon_key': 'travel', 'saved_minor': 300000, 'paused': 0},
+    ]);
+    expect(await p2.rows('SELECT goal_id, amount_minor, on_date, note FROM goal_contributions'), [
+      {'goal_id': 'g1', 'amount_minor': 150000, 'on_date': '2026-11-02', 'note': 'Bonus'},
+    ]);
+
+    // pause on the second phone; the first follows
+    p2.nowMs += 1000;
+    await p2.db.customStatement("UPDATE savings_goals SET paused = 1 WHERE id = 'g1'");
+    await p2.sync();
+    await p1.sync();
+    expect(await p1.rows("SELECT paused FROM savings_goals WHERE id = 'g1'"), [
+      {'paused': 1},
+    ]);
+    expect((await p1.sync()).idle, isTrue);
+    expect((await p2.sync()).idle, isTrue);
+  });
+
   test('every allow-listed table exists with a primary key', () async {
     final snap = await DriftSyncBridge(p1.db).read();
     expect(snap.keys.toSet(), syncedTables);

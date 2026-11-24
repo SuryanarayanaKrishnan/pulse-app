@@ -23,6 +23,7 @@ part 'database.g.dart';
     Liabilities,
     SalaryRecords,
     SavingsGoals,
+    GoalContributions,
     RawIngests,
     NetWorthSnapshots,
     RecurringReviews,
@@ -39,7 +40,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 4;
+  static const currentSchemaVersion = 5;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -74,6 +75,17 @@ class PulseDatabase extends _$PulseDatabase {
       // Null everywhere to start with; defaults resolve theirs from the slug.
       from3To4: (m, schema) async {
         await m.addColumn(schema.categories, schema.categories.iconKey);
+      },
+      // v5: goals. `savings_goals` gains kind, icon, link, pause and
+      // completion; contributions get their own table. Additive only: goals
+      // saved before keep their name, target and date as `save` goals.
+      from4To5: (m, schema) async {
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.kind);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.iconKey);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.linkedRef);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.paused);
+        await m.addColumn(schema.savingsGoals, schema.savingsGoals.completedAt);
+        await m.createTable(schema.goalContributions);
       },
     ),
     beforeOpen: (details) async {

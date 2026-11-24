@@ -22,6 +22,7 @@ const syncedTables = <String>{
   'liabilities',
   'salary_records',
   'savings_goals',
+  'goal_contributions',
   'recurring_reviews',
   'jewellery_items',
   'document_attachments',

@@ -331,10 +331,43 @@ class SavingsGoals extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   IntColumn get targetMinor => integer()();
+
+  /// The starting amount: what you already had (save), or the balance owed
+  /// when you began (pay down). Contributions are rows in `goal_contributions`.
   IntColumn get savedMinor => integer().withDefault(const Constant(0))();
   TextColumn get currency => text().withDefault(const Constant('AED'))();
   TextColumn get targetDate => text().nullable()();
   IntColumn get monthlyContributionMinor => integer().nullable()();
+
+  /// save | pay down: `save` | `paydown`.
+  TextColumn get kind => text().withDefault(const Constant('save'))();
+
+  /// A glyph key from the category icon family.
+  TextColumn get iconKey => text().nullable()();
+
+  /// An Asset id as the Wealth list knows it (`account:..`, an asset, a
+  /// liability or `card:..`). Null: contributions are logged by hand.
+  TextColumn get linkedRef => text().nullable()();
+
+  /// Paused goals reserve nothing from safe-to-spend.
+  BoolColumn get paused => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Money put into (positive) or taken out of (negative) a goal, or paid
+/// towards a pay down goal.
+@DataClassName('GoalContributionRow')
+class GoalContributions extends Table {
+  TextColumn get id => text()();
+  TextColumn get goalId => text()();
+  IntColumn get amountMinor => integer()();
+  TextColumn get onDate => text()();
+  TextColumn get note => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
