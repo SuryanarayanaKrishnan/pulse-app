@@ -53,6 +53,72 @@ void main() {
       }
     });
 
+    final fixture = (jsonDecode(
+      File('test/fixtures/catalog_art.json').readAsStringSync(),
+    ) as List).cast<Map<String, Object?>>();
+
+    test('bundled catalog cards carry their own art in perks.art', () {
+      for (final c in catalog.cards) {
+        expect(CatalogCard.artFromPerks(c.perks), isNotNull, reason: c.id);
+      }
+    });
+
+    test(
+      'all backend catalog cards (fixture) parse, match network, read well',
+      () {
+        expect(fixture.length, greaterThanOrEqualTo(198));
+        for (final f in fixture) {
+          final id = f['id']! as String;
+          final art = CardArtSpec.fromJson(
+            Map<String, Object?>.from(f['art']! as Map),
+          );
+          expect(art.stops.length, inInclusiveRange(2, 3), reason: id);
+          if (f['network'] != null) {
+            expect(art.network.name, f['network'], reason: id);
+          }
+          for (final s in art.stops) {
+            expect(
+              _contrast(Color(art.text), Color(s)),
+              greaterThanOrEqualTo(4.5),
+              reason: '$id ${s.toRadixString(16)}',
+            );
+          }
+          expect(
+            CardArtSpec.fromJson(art.toJson()).toJson(),
+            art.toJson(),
+            reason: id,
+          );
+        }
+      },
+    );
+
+    testWidgets('every backend card face renders without overflow', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(900, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        _host(
+          GridView.count(
+            crossAxisCount: 3,
+            childAspectRatio: 1.586,
+            children: [
+              for (final f in fixture)
+                CardFace(
+                  art: CardArtSpec.fromJson(
+                    Map<String, Object?>.from(f['art']! as Map),
+                  ),
+                  last4: '1234',
+                  name: f['id']! as String,
+                ),
+            ],
+          ),
+        ),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     test('text stays readable against every gradient stop', () {
       for (final e in CardArts.byCatalogId.entries) {
         for (final s in e.value.stops) {

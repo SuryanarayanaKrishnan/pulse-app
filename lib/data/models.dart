@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../core/engine/card_art.dart';
+
 /// How a transaction entered the system. Automation is the norm.
 enum TxSource {
   statement('Statement', Icons.description_rounded, true),
@@ -294,6 +296,7 @@ class CreditCard {
     this.caps = const {},
     this.rulesVerifiedOn,
     this.catalogId,
+    this.art,
   });
 
   final String id;
@@ -304,6 +307,9 @@ class CreditCard {
 
   /// The catalog product this card is, when known; picks the card's art.
   final String? catalogId;
+
+  /// Face art from the catalog (`perks.art`), when it has any.
+  final CardArtSpec? art;
   final List<Color> gradient;
   final double limit;
   final double balance;
@@ -364,6 +370,7 @@ class CreditCard {
         caps: caps ?? this.caps,
         rulesVerifiedOn: rulesVerifiedOn,
         catalogId: catalogId,
+        art: art,
       );
 }
 

@@ -18,7 +18,6 @@ class CatalogCard {
     required this.perks,
     this.verifiedOn,
     this.source,
-    this.artOverride,
   });
 
   /// Stable slug, e.g. `emirates-nbd-skywards-infinite`.
@@ -38,11 +37,20 @@ class CatalogCard {
   /// Where they were checked.
   final String? source;
 
-  final CardArtSpec? artOverride;
+  /// How the card looks: the catalog's own `art` (carried in `perks.art`),
+  /// else the bundled art for this id; null for a product with neither.
+  CardArtSpec? get art => artFromPerks(perks) ?? CardArts.byCatalogId[id];
 
-  /// How the card looks: the catalog's own art, else the bundled art for this
-  /// id; null only for a product we have no art direction for.
-  CardArtSpec? get art => artOverride ?? CardArts.byCatalogId[id];
+  /// Reads `perks.art`; a malformed entry is ignored, never fatal.
+  static CardArtSpec? artFromPerks(Map<String, Object?>? perks) {
+    final a = perks?['art'];
+    if (a is! Map) return null;
+    try {
+      return CardArtSpec.fromJson(Map<String, Object?>.from(a));
+    } on Object {
+      return null;
+    }
+  }
 
   bool get verified => verifiedOn != null;
 
@@ -59,14 +67,15 @@ class CatalogCard {
     rewardStructure: Map<String, Object?>.from(
       (j['reward_structure'] as Map?) ?? const {},
     ),
-    perks: Map<String, Object?>.from((j['perks'] as Map?) ?? const {}),
+    perks: {
+      ...Map<String, Object?>.from((j['perks'] as Map?) ?? const {}),
+      // The backend catalog carries art at the top level of each card.
+      if (j['art'] is Map) 'art': j['art'],
+    },
     verifiedOn: j['verified_on'] == null
         ? null
         : DateTime.parse(j['verified_on']! as String),
     source: j['source'] as String?,
-    artOverride: j['art'] == null
-        ? null
-        : CardArtSpec.fromJson(Map<String, Object?>.from(j['art']! as Map)),
   );
 
   Map<String, Object?> toJson() => {
@@ -80,7 +89,6 @@ class CatalogCard {
     'perks': perks,
     'verified_on': verifiedOn?.toIso8601String().substring(0, 10),
     'source': source,
-    if (artOverride != null) 'art': artOverride!.toJson(),
   };
 }
 

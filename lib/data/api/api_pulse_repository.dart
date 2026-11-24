@@ -503,6 +503,7 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
           ? null
           : DateTime.parse(r['verified_on']! as String),
       catalogId: card.catalogId,
+      art: card.art,
     );
   }
 

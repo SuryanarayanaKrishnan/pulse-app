@@ -216,6 +216,7 @@ class CreditCardVisual extends StatelessWidget {
   final bool elevated;
 
   static CardArtSpec artFor(CreditCard card) =>
+      card.art ??
       CardArts.resolve(
         id: card.catalogId ?? card.id,
         issuer: card.issuer,

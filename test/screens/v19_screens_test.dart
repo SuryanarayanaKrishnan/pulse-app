@@ -5,6 +5,7 @@
 @TestOn('vm')
 library;
 
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -119,46 +120,70 @@ void main() {
     }, skip: _dir == null);
   }
 
-  testWidgets('v19 card catalog gallery', (tester) async {
-    await tester.runAsync(_loadFonts);
-    PulseTheme.useGoogleFonts = false;
-    PulseTheme.testFontFamily = 'PulseInter';
-    addTearDown(() => PulseTheme.testFontFamily = null);
-    tester.view.physicalSize = const Size(780, 1900);
-    tester.view.devicePixelRatio = 2;
-    addTearDown(tester.view.reset);
-    final key = GlobalKey();
-    final entries = CardArts.byCatalogId.entries.toList();
-    await tester.pumpWidget(
-      RepaintBoundary(
-        key: key,
-        child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          theme: PulseTheme.light,
-          home: Scaffold(
-            body: GridView.count(
-              crossAxisCount: 2,
-              padding: const EdgeInsets.all(12),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.586,
-              children: [
-                for (final e in entries)
-                  CardFace(art: e.value, last4: '4821', name: e.key),
-              ],
+  for (final dark in [false, true]) {
+    testWidgets('v19 all-cards gallery (${dark ? 'dark' : 'light'})', (
+      tester,
+    ) async {
+      await tester.runAsync(_loadFonts);
+      PulseTheme.useGoogleFonts = false;
+      PulseTheme.testFontFamily = 'PulseInter';
+      addTearDown(() => PulseTheme.testFontFamily = null);
+      final fixture = (jsonDecode(
+        File('test/fixtures/catalog_art.json').readAsStringSync(),
+      ) as List).cast<Map<String, Object?>>();
+      const cols = 4;
+      final rows = (fixture.length / cols).ceil();
+      const cardW = 240.0;
+      final cardH = cardW / 1.586;
+      tester.view.physicalSize = Size(
+        cols * (cardW + 12) + 12,
+        rows * (cardH + 12) + 12,
+      );
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final key = GlobalKey();
+      final theme = dark ? PulseTheme.dark : PulseTheme.light;
+      await tester.pumpWidget(
+        RepaintBoundary(
+          key: key,
+          child: MaterialApp(
+            debugShowCheckedModeBanner: false,
+            theme: theme,
+            home: Scaffold(
+              body: GridView.count(
+                crossAxisCount: cols,
+                padding: const EdgeInsets.all(12),
+                mainAxisSpacing: 12,
+                crossAxisSpacing: 12,
+                childAspectRatio: 1.586,
+                children: [
+                  for (final f in fixture)
+                    CardFace(
+                      art: CardArtSpec.fromJson(
+                        Map<String, Object?>.from(f['art']! as Map),
+                      ),
+                      last4: '4821',
+                      name: (f['id']! as String),
+                      elevated: true,
+                    ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-    await tester.pump(const Duration(seconds: 1));
-    await tester.runAsync(() async {
-      final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
-      final img = await b.toImage(pixelRatio: 1);
-      final data = await img.toByteData(format: ui.ImageByteFormat.png);
-      final f = File('$_dir/$_prefix-card-catalog.png');
-      await f.create(recursive: true);
-      await f.writeAsBytes(data!.buffer.asUint8List());
-    });
-  }, skip: _dir == null);
+      );
+      await tester.pump(const Duration(seconds: 1));
+      await tester.runAsync(() async {
+        final b =
+            key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+        final img = await b.toImage(pixelRatio: 1);
+        final data = await img.toByteData(format: ui.ImageByteFormat.png);
+        final f = File(
+          '$_dir/$_prefix-card-catalog-all-${dark ? 'dark' : 'light'}.png',
+        );
+        await f.create(recursive: true);
+        await f.writeAsBytes(data!.buffer.asUint8List());
+      });
+    }, skip: _dir == null);
+  }
 }

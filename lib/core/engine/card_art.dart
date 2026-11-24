@@ -49,34 +49,47 @@ class CardArtSpec {
   final bool contactless;
   final CardMotif motif;
 
+  /// Colours arrive as `#RRGGBB` strings (catalog data) or ARGB ints.
+  static int _color(Object? v, int fallback) {
+    if (v is num) return v.toInt();
+    if (v is String && RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(v)) {
+      return 0xFF000000 | int.parse(v.substring(1), radix: 16);
+    }
+    return fallback;
+  }
+
+  static String _hex(int c) =>
+      '#${(c & 0xFFFFFF).toRadixString(16).padLeft(6, '0').toUpperCase()}';
+
   factory CardArtSpec.fromJson(Map<String, Object?> j) => CardArtSpec(
-    stops: [for (final s in (j['stops']! as List)) (s as num).toInt()],
+    stops: [for (final s in (j['stops']! as List)) _color(s, 0xFF222222)],
     network: CardNetworkMark.values.byName(j['network']! as String),
     bank: j['bank']! as String,
     tier: j['tier']! as String,
     finish: CardFinish.values.byName((j['finish'] as String?) ?? 'gloss'),
-    accent: (j['accent'] as num?)?.toInt() ?? 0xFFFFFFFF,
-    text: (j['text'] as num?)?.toInt() ?? 0xFFFFFFFF,
+    accent: _color(j['accent'], 0xFFFFFFFF),
+    text: _color(j['text'], 0xFFFFFFFF),
     chip: ChipStyle.values.byName((j['chip'] as String?) ?? 'gold'),
     contactless: (j['contactless'] as bool?) ?? true,
     motif: CardMotif.values.byName((j['motif'] as String?) ?? 'none'),
   );
 
   Map<String, Object?> toJson() => {
-    'stops': stops,
+    'stops': [for (final c in stops) _hex(c)],
     'network': network.name,
     'bank': bank,
     'tier': tier,
     'finish': finish.name,
-    'accent': accent,
-    'text': text,
+    'accent': _hex(accent),
+    'text': _hex(text),
     'chip': chip.name,
     'contactless': contactless,
     'motif': motif.name,
   };
 }
 
-/// Bundled art by catalog id. A catalog entry's own `art` overrides these.
+/// Bundled art by catalog id: the fallback for a catalog entry with no `art`
+/// of its own (the catalog's `perks.art` always wins).
 class CardArts {
   const CardArts._();
 
