@@ -1,3 +1,4 @@
+import 'capture_confirmation.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -98,15 +99,34 @@ IngestSender apiIngestSender(IngestApi api) => (item) async {
 /// Builds an [IngestSender] over the on-device pipeline. A message that is
 /// not a transaction, a duplicate or waiting for an account all count as
 /// handled; only an unexpected failure is retried.
-IngestSender localIngestSender(IngestPipeline pipeline) => (item) async {
+IngestSender localIngestSender(
+  IngestPipeline pipeline, {
+  CaptureConfirmer confirmer = const NoopCaptureConfirmer(),
+}) => (item) async {
   try {
-    await pipeline.ingest(
+    final outcome = await pipeline.ingest(
       IngestInput.fromPayload(switch (item.channel) {
         IngestChannel.sms => TxnSource.sms,
         IngestChannel.notification => TxnSource.notification,
         IngestChannel.appleShortcut => TxnSource.appleShortcut,
       }, item.payload),
     );
+    final txId = outcome.transactionId;
+    final raw = item.payload['raw_text'];
+    final f = item.payload['fields'];
+    if (outcome.isNew && txId != null && raw is String && raw.startsWith('Screenshot ') && f is Map) {
+      unawaited(
+        confirmer.show(
+          CaptureNotice(
+            txId: txId,
+            amountMinor: (f['amount_minor'] as num).toInt(),
+            currency: '${f['currency'] ?? 'AED'}',
+            merchant: '${f['merchant'] ?? 'Screenshot'}',
+            last4: f['last4'] as String?,
+          ),
+        ),
+      );
+    }
     return SendOutcome.sent;
   } on Object catch (e) {
     debugPrint('Local ingest failed for ${item.id}: $e');

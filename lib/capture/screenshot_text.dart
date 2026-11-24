@@ -53,7 +53,7 @@ ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
     caseSensitive: false,
   ).hasMatch(t);
 
-  return ShortcutTransaction.tryParse(
+  final tx = ShortcutTransaction.tryParse(
     Uri(
       scheme: 'pulse',
       host: 'ingest',
@@ -66,4 +66,5 @@ ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
     ),
     now: now,
   );
+  return tx?.asScreenshot();
 }

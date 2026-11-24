@@ -8,6 +8,7 @@ import '../core/env/env.dart';
 import '../data/providers.dart';
 import 'apple_shortcut.dart';
 import 'capture_config.dart';
+import 'capture_confirmation.dart';
 import 'capture_platform.dart';
 import 'capture_service.dart';
 import 'ingest_queue.dart';
@@ -19,6 +20,12 @@ final kvStoreProvider = Provider<KvStore>((ref) => SharedPrefsKvStore());
 /// the queue is only a durable inbox between the native layer and the
 /// pipeline. Without a database (tests, demo data) the queue drains into the
 /// void so it never builds a backlog.
+final captureConfirmerProvider = Provider<CaptureConfirmer>(
+  (ref) => kIsWeb || ref.watch(ingestPipelineProvider) == null || Env.demoData
+      ? const NoopCaptureConfirmer()
+      : LocalNotificationCaptureConfirmer(),
+);
+
 final ingestSenderProvider = Provider<IngestSender>((ref) {
   final pipeline = ref.watch(ingestPipelineProvider);
   if (pipeline == null || Env.demoData) {
@@ -27,7 +34,7 @@ final ingestSenderProvider = Provider<IngestSender>((ref) {
       return SendOutcome.sent;
     };
   }
-  return localIngestSender(pipeline);
+  return localIngestSender(pipeline, confirmer: ref.watch(captureConfirmerProvider));
 });
 
 final ingestQueueProvider = Provider<IngestQueue>(
