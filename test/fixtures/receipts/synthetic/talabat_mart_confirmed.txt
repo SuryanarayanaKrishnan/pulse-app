@@ -1,0 +1,20 @@
+From: talabat <no-reply@talabat.example>
+Subject: Your talabat order is confirmed
+
+talabat Mart
+Order number: 900300400
+Order date: 14 Mar 2026, 10:05
+Store: Example Mart
+1 x Fresh Milk 2L
+AED 12.00
+2 x Eggs dozen
+AED 20.00
+1 x Basmati Rice 5 kg
+AED 38.00
+Subtotal
+AED 70.00
+Delivery fee
+AED 4.00
+Total
+AED 74.00
+Paid with Mastercard ending 5678

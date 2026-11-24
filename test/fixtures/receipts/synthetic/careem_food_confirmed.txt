@@ -1,0 +1,20 @@
+From: Careem <receipts@careem.example>
+Subject: Your Careem Food order
+
+Careem Food
+Order ID: CF-445566
+Order date: 21 Mar 2026, 20:30
+Restaurant: Example Shawarma
+2 x Chicken Shawarma Wrap
+AED 30.00
+1 x Combo Meal
+AED 25.00
+Subtotal
+AED 55.00
+Delivery fee
+AED 6.00
+Tip
+AED 5.00
+Total
+AED 66.00
+Card ending in 1234

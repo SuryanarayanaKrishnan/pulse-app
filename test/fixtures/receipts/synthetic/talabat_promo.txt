@@ -1,0 +1,4 @@
+From: talabat <promo@talabat.example>
+Subject: 50% off this weekend!
+
+Hungry? Use code SAVE50 and save AED 20 on your next order.

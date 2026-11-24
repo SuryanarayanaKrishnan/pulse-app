@@ -145,6 +145,34 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 ),
             ],
           ),
+          if (tx.receiptNotes != null || tx.receiptRef != null) ...[
+            const SizedBox(height: Space.xl),
+            SurfaceCard(
+              key: const Key('tx_receipt_card'),
+              color: c.isDark ? c.surfaceElevated : c.surface,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.receipt_long_outlined, size: 18, color: c.textSecondary),
+                      const SizedBox(width: Space.sm),
+                      Expanded(child: Text('From your email receipt', style: context.tt.titleSmall)),
+                    ],
+                  ),
+                  if (tx.receiptNotes != null) ...[
+                    const SizedBox(height: Space.sm),
+                    Text(tx.receiptNotes!, key: const Key('tx_receipt_notes'), style: context.tt.bodyMedium),
+                  ],
+                  const SizedBox(height: Space.sm),
+                  Text(
+                    'Matched on this phone. The amount and date are still your bank\'s.',
+                    style: context.tt.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+          ],
           AnimatedSize(
             duration: Motion.base,
             curve: Motion.curve,

@@ -48,7 +48,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 8;
+  static const currentSchemaVersion = 9;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -139,6 +139,12 @@ class PulseDatabase extends _$PulseDatabase {
           "SELECT series_key, CASE status WHEN 'dismissed' THEN 'ignored' WHEN 'ignored' THEN 'ignored' ELSE 'confirmed' END "
           'FROM recurring_reviews',
         );
+      },
+      // v9: email receipts. `transactions.receipt_ref` and `receipt_notes`
+      // (extracted fields only). Additive, null for everything existing.
+      from8To9: (m, schema) async {
+        await m.addColumn(schema.transactions, schema.transactions.receiptRef);
+        await m.addColumn(schema.transactions, schema.transactions.receiptNotes);
       },
     ),
     beforeOpen: (details) async {

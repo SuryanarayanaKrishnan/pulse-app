@@ -1,0 +1,8 @@
+From: Example Shop <orders@exampleshop.example>
+Subject: Receipt for your order
+
+Order #ES-5511
+Subtotal AED 100.00
+Shipping AED 10.00
+Total AED 110.00
+Paid with card ending 4321

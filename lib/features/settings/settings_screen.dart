@@ -210,6 +210,26 @@ class SettingsScreen extends ConsumerWidget {
                 ),
             ],
           ),
+          const SectionHeader('Connected sources'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                key: const Key('settings_email_receipts'),
+                leading: const IconWell(Icons.receipt_long_outlined),
+                title: 'Email receipts',
+                subtitle: ref.watch(receiptSourceProvider).isConfigured
+                    ? 'Off. Adds item details from noon, Talabat and Careem receipts, matched on this phone.'
+                    : 'Off. Adds item details from noon, Talabat and Careem receipts. Not available yet.',
+                trailing: Switch(
+                  key: const Key('settings_email_receipts_switch'),
+                  value: false,
+                  // Disabled until a Gmail sign-in is configured.
+                  onChanged: ref.watch(receiptSourceProvider).isConfigured ? (_) {} : null,
+                ),
+              ),
+            ],
+          ),
           const SectionHeader('Appearance'),
           Padding(
             padding: const EdgeInsets.fromLTRB(

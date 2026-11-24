@@ -1,0 +1,21 @@
+From: Careem <receipts@careem.example>
+Subject: Your Careem Quik receipt
+
+Careem Quik
+Order ID: QK-778899
+Order date: 20 Mar 2026, 21:15
+1 x Bananas 1 kg
+AED 7.50
+1 x Greek Yogurt
+AED 9.00
+Subtotal
+AED 16.50
+Delivery fee
+AED 3.00
+Service fee
+AED 1.50
+Promo discount
+-AED 5.00
+Total
+AED 16.00
+Card ending in 1234
