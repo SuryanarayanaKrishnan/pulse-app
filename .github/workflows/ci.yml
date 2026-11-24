@@ -75,10 +75,6 @@ jobs:
         timeout-minutes: 25
         run: flutter build apk --release --build-number ${{ github.run_number }}
 
-      - name: Build debug APK
-        timeout-minutes: 15
-        run: flutter build apk --debug
-
       - uses: actions/upload-artifact@v4
         with:
           name: Pulse-android-apk
