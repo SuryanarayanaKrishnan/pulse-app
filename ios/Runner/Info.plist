@@ -2,10 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSCameraUsageDescription</key>
 	<string>Take photos of jewellery and documents. Photos are kept on this phone and never uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Choose photos of jewellery and documents. Photos are copied into the app and never uploaded.</string>
+	<string>Choose photos of jewellery, documents, statements or receipts. Photos are copied into Pulse on this phone and never uploaded.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Pulse does not save to your library; this string is required by the photo picker.</string>
 	<key>NSUserNotificationsUsageDescription</key>
