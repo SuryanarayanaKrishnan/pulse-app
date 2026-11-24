@@ -86,6 +86,10 @@ Wired endpoints beyond the basics: `/v1/categories` (defaults + custom), `/v1/bu
 
 Derived on the client until the backend has them (each marked `TODO(api)`): cashflow, category trends, safe-to-spend and the health score (from transactions, budgets and cards), minimum due, net-worth history, the card catalog, and household/family endpoints (`household()` returns just you; invites and sharing throw `not_supported`). "Which card should I use?" ranks cards locally with cap-aware effective rates; `/v1/rewards/best-card` is the intended server source. `simulateCapture()` is mock-only and backs the Settings > Demo "Simulate a card tap" action.
 
+## Cards tab (wallet)
+
+Cards and Accounts share one pattern: a combined view (totals, then an overlapping `WalletStack` that fans out slightly on scroll), tap a card for a shared-element (`Hero`) transition into `WalletDetailPager`, swipe sideways between cards, pull down or tap the chevron to return. Reduced motion (`MediaQuery.disableAnimations`) removes the transition and parallax. "My cards ranked" (`/cards-ranked`) sorts by use, rewards or return net of a month of the annual fee (`cardStandings` in `lib/data/card_ranking.dart`), lists the best card per everyday category via `bestCard()` (`/v1/rewards/best-card` in API mode) and flags underused cards and fees the rewards do not cover.
+
 ## Design system notes
 
 - Calm and quiet: warm neutrals, one teal accent, amber for caution, muted coral only for over-budget and errors, green for money in. Tokens in `PulseColors` (`context.pc`): bg, surface, surfaceElevated, border, text tiers, accent/onAccent, positive, negative, warning. `forProgress()` and `statusLabel()` give the on track / nearing limit / over colours and words. Spacing (`Space`), radii (`Radii`) and motion (`Motion`) are constants.

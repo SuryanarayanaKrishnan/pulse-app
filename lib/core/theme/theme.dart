@@ -68,6 +68,7 @@ class PulseTheme {
       displayLarge: s(40, FontWeight.w700, c.textPrimary),
       displayMedium: s(32, FontWeight.w700, c.textPrimary),
       headlineMedium: s(24, FontWeight.w700, c.textPrimary),
+      headlineSmall: s(24, FontWeight.w600, c.textPrimary),
       titleLarge: s(20, FontWeight.w600, c.textPrimary),
       titleMedium: s(17, FontWeight.w600, c.textPrimary),
       titleSmall: s(15, FontWeight.w600, c.textPrimary),

@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:flutter/rendering.dart' show ScrollDirection;
 
 import '../../core/theme/tokens.dart';
@@ -146,44 +147,50 @@ class _WalletDetailPagerState extends State<WalletDetailPager> {
               Expanded(
                 child: NotificationListener<ScrollNotification>(
                   onNotification: _onScroll,
-                  child: PageView.builder(
-                    controller: _pages,
-                    itemCount: widget.count,
-                    onPageChanged: (i) {
-                      Haptics.tap();
-                      setState(() => _index = i);
-                    },
-                    itemBuilder: (context, i) => ListView(
-                      key: PageStorageKey('wallet-detail-$i'),
-                      physics: const ClampingScrollPhysics(),
-                      padding: const EdgeInsets.only(bottom: Space.xxxl),
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            Space.gutter,
-                            Space.sm,
-                            Space.gutter,
-                            0,
+                  // Cards can be dragged with a mouse or trackpad too.
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(
+                      context,
+                    ).copyWith(dragDevices: PointerDeviceKind.values.toSet()),
+                    child: PageView.builder(
+                      controller: _pages,
+                      itemCount: widget.count,
+                      onPageChanged: (i) {
+                        Haptics.tap();
+                        setState(() => _index = i);
+                      },
+                      itemBuilder: (context, i) => ListView(
+                        key: PageStorageKey('wallet-detail-$i'),
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: Space.xxxl),
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              Space.gutter,
+                              Space.sm,
+                              Space.gutter,
+                              0,
+                            ),
+                            child: Hero(
+                              tag: widget.heroTag(i),
+                              child: widget.faceBuilder(context, i),
+                            ),
                           ),
-                          child: Hero(
-                            tag: widget.heroTag(i),
-                            child: widget.faceBuilder(context, i),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              Space.gutter,
+                              Space.xl,
+                              Space.gutter,
+                              0,
+                            ),
+                            child: Text(
+                              widget.title(i),
+                              style: context.tt.headlineSmall,
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            Space.gutter,
-                            Space.xl,
-                            Space.gutter,
-                            0,
-                          ),
-                          child: Text(
-                            widget.title(i),
-                            style: context.tt.headlineSmall,
-                          ),
-                        ),
-                        ...widget.sections(context, i),
-                      ],
+                          ...widget.sections(context, i),
+                        ],
+                      ),
                     ),
                   ),
                 ),

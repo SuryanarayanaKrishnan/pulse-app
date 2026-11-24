@@ -20,6 +20,7 @@ class WalletCardFace extends StatelessWidget {
     this.compact = false,
     this.elevated = false,
     this.chip = true,
+    this.contactless = true,
   });
   final List<Color> gradient;
   final String title;
@@ -34,6 +35,7 @@ class WalletCardFace extends StatelessWidget {
   final bool compact;
   final bool elevated;
   final bool chip;
+  final bool contactless;
 
   @override
   Widget build(BuildContext context) {
@@ -109,11 +111,12 @@ class WalletCardFace extends StatelessWidget {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          Icon(
-                            Icons.contactless_outlined,
-                            size: 18,
-                            color: fg.withValues(alpha: 0.6),
-                          ),
+                          if (contactless)
+                            Icon(
+                              Icons.contactless_outlined,
+                              size: 18,
+                              color: fg.withValues(alpha: 0.6),
+                            ),
                         ],
                       ),
                       const SizedBox(height: Space.md),
@@ -245,8 +248,11 @@ class AccountCardVisual extends StatelessWidget {
     title: account.bank,
     subtitle: account.name,
     number: account.last4 == null ? null : '•• ${account.last4}',
-    mark: account.kind.label.toUpperCase(),
+    mark: account.kind.label == account.bank
+        ? null
+        : account.kind.label.toUpperCase(),
     chip: false,
+    contactless: false,
     figure: showBalance ? Money.aed(account.balance, decimals: false) : null,
     compact: compact,
     elevated: elevated,
