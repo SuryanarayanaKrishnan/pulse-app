@@ -326,13 +326,21 @@ void main() {
                 'ts': 1795000000,
               },
               {'id': 'u2', 'kind': 'sms', 'body': '  '},
+              {
+                'id': 'u3',
+                'kind': 'ocr',
+                'body': 'AED 12.00 spent at SPINNEYS card ending 1111',
+                'ts': 1795000000,
+              },
+              {'id': 'u4', 'kind': 'ocr', 'body': 'nothing here', 'ts': 1},
             ];
           }
           return null;
         });
     final events = await AppleInboxCapturePlatform(methods: ch).peekPending();
-    expect(events, hasLength(1));
-    expect(events.single.kind, 'sms');
-    expect(events.single.sender, 'ADCBAlert');
+    expect(events, hasLength(2));
+    expect(events.first.kind, 'sms');
+    expect(events.first.sender, 'ADCBAlert');
+    expect(events.last.shortcut?.merchant, 'SPINNEYS');
   });
 }
