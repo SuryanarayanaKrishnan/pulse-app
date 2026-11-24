@@ -371,7 +371,7 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           spacing: Space.sm,
           runSpacing: Space.sm,
           children: [
-            for (final k in AssetKind.values)
+            for (final k in AssetKind.values.where((k) => k != AssetKind.funds))
               ChoiceChip(
                 label: Text(k == AssetKind.liability ? 'Loan or debt' : k.label),
                 selected: _kind == k,

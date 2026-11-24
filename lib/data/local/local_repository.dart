@@ -16,6 +16,8 @@ import '../api/api_exception.dart';
 import '../api/dto.dart';
 import '../insights.dart';
 import '../models.dart';
+import '../wealth_service.dart';
+import '../../core/engine/prices.dart';
 import '../repository.dart';
 import '../rules.dart';
 import '../statements.dart';
@@ -54,8 +56,12 @@ class LocalPulseRepository implements PulseRepository {
     required this.catalog,
     required this.pipeline,
     this.shared,
+    this.wealth,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now;
+
+  /// Jewellery, funds and prices (optional so older call sites still work).
+  final WealthService? wealth;
 
   final PulseDatabase db;
   final CatalogService catalog;
@@ -844,6 +850,7 @@ class LocalPulseRepository implements PulseRepository {
     for (final a in assetRows) {
       out.add(Asset(id: a.id, name: a.name, kind: _assetKind(a.kind), value: _aed(a.manualValueMinor ?? a.costBasisMinor ?? 0)));
     }
+    if (wealth != null) out.addAll(await wealth!.assets());
     for (final l in liabilityRows) {
       out.add(Asset(id: l.id, name: l.name, kind: AssetKind.liability, value: _aed(l.outstandingMinor), note: l.lender ?? ''));
     }
@@ -900,12 +907,16 @@ class LocalPulseRepository implements PulseRepository {
     }
     final prev = series.length > 1 ? series[series.length - 2] : series.last;
     final change = series.last - prev;
+    final book = wealth == null ? null : await wealth!.book();
     return NetWorth(
       total: _aed(result.netWorthMinor),
       series: series,
       labels: labels,
       changeAed: change,
       changePct: prev == 0 ? 0 : change / prev.abs() * 100,
+      updatedAt: book?.fetchedAt,
+      prices: book == null ? const [] : priceInputs(book),
+      pricesLive: book != null && !book.isStale && book.origin == PriceOrigin.fetched,
     );
   }
 
