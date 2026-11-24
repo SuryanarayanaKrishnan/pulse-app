@@ -7,7 +7,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import '../../core/engine/split_settle.dart';
 import '../../core/engine/statement_parser.dart';
+import '../../core/engine/statement_transfers.dart';
 import '../../core/engine/types.dart';
 import '../statement_password_store.dart';
 import '../statements.dart';
@@ -143,6 +145,7 @@ class LocalStatementService {
     required this.passwords,
     PdfTextExtractor? extractor,
     LockedFileStore? locked,
+    this.onTransfer,
   }) : _extractor = extractor ?? const PdfrxTextExtractor(),
        _locked = locked ?? MemoryLockedFileStore();
 
@@ -150,6 +153,53 @@ class LocalStatementService {
   final StatementPasswordStore passwords;
   final PdfTextExtractor _extractor;
   final LockedFileStore _locked;
+
+  /// Called once per imported transfer line that names a person (auto-settle).
+  final Future<void> Function(Counterparty counterparty, int amountMinor)?
+  onTransfer;
+
+  static const _handledKey = 'autosettle.statement_handled';
+
+  /// Offers each transfer line to auto-settle exactly once: lines already
+  /// offered (re-reads, overlapping statements) and lines a live capture
+  /// (SMS, notification) already saw are skipped.
+  Future<void> _settleTransfers(String statementId, ParsedStatement parsed) async {
+    final cb = onTransfer;
+    if (cb == null) return;
+    Set<String> handled;
+    try {
+      handled = (jsonDecode(await db.setting(_handledKey) ?? '[]') as List)
+          .cast<String>()
+          .toSet();
+    } catch (_) {
+      handled = {};
+    }
+    final captured = await (db.select(db.transactions)
+          ..where((t) => t.deletedAt.isNull() & t.source.equals('statement').not()))
+        .get();
+    var changed = false;
+    for (final l in parsed.lines) {
+      final c = transferCounterparty(l.description, l.direction);
+      if (c == null) continue;
+      final key =
+          '${l.postedOn.toIso()}|${l.direction.name}|${l.amountMinor}|${normaliseName(c.name)}|${c.phone ?? ''}|${c.ibanTail ?? ''}';
+      if (handled.contains(key)) continue;
+      handled.add(key);
+      changed = true;
+      final day = l.postedOn.toUtcMidnight();
+      final seen = captured.any(
+        (t) =>
+            t.amountMinor == l.amountMinor &&
+            t.direction == l.direction.name &&
+            t.postedAt.toUtc().difference(day).inDays.abs() <= 1,
+      );
+      if (seen) continue;
+      try {
+        await cb(c, l.amountMinor);
+      } catch (_) {}
+    }
+    if (changed) await db.putSetting(_handledKey, jsonEncode(handled.toList()));
+  }
 
   Future<List<String>> _candidates(String? institution) async {
     final saved = await passwords.saved();
@@ -297,6 +347,7 @@ class LocalStatementService {
         ),
       );
     });
+    await _settleTransfers(id, parsed);
   }
 
   Future<List<Statement>> statements() async {
