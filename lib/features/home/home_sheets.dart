@@ -14,25 +14,30 @@ class SafeToSpendSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final b = ref.watch(budgetProvider).value;
+    final flex = v.basis == SafeBasis.flex;
+    final hasBudget = v.budgetLeft.isFinite;
     Text num(double x, {bool minus = false}) => Text(
       '${minus ? '−' : ''}${Money.aed(x, decimals: false)}',
       style: PulseTheme.amount(minus ? c.textSecondary : c.textPrimary),
     );
     return SheetScaffold(
       title: 'Safe to spend',
-      subtitle: 'The lower of what your budget and your cash allow',
+      subtitle: flex
+          ? 'Your flexible budget, after what is already promised'
+          : 'The lower of what your budget and your cash allow',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RowGroup(
             padding: EdgeInsets.zero,
             children: [
-              if (b != null)
+              if (hasBudget)
                 ListRow(
+                  key: const Key('sts_budget_left'),
                   dense: true,
-                  title: 'Left in budget',
-                  trailing: num(b.remaining),
+                  title: flex ? 'Flexible left' : 'Left in budget',
+                  subtitle: flex ? 'The same number as on your Budget tab' : null,
+                  trailing: num(v.budgetLeft),
                 ),
               ListRow(
                 dense: true,
@@ -79,6 +84,14 @@ class SafeToSpendSheet extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: Space.lg),
+          if (flex && hasBudget) ...[
+            Text(
+              'Your Budget tab shows Flexible left, before bills still to come and goal set-asides. Safe to spend takes those off, so it can be a little lower.',
+              key: const Key('sts_explain'),
+              style: context.tt.bodyMedium,
+            ),
+            const SizedBox(height: Space.md),
+          ],
           Text(
             'Spread over ${v.daysLeft} days, that is ${Money.aed(v.today, decimals: false)} a day. It updates with every purchase.',
             style: context.tt.bodyMedium,

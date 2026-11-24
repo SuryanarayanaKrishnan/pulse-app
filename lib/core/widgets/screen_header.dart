@@ -26,8 +26,26 @@ class ScreenHeader extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (subtitle != null)
-                Text(subtitle!, style: context.tt.bodySmall),
-              Text(title, style: context.tt.displayMedium),
+                Text(
+                  subtitle!.toUpperCase(),
+                  style: context.tt.labelMedium!.copyWith(
+                    color: context.pc.accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.9,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              Semantics(
+                header: true,
+                child: Text(
+                  title,
+                  style: context.tt.displayMedium,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ),

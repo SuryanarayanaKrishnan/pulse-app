@@ -53,7 +53,6 @@ class WealthScreen extends ConsumerWidget {
               trailing: [
                 TabTip(
                   tab: TipTab.wealth,
-                  alignEnd: true,
                   child: RoundIconButton(
                     icon: Icons.add_rounded,
                     label: 'Add an asset or loan',

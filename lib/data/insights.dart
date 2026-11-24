@@ -59,7 +59,20 @@ class SafeToSpend {
     required this.goals,
     required this.daysLeft,
     this.goalLines = const [],
+    this.cash = double.infinity,
+    this.budgetLeft = double.infinity,
+    this.basis = SafeBasis.categories,
   });
+
+  /// Cash in the bank, used for the cash limit.
+  final double cash;
+
+  /// What the budget has left before bills and goals come off
+  /// (infinity when no budget is set).
+  final double budgetLeft;
+
+  /// Which budget [budgetLeft] was read from.
+  final SafeBasis basis;
 
   /// Per-day allowance for the rest of the month.
   final double today;
@@ -73,7 +86,23 @@ class SafeToSpend {
 
   /// What each active goal sets aside (they add up to [goals]).
   final List<GoalLine> goalLines;
+
+  /// The same figures, with the budget left taken from [left] (for example
+  /// the Flex pool). This is the one place the maths lives.
+  SafeToSpend withBudget(double left, SafeBasis b) => computeSafeToSpend(
+    cash: cash,
+    budgetLeft: left,
+    bills: bills,
+    cardDues: cardDues,
+    goals: goals,
+    daysLeft: daysLeft,
+    goalLines: goalLines,
+    basis: b,
+  );
 }
+
+/// Where the budget figure behind safe-to-spend comes from.
+enum SafeBasis { flex, categories }
 
 /// One goal's share of the money set aside this month.
 class GoalLine {
@@ -85,8 +114,9 @@ class GoalLine {
 /// Safe-to-spend today, spread over the remaining days (today included).
 ///
 /// Two limits apply and the lower wins:
-///  * the budget: what is left this month, less bills that are still to come
-///    and goal contributions;
+///  * the budget: what is left this month (in Flex mode, the Flexible left on
+///    the Budget tab), less bills that are still to come and goal
+///    contributions;
 ///  * the cash: what is in the bank, less those bills, goals and the card
 ///    dues that fall before month end.
 SafeToSpend computeSafeToSpend({
@@ -97,6 +127,7 @@ SafeToSpend computeSafeToSpend({
   required double goals,
   required int daysLeft,
   List<GoalLine> goalLines = const [],
+  SafeBasis basis = SafeBasis.categories,
 }) {
   final byBudget = budgetLeft - bills - goals;
   final byCash = cash - bills - cardDues - goals;
@@ -110,6 +141,9 @@ SafeToSpend computeSafeToSpend({
     goals: goals,
     daysLeft: days,
     goalLines: goalLines,
+    cash: cash,
+    budgetLeft: budgetLeft,
+    basis: basis,
   );
 }
 

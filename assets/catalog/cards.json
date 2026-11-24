@@ -42,7 +42,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#14151A",
+      "#2A2D33",
+      "#16181C"
+     ],
+     "finish": "metal",
+     "accent": "#C9A45C",
+     "text": "#F1E6C8",
+     "network": "visa",
+     "tier": "Infinite",
+     "bank": "Emirates NBD",
+     "chip": "silver",
+     "contactless": true,
+     "motif": "lines"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -76,7 +93,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#AF3416",
+      "#CA4E1C",
+      "#801C59"
+     ],
+     "finish": "gloss",
+     "accent": "#FFC857",
+     "text": "#FFFFFF",
+     "network": "mastercard",
+     "tier": "Platinum",
+     "bank": "Emirates NBD",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "dots"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -118,7 +152,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#0B5A2E",
+      "#12783D",
+      "#0A4424"
+     ],
+     "finish": "gloss",
+     "accent": "#E23B3B",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "ADCB",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "dots"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -160,7 +211,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#8E1233",
+      "#C41E3A",
+      "#5C0C21"
+     ],
+     "finish": "gloss",
+     "accent": "#FFB3C0",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "ADCB",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "lines"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -202,7 +270,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#0A1F3F",
+      "#0F3B5C",
+      "#0B5560"
+     ],
+     "finish": "matte",
+     "accent": "#5FD4C4",
+     "text": "#FFFFFF",
+     "network": "mastercard",
+     "tier": "Cashback",
+     "bank": "FAB",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -244,7 +329,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#1B1D22",
+      "#2D2A2A",
+      "#8A3A0E"
+     ],
+     "finish": "gloss",
+     "accent": "#FF8A3D",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Mashreq",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -279,7 +381,24 @@
     ],
     "fee_waiver_spend_minor": 12000000
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#0B0C0E",
+      "#23262B",
+      "#0E0F12"
+     ],
+     "finish": "metal",
+     "accent": "#D7DBE0",
+     "text": "#E9ECEF",
+     "network": "visa",
+     "tier": "Infinite",
+     "bank": "Mashreq",
+     "chip": "silver",
+     "contactless": true,
+     "motif": "lines"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -313,7 +432,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#FFE62E",
+      "#FFD500",
+      "#F2C200"
+     ],
+     "finish": "matte",
+     "accent": "#111111",
+     "text": "#111111",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Mashreq",
+     "chip": "dark",
+     "contactless": true,
+     "motif": "dots"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -355,7 +491,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#064A33",
+      "#0C6B48",
+      "#043021"
+     ],
+     "finish": "gloss",
+     "accent": "#D4B35E",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Dubai Islamic Bank",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "grid"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -398,7 +551,24 @@
     ],
     "min_monthly_spend_minor": 200000
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#4A4E54",
+      "#666B73",
+      "#303337"
+     ],
+     "finish": "metal",
+     "accent": "#E53935",
+     "text": "#FFFFFF",
+     "network": "mastercard",
+     "tier": "Titanium",
+     "bank": "RAKBANK",
+     "chip": "silver",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -440,7 +610,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#1B1B1F",
+      "#4A1014",
+      "#121214"
+     ],
+     "finish": "gloss",
+     "accent": "#E0242B",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "HSBC",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -480,7 +667,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#8A0F1E",
+      "#B01428",
+      "#5E0A15"
+     ],
+     "finish": "gloss",
+     "accent": "#E2C275",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Emirates Islamic",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -522,7 +726,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#3A2BB5",
+      "#7B3FD0",
+      "#261C76"
+     ],
+     "finish": "gloss",
+     "accent": "#B8F2E6",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Liv",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "waves"
+    }
+   },
    "verified_on": null,
    "source": null
   },
@@ -564,7 +785,24 @@
      "utilities"
     ]
    },
-   "perks": {},
+   "perks": {
+    "art": {
+     "stops": [
+      "#0A3A85",
+      "#0B63B8",
+      "#062656"
+     ],
+     "finish": "gloss",
+     "accent": "#3CCB5A",
+     "text": "#FFFFFF",
+     "network": "visa",
+     "tier": "Platinum",
+     "bank": "Standard Chartered",
+     "chip": "gold",
+     "contactless": true,
+     "motif": "lines"
+    }
+   },
    "verified_on": null,
    "source": null
   }

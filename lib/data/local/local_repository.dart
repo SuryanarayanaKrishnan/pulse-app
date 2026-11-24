@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:material_ui/material_ui.dart' show Color, DateUtils;
 
+import '../../core/engine/card_art.dart';
+import '../../core/engine/catalog.dart' show CatalogCard;
 import '../../core/engine/dates.dart';
 import '../../core/engine/dues.dart' show nextDueFromDay;
 import '../../core/engine/goals.dart';
@@ -697,6 +699,16 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     return '${_pct(best.first.rate, s).toStringAsFixed(1)}% on ${best.first.name.toLowerCase()}';
   }
 
+  static CardArtSpec? _artOf(CatalogCardRow cat) {
+    try {
+      return CatalogCard.artFromPerks(
+        Map<String, Object?>.from(jsonDecode(cat.perks) as Map),
+      );
+    } on Object {
+      return null;
+    }
+  }
+
   CreditCard _cardModel({
     required String id,
     required String issuer,
@@ -751,6 +763,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       baseRate: _pct(spec.baseRate, spec),
       caps: caps,
       rulesVerifiedOn: cat.verifiedOn == null ? null : DateTime.tryParse(cat.verifiedOn!),
+      catalogId: cat.id,
+      art: _artOf(cat),
     );
   }
 

@@ -23,7 +23,17 @@ class SectionHeader extends StatelessWidget {
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Expanded(child: Text(title, style: context.tt.titleLarge)),
+        Expanded(
+          child: Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: context.tt.titleLarge,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
         if (action != null) TextAction(action!, onTap: onAction),
       ],
     ),

@@ -22,6 +22,15 @@ class PulseTheme {
   /// register a real font under this name; unit tests leave it null).
   static String? testFontFamily;
 
+  /// Test hook for the bundled display face (screenshots and tests register
+  /// the real file under this name; when null the family from pubspec is used).
+  static String? testDisplayFamily;
+
+  /// Bundled display face: Fraunces (SIL OFL 1.1, see assets/fonts/OFL.txt).
+  /// Used for screen titles, section headers and hero figures only; every
+  /// other style stays on the UI face.
+  static const displayFamily = 'PulseDisplay';
+
   static const _tabular = [FontFeature.tabularFigures()];
 
   static bool get _iosSystemFont =>
@@ -36,20 +45,42 @@ class PulseTheme {
     return GoogleFonts.inter(textStyle: s);
   }
 
+  /// Display style: a warm serif with real weight contrast. Weight is
+  /// clamped to the two bundled cuts (500 and 600).
+  static TextStyle display(
+    Color color, {
+    required double size,
+    FontWeight weight = FontWeight.w600,
+    double? height,
+  }) => TextStyle(
+    fontFamily: testDisplayFamily ?? displayFamily,
+    color: color,
+    fontSize: size,
+    fontWeight: weight.value >= 600 ? FontWeight.w600 : FontWeight.w500,
+    letterSpacing: -size * 0.012,
+    height: height ?? 1.15,
+  );
+
+  /// Largest figures (a balance, a total due) use the display face; the
+  /// rest keep tabular UI figures so lists align.
+  static const heroFigureSize = 32.0;
+
   /// Numeric style. Use for every amount.
   static TextStyle amount(
     Color color, {
     double size = 17,
     FontWeight weight = FontWeight.w600,
-  }) => _font(
-    TextStyle(
-      color: color,
-      fontSize: size,
-      fontWeight: weight,
-      letterSpacing: _tracking(size),
-      height: size >= 32 ? 1.1 : 1.25,
-    ),
-  );
+  }) => size >= heroFigureSize
+      ? display(color, size: size, weight: weight, height: 1.1)
+      : _font(
+          TextStyle(
+            color: color,
+            fontSize: size,
+            fontWeight: weight,
+            letterSpacing: _tracking(size),
+            height: 1.25,
+          ),
+        );
 
   /// Optical tracking: tighter as type gets larger.
   static double _tracking(double size) => size >= 32
@@ -72,11 +103,11 @@ class PulseTheme {
           ),
         );
     return TextTheme(
-      displayLarge: s(40, FontWeight.w700, c.textPrimary),
-      displayMedium: s(32, FontWeight.w700, c.textPrimary),
-      headlineMedium: s(24, FontWeight.w700, c.textPrimary),
-      headlineSmall: s(24, FontWeight.w600, c.textPrimary),
-      titleLarge: s(20, FontWeight.w600, c.textPrimary),
+      displayLarge: display(c.ink, size: 40),
+      displayMedium: display(c.ink, size: 32),
+      headlineMedium: display(c.ink, size: 26),
+      headlineSmall: display(c.ink, size: 24, weight: FontWeight.w500),
+      titleLarge: display(c.ink, size: 21, height: 1.25),
       titleMedium: s(17, FontWeight.w600, c.textPrimary),
       titleSmall: s(15, FontWeight.w600, c.textPrimary),
       bodyLarge: s(17, FontWeight.w400, c.textPrimary),

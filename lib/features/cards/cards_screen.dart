@@ -61,7 +61,6 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                   ),
                   TabTip(
                     tab: TipTab.cards,
-                    alignEnd: true,
                     child: RoundIconButton(
                       icon: Icons.bolt_rounded,
                       label: 'Which card should I use?',

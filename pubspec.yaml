@@ -93,6 +93,16 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+    # Fraunces, SIL Open Font License 1.1 (assets/fonts/OFL.txt). Free to
+    # bundle; used only for titles, section headers and hero figures.
+    - family: PulseDisplay
+      fonts:
+        - asset: assets/fonts/Fraunces_500Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Fraunces_600SemiBold.ttf
+          weight: 600
+
   assets:
     - assets/catalog/cards.json
     - assets/merchant_map.json

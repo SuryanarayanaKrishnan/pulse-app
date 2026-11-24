@@ -29,13 +29,13 @@ class NetWorthHistorySection extends ConsumerWidget {
     final pts = pointsFor(history, range, today);
     final chips = Padding(
       padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
-      child: Row(
+      child: Wrap(
         key: const Key('nw_ranges'),
+        spacing: Space.sm,
+        runSpacing: Space.sm,
         children: [
-          for (final r in NwRange.values) ...[
+          for (final r in NwRange.values)
             Pill(r.label, selected: r == range, onTap: () => ref.read(nwRangeProvider.notifier).set(r)),
-            const SizedBox(width: Space.sm),
-          ],
         ],
       ),
     );
@@ -143,7 +143,7 @@ class AssetsVsLiabilities extends StatelessWidget {
                 children: [
                   Dot(p.$3, size: 8),
                   const SizedBox(width: 5),
-                  Text('${p.$1} ${Money.aedCompact(p.$2)}', style: context.tt.bodySmall),
+                  Flexible(child: Text('${p.$1} ${Money.aedCompact(p.$2)}', style: context.tt.bodySmall, overflow: TextOverflow.ellipsis)),
                 ],
               ),
           ],
