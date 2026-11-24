@@ -39,19 +39,19 @@ Map<String, Object?> snapshot({String gold24 = '480.00'}) => {
 
 Dio dioWith(Map<String, Object?> routes) => Dio(BaseOptions(baseUrl: 'https://api.test'))..httpClientAdapter = FakeAdapter(routes);
 
-class _Env {
-  _Env(this.store, this.service, this.reminders, this.storage);
+class TestEnv {
+  TestEnv(this.store, this.service, this.reminders, this.storage);
   final WealthStore store;
   final WealthService service;
   final RecordingReminders reminders;
   final MemoryAttachmentStorage storage;
 }
 
-_Env env({WealthStore? store, Dio? dio}) {
+TestEnv env({WealthStore? store, Dio? dio}) {
   final s = store ?? MemoryWealthStore();
   final rem = RecordingReminders();
   final storage = MemoryAttachmentStorage();
-  return _Env(
+  return TestEnv(
     s,
     WealthService(
       store: s,
