@@ -44,7 +44,8 @@ Personal money data and the compute on it live on the phone. The backend is opti
 | Card catalog | **Phone, refreshed from backend** | Bundled `assets/catalog/cards.json`; `CatalogService` fetches a newer version when `API_BASE_URL` is set |
 | Jewellery, documents (photos, dates, reminders), mutual fund holdings, valuations | **Phone** | `WealthService` over `lib/data/local/wealth_store.dart`; photos are copied into app-private storage and never uploaded; reminders are local notifications |
 | Gold and FX prices, mutual fund scheme search and NAV | **Backend, shared and keyless** | `PriceService` fetches `GET /v1/prices/snapshot` and caches it in the `price_cache` table; `FundLookup` calls `/v1/funds/search` and `/v1/funds/schemes/{code}/latest`. No personal data is sent; the phone does all valuation |
-| Auth, splits with other people, family sharing, statement parsing, Gmail, encrypted backup/sync, AI | **Backend** | `ApiPulseRepository`, used only for these shared features (backup/sync and AI are not built yet) |
+| Auth, splits with other people, family sharing, statement parsing, Gmail, AI | **Backend** | `ApiPulseRepository`, used only for these shared features (AI is not built yet) |
+| Backup and restore | **Phone encrypts, cloud stores ciphertext** | `lib/backup/`, end-to-end encrypted, see `docs/BACKUP.md` |
 
 `repositoryProvider` (`lib/data/providers.dart`): `DEMO_DATA` or no open database gives `MockPulseRepository`; otherwise `LocalPulseRepository`, with `ApiPulseRepository` as its `shared` delegate when `API_BASE_URL` is set. Without a backend, server-only features return a clear "not supported" error or an empty list.
 

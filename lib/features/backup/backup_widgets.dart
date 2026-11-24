@@ -89,7 +89,14 @@ class PhraseGrid extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Text(words[i], style: context.tt.titleMedium),
+                  Flexible(
+                    child: Text(
+                      words[i],
+                      style: context.tt.titleMedium,
+                      overflow: TextOverflow.fade,
+                      softWrap: false,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -161,13 +168,13 @@ class ChoiceTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: Space.sm,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(title, style: context.tt.titleMedium),
-                        ),
+                        Text(title, style: context.tt.titleMedium),
                         if (badge != null) ...[
-                          const SizedBox(width: Space.sm),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,

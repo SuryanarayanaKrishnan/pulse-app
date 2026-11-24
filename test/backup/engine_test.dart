@@ -23,13 +23,14 @@ void main() {
   late List<File> files;
   var now = DateTime.utc(2026, 3, 1, 10);
 
-  BackupEngine engine({int chunkSize = 2048, BackupProvider? provider}) => BackupEngine(
-    provider: provider ?? store,
-    dataKey: dataKey,
-    chunkSize: chunkSize,
-    rowsPerChunk: 400,
-    clock: () => now,
-  );
+  BackupEngine engine({int chunkSize = 2048, BackupProvider? provider}) =>
+      BackupEngine(
+        provider: provider ?? store,
+        dataKey: dataKey,
+        chunkSize: chunkSize,
+        rowsPerChunk: 400,
+        clock: () => now,
+      );
 
   setUp(() async {
     tmp = await Directory.systemTemp.createTemp('pulse_bk');
@@ -51,58 +52,89 @@ void main() {
     expect(store.objects, isNotEmpty);
     for (final e in store.objects.entries) {
       final text = latin1.decode(e.value);
-      for (final secret in ['Salary account', 'Gold ring', 'Title deed', 'Shop 5', 'sms']) {
-        expect(text, isNot(contains(secret)), reason: '${e.key} leaks "$secret"');
+      for (final secret in [
+        'Salary account',
+        'Gold ring',
+        'Title deed',
+        'Shop 5',
+        'sms',
+      ]) {
+        expect(
+          text,
+          isNot(contains(secret)),
+          reason: '${e.key} leaks "$secret"',
+        );
       }
     }
     // Names are keyed hashes, not file names or content hashes.
-    expect(store.objects.keys.where((k) => k.contains('ring') || k.contains('jpg')), isEmpty);
+    expect(
+      store.objects.keys.where((k) => k.contains('ring') || k.contains('jpg')),
+      isEmpty,
+    );
   });
 
-  test('restore into a fresh database equals the original, files included', () async {
-    final stats = await engine().backup(db: db);
-    expect(stats.rows, greaterThan(1200));
-    expect(stats.attachments, 3);
-    expect(stats.skippedAttachments, 1, reason: 'gone.jpg was missing');
+  test(
+    'restore into a fresh database equals the original, files included',
+    () async {
+      final stats = await engine().backup(db: db);
+      expect(stats.rows, greaterThan(1200));
+      expect(stats.attachments, 3);
+      expect(stats.skippedAttachments, 1, reason: 'gone.jpg was missing');
 
-    final fresh = memoryDb();
-    addTearDown(fresh.close);
-    final r = await engine().restoreInto(target: fresh, manifestName: stats.manifestName, attachmentsDir: restoreDir);
-    expect(r.attachments, 3);
+      final fresh = memoryDb();
+      addTearDown(fresh.close);
+      final r = await engine().restoreInto(
+        target: fresh,
+        manifestName: stats.manifestName,
+        attachmentsDir: restoreDir,
+      );
+      expect(r.attachments, 3);
 
-    // Same rows, except the file paths that now point into the new folder.
-    final restoredFiles = restoreDir.listSync().whereType<File>().toList();
-    expect(restoredFiles, hasLength(3));
-    final after = await fingerprint(fresh);
-    final jewel = await fresh.select(fresh.jewelleryItems).getSingle();
-    final newPaths = (jsonDecode(jewel.photoPaths) as List).cast<String>();
-    expect(newPaths.first, startsWith(restoreDir.path));
-    expect(newPaths.last, 'demo:ring');
-    final remap = <String, String>{files[0].path: newPaths[0], files[1].path: newPaths[1]};
-    final deed = await fresh.select(fresh.documentAttachments).getSingle();
-    final deedPaths = (jsonDecode(deed.filePaths) as List).cast<String>();
-    remap[files[2].path] = deedPaths.first;
-    expect(await fingerprint(db, pathRemap: remap), after);
-    // Bytes are identical.
-    expect(File(newPaths[0]).readAsBytesSync(), files[0].readAsBytesSync());
-    expect(File(deedPaths.first).readAsBytesSync(), files[2].readAsBytesSync());
-    expect(await fresh.setting('theme'), 'dark');
-  });
+      // Same rows, except the file paths that now point into the new folder.
+      final restoredFiles = restoreDir.listSync().whereType<File>().toList();
+      expect(restoredFiles, hasLength(3));
+      final after = await fingerprint(fresh);
+      final jewel = await fresh.select(fresh.jewelleryItems).getSingle();
+      final newPaths = (jsonDecode(jewel.photoPaths) as List).cast<String>();
+      expect(newPaths.first, startsWith(restoreDir.path));
+      expect(newPaths.last, 'demo:ring');
+      final remap = <String, String>{
+        files[0].path: newPaths[0],
+        files[1].path: newPaths[1],
+      };
+      final deed = await fresh.select(fresh.documentAttachments).getSingle();
+      final deedPaths = (jsonDecode(deed.filePaths) as List).cast<String>();
+      remap[files[2].path] = deedPaths.first;
+      expect(await fingerprint(db, pathRemap: remap), after);
+      // Bytes are identical.
+      expect(File(newPaths[0]).readAsBytesSync(), files[0].readAsBytesSync());
+      expect(
+        File(deedPaths.first).readAsBytesSync(),
+        files[2].readAsBytesSync(),
+      );
+      expect(await fresh.setting('theme'), 'dark');
+    },
+  );
 
-  test('chunk dedupe: an unchanged second backup uploads only the manifest', () async {
-    final first = await engine().backup(db: db);
-    expect(first.chunksUploaded, greaterThan(5));
-    final writesAfterFirst = store.writes;
-    now = now.add(const Duration(hours: 1));
-    final second = await engine().backup(db: db);
-    expect(second.chunksUploaded, 0);
-    expect(second.chunksReused, first.chunksUploaded + first.chunksReused);
-    expect(store.writes - writesAfterFirst, 1, reason: 'just the manifest');
-  });
+  test(
+    'chunk dedupe: an unchanged second backup uploads only the manifest',
+    () async {
+      final first = await engine().backup(db: db);
+      expect(first.chunksUploaded, greaterThan(5));
+      final writesAfterFirst = store.writes;
+      now = now.add(const Duration(hours: 1));
+      final second = await engine().backup(db: db);
+      expect(second.chunksUploaded, 0);
+      expect(second.chunksReused, first.chunksUploaded + first.chunksReused);
+      expect(store.writes - writesAfterFirst, 1, reason: 'just the manifest');
+    },
+  );
 
   test('chunk dedupe: one changed row re-uploads only its chunk', () async {
     final first = await engine().backup(db: db);
-    await (db.update(db.transactions)..where((t) => t.id.equals('t5'))).write(const TransactionsCompanion(notes: Value('lunch')));
+    await (db.update(db.transactions)..where((t) => t.id.equals('t5'))).write(
+      const TransactionsCompanion(notes: Value('lunch')),
+    );
     now = now.add(const Duration(hours: 1));
     final second = await engine().backup(db: db);
     expect(second.chunksUploaded, 1);
@@ -110,10 +142,19 @@ void main() {
   });
 
   test('identical photo content is stored once', () async {
-    final copy = File('${tmp.path}/ring-copy.jpg')..writeAsBytesSync(files[0].readAsBytesSync());
-    await db.into(db.jewelleryItems).insert(
-      JewelleryItemsCompanion.insert(id: 'j2', name: 'Copy', weightGrams: 1, karat: 18, photoPaths: Value(jsonEncode([copy.path]))),
-    );
+    final copy = File('${tmp.path}/ring-copy.jpg')
+      ..writeAsBytesSync(files[0].readAsBytesSync());
+    await db
+        .into(db.jewelleryItems)
+        .insert(
+          JewelleryItemsCompanion.insert(
+            id: 'j2',
+            name: 'Copy',
+            weightGrams: 1,
+            karat: 18,
+            photoPaths: Value(jsonEncode([copy.path])),
+          ),
+        );
     final s = await engine().backup(db: db);
     final eng = engine();
     final m = await eng.readManifest(s.manifestName);
@@ -140,7 +181,11 @@ void main() {
     final olderApp = _SchemaDb(1);
     addTearDown(olderApp.close);
     await expectLater(
-      engine().restoreInto(target: olderApp, manifestName: s.manifestName, attachmentsDir: restoreDir),
+      engine().restoreInto(
+        target: olderApp,
+        manifestName: s.manifestName,
+        attachmentsDir: restoreDir,
+      ),
       throwsA(isA<BackupTooNew>()),
     );
 
@@ -159,7 +204,11 @@ void main() {
     );
     final key = await BackupCrypto.subKey(dataKey, 'manifest');
     const name = 'manifests/000000000000001-oldold01.bin';
-    store.objects[name] = await BackupCrypto.seal(key, old.encode(), aad: utf8.encode(name));
+    store.objects[name] = await BackupCrypto.seal(
+      key,
+      old.encode(),
+      aad: utf8.encode(name),
+    );
     var ran = 0;
     await eng.restoreInto(
       target: fresh,
@@ -187,12 +236,19 @@ void main() {
     expect(chunk.columns, contains('name'));
     final fresh = memoryDb();
     addTearDown(fresh.close);
-    final extra = TableDump('accounts', [...chunk.columns, 'colour_from_the_future'], [
-      [...chunk.rows.first, 'teal'],
-    ]);
+    final extra = TableDump(
+      'accounts',
+      [...chunk.columns, 'colour_from_the_future'],
+      [
+        [...chunk.rows.first, 'teal'],
+      ],
+    );
     final counts = await importTables(fresh, [extra]);
     expect(counts.rows, 1);
-    expect((await fresh.select(fresh.accounts).getSingle()).name, 'Salary account');
+    expect(
+      (await fresh.select(fresh.accounts).getSingle()).name,
+      'Salary account',
+    );
   });
 
   test('tampered chunk, tampered manifest, swapped chunk and missing chunk are all rejected', () async {
@@ -200,15 +256,22 @@ void main() {
     final fresh = memoryDb();
     addTearDown(fresh.close);
     Future<void> expectRejected(Object matcher) => expectLater(
-      engine().restoreInto(target: fresh, manifestName: s.manifestName, attachmentsDir: restoreDir),
+      engine().restoreInto(
+        target: fresh,
+        manifestName: s.manifestName,
+        attachmentsDir: restoreDir,
+      ),
       throwsA(matcher),
     );
-    final chunkNames = store.objects.keys.where((k) => k.startsWith('chunks/')).toList()..sort();
+    final chunkNames =
+        store.objects.keys.where((k) => k.startsWith('chunks/')).toList()
+          ..sort();
 
     // flip a bit in one chunk
     final victim = chunkNames.first;
     final original = Uint8List.fromList(store.objects[victim]!);
-    store.objects[victim] = Uint8List.fromList(original)..[original.length ~/ 2] ^= 0x10;
+    store.objects[victim] = Uint8List.fromList(original)
+      ..[original.length ~/ 2] ^= 0x10;
     await expectRejected(isA<BackupIntegrityError>());
     store.objects[victim] = original;
 
@@ -233,7 +296,11 @@ void main() {
     // a manifest renamed on the server no longer authenticates
     store.objects['manifests/999999999999999-ffffffff.bin'] = m;
     await expectLater(
-      engine().restoreInto(target: fresh, manifestName: 'manifests/999999999999999-ffffffff.bin', attachmentsDir: restoreDir),
+      engine().restoreInto(
+        target: fresh,
+        manifestName: 'manifests/999999999999999-ffffffff.bin',
+        attachmentsDir: restoreDir,
+      ),
       throwsA(isA<BackupIntegrityError>()),
     );
     store.objects.remove('manifests/999999999999999-ffffffff.bin');
@@ -243,39 +310,69 @@ void main() {
     expect(restoreDir.existsSync() ? restoreDir.listSync() : [], isEmpty);
 
     // and the untouched backup still restores
-    final ok = await engine().restoreInto(target: fresh, manifestName: s.manifestName, attachmentsDir: restoreDir);
+    final ok = await engine().restoreInto(
+      target: fresh,
+      manifestName: s.manifestName,
+      attachmentsDir: restoreDir,
+    );
     expect(ok.rows, greaterThan(1200));
   });
 
   test('the wrong data key cannot read anything', () async {
     final s = await engine().backup(db: db);
-    final wrong = BackupEngine(provider: store, dataKey: BackupCrypto.randomBytes(32));
-    await expectLater(wrong.readManifest(s.manifestName), throwsA(isA<BackupIntegrityError>()));
+    final wrong = BackupEngine(
+      provider: store,
+      dataKey: BackupCrypto.randomBytes(32),
+    );
+    await expectLater(
+      wrong.readManifest(s.manifestName),
+      throwsA(isA<BackupIntegrityError>()),
+    );
     expect(await wrong.versions(), isEmpty);
     expect(wrong.corruptManifests, 1);
   });
 
-  test('retention keeps the last N versions and collects orphaned chunks', () async {
-    for (var i = 0; i < 4; i++) {
-      await (db.update(db.transactions)..where((t) => t.id.equals('t${i * 450}'))).write(TransactionsCompanion(notes: Value('v$i')));
-      now = now.add(const Duration(days: 1));
-      await engine().backup(db: db, keep: 2);
-    }
-    final versions = await engine().versions();
-    expect(versions, hasLength(2));
-    expect(versions.first.manifest.createdAt.isAfter(versions.last.manifest.createdAt), isTrue);
-    final live = {for (final v in versions) ...v.manifest.allChunks};
-    final stored = store.objects.keys.where((k) => k.startsWith('chunks/')).map((k) => k.substring(7)).toSet();
-    expect(stored, live, reason: 'no orphans, nothing missing');
-    // The older kept version still restores.
-    final fresh = memoryDb();
-    addTearDown(fresh.close);
-    await engine().restoreInto(target: fresh, manifestName: versions.last.objectName, attachmentsDir: restoreDir);
-  });
+  test(
+    'retention keeps the last N versions and collects orphaned chunks',
+    () async {
+      for (var i = 0; i < 4; i++) {
+        await (db.update(db.transactions)
+              ..where((t) => t.id.equals('t${i * 450}')))
+            .write(TransactionsCompanion(notes: Value('v$i')));
+        now = now.add(const Duration(days: 1));
+        await engine().backup(db: db, keep: 2);
+      }
+      final versions = await engine().versions();
+      expect(versions, hasLength(2));
+      expect(
+        versions.first.manifest.createdAt.isAfter(
+          versions.last.manifest.createdAt,
+        ),
+        isTrue,
+      );
+      final live = {for (final v in versions) ...v.manifest.allChunks};
+      final stored = store.objects.keys
+          .where((k) => k.startsWith('chunks/'))
+          .map((k) => k.substring(7))
+          .toSet();
+      expect(stored, live, reason: 'no orphans, nothing missing');
+      // The older kept version still restores.
+      final fresh = memoryDb();
+      addTearDown(fresh.close);
+      await engine().restoreInto(
+        target: fresh,
+        manifestName: versions.last.objectName,
+        attachmentsDir: restoreDir,
+      );
+    },
+  );
 
   test('garbage collection leaves very recent chunks alone', () async {
     await engine().backup(db: db, prune: false);
-    await store.write('chunks/${'a' * 64}', Uint8List(10)); // another device, uploading right now
+    await store.write(
+      'chunks/${'a' * 64}',
+      Uint8List(10),
+    ); // another device, uploading right now
     await engine().pruneOld(keep: 5);
     expect(store.objects.containsKey('chunks/${'a' * 64}'), isTrue);
     now = now.add(const Duration(hours: 3));
@@ -283,13 +380,22 @@ void main() {
     expect(store.objects.containsKey('chunks/${'a' * 64}'), isFalse);
   });
 
-  test('a failing provider surfaces the error and leaves no manifest behind', () async {
-    store.failWith = const SocketException('offline');
-    await expectLater(engine().backup(db: db), throwsA(isA<SocketException>()));
-    store.failWith = null;
-    expect(store.objects.keys.where((k) => k.startsWith('manifests/')), isEmpty);
-    expect(await engine().versions(), isEmpty);
-  });
+  test(
+    'a failing provider surfaces the error and leaves no manifest behind',
+    () async {
+      store.failWith = const SocketException('offline');
+      await expectLater(
+        engine().backup(db: db),
+        throwsA(isA<SocketException>()),
+      );
+      store.failWith = null;
+      expect(
+        store.objects.keys.where((k) => k.startsWith('manifests/')),
+        isEmpty,
+      );
+      expect(await engine().versions(), isEmpty);
+    },
+  );
 
   group('archive file (export/import)', () {
     test('exports to one file and restores from it', () async {
@@ -298,32 +404,55 @@ void main() {
       final stats = await engine(provider: sink).backup(db: db, prune: false);
       await sink.close();
       expect(File(path).lengthSync(), greaterThan(1000));
-      expect(latin1.decode(File(path).readAsBytesSync()), isNot(contains('Salary account')));
+      expect(
+        latin1.decode(File(path).readAsBytesSync()),
+        isNot(contains('Salary account')),
+      );
 
       final reader = await ArchiveReaderProvider.open(path);
       final fresh = memoryDb();
       addTearDown(fresh.close);
-      final r = await engine(provider: reader).restoreInto(target: fresh, manifestName: stats.manifestName, attachmentsDir: restoreDir);
+      final r = await engine(provider: reader).restoreInto(
+        target: fresh,
+        manifestName: stats.manifestName,
+        attachmentsDir: restoreDir,
+      );
       expect(r.rows, stats.rows);
       expect(await fresh.select(fresh.transactions).get(), hasLength(1200));
     });
 
-    test('a truncated or foreign file is rejected before anything is read', () async {
-      final path = '${tmp.path}/x.pulsebak';
-      final sink = ArchiveWriterProvider(path);
-      await engine(provider: sink).backup(db: db, prune: false);
-      await sink.close();
-      final bytes = File(path).readAsBytesSync();
-      File('${tmp.path}/cut.pulsebak').writeAsBytesSync(bytes.sublist(0, bytes.length - 50));
-      await expectLater(ArchiveReaderProvider.open('${tmp.path}/cut.pulsebak'), throwsA(isA<ArchiveFormatError>()));
-      File('${tmp.path}/pic.pulsebak').writeAsBytesSync(List.filled(64, 7));
-      await expectLater(ArchiveReaderProvider.open('${tmp.path}/pic.pulsebak'), throwsA(isA<ArchiveFormatError>()));
-    });
+    test(
+      'a truncated or foreign file is rejected before anything is read',
+      () async {
+        final path = '${tmp.path}/x.pulsebak';
+        final sink = ArchiveWriterProvider(path);
+        await engine(provider: sink).backup(db: db, prune: false);
+        await sink.close();
+        final bytes = File(path).readAsBytesSync();
+        File('${tmp.path}/cut.pulsebak')
+            .writeAsBytesSync(bytes.sublist(0, bytes.length - 50));
+        await expectLater(
+          ArchiveReaderProvider.open('${tmp.path}/cut.pulsebak'),
+          throwsA(isA<ArchiveFormatError>()),
+        );
+        File('${tmp.path}/pic.pulsebak').writeAsBytesSync(List.filled(64, 7));
+        await expectLater(
+          ArchiveReaderProvider.open('${tmp.path}/pic.pulsebak'),
+          throwsA(isA<ArchiveFormatError>()),
+        );
+      },
+    );
   });
 
   test('stub providers say why they are unavailable', () async {
-    await expectLater(googleDriveProvider().ensureReady(), throwsA(isA<BackupProviderUnavailable>()));
-    await expectLater(iCloudProvider().list(''), throwsA(isA<BackupProviderUnavailable>()));
+    await expectLater(
+      googleDriveProvider().ensureReady(),
+      throwsA(isA<BackupProviderUnavailable>()),
+    );
+    await expectLater(
+      iCloudProvider().list(''),
+      throwsA(isA<BackupProviderUnavailable>()),
+    );
   });
 }
 
@@ -334,7 +463,15 @@ class _SchemaDb extends PulseDatabase {
   int get schemaVersion => v;
 }
 
-Future<Uint8List> _plain(MemoryBackupProvider store, Uint8List dataKey, String id) async {
+Future<Uint8List> _plain(
+  MemoryBackupProvider store,
+  Uint8List dataKey,
+  String id,
+) async {
   final ck = await BackupCrypto.subKey(dataKey, 'chunk');
-  return BackupCrypto.open(ck, store.objects['chunks/$id']!, aad: utf8.encode(id));
+  return BackupCrypto.open(
+    ck,
+    store.objects['chunks/$id']!,
+    aad: utf8.encode(id),
+  );
 }

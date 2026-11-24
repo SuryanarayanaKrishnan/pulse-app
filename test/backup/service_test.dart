@@ -26,7 +26,10 @@ void main() {
   late RecordingAnalytics analytics;
   var now = DateTime.utc(2026, 5, 1, 9);
 
-  Future<BackupService> service({BackupProvider? provider, bool noCloud = false}) async => BackupService(
+  Future<BackupService> service({
+    BackupProvider? provider,
+    bool noCloud = false,
+  }) async => BackupService(
     db: db,
     kv: kv,
     keys: keys,
@@ -56,109 +59,199 @@ void main() {
   test('enable: key envelope and first backup land in the cloud, keys stay on the phone', () async {
     final svc = await service();
     final phrase = RecoveryPhrase.generate().join(' ');
-    await svc.enable(secret: phrase, secretKind: 'phrase', destination: BackupDestination.cloud);
+    await svc.enable(
+      secret: phrase,
+      secretKind: 'phrase',
+      destination: BackupDestination.cloud,
+    );
     expect(svc.state.enabled, isTrue);
     expect(svc.state.lastSuccess, now);
     expect(svc.state.lastError, isNull);
     expect(cloud.objects.keys, containsAll(['key.json']));
-    expect(cloud.objects.keys.where((k) => k.startsWith('manifests/')), hasLength(1));
+    expect(
+      cloud.objects.keys.where((k) => k.startsWith('manifests/')),
+      hasLength(1),
+    );
     // The phrase and the data key appear nowhere in what the server holds.
     final all = cloud.objects.values.map((b) => latin1.decode(b)).join();
     expect(all, isNot(contains('${phrase.split(' ').first} ')));
     final dk = await keys.load();
     expect(dk, isNotNull);
     expect(all.contains(base64.encode(dk!)), isFalse);
-    expect(analytics.names, containsAll(['backup_enabled', 'backup_completed']));
+    expect(
+      analytics.names,
+      containsAll(['backup_enabled', 'backup_completed']),
+    );
     // Analytics carries no personal data.
     for (final e in analytics.events) {
-      expect(jsonEncode(e.properties), isNot(contains(phrase.split(' ').first)));
+      expect(
+        jsonEncode(e.properties),
+        isNot(contains(phrase.split(' ').first)),
+      );
     }
   });
 
   test('settings and "last backed up" survive a restart', () async {
     var svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
+    await svc.enable(
+      secret: 'a passphrase of mine',
+      secretKind: 'passphrase',
+      destination: BackupDestination.cloud,
+    );
     await svc.setWifiOnly(false);
     now = now.add(const Duration(hours: 3));
     svc.dispose();
     svc = await service();
     expect(svc.state.enabled, isTrue);
     expect(svc.state.wifiOnly, isFalse);
-    expect(backedUpAgo(svc.state.lastSuccess, now), 'Last backed up 3 hours ago');
+    expect(
+      backedUpAgo(svc.state.lastSuccess, now),
+      'Last backed up 3 hours ago',
+    );
   });
 
-  test('a failed backup is calm, counted, and recovers on the next success', () async {
-    final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    cloud.failWith = const SocketException('offline');
-    now = now.add(const Duration(hours: 1));
-    expect(await svc.backupNow(), isNull);
-    expect(svc.state.lastError, contains('No connection'));
-    expect(svc.state.lastError, isNot(contains('SocketException')));
-    expect(svc.state.failures, 1);
-    expect(svc.state.running, isFalse);
-    expect(svc.state.needsAttention(now), isFalse, reason: 'one failure is not worth alarming anyone');
-    for (var i = 0; i < 2; i++) {
-      await svc.backupNow();
-    }
-    expect(svc.state.needsAttention(now), isTrue);
-    cloud.failWith = null;
-    expect(await svc.backupNow(), isNotNull);
-    expect(svc.state.lastError, isNull);
-    expect(svc.state.failures, 0);
-    expect(analytics.events.where((e) => e.name == 'backup_failed').first.properties['reason'], 'offline');
-  });
+  test(
+    'a failed backup is calm, counted, and recovers on the next success',
+    () async {
+      final svc = await service();
+      await svc.enable(
+        secret: 'a passphrase of mine',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      );
+      cloud.failWith = const SocketException('offline');
+      now = now.add(const Duration(hours: 1));
+      expect(await svc.backupNow(), isNull);
+      expect(svc.state.lastError, contains('No connection'));
+      expect(svc.state.lastError, isNot(contains('SocketException')));
+      expect(svc.state.failures, 1);
+      expect(svc.state.running, isFalse);
+      expect(
+        svc.state.needsAttention(now),
+        isFalse,
+        reason: 'one failure is not worth alarming anyone',
+      );
+      for (var i = 0; i < 2; i++) {
+        await svc.backupNow();
+      }
+      expect(svc.state.needsAttention(now), isTrue);
+      cloud.failWith = null;
+      expect(await svc.backupNow(), isNotNull);
+      expect(svc.state.lastError, isNull);
+      expect(svc.state.failures, 0);
+      expect(
+        analytics.events
+            .where((e) => e.name == 'backup_failed')
+            .first
+            .properties['reason'],
+        'offline',
+      );
+    },
+  );
 
   test('concurrent backupNow calls share one run', () async {
     final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    final before = analytics.events.where((e) => e.name == 'backup_completed').length;
+    await svc.enable(
+      secret: 'a passphrase of mine',
+      secretKind: 'passphrase',
+      destination: BackupDestination.cloud,
+    );
+    final before = analytics.events
+        .where((e) => e.name == 'backup_completed')
+        .length;
     await Future.wait([svc.backupNow(), svc.backupNow(), svc.backupNow()]);
-    expect(analytics.events.where((e) => e.name == 'backup_completed').length, before + 1);
+    expect(
+      analytics.events.where((e) => e.name == 'backup_completed').length,
+      before + 1,
+    );
   });
 
   test('enabling over an existing cloud backup asks first and never overwrites silently', () async {
     final first = await service();
-    await first.enable(secret: 'first passphrase 1', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    final manifestsBefore = cloud.objects.keys.where((k) => k.startsWith('manifests/')).toList();
+    await first.enable(
+      secret: 'first passphrase 1',
+      secretKind: 'passphrase',
+      destination: BackupDestination.cloud,
+    );
+    final manifestsBefore = cloud.objects.keys
+        .where((k) => k.startsWith('manifests/'))
+        .toList();
 
     keys = MemoryBackupKeyStore();
     kv = MemoryKvStore();
     final second = await service();
     await expectLater(
-      second.enable(secret: 'second passphrase 2', secretKind: 'passphrase', destination: BackupDestination.cloud),
+      second.enable(
+        secret: 'second passphrase 2',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      ),
       throwsA(isA<BackupAlreadyExists>()),
     );
-    expect(cloud.objects.keys.where((k) => k.startsWith('manifests/')), manifestsBefore);
+    expect(
+      cloud.objects.keys.where((k) => k.startsWith('manifests/')),
+      manifestsBefore,
+    );
     await second.enable(
       secret: 'second passphrase 2',
       secretKind: 'passphrase',
       destination: BackupDestination.cloud,
       replaceExisting: true,
     );
-    expect(cloud.objects.keys.where((k) => k.startsWith('manifests/')).length, 1);
+    expect(
+      cloud.objects.keys.where((k) => k.startsWith('manifests/')).length,
+      1,
+    );
   });
 
   test('change passphrase re-wraps the data key: old backups open with the new one only', () async {
     final svc = await service();
-    await svc.enable(secret: 'old passphrase 123', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    final chunksBefore = cloud.objects.keys.where((k) => k.startsWith('chunks/')).toSet();
+    await svc.enable(
+      secret: 'old passphrase 123',
+      secretKind: 'passphrase',
+      destination: BackupDestination.cloud,
+    );
+    final chunksBefore = cloud.objects.keys
+        .where((k) => k.startsWith('chunks/'))
+        .toSet();
     await expectLater(
-      svc.changePassphrase(current: 'not my passphrase', next: 'brand new passphrase', nextKind: 'passphrase'),
+      svc.changePassphrase(
+        current: 'not my passphrase',
+        next: 'brand new passphrase',
+        nextKind: 'passphrase',
+      ),
       throwsA(isA<WrongPassphrase>()),
     );
-    await svc.changePassphrase(current: 'old passphrase 123', next: 'brand new passphrase', nextKind: 'passphrase');
-    expect(cloud.objects.keys.where((k) => k.startsWith('chunks/')).toSet(), chunksBefore, reason: 'no re-upload');
+    await svc.changePassphrase(
+      current: 'old passphrase 123',
+      next: 'brand new passphrase',
+      nextKind: 'passphrase',
+    );
+    expect(
+      cloud.objects.keys.where((k) => k.startsWith('chunks/')).toSet(),
+      chunksBefore,
+      reason: 'no re-upload',
+    );
     final env = (await BackupEngine.readEnvelope(cloud))!;
-    await expectLater(env.unwrap('old passphrase 123'), throwsA(isA<WrongPassphrase>()));
+    await expectLater(
+      env.unwrap('old passphrase 123'),
+      throwsA(isA<WrongPassphrase>()),
+    );
     final dk = await env.unwrap('brand new passphrase');
     expect(dk, await keys.load());
-    expect(await BackupEngine(provider: cloud, dataKey: dk).versions(), hasLength(1));
+    expect(
+      await BackupEngine(provider: cloud, dataKey: dk).versions(),
+      hasLength(1),
+    );
   });
 
   test('export produces a self-contained encrypted file that unlocks with the same secret', () async {
     final svc = await service(noCloud: true);
-    await svc.enable(secret: 'file only passphrase', secretKind: 'passphrase', destination: BackupDestination.file);
+    await svc.enable(
+      secret: 'file only passphrase',
+      secretKind: 'passphrase',
+      destination: BackupDestination.file,
+    );
     expect(await svc.backupNow(), isNull, reason: 'file-only never uploads');
     final path = await svc.exportArchive();
     expect(path, endsWith('.$archiveExtension'));
@@ -170,18 +263,29 @@ void main() {
     expect(analytics.names, contains('backup_exported'));
   });
 
-  test('delete cloud backup removes every object and turns backup off', () async {
-    final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    await svc.deleteCloudBackup();
-    expect(cloud.objects, isEmpty);
-    expect(svc.state.enabled, isFalse);
-    expect(await keys.load(), isNull);
-  });
+  test(
+    'delete cloud backup removes every object and turns backup off',
+    () async {
+      final svc = await service();
+      await svc.enable(
+        secret: 'a passphrase of mine',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      );
+      await svc.deleteCloudBackup();
+      expect(cloud.objects, isEmpty);
+      expect(svc.state.enabled, isFalse);
+      expect(await keys.load(), isNull);
+    },
+  );
 
   test('switching a file-only backup to the cloud publishes the same key, and refuses a different lineage', () async {
     final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.file);
+    await svc.enable(
+      secret: 'a passphrase of mine',
+      secretKind: 'passphrase',
+      destination: BackupDestination.file,
+    );
     await svc.setDestination(BackupDestination.cloud);
     expect(cloud.objects.containsKey('key.json'), isTrue);
     await svc.setDestination(BackupDestination.file);
@@ -197,23 +301,44 @@ void main() {
       exportDir: () async => tmp,
       kdf: KdfParams.testing,
     );
-    await otherSvc.enable(secret: 'a different passphrase', secretKind: 'passphrase', destination: BackupDestination.cloud);
+    await otherSvc.enable(
+      secret: 'a different passphrase',
+      secretKind: 'passphrase',
+      destination: BackupDestination.cloud,
+    );
     cloud.objects['key.json'] = other.objects['key.json']!;
-    await expectLater(svc.setDestination(BackupDestination.cloud), throwsA(isA<BackupAlreadyExists>()));
+    await expectLater(
+      svc.setDestination(BackupDestination.cloud),
+      throwsA(isA<BackupAlreadyExists>()),
+    );
   });
 
-  test('missing keys on the phone are reported plainly, not as a crash', () async {
-    final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    await keys.clear();
-    expect(await svc.backupNow(), isNull);
-    expect(svc.state.lastError, contains('backup key'));
-  });
+  test(
+    'missing keys on the phone are reported plainly, not as a crash',
+    () async {
+      final svc = await service();
+      await svc.enable(
+        secret: 'a passphrase of mine',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      );
+      await keys.clear();
+      expect(await svc.backupNow(), isNull);
+      expect(svc.state.lastError, contains('backup key'));
+    },
+  );
 
   group('scheduler', () {
-    Future<(BackupService, BackupScheduler)> rig({bool wifi = true, Duration debounce = const Duration(milliseconds: 60)}) async {
+    Future<(BackupService, BackupScheduler)> rig({
+      bool wifi = true,
+      Duration debounce = const Duration(milliseconds: 60),
+    }) async {
       final svc = await service();
-      await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
+      await svc.enable(
+        secret: 'a passphrase of mine',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      );
       final s = BackupScheduler(
         service: svc,
         db: db,
@@ -227,55 +352,85 @@ void main() {
       return (svc, s);
     }
 
-    int completed() => analytics.events.where((e) => e.name == 'backup_completed').length;
+    int completed() =>
+        analytics.events.where((e) => e.name == 'backup_completed').length;
 
-    test('a burst of changes causes exactly one backup after the quiet period', () async {
-      final (svc, _) = await rig();
-      final base = completed();
-      for (var i = 0; i < 5; i++) {
-        await db.into(db.accounts).insert(AccountsCompanion.insert(id: 'x$i', type: 'cash', name: 'Cash $i'));
-        await Future<void>.delayed(const Duration(milliseconds: 15));
-      }
-      expect(svc.state.dirty, isTrue);
-      expect(completed(), base, reason: 'still inside the debounce window');
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      expect(completed(), base + 1);
-      expect(svc.state.dirty, isFalse);
-    });
+    test(
+      'a burst of changes causes exactly one backup after the quiet period',
+      () async {
+        final (svc, _) = await rig();
+        final base = completed();
+        for (var i = 0; i < 5; i++) {
+          await db
+              .into(db.accounts)
+              .insert(
+                AccountsCompanion.insert(
+                  id: 'x$i',
+                  type: 'cash',
+                  name: 'Cash $i',
+                ),
+              );
+          await Future<void>.delayed(const Duration(milliseconds: 15));
+        }
+        expect(svc.state.dirty, isTrue);
+        expect(completed(), base, reason: 'still inside the debounce window');
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        expect(completed(), base + 1);
+        expect(svc.state.dirty, isFalse);
+      },
+    );
 
-    test('cache-only writes (prices, settings) do not trigger anything', () async {
-      final (svc, _) = await rig();
-      final base = completed();
-      await db.putSetting('theme', 'light');
-      await Future<void>.delayed(const Duration(milliseconds: 250));
-      expect(completed(), base);
-      expect(svc.state.dirty, isFalse);
-    });
+    test(
+      'cache-only writes (prices, settings) do not trigger anything',
+      () async {
+        final (svc, _) = await rig();
+        final base = completed();
+        await db.putSetting('theme', 'light');
+        await Future<void>.delayed(const Duration(milliseconds: 250));
+        expect(completed(), base);
+        expect(svc.state.dirty, isFalse);
+      },
+    );
 
     test('on a metered network with Wi-Fi only on, the change waits', () async {
       final (svc, _) = await rig(wifi: false);
       final base = completed();
-      await db.into(db.accounts).insert(AccountsCompanion.insert(id: 'y', type: 'cash', name: 'Cash'));
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(id: 'y', type: 'cash', name: 'Cash'),
+          );
       await Future<void>.delayed(const Duration(milliseconds: 300));
       expect(completed(), base);
       expect(svc.state.dirty, isTrue);
     });
 
-    test('auto off means no automatic backups, but manual still works', () async {
-      final (svc, s) = await rig();
-      await svc.setAuto(false);
-      final base = completed();
-      await db.into(db.accounts).insert(AccountsCompanion.insert(id: 'z', type: 'cash', name: 'Cash'));
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-      expect(completed(), base);
-      expect(await s.fire(), isFalse);
-      expect(await svc.backupNow(), isNotNull);
-    });
+    test(
+      'auto off means no automatic backups, but manual still works',
+      () async {
+        final (svc, s) = await rig();
+        await svc.setAuto(false);
+        final base = completed();
+        await db
+            .into(db.accounts)
+            .insert(
+              AccountsCompanion.insert(id: 'z', type: 'cash', name: 'Cash'),
+            );
+        await Future<void>.delayed(const Duration(milliseconds: 300));
+        expect(completed(), base);
+        expect(await s.fire(), isFalse);
+        expect(await svc.backupNow(), isNotNull);
+      },
+    );
 
     test('a failure schedules a spaced retry, not a tight loop', () async {
       final (svc, s) = await rig();
       cloud.failWith = const SocketException('offline');
-      await db.into(db.accounts).insert(AccountsCompanion.insert(id: 'w', type: 'cash', name: 'Cash'));
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(id: 'w', type: 'cash', name: 'Cash'),
+          );
       await Future<void>.delayed(const Duration(milliseconds: 300));
       expect(svc.state.failures, 1);
       await Future<void>.delayed(const Duration(milliseconds: 300));
@@ -290,18 +445,42 @@ void main() {
       now = now.add(const Duration(days: 2));
       // staleAfter default is 24h; resume arms a 10 s timer, so fire directly.
       s.onResumed();
-      expect(svc.state.lastSuccess!.isBefore(now.subtract(const Duration(hours: 24))), isTrue);
+      expect(
+        svc.state.lastSuccess!.isBefore(
+          now.subtract(const Duration(hours: 24)),
+        ),
+        isTrue,
+      );
       expect(await s.fire(), isTrue);
       expect(completed(), base + 1);
     });
   });
 
-  test('a backup includes writes made through drift companions (smoke)', () async {
-    await db.into(db.accounts).insert(AccountsCompanion.insert(id: 'q', type: 'cash', name: 'Late', institution: const Value('Bank')));
-    final svc = await service();
-    await svc.enable(secret: 'a passphrase of mine', secretKind: 'passphrase', destination: BackupDestination.cloud);
-    final dk = (await keys.load())!;
-    final v = (await BackupEngine(provider: cloud, dataKey: dk).versions()).single;
-    expect(v.manifest.tables.firstWhere((t) => t.name == 'accounts').rows, 2);
-  });
+  test(
+    'a backup includes writes made through drift companions (smoke)',
+    () async {
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              id: 'q',
+              type: 'cash',
+              name: 'Late',
+              institution: const Value('Bank'),
+            ),
+          );
+      final svc = await service();
+      await svc.enable(
+        secret: 'a passphrase of mine',
+        secretKind: 'passphrase',
+        destination: BackupDestination.cloud,
+      );
+      final dk = (await keys.load())!;
+      final v = (await BackupEngine(
+        provider: cloud,
+        dataKey: dk,
+      ).versions()).single;
+      expect(v.manifest.tables.firstWhere((t) => t.name == 'accounts').rows, 2);
+    },
+  );
 }

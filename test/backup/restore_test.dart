@@ -54,18 +54,37 @@ void main() {
       chunkSize: 2048,
       clock: () => now,
     ).load();
-    await svc.enable(secret: phrase, secretKind: 'phrase', destination: BackupDestination.cloud);
+    await svc.enable(
+      secret: phrase,
+      secretKind: 'phrase',
+      destination: BackupDestination.cloud,
+    );
     expect(svc.state.lastError, isNull);
     await oldDb.close();
   });
 
   tearDown(() => root.delete(recursive: true));
 
-  Future<({DeviceRestoreHost host, Directory dir, MemoryKeyStore keys, PulseDatabase live, RestoreService svc, List<KeyEnvelope> adopted})> newPhone() async {
+  Future<
+    ({
+      DeviceRestoreHost host,
+      Directory dir,
+      MemoryKeyStore keys,
+      PulseDatabase live,
+      RestoreService svc,
+      List<KeyEnvelope> adopted,
+    })
+  >
+  newPhone() async {
     final dir = Directory('${root.path}/new')..createSync(recursive: true);
     final keys = MemoryKeyStore();
     final live = await openAt(dir, keys);
-    final host = DeviceRestoreHost(supportDir: dir, attachmentsDir: Directory('${dir.path}/attachments'), keys: keys, live: live);
+    final host = DeviceRestoreHost(
+      supportDir: dir,
+      attachmentsDir: Directory('${dir.path}/attachments'),
+      keys: keys,
+      live: live,
+    );
     final adopted = <KeyEnvelope>[];
     final svc = RestoreService(
       host: host,
@@ -76,16 +95,31 @@ void main() {
         expect(dk, hasLength(32));
       },
     );
-    return (host: host, dir: dir, keys: keys, live: live, svc: svc, adopted: adopted);
+    return (
+      host: host,
+      dir: dir,
+      keys: keys,
+      live: live,
+      svc: svc,
+      adopted: adopted,
+    );
   }
 
   test('new phone restores everything, re-keys its own database, and keeps a safety copy', () async {
     final p = await newPhone();
-    expect(await p.host.hasExistingData(), isFalse, reason: 'a fresh install has nothing to lose');
+    expect(
+      await p.host.hasExistingData(),
+      isFalse,
+      reason: 'a fresh install has nothing to lose',
+    );
     final oldKey = await p.keys.loadOrCreate();
 
     // recovery phrase typed in capitals with odd spacing still works
-    final u = await p.svc.unlock(cloud, '  ${phrase.toUpperCase().replaceAll(' ', '  ')} ', source: 'cloud');
+    final u = await p.svc.unlock(
+      cloud,
+      '  ${phrase.toUpperCase().replaceAll(' ', '  ')} ',
+      source: 'cloud',
+    );
     expect(u.versions, hasLength(1));
     final stats = await p.svc.restore(u, u.versions.first);
     expect(stats.attachments, 3);
@@ -104,7 +138,10 @@ void main() {
     // Photos came along and the rows point at them.
     final jewel = await reopened.select(reopened.jewelleryItems).getSingle();
     expect(jewel.photoPaths, contains('${p.dir.path}/attachments'));
-    final restoredFiles = Directory('${p.dir.path}/attachments').listSync().whereType<File>().toList();
+    final restoredFiles = Directory('${p.dir.path}/attachments')
+        .listSync()
+        .whereType<File>()
+        .toList();
     expect(restoredFiles, hasLength(3));
     expect(
       restoredFiles.map((f) => f.lengthSync()).toList()..sort(),
@@ -112,42 +149,85 @@ void main() {
     );
     // The file is not readable with the old key.
     await expectLater(
-      openAt(p.dir, MemoryKeyStore(oldKey)).then((d) => d.select(d.accounts).get()),
+      openAt(
+        p.dir,
+        MemoryKeyStore(oldKey),
+      ).then((d) => d.select(d.accounts).get()),
       throwsA(anything),
     );
     expect(File('${p.dir.path}/pulse.db.before-restore').existsSync(), isTrue);
-    expect(analytics.names, containsAll(['restore_started', 'restore_completed']));
+    expect(
+      analytics.names,
+      containsAll(['restore_started', 'restore_completed']),
+    );
   });
 
   test('existing data on the phone is detected so the UI can ask before replacing it', () async {
     final p = await newPhone();
-    await p.live.into(p.live.accounts).insert(AccountsCompanion.insert(id: 'mine', type: 'bank', name: 'My account'));
+    await p.live
+        .into(p.live.accounts)
+        .insert(
+          AccountsCompanion.insert(
+            id: 'mine',
+            type: 'bank',
+            name: 'My account',
+          ),
+        );
     expect(await p.host.hasExistingData(), isTrue);
   });
 
-  test('wrong secret: nothing is touched, nothing is leaked about why', () async {
-    final p = await newPhone();
-    await expectLater(p.svc.unlock(cloud, 'wrong wrong wrong', source: 'cloud'), throwsA(isA<WrongPassphrase>()));
-    await expectLater(
-      p.svc.unlock(cloud, RecoveryPhrase.generate().join(' '), source: 'cloud'),
-      throwsA(isA<WrongPassphrase>()),
-    );
-    expect(describeRestoreError(const WrongPassphrase()), contains('not right'));
-    expect(File('${p.dir.path}/pulse.db.before-restore').existsSync(), isFalse);
-  });
+  test(
+    'wrong secret: nothing is touched, nothing is leaked about why',
+    () async {
+      final p = await newPhone();
+      await expectLater(
+        p.svc.unlock(cloud, 'wrong wrong wrong', source: 'cloud'),
+        throwsA(isA<WrongPassphrase>()),
+      );
+      await expectLater(
+        p.svc.unlock(
+          cloud,
+          RecoveryPhrase.generate().join(' '),
+          source: 'cloud',
+        ),
+        throwsA(isA<WrongPassphrase>()),
+      );
+      expect(
+        describeRestoreError(const WrongPassphrase()),
+        contains('not right'),
+      );
+      expect(
+        File('${p.dir.path}/pulse.db.before-restore').existsSync(),
+        isFalse,
+      );
+    },
+  );
 
   test('empty account: nothing found', () async {
     final p = await newPhone();
-    await expectLater(p.svc.unlock(MemoryBackupProvider(), phrase, source: 'cloud'), throwsA(isA<NoBackupFound>()));
+    await expectLater(
+      p.svc.unlock(MemoryBackupProvider(), phrase, source: 'cloud'),
+      throwsA(isA<NoBackupFound>()),
+    );
   });
 
   test('a corrupt backup is rejected before the swap and the phone is exactly as it was', () async {
     final p = await newPhone();
-    await p.live.into(p.live.accounts).insert(AccountsCompanion.insert(id: 'mine', type: 'bank', name: 'Keep me'));
+    await p.live
+        .into(p.live.accounts)
+        .insert(
+          AccountsCompanion.insert(id: 'mine', type: 'bank', name: 'Keep me'),
+        );
     final u = await p.svc.unlock(cloud, phrase, source: 'cloud');
-    final victim = cloud.objects.keys.firstWhere((k) => k.startsWith('chunks/'));
-    cloud.objects[victim] = Uint8List.fromList(cloud.objects[victim]!)..[30] ^= 1;
-    await expectLater(p.svc.restore(u, u.versions.first), throwsA(isA<BackupIntegrityError>()));
+    final victim = cloud.objects.keys.firstWhere(
+      (k) => k.startsWith('chunks/'),
+    );
+    cloud.objects[victim] = Uint8List.fromList(cloud.objects[victim]!)
+      ..[30] ^= 1;
+    await expectLater(
+      p.svc.restore(u, u.versions.first),
+      throwsA(isA<BackupIntegrityError>()),
+    );
     expect(analytics.events.last.properties['reason'], 'corrupt');
 
     // live database untouched, leftovers cleaned
@@ -155,29 +235,49 @@ void main() {
     expect(File('${p.dir.path}/pulse.db.restore').existsSync(), isFalse);
     expect(File('${p.dir.path}/pulse.db.before-restore').existsSync(), isFalse);
     final att = Directory('${p.dir.path}/attachments');
-    expect(att.existsSync() ? att.listSync() : [], isEmpty, reason: 'half-restored photos removed');
+    expect(
+      att.existsSync() ? att.listSync() : [],
+      isEmpty,
+      reason: 'half-restored photos removed',
+    );
     expect(p.adopted, isEmpty);
   });
 
-  test('a partial backup (missing chunk) is refused with a clear message', () async {
-    final p = await newPhone();
-    final u = await p.svc.unlock(cloud, phrase, source: 'cloud');
-    cloud.objects.remove(cloud.objects.keys.firstWhere((k) => k.startsWith('chunks/')));
-    final err = await p.svc.restore(u, u.versions.first).then<Object?>((_) => null, onError: (Object e) => e);
-    expect(err, isA<BackupIncomplete>());
-    expect(describeRestoreError(err!), contains('incomplete'));
-    expect(File('${p.dir.path}/pulse.db.restore').existsSync(), isFalse);
-  });
+  test(
+    'a partial backup (missing chunk) is refused with a clear message',
+    () async {
+      final p = await newPhone();
+      final u = await p.svc.unlock(cloud, phrase, source: 'cloud');
+      cloud.objects.remove(
+        cloud.objects.keys.firstWhere((k) => k.startsWith('chunks/')),
+      );
+      final err = await p.svc
+          .restore(u, u.versions.first)
+          .then<Object?>((_) => null, onError: (Object e) => e);
+      expect(err, isA<BackupIncomplete>());
+      expect(describeRestoreError(err!), contains('incomplete'));
+      expect(File('${p.dir.path}/pulse.db.restore').existsSync(), isFalse);
+    },
+  );
 
   test('a damaged snapshot is skipped in the list and the older good one is offered', () async {
     // Second, later snapshot, then damage it.
-    final dk = await (await BackupEngine.readEnvelope(cloud))!.unwrap(RecoveryPhrase.secretFrom(phrase));
+    final dk = await (await BackupEngine.readEnvelope(cloud))!
+        .unwrap(RecoveryPhrase.secretFrom(phrase));
     final db = memoryDb();
     addTearDown(db.close);
     now = now.add(const Duration(days: 1));
-    await BackupEngine(provider: cloud, dataKey: dk, clock: () => now).backup(db: db);
-    final newest = (cloud.objects.keys.where((k) => k.startsWith('manifests/')).toList()..sort()).last;
-    cloud.objects[newest] = Uint8List.fromList(cloud.objects[newest]!)..[20] ^= 1;
+    await BackupEngine(
+      provider: cloud,
+      dataKey: dk,
+      clock: () => now,
+    ).backup(db: db);
+    final newest =
+        (cloud.objects.keys.where((k) => k.startsWith('manifests/')).toList()
+              ..sort())
+            .last;
+    cloud.objects[newest] = Uint8List.fromList(cloud.objects[newest]!)
+      ..[20] ^= 1;
     final p = await newPhone();
     final u = await p.svc.unlock(cloud, phrase, source: 'cloud');
     expect(u.versions, hasLength(1));
@@ -188,6 +288,9 @@ void main() {
     final p = await newPhone();
     final u = await p.svc.unlock(cloud, phrase, source: 'cloud');
     expect(describeRestoreError(const BackupTooNew()), contains('Update'));
-    expect(u.versions.first.manifest.appSchemaVersion, PulseDatabase.currentSchemaVersion);
+    expect(
+      u.versions.first.manifest.appSchemaVersion,
+      PulseDatabase.currentSchemaVersion,
+    );
   });
 }

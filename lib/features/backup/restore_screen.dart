@@ -39,7 +39,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
   final _code = TextEditingController();
   bool _codeSent = false;
   bool _busy = false;
-  final bool _obscure = true;
+  bool _obscure = true;
   String? _error;
   UnlockResult? _found;
   String? _choice;
@@ -318,15 +318,22 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
           children: [
             TextField(
               controller: _secret,
-              obscureText:
-                  _obscure && !isPhrase && _secret.text.split(' ').length < 3,
-              minLines: 1,
-              maxLines: 4,
+              obscureText: _obscure,
+              maxLines: 1,
               autocorrect: false,
               enableSuggestions: false,
               onChanged: (_) => setState(() {}),
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Recovery phrase or passphrase',
+                suffixIcon: IconButton(
+                  tooltip: _obscure ? 'Show' : 'Hide',
+                  icon: Icon(
+                    _obscure
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                  ),
+                  onPressed: () => setState(() => _obscure = !_obscure),
+                ),
               ),
             ),
             const SizedBox(height: Space.sm),
@@ -339,9 +346,11 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
                     color: c.positive,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    'Recovery phrase recognised',
-                    style: context.tt.bodySmall!.copyWith(color: c.positive),
+                  Flexible(
+                    child: Text(
+                      'Recovery phrase recognised',
+                      style: context.tt.bodySmall!.copyWith(color: c.positive),
+                    ),
                   ),
                 ],
               ),
