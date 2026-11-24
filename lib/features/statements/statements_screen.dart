@@ -343,7 +343,7 @@ class _Passwords extends ConsumerWidget {
             0,
           ),
           child: Text(
-            'Stored encrypted, one per bank. Never shown again, not even to you.',
+            "Kept in this phone's secure storage, one per bank. Never synced or shown again.",
             style: context.tt.bodySmall,
           ),
         ),
@@ -376,16 +376,19 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
     if (_inst == null || _pw.text.isEmpty) return;
     setState(() => _busy = true);
     try {
-      await ref.read(repositoryProvider).setStatementPassword(_inst!, _pw.text);
+      await ref.read(statementPasswordStoreProvider).save(_inst!, _pw.text);
       _pw.clear();
       Haptics.success();
       ref.invalidate(statementPasswordsProvider);
       ref.invalidate(statementsProvider);
       if (mounted) Navigator.of(context).pop();
-    } on ApiException catch (e) {
+    } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Could not save the password on this device.'),
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -400,8 +403,8 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
           ? 'Statement password'
           : '${institutionName(_inst)} password',
       subtitle:
-          'Banks lock statement PDFs. Enter it once; locked statements are '
-          'read again automatically.',
+          'Banks lock statement PDFs. Enter it once; it stays on this phone '
+          'and locked statements are read again automatically.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -419,6 +422,10 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
               ],
             ),
             const SizedBox(height: Space.lg),
+          ],
+          if (_inst != null) ...[
+            Text(statementPasswordHint(_inst), style: context.tt.bodyMedium),
+            const SizedBox(height: Space.md),
           ],
           TextField(
             controller: _pw,
@@ -448,8 +455,8 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
               const SizedBox(width: Space.xs),
               Expanded(
                 child: Text(
-                  'Write-only. Pulse uses it to open your statements and '
-                  'never displays it.',
+                  "Kept in this phone's secure storage. Never synced, backed "
+                  'up or shown again.',
                   style: context.tt.bodySmall,
                 ),
               ),

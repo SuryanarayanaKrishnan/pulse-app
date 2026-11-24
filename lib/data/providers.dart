@@ -28,6 +28,7 @@ import 'local/ingest_pipeline.dart';
 import 'local/local_repository.dart';
 import 'mock_repository.dart';
 import 'models.dart';
+import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
 import 'repository.dart';
@@ -217,8 +218,12 @@ final rulesProvider = FutureProvider<List<AutomationRule>>(
 final statementsProvider = FutureProvider<List<Statement>>(
   (ref) => ref.watch(repositoryProvider).statements(),
 );
+/// Statement passwords stay on this device (Keychain/Keystore), never synced.
+final statementPasswordStoreProvider = Provider<StatementPasswordStore>(
+  (ref) => SecureStatementPasswordStore(),
+);
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
-  (ref) => ref.watch(repositoryProvider).statementPasswords(),
+  (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
 final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
   (ref) => ref.watch(repositoryProvider).emailConnections(),

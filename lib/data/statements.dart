@@ -21,6 +21,20 @@ const institutions = <String, String>{
 String institutionName(String? key) =>
     key == null ? 'Unknown bank' : (institutions[key] ?? key);
 
+/// How a bank builds the PDF password, shown while the user enters it. Only
+/// banks whose statement email spells it out are listed; the rest get the
+/// generic line. Examples use made-up numbers.
+const _passwordHints = <String, String>{
+  'fab':
+      'Your birth year followed by the last 4 digits of your registered '
+      'mobile number. For example, 1980 and a mobile ending 4567 make 19804567.',
+};
+
+String statementPasswordHint(String? institution) =>
+    _passwordHints[institution] ??
+    'The statement email usually says how the password is made, often from '
+        'your date of birth, mobile number or card digits.';
+
 enum ParseStatus {
   pending,
   parsed,
