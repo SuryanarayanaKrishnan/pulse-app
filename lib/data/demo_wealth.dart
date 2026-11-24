@@ -1,4 +1,5 @@
 import '../core/engine/dates.dart';
+import '../core/engine/prices.dart';
 import 'local/wealth_store.dart';
 import 'wealth_models.dart';
 
@@ -53,7 +54,16 @@ MemoryWealthStore demoWealthStore({DateTime? now}) {
   const price = 470.0; // matches the bundled fallback
   int melt(JewelleryItem i) => (i.weightGrams * i.purity * price * 100).round();
 
+  // A recent "fetch", so the demo reads as live prices.
+  final fetched = n.toUtc().subtract(const Duration(minutes: 12));
+  PriceQuote q(String symbol, double p) => PriceQuote(symbol: symbol, price: p, source: 'Demo price feed', quotedAt: fetched, fetchedAt: fetched);
+
   return MemoryWealthStore(
+    quotes: [
+      for (final k in PriceBook.goldKarats) q('XAU_AED_G_${k}K', double.parse((price * k / 24).toStringAsFixed(2))),
+      q('FX_USD_AED', 3.6725),
+      q('FX_INR_AED', 0.0425),
+    ],
     jewellery: [necklace, bangles, bands],
     history: {
       'jewellery:jw1': series(necklace, melt(necklace)),

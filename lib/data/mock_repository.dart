@@ -843,7 +843,7 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
       id: 'a5',
       name: 'Gold bars · 120 g 22K',
       kind: AssetKind.gold,
-      value: 41800,
+      value: 51700,
       note: 'Live spot',
     ),
     Asset(
@@ -869,7 +869,8 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
   ];
 
   @override
-  Future<List<Asset>> assets() async => _d([..._assets, ...?await wealth?.assets()]);
+  Future<List<Asset>> assets() async =>
+      _d([..._assets, ...?await wealth?.assets()]);
 
   @override
   Future<NetWorth> netWorth() async {
@@ -905,19 +906,23 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
         changeAed: s.last - s.first,
         updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
         prices: [
-          PriceInput(
-            name: 'Gold 22K',
-            value: 'AED 348.25 / g',
-            source: 'Dubai gold rate',
-            updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
-            changePct: 0.6,
-          ),
-          PriceInput(
-            name: 'USD / AED',
-            value: '3.6725',
-            source: 'Central Bank peg',
-            updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
-          ),
+          if (wealth != null)
+            ...priceInputs(await wealth!.book())
+          else ...[
+            PriceInput(
+              name: 'Gold 22K',
+              value: 'AED 348.25 / g',
+              source: 'Dubai gold rate',
+              updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
+              changePct: 0.6,
+            ),
+            PriceInput(
+              name: 'USD / AED',
+              value: '3.6725',
+              source: 'Central Bank peg',
+              updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
+            ),
+          ],
           PriceInput(
             name: 'Dubai Marina 1BR',
             value: 'AED 1,450,000',

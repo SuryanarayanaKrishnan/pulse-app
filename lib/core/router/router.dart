@@ -20,6 +20,9 @@ import '../../features/onboarding/connect_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/splits/splits_screen.dart';
+import '../../features/wealth/document_screens.dart';
+import '../../features/wealth/fund_screens.dart';
+import '../../features/wealth/jewellery_screens.dart';
 import '../../features/transactions/activity_screen.dart';
 import '../analytics/analytics.dart';
 import '../env/env.dart';
@@ -47,6 +50,11 @@ abstract class Routes {
 
   /// `/group/<id>`
   static const group = '/group';
+
+  /// `/jewellery/<id>`, `/document/<id>`, `/fund/<id>` (Wealth detail pages)
+  static const jewellery = '/jewellery';
+  static const document = '/document';
+  static const fund = '/fund';
 }
 
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -168,6 +176,21 @@ GoRouter buildRouter({
         path: Routes.statements,
         name: 'statements',
         builder: (c, s) => const StatementsScreen(),
+      ),
+      GoRoute(
+        path: '${Routes.jewellery}/:id',
+        name: 'jewellery',
+        builder: (c, s) => JewelleryDetailScreen(itemId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '${Routes.document}/:id',
+        name: 'document',
+        builder: (c, s) => DocumentDetailScreen(docId: s.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '${Routes.fund}/:id',
+        name: 'fund',
+        builder: (c, s) => FundDetailScreen(fundId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: '${Routes.group}/:id',

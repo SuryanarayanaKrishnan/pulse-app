@@ -285,10 +285,15 @@ class MemoryWealthStore implements WealthStore {
     List<WealthDocument> documents = const [],
     List<FundHolding> funds = const [],
     Map<String, List<ValuationPoint>> history = const {},
+    List<PriceQuote> quotes = const [],
   }) : _jewellery = [...jewellery],
        _documents = [...documents],
        _funds = [...funds],
-       _history = {for (final e in history.entries) e.key: [...e.value]};
+       _history = {for (final e in history.entries) e.key: [...e.value]} {
+    for (final q in quotes) {
+      _quotes[q.symbol] = q;
+    }
+  }
 
   final List<JewelleryItem> _jewellery;
   final List<WealthDocument> _documents;
