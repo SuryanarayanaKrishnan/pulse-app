@@ -1,11 +1,22 @@
 name: iOS unsigned IPA (free sideload)
 
 # Builds an UNSIGNED .ipa for sideloading with Sideloadly / AltStore and a free
-# Apple ID. No Apple Developer Program needed. Manual trigger only.
-# Guide: docs/SIDELOAD.md
+# Apple ID. No Apple Developer Program needed.
+# Runs only by hand or on a version tag (v*): macOS minutes count 10x against
+# the free quota, so it never runs on ordinary pushes. Guide: docs/SIDELOAD.md
 
 on:
   workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-unsigned-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -26,9 +37,13 @@ jobs:
 
       - name: Package .ipa
         run: |
+          set -euo pipefail
+          test -d build/ios/iphoneos/Runner.app
+          rm -rf Payload Pulse-unsigned.ipa
           mkdir -p Payload
           cp -R build/ios/iphoneos/Runner.app Payload/Runner.app
           zip -qry Pulse-unsigned.ipa Payload
+          unzip -l Pulse-unsigned.ipa | grep -q 'Payload/Runner.app/Info.plist'
           ls -lh Pulse-unsigned.ipa
 
       - uses: actions/upload-artifact@v4
