@@ -2,7 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/analytics/analytics.dart';
 import '../../core/analytics/event_schema.dart';
+import '../../core/learning/learning_controller.dart';
+import '../../core/router/router.dart';
 import '../../core/analytics/privacy_controller.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
@@ -88,6 +91,8 @@ class PrivacyScreen extends ConsumerWidget {
                 style: small,
               ),
             ),
+            const SectionHeader('Help improve categories'),
+            const _LearningSection(),
             const SectionHeader('Never shared, whatever you choose'),
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -97,7 +102,9 @@ class PrivacyScreen extends ConsumerWidget {
                 text:
                     'Amounts, merchants, names, contacts or message text. '
                     'Not even a rounded amount. Only fixed choices and rough buckets, '
-                    'like "a small sync" or "wrong card".',
+                    'like "a small sync" or "wrong card". The one exception is '
+                    'the shop names and categories described under Help improve '
+                    'categories, and only if you turn that on.',
               ),
             ),
             const SectionHeader('Where your data lives'),
@@ -185,6 +192,68 @@ class _EventRow extends StatelessWidget {
           else
             for (final p in spec.props.entries)
               Text('${p.key}: ${p.value.description}, ${p.value.shape}', style: sub),
+        ],
+      ),
+    );
+  }
+}
+
+/// The "Help improve categories" switch. Separate from, and independent of,
+/// anonymous usage. Off by default.
+class _LearningSection extends ConsumerWidget {
+  const _LearningSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final learning = ref.watch(learningControllerProvider);
+    final small = context.tt.bodySmall!.copyWith(color: context.pc.textSecondary);
+    return ListenableBuilder(
+      listenable: learning,
+      builder: (context, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.auto_awesome_outlined),
+                title: 'Help improve categories',
+                subtitle: learning.optIn ? 'On. Thank you.' : 'Off. Nothing is shared.',
+                trailing: Switch(
+                  value: learning.optIn,
+                  onChanged: (v) async {
+                    final analytics = ref.read(analyticsProvider);
+                    await learning.setOptIn(v);
+                    analytics.track(AnalyticsEvent.learningOptIn(v));
+                  },
+                ),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.visibility_outlined),
+                title: 'See what would be shared',
+                subtitle: 'Exactly what would be sent, before anything is.',
+                chevron: true,
+                onTap: () => context.push(Routes.learningPreview),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
+            child: Text(
+              'When you fix a category and confirm it, Pulse can learn that '
+              'this shop usually belongs in that category, and share it so '
+              'categories get better for everyone. What would leave your '
+              'phone: a shop name in plain lower case (for example '
+              '"spinneys") with a category and a small count, once a week, '
+              'and only for shops you confirmed at least twice. A few are '
+              'left out at random on purpose. Never amounts, dates, '
+              'accounts, your name, an id, message text, phone numbers, '
+              'emails or anything that looks like a person. Turning it off '
+              'deletes anything waiting to be shared. This is separate from '
+              'anonymous usage above.',
+              style: small,
+            ),
+          ),
         ],
       ),
     );

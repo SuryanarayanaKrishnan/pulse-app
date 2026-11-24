@@ -205,6 +205,11 @@ abstract final class AnalyticsSchema {
       'match': EnumProp('How sure the match was', ['phone', 'iban', 'exactName', 'fuzzyName']),
     }),
 
+    // ---- Categories ----
+    EventSpec('learning_opt_in', 'Help improve categories', 'You turn "Help improve categories" on or off. Only the yes or no is recorded, never what would be shared.', props: {
+      'enabled': BoolProp('Whether it is now on'),
+    }),
+
     // ---- Backup and sync ----
     EventSpec('backup_enabled', 'Backup and sync', 'You turn on encrypted backup.', oncePerInstall: false, props: {
       'secret_kind': EnumProp('Recovery phrase or passphrase', ['phrase', 'passphrase']),
@@ -252,7 +257,7 @@ abstract final class AnalyticsSchema {
     '/onboarding', '/sign-in', '/connect', '/home', '/budget', '/cards',
     '/splits', '/wealth', '/activity', '/settings', '/categories',
     '/automations', '/statements', '/family', '/cards-ranked', '/legacy',
-    '/goals', '/recurring', '/reports', '/household', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
+    '/goals', '/recurring', '/reports', '/household', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/privacy/learning', '/review', //
   ];
 
   static final _byName = {for (final e in events) e.name: e};

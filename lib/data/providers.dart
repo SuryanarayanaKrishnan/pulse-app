@@ -10,6 +10,7 @@ import 'api/api_pulse_repository.dart';
 import '../core/engine/prices.dart';
 import 'card_ranking.dart';
 import '../core/analytics/analytics.dart';
+import '../core/learning/learning_controller.dart';
 import 'demo_wealth.dart';
 import '../core/engine/budget_moves.dart';
 import 'budget_plan_service.dart';
@@ -68,7 +69,7 @@ final catalogServiceProvider = Provider<CatalogService?>((ref) {
 final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (db == null) return null;
-  final p = IngestPipeline(db);
+  final p = IngestPipeline(db, globalMap: ref.watch(globalMerchantMapProvider));
   ref.onDispose(p.dispose);
   return p;
 });
