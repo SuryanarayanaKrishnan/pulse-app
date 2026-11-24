@@ -188,6 +188,6 @@ void main() {
       await tester.pump();
       await tester.ensureVisible(find.byKey(const Key('bug-share')));
       await shot('bug-report-preview');
-    });
+    }, skip: _dir == null);
   }
 }
