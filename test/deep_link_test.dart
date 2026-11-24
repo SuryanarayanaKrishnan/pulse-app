@@ -98,37 +98,45 @@ void main() {
     session.dispose();
   });
 
-  testWidgets('Apple Pay setup shows steps, token and link template', (
-    tester,
-  ) async {
-    PulseTheme.useGoogleFonts = false;
-    tester.view.physicalSize = const Size(1170, 3200);
-    tester.view.devicePixelRatio = 3;
-    addTearDown(tester.view.reset);
-    final session = SessionController(
-      onboarded: true,
-      signedIn: true,
-      connected: true,
-    );
-    final router = buildRouter(
-      session: session,
-      analytics: NoopAnalytics(),
-      initialLocation: Routes.applePaySetup,
-    );
-    addTearDown(router.dispose);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [kvStoreProvider.overrideWithValue(MemoryKvStore())],
-        child: MaterialApp.router(theme: PulseTheme.dark, routerConfig: router),
-      ),
-    );
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Open Shortcut'), findsOneWidget);
-    expect(find.textContaining('pulse://ingest?amount='), findsOneWidget);
-    await tester.scrollUntilVisible(find.textContaining('pls_'), 200);
-    expect(find.textContaining('pls_'), findsOneWidget);
-    await tester.pumpWidget(const SizedBox());
-    session.dispose();
-  });
+  testWidgets(
+    'Apple Pay setup shows the guided steps and waits for a payment',
+    (tester) async {
+      PulseTheme.useGoogleFonts = false;
+      tester.view.physicalSize = const Size(1170, 3200);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      final session = SessionController(
+        onboarded: true,
+        signedIn: true,
+        connected: true,
+      );
+      final router = buildRouter(
+        session: session,
+        analytics: NoopAnalytics(),
+        initialLocation: Routes.applePaySetup,
+      );
+      addTearDown(router.dispose);
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [kvStoreProvider.overrideWithValue(MemoryKvStore())],
+          child: MaterialApp.router(
+            theme: PulseTheme.dark,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Open Shortcuts'), findsWidgets);
+      expect(find.textContaining('Record Payment'), findsWidgets);
+      await tester.scrollUntilVisible(find.text('Add Record Bank SMS'), 200);
+      await tester.scrollUntilVisible(
+        find.textContaining('Waiting for your first'),
+        200,
+      );
+      expect(find.textContaining('Waiting for your first'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+      session.dispose();
+    },
+  );
 }
