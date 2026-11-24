@@ -15,6 +15,14 @@ class AnalyticsEvent {
   static const onboardingStarted = AnalyticsEvent._('onboarding_started');
   factory AnalyticsEvent.onboardingStepCompleted(String step) =>
       AnalyticsEvent._('onboarding_step_completed', {'step': step});
+  // ---- Tour. `step` is the moment key: safe_to_spend | right_card |
+  // auto_capture | net_worth. ----
+  static const tourStarted = AnalyticsEvent._('tour_started');
+  factory AnalyticsEvent.tourStepViewed(String step) =>
+      AnalyticsEvent._('tour_step_viewed', {'step': step});
+  factory AnalyticsEvent.tourSkipped(String step) =>
+      AnalyticsEvent._('tour_skipped', {'step': step});
+  static const tourCompleted = AnalyticsEvent._('tour_completed');
   static const signupCompleted = AnalyticsEvent._('signup_completed');
   factory AnalyticsEvent.sourceConnected(String type) =>
       AnalyticsEvent._('source_connected', {'type': type});
