@@ -9,7 +9,11 @@ import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
 import '../core/engine/prices.dart';
 import 'card_ranking.dart';
+import '../core/analytics/analytics.dart';
 import 'demo_wealth.dart';
+import 'goal_models.dart';
+import 'goal_service.dart';
+import 'local/goal_store.dart';
 import 'local/attachments.dart';
 import 'local/price_service.dart';
 import 'local/reminders.dart';
@@ -125,6 +129,31 @@ void invalidateWealth(WidgetRef ref) {
   ref.invalidate(assetsProvider);
 }
 
+// ---- Goals -----------------------------------------------------------------
+
+final goalStoreProvider = Provider<GoalStore>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return demoGoalStore();
+  return LocalGoalStore(db);
+});
+
+final goalServiceProvider = Provider<GoalService>(
+  (ref) => GoalService(
+    store: ref.watch(goalStoreProvider),
+    assets: () => ref.read(repositoryProvider).assets(),
+    onCompleted: () => ref.read(analyticsProvider).track(AnalyticsEvent.goalCompleted),
+  ),
+);
+
+final goalsProvider = FutureProvider<List<GoalView>>((ref) => ref.watch(goalServiceProvider).views());
+
+/// Refreshes everything after a goal, a contribution or a pause changed:
+/// the goals themselves and the safe-to-spend they feed.
+void invalidateGoals(WidgetRef ref) {
+  ref.invalidate(goalsProvider);
+  ref.invalidate(safeToSpendProvider);
+}
+
 /// What runs where:
 ///  * on-device (default): [LocalPulseRepository] over the encrypted DB;
 ///  * `DEMO_DATA=true` (or no database, as in tests): [MockPulseRepository];
@@ -136,7 +165,7 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
   final pipeline = ref.watch(ingestPipelineProvider);
   final wealth = ref.watch(wealthServiceProvider);
   if (Env.demoData || db == null || catalog == null || pipeline == null) {
-    return MockPulseRepository(wealth: wealth);
+    return MockPulseRepository(wealth: wealth, goals: ref.watch(goalStoreProvider));
   }
   return LocalPulseRepository(
     db: db,

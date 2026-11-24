@@ -20,7 +20,8 @@ enum DashKind {
   cashFlow('cash_flow', 'Cash flow'),
   savingsRate('savings_rate', 'Savings rate'),
   splitBalances('split_balances', 'Split balances'),
-  recentCaptures('recent_captures', 'Recent captures');
+  recentCaptures('recent_captures', 'Recent captures'),
+  goals('goals', 'Goals');
 
   const DashKind(this.key, this.label);
   final String key;
@@ -146,6 +147,7 @@ class DashboardLayout {
           DashWidget(DashKind.upcoming),
           DashWidget(DashKind.netWorth, WidgetSize.compact),
           DashWidget(DashKind.splitBalances, WidgetSize.compact),
+          DashWidget(DashKind.goals, WidgetSize.compact),
           DashWidget(DashKind.recentCaptures),
         ],
       ),

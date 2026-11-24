@@ -58,6 +58,7 @@ class SafeToSpend {
     required this.cardDues,
     required this.goals,
     required this.daysLeft,
+    this.goalLines = const [],
   });
 
   /// Per-day allowance for the rest of the month.
@@ -69,6 +70,16 @@ class SafeToSpend {
   final double cardDues;
   final double goals;
   final int daysLeft;
+
+  /// What each active goal sets aside (they add up to [goals]).
+  final List<GoalLine> goalLines;
+}
+
+/// One goal's share of the money set aside this month.
+class GoalLine {
+  const GoalLine(this.id, this.name, this.amount);
+  final String id, name;
+  final double amount;
 }
 
 /// Safe-to-spend today, spread over the remaining days (today included).
@@ -85,6 +96,7 @@ SafeToSpend computeSafeToSpend({
   required double cardDues,
   required double goals,
   required int daysLeft,
+  List<GoalLine> goalLines = const [],
 }) {
   final byBudget = budgetLeft - bills - goals;
   final byCash = cash - bills - cardDues - goals;
@@ -97,6 +109,7 @@ SafeToSpend computeSafeToSpend({
     cardDues: cardDues,
     goals: goals,
     daysLeft: days,
+    goalLines: goalLines,
   );
 }
 

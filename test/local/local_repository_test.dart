@@ -5,7 +5,11 @@ import 'package:drift/drift.dart' show driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/core/engine/types.dart';
+import 'package:pulse/core/engine/dates.dart';
+import 'package:pulse/core/engine/goals.dart';
 import 'package:pulse/data/api/api_exception.dart';
+import 'package:pulse/data/goal_models.dart';
+import 'package:pulse/data/local/goal_store.dart';
 import 'package:pulse/data/local/catalog_service.dart';
 import 'package:pulse/data/local/database.dart';
 import 'package:pulse/data/local/ingest_pipeline.dart';
@@ -365,6 +369,33 @@ void main() {
       s = await r.repo.safeToSpend();
       expect(s.available, 1000);
       expect(s.today, 50);
+    });
+
+    test('goals reserve their monthly amount, show per goal, and pausing gives it back', () async {
+      final r = await withCard();
+      final store = LocalGoalStore(r.db);
+      await store.saveGoal(GoalRecord(
+        id: 'g1', name: 'Trip to Japan', kind: GoalKind.save, targetMinor: 2000000, monthlyMinor: 150000,
+        createdAt: _now,
+      ));
+      await store.saveGoal(GoalRecord(
+        id: 'g2', name: 'Clear the card', kind: GoalKind.paydown, targetMinor: 0, startMinor: 90000, monthlyMinor: 50000,
+        createdAt: _now,
+      ));
+      var s = await r.repo.safeToSpend();
+      expect(s.goals, 2000, reason: '1,500 + 500');
+      expect(s.available, 8000);
+      expect([for (final g in s.goalLines) (g.name, g.amount)], [('Trip to Japan', 1500.0), ('Clear the card', 500.0)]);
+
+      await store.saveGoal((await store.goals()).first.copyWith(paused: true));
+      s = await r.repo.safeToSpend();
+      expect(s.goals, 500);
+      expect(s.available, 9500);
+
+      // money already put in this month is no longer waiting in cash
+      await store.saveContribution(GoalContribution(id: 'c', goalId: 'g2', amountMinor: 20000, date: const CalDate(2026, 3, 11)));
+      s = await r.repo.safeToSpend();
+      expect(s.goals, 300);
     });
 
     test('cashflow and category trends see captured spend', () async {

@@ -103,7 +103,7 @@ abstract final class AnalyticsSchema {
   static const dashboardWidgetKinds = [
     'safe_to_spend', 'budget_progress', 'upcoming', 'card_rewards',
     'net_worth', 'spend_by_category', 'cash_flow', 'savings_rate',
-    'split_balances', 'recent_captures', //
+    'split_balances', 'recent_captures', 'goals', //
   ];
 
   static const _trigger = EnumProp('What started it', triggers);
@@ -158,6 +158,10 @@ abstract final class AnalyticsSchema {
       'action': EnumProp('What you did', ['added', 'removed', 'resized', 'moved']),
       'widget': EnumProp('Which widget', dashboardWidgetKinds),
     }),
+    EventSpec('goal_created', 'Everyday use', 'You set a goal.', props: {
+      'type': EnumProp('Saving up, or paying something down', ['save', 'paydown']),
+    }),
+    EventSpec('goal_completed', 'Everyday use', 'A goal reaches its target.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
     EventSpec('card_check_shown', 'Everyday use', 'Pulse tells you whether you used the best card.', props: {
@@ -236,7 +240,7 @@ abstract final class AnalyticsSchema {
     '/onboarding', '/sign-in', '/connect', '/home', '/budget', '/cards',
     '/splits', '/wealth', '/activity', '/settings', '/categories',
     '/automations', '/statements', '/family', '/cards-ranked', '/legacy',
-    '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
+    '/goals', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
   ];
 
   static final _byName = {for (final e in events) e.name: e};

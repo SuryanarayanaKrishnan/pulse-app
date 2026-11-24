@@ -3,10 +3,14 @@ import 'dart:typed_data';
 import 'package:material_ui/material_ui.dart';
 
 import 'card_util.dart';
+import 'goal_service.dart';
+import 'local/goal_store.dart';
 import 'insights.dart';
 import 'models.dart';
 import 'phone.dart';
 import 'recategoriser.dart';
+import '../core/engine/dates.dart' show CalDate;
+import '../core/engine/goals.dart';
 import '../core/engine/merchants.dart' show normalizeMerchant;
 import '../core/engine/recategorise.dart';
 import 'repository.dart';
@@ -22,6 +26,7 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
     this.wealth,
+    this.goals,
   }) : _now = now ?? DateTime.now() {
     _tx = [for (final t in _seedTransactions()) applyRules(t, _rules)];
     _groups = _seedGroups();
@@ -29,6 +34,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   }
 
   final Duration latency;
+
+  /// Demo goals; their monthly set-aside feeds safe to spend.
+  final GoalStore? goals;
 
   /// Demo jewellery and funds, so net worth includes them.
   final WealthService? wealth;
@@ -1499,7 +1507,19 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   }
 
   @override
-  Future<SafeToSpend> safeToSpend() {
+  Future<SafeToSpend> safeToSpend() async {
+    var goalMinor = 0;
+    var lines = <GoalLine>[];
+    if (goals case final store?) {
+      final recs = await store.goals();
+      final linked = {for (final a in await assets()) a.id: a};
+      final res = goalReservations(
+        GoalService.inputs(recs, await store.contributions(), linked),
+        CalDate(_now.year, _now.month, _now.day),
+      );
+      goalMinor = totalReserved(res);
+      lines = [for (final g in res) GoalLine(g.goalId, g.name, g.amountMinor / 100)];
+    }
     final dim = DateUtils.getDaysInMonth(_now.year, _now.month);
     final planned = _planned.values.fold(0.0, (a, b) => a + b);
     return _d(
@@ -1508,8 +1528,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
         budgetLeft: planned - _spentThisMonth,
         bills: _upcomingBills,
         cardDues: _duesBeforeMonthEnd,
-        goals: _goals,
+        goals: goals == null ? _goals : goalMinor / 100,
         daysLeft: dim - _now.day + 1,
+        goalLines: lines,
       ),
     );
   }

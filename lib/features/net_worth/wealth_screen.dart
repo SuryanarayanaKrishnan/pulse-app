@@ -7,6 +7,7 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../goals/goals_screen.dart' show GoalsSection;
 import '../wallet/add_sheets.dart';
 import '../wealth/wealth_sections.dart';
 import '../tour/tab_tip.dart';
@@ -132,6 +133,7 @@ class WealthSections extends StatelessWidget {
   Widget build(BuildContext context) => const Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
+      GoalsSection(),
       UpcomingSection(),
       JewellerySection(),
       FundsSection(),

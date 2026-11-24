@@ -84,6 +84,9 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.reviewSwiped('right'),
   AnalyticsEvent.reviewSwiped('left'),
   AnalyticsEvent.reviewInboxZero,
+  AnalyticsEvent.goalCreated('save'),
+  AnalyticsEvent.goalCreated('paydown'),
+  AnalyticsEvent.goalCompleted,
 ];
 
 void main() {

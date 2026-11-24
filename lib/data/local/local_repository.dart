@@ -5,12 +5,14 @@ import 'package:material_ui/material_ui.dart' show Color, DateUtils;
 
 import '../../core/engine/dates.dart';
 import '../../core/engine/dues.dart' show nextDueFromDay;
+import '../../core/engine/goals.dart';
+import '../goal_service.dart';
+import 'goal_store.dart';
 import '../../core/engine/merchants.dart';
 import '../../core/engine/networth.dart';
 import '../../core/engine/recategorise.dart';
 import '../../core/engine/review.dart';
 import '../../core/engine/recurring.dart' as recurring;
-import '../../core/engine/cashflow.dart' as flow;
 import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart' as eng;
 import '../../core/engine/types.dart' show Direction, TxnSource;
@@ -1161,18 +1163,15 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
     return total;
   }
 
-  Future<int> _goalReserve() async {
-    final today = _today;
-    var total = 0;
-    for (final g in await (db.select(db.savingsGoals)..where((g) => g.deletedAt.isNull())).get()) {
-      total += flow.monthlyReserve(
-        g.targetMinor - g.savedMinor,
-        g.monthlyContributionMinor,
-        today,
-        g.targetDate == null ? null : parseDate(g.targetDate!),
-      );
-    }
-    return total;
+  /// Goals' monthly set-aside, from the pure engine, with linked goals read
+  /// from the live Wealth list.
+  Future<List<GoalReservation>> _goalReserve() async {
+    final store = LocalGoalStore(db);
+    final goals = await store.goals();
+    if (goals.isEmpty) return const [];
+    final contribs = await store.contributions();
+    final linked = goals.any((g) => g.linkedRef != null) ? {for (final a in await assets()) a.id: a} : <String, Asset>{};
+    return goalReservations(GoalService.inputs(goals, contribs, linked), _today);
   }
 
   @override
@@ -1194,8 +1193,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser {
       budgetLeft: budget.planned > 0 ? budget.remaining : double.infinity,
       bills: bills,
       cardDues: dues.fold<double>(0, (a, c) => a + c.totalDue),
-      goals: _aed(goals),
+      goals: _aed(totalReserved(goals)),
       daysLeft: budget.daysLeft,
+      goalLines: [for (final g in goals) GoalLine(g.goalId, g.name, _aed(g.amountMinor))],
     );
   }
 

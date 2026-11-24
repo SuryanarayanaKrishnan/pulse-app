@@ -67,6 +67,9 @@ class AnalyticsEvent {
     'action': action,
     'widget': widget,
   });
+  /// `type`: save | paydown. Never the name, the amount or the date.
+  factory AnalyticsEvent.goalCreated(String type) => AnalyticsEvent._('goal_created', {'type': type});
+  static const goalCompleted = AnalyticsEvent._('goal_completed');
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 
