@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import '../../core/learning/learning_controller.dart';
+import '../../data/learning_hooks.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -112,6 +116,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     Haptics.light();
     await _move(_width * 1.2);
     await ref.read(repositoryProvider).setReviewed([tx.id], true);
+    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, tx.category));
     ref.read(analyticsProvider).track(AnalyticsEvent.reviewSwiped('right'));
     _finish(tx, _Dir.right);
   }
@@ -145,6 +150,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     if (await recategoriseWithScope(context, ref, tx: tx, to: picked)) return true;
     final analytics = ref.read(analyticsProvider);
     await ref.read(repositoryProvider).recategorise(tx.id, picked);
+    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, picked));
     analytics.track(
       AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: picked.name),
     );

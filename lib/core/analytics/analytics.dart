@@ -57,6 +57,9 @@ class AnalyticsEvent {
   /// `direction`: right (looks right) | left (fix it). Never the payment.
   factory AnalyticsEvent.reviewSwiped(String direction) =>
       AnalyticsEvent._('review_swiped', {'direction': direction});
+  /// `enabled`: yes or no. Never what would be shared.
+  factory AnalyticsEvent.learningOptIn(bool enabled) =>
+      AnalyticsEvent._('learning_opt_in', {'enabled': enabled});
   static const reviewInboxZero = AnalyticsEvent._('review_inbox_zero');
   /// `action`: added | removed | resized | moved. `widget`: a built-in
   /// widget kind. Never the dashboard's name.

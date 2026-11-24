@@ -1,3 +1,5 @@
+import 'core/learning/global_merchant_map_loader.dart';
+import 'core/learning/learning_controller.dart';
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -30,6 +32,12 @@ Future<void> main() async {
   // Sharing is off until the person says yes; everything goes through the gate.
   final privacy = PrivacyController(SharedPrefsKvStore());
   await privacy.load();
+  // "Help improve categories": off until chosen; no upload endpoint is
+  // configured in this build, so nothing is sent (docs/LEARNING.md).
+  final learningKv = SharedPrefsKvStore();
+  final merchantMap = await GlobalMerchantMapLoader(kv: learningKv).load();
+  final learning = LearningController(learningKv, map: merchantMap);
+  await learning.load();
   final analytics = GatedAnalytics(buildAnalytics(), privacy);
   try {
     await analytics.init();
@@ -63,6 +71,8 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         privacyControllerProvider.overrideWithValue(privacy),
+        learningControllerProvider.overrideWithValue(learning),
+        globalMerchantMapProvider.overrideWithValue(merchantMap),
         analyticsProvider.overrideWithValue(analytics),
         if (db != null)
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),

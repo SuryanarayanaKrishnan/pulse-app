@@ -28,15 +28,15 @@ void main() {
   testWidgets('toggle is off by default and turns sharing on and off', (tester) async {
     final p = await _pump(tester);
     expect(find.text('Share anonymous usage'), findsOneWidget);
-    expect(tester.widget<Switch>(find.byType(Switch)).value, isFalse);
+    expect(tester.widget<Switch>(find.byType(Switch).first).value, isFalse);
     expect(find.text('Reset anonymous id'), findsNothing);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(Switch).first);
     await tester.pump();
     expect(p.sharing, isTrue);
     expect(find.text('Reset anonymous id'), findsOneWidget);
 
-    await tester.tap(find.byType(Switch));
+    await tester.tap(find.byType(Switch).first);
     await tester.pump();
     expect(p.sharing, isFalse);
     expect(p.installId, isNull);

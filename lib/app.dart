@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'core/learning/learning_controller.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +55,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
       ref.read(backupSchedulerProvider)?.onResumed();
       ref.read(syncServiceProvider)?.onResumed();
       ref.read(householdSchedulerProvider)?.onResume();
+      unawaited(ref.read(learningControllerProvider).flushIfDue());
     }
   }
 

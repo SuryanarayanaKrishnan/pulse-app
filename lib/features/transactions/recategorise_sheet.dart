@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import '../../core/learning/learning_controller.dart';
+import '../../data/learning_hooks.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -114,6 +118,10 @@ Future<bool> recategoriseWithScope(
 
   final undo = await recat.recategoriseScoped(tx.id, to, scope);
   analytics.track(AnalyticsEvent.recategoriseScope(scope.analyticsValue));
+  // "Just this payment" is an exception, not a statement about the merchant.
+  if (scope != RecategoriseScope.once) {
+    unawaited(recordConfirmedCategory(container.read(learningControllerProvider), tx, to));
+  }
   analytics.track(
     AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: to.name),
   );

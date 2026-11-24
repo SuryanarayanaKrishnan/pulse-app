@@ -3,6 +3,7 @@
 /// `categorisation.py` (user rules first, then the merchant dictionary).
 library;
 
+import '../learning/global_merchant_map.dart';
 import 'merchants.dart';
 import 'types.dart';
 
@@ -249,8 +250,15 @@ class Enrichment {
 /// Deterministic categorisation: the user's rules first, then the curated
 /// dictionary. [systemCategories] maps default slugs to category ids.
 class CategoryResolver {
-  CategoryResolver(List<CompiledRule> rules, this.systemCategories)
-    : rules = byPriority(rules);
+  CategoryResolver(
+    List<CompiledRule> rules,
+    this.systemCategories, {
+    this.globalMap,
+  }) : rules = byPriority(rules);
+
+  /// Consulted after the user's rules and the built-in dictionary, before
+  /// giving up (see `GlobalMerchantMap`).
+  final GlobalMerchantMap? globalMap;
 
   final List<CompiledRule> rules;
   final Map<String, String> systemCategories;
@@ -270,6 +278,13 @@ class CategoryResolver {
         systemCategories.containsKey(dictionarySlug)) {
       category = systemCategories[dictionarySlug];
       source = 'dictionary';
+    }
+    if (category == null) {
+      final slug = globalMap?.lookup(normalized);
+      if (slug != null && systemCategories.containsKey(slug)) {
+        category = systemCategories[slug];
+        source = 'global_map';
+      }
     }
     if (outcome == null) {
       return Enrichment(
