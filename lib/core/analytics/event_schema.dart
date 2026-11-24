@@ -167,6 +167,12 @@ abstract final class AnalyticsSchema {
     EventSpec('budget_mode_changed', 'Everyday use', 'You switch the Budget between flex groups and single categories.', props: {
       'mode': EnumProp('Flex groups, or every category on its own', ['flex', 'category']),
     }),
+    EventSpec('recurring_confirmed', 'Everyday use', 'You confirm a recurring payment Pulse found.', props: {
+      'cadence': EnumProp('How often it repeats', ['weekly', 'fortnightly', 'monthly', 'quarterly', 'yearly']),
+    }),
+    EventSpec('report_viewed', 'Everyday use', 'You open a spending report.', props: {
+      'view': EnumProp('By category or by household member', ['category', 'member']),
+    }),
     EventSpec('money_moved', 'Everyday use', 'You move money between two categories in a month.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
@@ -246,7 +252,7 @@ abstract final class AnalyticsSchema {
     '/onboarding', '/sign-in', '/connect', '/home', '/budget', '/cards',
     '/splits', '/wealth', '/activity', '/settings', '/categories',
     '/automations', '/statements', '/family', '/cards-ranked', '/legacy',
-    '/goals', '/household', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
+    '/goals', '/recurring', '/reports', '/household', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
   ];
 
   static final _byName = {for (final e in events) e.name: e};

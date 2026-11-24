@@ -278,6 +278,36 @@ void main() {
     expect((await p2.sync()).idle, isTrue);
   });
 
+  test('recurring: confirm and ignore choices are allow-listed and reach my other phone, undo too', () async {
+    expect(syncedTables, contains('recurring_choices'));
+    for (final c in ['series_key', 'choice', 'merchant', 'decided_at']) {
+      expect(isSyncedColumn('recurring_choices', c), isTrue, reason: c);
+    }
+    await p1.db.customStatement("INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('acme tv', 'confirmed', 'ACME TV')");
+    await p1.db.customStatement("INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('bill co#20', 'ignored', 'Bill Co')");
+    p1.nowMs += 1000;
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows('SELECT series_key, choice, merchant FROM recurring_choices ORDER BY series_key'), [
+      {'series_key': 'acme tv', 'choice': 'confirmed', 'merchant': 'ACME TV'},
+      {'series_key': 'bill co#20', 'choice': 'ignored', 'merchant': 'Bill Co'},
+    ]);
+    // Changing a mind and clearing a choice both travel.
+    p2.nowMs += 5000;
+    await p2.db.customStatement("UPDATE recurring_choices SET choice = 'ignored' WHERE series_key = 'acme tv'");
+    await p2.db.customStatement("DELETE FROM recurring_choices WHERE series_key = 'bill co#20'");
+    await p2.sync();
+    await p1.sync();
+    expect(await p1.rows('SELECT series_key, choice FROM recurring_choices'), [
+      {'series_key': 'acme tv', 'choice': 'ignored'},
+    ]);
+    expect((await p1.sync()).idle, isTrue);
+  });
+
+  test('net worth snapshots are still a local cache, never synced', () {
+    expect(syncedTables, isNot(contains('net_worth_snapshots')));
+  });
+
   test('every allow-listed table exists with a primary key', () async {
     final snap = await DriftSyncBridge(p1.db).read();
     expect(snap.keys.toSet(), syncedTables);

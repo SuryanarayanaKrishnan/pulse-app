@@ -160,7 +160,7 @@ class LocalStatementService {
     ];
     return [
       for (final s in ordered)
-        if (await passwords.read(s.institution) case final pw?) pw,
+        ?await passwords.read(s.institution),
     ];
   }
 

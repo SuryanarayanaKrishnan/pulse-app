@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import '../core/engine/nw_history.dart';
 import 'api/api_exception.dart';
 import 'insights.dart';
 import 'models.dart';
@@ -185,6 +186,15 @@ abstract class PulseRepository {
   /// What [memberId] shares. Only the member themself can change it; for
   /// you this is your own privacy setting.
   Future<void> setSharing(String memberId, SharingLevel level);
+}
+
+/// A repository that can say what net worth was on past days (stored daily
+/// snapshots, with the days before the first one rebuilt from transactions).
+/// Others fall back to the month-end series of [PulseRepository.netWorth].
+abstract interface class NetWorthHistorySource {
+  /// Oldest first; the last point is today. Assets and liabilities in minor
+  /// units (fils).
+  Future<List<NwPoint>> netWorthHistory();
 }
 
 /// Defaults for repositories without an on-device ledger (demo data, API).

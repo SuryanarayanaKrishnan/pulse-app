@@ -18508,6 +18508,324 @@ class BudgetPrefsCompanion extends UpdateCompanion<BudgetPrefRow> {
   }
 }
 
+class $RecurringChoicesTable extends RecurringChoices
+    with TableInfo<$RecurringChoicesTable, RecurringChoiceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecurringChoicesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _seriesKeyMeta = const VerificationMeta(
+    'seriesKey',
+  );
+  @override
+  late final GeneratedColumn<String> seriesKey = GeneratedColumn<String>(
+    'series_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _choiceMeta = const VerificationMeta('choice');
+  @override
+  late final GeneratedColumn<String> choice = GeneratedColumn<String>(
+    'choice',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _merchantMeta = const VerificationMeta(
+    'merchant',
+  );
+  @override
+  late final GeneratedColumn<String> merchant = GeneratedColumn<String>(
+    'merchant',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _decidedAtMeta = const VerificationMeta(
+    'decidedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> decidedAt = GeneratedColumn<DateTime>(
+    'decided_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    seriesKey,
+    choice,
+    merchant,
+    decidedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recurring_choices';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecurringChoiceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('series_key')) {
+      context.handle(
+        _seriesKeyMeta,
+        seriesKey.isAcceptableOrUnknown(data['series_key']!, _seriesKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_seriesKeyMeta);
+    }
+    if (data.containsKey('choice')) {
+      context.handle(
+        _choiceMeta,
+        choice.isAcceptableOrUnknown(data['choice']!, _choiceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_choiceMeta);
+    }
+    if (data.containsKey('merchant')) {
+      context.handle(
+        _merchantMeta,
+        merchant.isAcceptableOrUnknown(data['merchant']!, _merchantMeta),
+      );
+    }
+    if (data.containsKey('decided_at')) {
+      context.handle(
+        _decidedAtMeta,
+        decidedAt.isAcceptableOrUnknown(data['decided_at']!, _decidedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {seriesKey};
+  @override
+  RecurringChoiceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecurringChoiceRow(
+      seriesKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}series_key'],
+      )!,
+      choice: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}choice'],
+      )!,
+      merchant: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}merchant'],
+      )!,
+      decidedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}decided_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RecurringChoicesTable createAlias(String alias) {
+    return $RecurringChoicesTable(attachedDatabase, alias);
+  }
+}
+
+class RecurringChoiceRow extends DataClass
+    implements Insertable<RecurringChoiceRow> {
+  final String seriesKey;
+  final String choice;
+
+  /// The merchant's name when the choice was made, so a list can show it
+  /// even when the series is not detected right now.
+  final String merchant;
+  final DateTime decidedAt;
+  const RecurringChoiceRow({
+    required this.seriesKey,
+    required this.choice,
+    required this.merchant,
+    required this.decidedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['series_key'] = Variable<String>(seriesKey);
+    map['choice'] = Variable<String>(choice);
+    map['merchant'] = Variable<String>(merchant);
+    map['decided_at'] = Variable<DateTime>(decidedAt);
+    return map;
+  }
+
+  RecurringChoicesCompanion toCompanion(bool nullToAbsent) {
+    return RecurringChoicesCompanion(
+      seriesKey: Value(seriesKey),
+      choice: Value(choice),
+      merchant: Value(merchant),
+      decidedAt: Value(decidedAt),
+    );
+  }
+
+  factory RecurringChoiceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecurringChoiceRow(
+      seriesKey: serializer.fromJson<String>(json['seriesKey']),
+      choice: serializer.fromJson<String>(json['choice']),
+      merchant: serializer.fromJson<String>(json['merchant']),
+      decidedAt: serializer.fromJson<DateTime>(json['decidedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'seriesKey': serializer.toJson<String>(seriesKey),
+      'choice': serializer.toJson<String>(choice),
+      'merchant': serializer.toJson<String>(merchant),
+      'decidedAt': serializer.toJson<DateTime>(decidedAt),
+    };
+  }
+
+  RecurringChoiceRow copyWith({
+    String? seriesKey,
+    String? choice,
+    String? merchant,
+    DateTime? decidedAt,
+  }) => RecurringChoiceRow(
+    seriesKey: seriesKey ?? this.seriesKey,
+    choice: choice ?? this.choice,
+    merchant: merchant ?? this.merchant,
+    decidedAt: decidedAt ?? this.decidedAt,
+  );
+  RecurringChoiceRow copyWithCompanion(RecurringChoicesCompanion data) {
+    return RecurringChoiceRow(
+      seriesKey: data.seriesKey.present ? data.seriesKey.value : this.seriesKey,
+      choice: data.choice.present ? data.choice.value : this.choice,
+      merchant: data.merchant.present ? data.merchant.value : this.merchant,
+      decidedAt: data.decidedAt.present ? data.decidedAt.value : this.decidedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringChoiceRow(')
+          ..write('seriesKey: $seriesKey, ')
+          ..write('choice: $choice, ')
+          ..write('merchant: $merchant, ')
+          ..write('decidedAt: $decidedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(seriesKey, choice, merchant, decidedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecurringChoiceRow &&
+          other.seriesKey == this.seriesKey &&
+          other.choice == this.choice &&
+          other.merchant == this.merchant &&
+          other.decidedAt == this.decidedAt);
+}
+
+class RecurringChoicesCompanion extends UpdateCompanion<RecurringChoiceRow> {
+  final Value<String> seriesKey;
+  final Value<String> choice;
+  final Value<String> merchant;
+  final Value<DateTime> decidedAt;
+  final Value<int> rowid;
+  const RecurringChoicesCompanion({
+    this.seriesKey = const Value.absent(),
+    this.choice = const Value.absent(),
+    this.merchant = const Value.absent(),
+    this.decidedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecurringChoicesCompanion.insert({
+    required String seriesKey,
+    required String choice,
+    this.merchant = const Value.absent(),
+    this.decidedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : seriesKey = Value(seriesKey),
+       choice = Value(choice);
+  static Insertable<RecurringChoiceRow> custom({
+    Expression<String>? seriesKey,
+    Expression<String>? choice,
+    Expression<String>? merchant,
+    Expression<DateTime>? decidedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (seriesKey != null) 'series_key': seriesKey,
+      if (choice != null) 'choice': choice,
+      if (merchant != null) 'merchant': merchant,
+      if (decidedAt != null) 'decided_at': decidedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecurringChoicesCompanion copyWith({
+    Value<String>? seriesKey,
+    Value<String>? choice,
+    Value<String>? merchant,
+    Value<DateTime>? decidedAt,
+    Value<int>? rowid,
+  }) {
+    return RecurringChoicesCompanion(
+      seriesKey: seriesKey ?? this.seriesKey,
+      choice: choice ?? this.choice,
+      merchant: merchant ?? this.merchant,
+      decidedAt: decidedAt ?? this.decidedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (seriesKey.present) {
+      map['series_key'] = Variable<String>(seriesKey.value);
+    }
+    if (choice.present) {
+      map['choice'] = Variable<String>(choice.value);
+    }
+    if (merchant.present) {
+      map['merchant'] = Variable<String>(merchant.value);
+    }
+    if (decidedAt.present) {
+      map['decided_at'] = Variable<DateTime>(decidedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecurringChoicesCompanion(')
+          ..write('seriesKey: $seriesKey, ')
+          ..write('choice: $choice, ')
+          ..write('merchant: $merchant, ')
+          ..write('decidedAt: $decidedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -18555,6 +18873,9 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   );
   late final $BudgetMovesTable budgetMoves = $BudgetMovesTable(this);
   late final $BudgetPrefsTable budgetPrefs = $BudgetPrefsTable(this);
+  late final $RecurringChoicesTable recurringChoices = $RecurringChoicesTable(
+    this,
+  );
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -18602,6 +18923,7 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     householdMirror,
     budgetMoves,
     budgetPrefs,
+    recurringChoices,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -30423,6 +30745,208 @@ typedef $$BudgetPrefsTableProcessedTableManager =
       BudgetPrefRow,
       PrefetchHooks Function()
     >;
+typedef $$RecurringChoicesTableCreateCompanionBuilder =
+    RecurringChoicesCompanion Function({
+      required String seriesKey,
+      required String choice,
+      Value<String> merchant,
+      Value<DateTime> decidedAt,
+      Value<int> rowid,
+    });
+typedef $$RecurringChoicesTableUpdateCompanionBuilder =
+    RecurringChoicesCompanion Function({
+      Value<String> seriesKey,
+      Value<String> choice,
+      Value<String> merchant,
+      Value<DateTime> decidedAt,
+      Value<int> rowid,
+    });
+
+class $$RecurringChoicesTableFilterComposer
+    extends Composer<_$PulseDatabase, $RecurringChoicesTable> {
+  $$RecurringChoicesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get seriesKey => $composableBuilder(
+    column: $table.seriesKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get choice => $composableBuilder(
+    column: $table.choice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get decidedAt => $composableBuilder(
+    column: $table.decidedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$RecurringChoicesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $RecurringChoicesTable> {
+  $$RecurringChoicesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get seriesKey => $composableBuilder(
+    column: $table.seriesKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get choice => $composableBuilder(
+    column: $table.choice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get merchant => $composableBuilder(
+    column: $table.merchant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get decidedAt => $composableBuilder(
+    column: $table.decidedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$RecurringChoicesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $RecurringChoicesTable> {
+  $$RecurringChoicesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get seriesKey =>
+      $composableBuilder(column: $table.seriesKey, builder: (column) => column);
+
+  GeneratedColumn<String> get choice =>
+      $composableBuilder(column: $table.choice, builder: (column) => column);
+
+  GeneratedColumn<String> get merchant =>
+      $composableBuilder(column: $table.merchant, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get decidedAt =>
+      $composableBuilder(column: $table.decidedAt, builder: (column) => column);
+}
+
+class $$RecurringChoicesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $RecurringChoicesTable,
+          RecurringChoiceRow,
+          $$RecurringChoicesTableFilterComposer,
+          $$RecurringChoicesTableOrderingComposer,
+          $$RecurringChoicesTableAnnotationComposer,
+          $$RecurringChoicesTableCreateCompanionBuilder,
+          $$RecurringChoicesTableUpdateCompanionBuilder,
+          (
+            RecurringChoiceRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $RecurringChoicesTable,
+              RecurringChoiceRow
+            >,
+          ),
+          RecurringChoiceRow,
+          PrefetchHooks Function()
+        > {
+  $$RecurringChoicesTableTableManager(
+    _$PulseDatabase db,
+    $RecurringChoicesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecurringChoicesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecurringChoicesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$RecurringChoicesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> seriesKey = const Value.absent(),
+                Value<String> choice = const Value.absent(),
+                Value<String> merchant = const Value.absent(),
+                Value<DateTime> decidedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecurringChoicesCompanion(
+                seriesKey: seriesKey,
+                choice: choice,
+                merchant: merchant,
+                decidedAt: decidedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String seriesKey,
+                required String choice,
+                Value<String> merchant = const Value.absent(),
+                Value<DateTime> decidedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecurringChoicesCompanion.insert(
+                seriesKey: seriesKey,
+                choice: choice,
+                merchant: merchant,
+                decidedAt: decidedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$RecurringChoicesTable, RecurringChoiceRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $RecurringChoicesTable,
+                    RecurringChoiceRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$RecurringChoicesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $RecurringChoicesTable,
+      RecurringChoiceRow,
+      $$RecurringChoicesTableFilterComposer,
+      $$RecurringChoicesTableOrderingComposer,
+      $$RecurringChoicesTableAnnotationComposer,
+      $$RecurringChoicesTableCreateCompanionBuilder,
+      $$RecurringChoicesTableUpdateCompanionBuilder,
+      (
+        RecurringChoiceRow,
+        BaseReferences<
+          _$PulseDatabase,
+          $RecurringChoicesTable,
+          RecurringChoiceRow
+        >,
+      ),
+      RecurringChoiceRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -30487,4 +31011,6 @@ class $PulseDatabaseManager {
       $$BudgetMovesTableTableManager(_db, _db.budgetMoves);
   $$BudgetPrefsTableTableManager get budgetPrefs =>
       $$BudgetPrefsTableTableManager(_db, _db.budgetPrefs);
+  $$RecurringChoicesTableTableManager get recurringChoices =>
+      $$RecurringChoicesTableTableManager(_db, _db.recurringChoices);
 }

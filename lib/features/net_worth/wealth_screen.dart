@@ -10,6 +10,7 @@ import '../../data/providers.dart';
 import '../../core/household/household_engine.dart' show NwScope;
 import '../../household/household_providers.dart';
 import '../goals/goals_screen.dart' show GoalsSection;
+import 'net_worth_history.dart';
 import '../../data/household_service.dart' show JointData;
 import '../household/household_common.dart';
 import '../household/joint_views.dart';
@@ -81,26 +82,24 @@ class WealthScreen extends ConsumerWidget {
                 captionColor: nw.changePct >= 0 ? c.positive : c.negative,
               ),
               const PriceStatusLine(),
-              if (nw.labels.length == nw.series.length && nw.series.length > 1)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.gutter,
-                    Space.xl,
-                    Space.gutter,
-                    0,
-                  ),
-                  child: InspectLineChart(
-                    labels: [
-                      for (final (i, l) in nw.labels.indexed)
-                        i.isEven || i == nw.labels.length - 1 ? l : '',
-                    ],
-                    title: (i) => nw.labels[i],
-                    fill: true,
-                    height: 140,
-                    format: Money.aedCompact,
-                    series: [ChartSeries('Net worth', nw.series, c.accent)],
-                  ),
-                ),
+              NetWorthHistorySection(
+                fallback: nw.labels.length == nw.series.length && nw.series.length > 1
+                    ? Padding(
+                        padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
+                        child: InspectLineChart(
+                          labels: [
+                            for (final (i, l) in nw.labels.indexed)
+                              i.isEven || i == nw.labels.length - 1 ? l : '',
+                          ],
+                          title: (i) => nw.labels[i],
+                          fill: true,
+                          height: 140,
+                          format: Money.aedCompact,
+                          series: [ChartSeries('Net worth', nw.series, c.accent)],
+                        ),
+                      )
+                    : null,
+              ),
             ],
             AsyncView<List<Asset>>(
               value: assets,
@@ -199,6 +198,7 @@ class _Body extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        AssetsVsLiabilities(list),
         const SectionHeader('Allocation'),
         Padding(
           padding: const EdgeInsets.fromLTRB(

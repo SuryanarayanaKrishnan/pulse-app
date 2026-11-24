@@ -13,6 +13,8 @@ import '../../features/auth/sign_in_screen.dart';
 import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
 import '../../features/categories/categories_screen.dart';
+import '../../features/recurring/recurring_screen.dart';
+import '../../features/reports/reports_screen.dart';
 import '../../features/review/review_screen.dart';
 import '../../features/splits/group_screen.dart';
 import '../../features/statements/statements_screen.dart';
@@ -63,6 +65,8 @@ abstract class Routes {
   static const privacy = '/privacy';
   static const review = '/review';
   static const goals = '/goals';
+  static const recurring = '/recurring';
+  static const reports = '/reports';
   static const household = '/household';
   static const restore = '/restore';
 
@@ -188,6 +192,16 @@ GoRouter buildRouter({
         path: Routes.review,
         name: 'review',
         pageBuilder: (c, s) => fade(s, const ReviewScreen()),
+      ),
+      GoRoute(
+        path: Routes.recurring,
+        name: 'recurring',
+        builder: (c, s) => const RecurringScreen(),
+      ),
+      GoRoute(
+        path: Routes.reports,
+        name: 'reports',
+        builder: (c, s) => const ReportsScreen(),
       ),
       GoRoute(
         path: Routes.goals,

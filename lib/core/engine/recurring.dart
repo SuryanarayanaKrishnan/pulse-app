@@ -126,6 +126,11 @@ CalDate advance(CalDate d, String cadence, [int? anchorDay]) => switch (cadence)
 bool isSubscriptionMerchant(String key) => subscriptionMerchants.any(key.contains);
 
 /// All recurring series in [charges] (debits only), next-expected first.
+///
+/// Charges are grouped by merchant first. A merchant whose charges do not fit
+/// one cadence as a whole (two plans billed by the same biller, say) is split
+/// into amount tiers and each tier is tried on its own; tier series carry the
+/// merchant key plus `#<tier amount in whole units>`.
 List<Series> detect(List<Charge> charges, CalDate today) {
   final groups = <String, List<Charge>>{};
   for (final c in charges) {
@@ -134,58 +139,25 @@ List<Series> detect(List<Charge> charges, CalDate today) {
     }
   }
   final out = <Series>[];
-  for (final MapEntry(key: key, value: items0) in groups.entries) {
-    final items = stableSorted(items0, (a, b) => a.postedOn.compareTo(b.postedOn));
-    // Several charges on one day (split payments) count as one occurrence.
-    final days = <Charge>[];
-    for (final c in items) {
-      if (days.isNotEmpty && days.last.postedOn == c.postedOn) {
-        days[days.length - 1] = Charge(c.postedOn, days.last.amountMinor + c.amountMinor, c.merchant, key, c.categorySlug);
-      } else {
-        days.add(c);
+  for (final MapEntry(key: key, value: items) in groups.entries) {
+    // Tiers first when the merchant clearly bills several fixed amounts
+    // (their gaps would otherwise blur into one false cadence).
+    final tiers = items.length >= minOccurrences * 2 ? _amountTiers(items) : const <List<Charge>>[];
+    final covered = tiers.fold(0, (a, t) => a + t.length);
+    if (tiers.length >= 2 && covered >= items.length * 0.8) {
+      final found = <Series>[];
+      for (final tier in tiers) {
+        final tierKey = '$key#${(median(tier.map((c) => c.amountMinor).toList()) / 100).round()}';
+        final s = _detectGroup(tierKey, [for (final c in tier) Charge(c.postedOn, c.amountMinor, c.merchant, tierKey, c.categorySlug)], today);
+        if (s != null) found.add(s);
+      }
+      if (found.isNotEmpty) {
+        out.addAll(found);
+        continue;
       }
     }
-    if (days.length < minOccurrencesYearly) continue;
-    final gaps = [for (var i = 1; i < days.length; i++) days[i].postedOn.daysSince(days[i - 1].postedOn)];
-    final found = _classify(gaps);
-    if (found == null) continue;
-    final (cadence, nominal) = found;
-    if (days.length < minOccurrences && cadence != 'yearly') continue;
-    final amounts = [for (final c in days) c.amountMinor];
-    final med = median(amounts).truncate();
-    final fixed = amounts.every((a) => (a - med).abs() <= med * fixedTolerance);
-    final dayCounts = <int, int>{};
-    for (final c in days) {
-      dayCounts[c.postedOn.day] = (dayCounts[c.postedOn.day] ?? 0) + 1;
-    }
-    final anchor = dayCounts.keys.reduce((a, b) {
-      final ca = dayCounts[a]!, cb = dayCounts[b]!;
-      return (cb > ca || (cb == ca && b > a)) ? b : a;
-    });
-    final last = days.last;
-    final nxt = advance(last.postedOn, cadence, anchor);
-    final grace = math.max(3, nominal ~/ 6);
-    final status = nxt >= today ? 'active' : (today.daysSince(nxt) <= grace ? 'due' : 'lapsed');
-    final recent = amounts.length >= 3 ? amounts.sublist(amounts.length - 3) : amounts;
-    final series = Series(
-      key: key,
-      merchant: last.merchant,
-      cadence: cadence,
-      intervalDays: nominal,
-      amountKind: fixed ? 'fixed' : 'variable',
-      typicalAmountMinor: fixed ? med : median(recent).truncate(),
-      lastAmountMinor: last.amountMinor,
-      lastChargeOn: last.postedOn,
-      nextExpectedOn: nxt,
-      occurrences: days.length,
-      firstChargeOn: days.first.postedOn,
-      categorySlug: last.categorySlug,
-      isSubscription: isSubscriptionMerchant(key),
-      status: status,
-      anchorDay: anchor,
-    );
-    _priceIncrease(series, amounts);
-    out.add(series);
+    final whole = _detectGroup(key, items, today);
+    if (whole != null) out.add(whole);
   }
   return stableSorted(out, (a, b) {
     final c = a.nextExpectedOn.compareTo(b.nextExpectedOn);
@@ -193,12 +165,89 @@ List<Series> detect(List<Charge> charges, CalDate today) {
   });
 }
 
+/// Charges of one merchant split into runs of similar amounts (each within
+/// [fixedTolerance] of its tier's first member, tiers sorted by amount).
+/// Tiers with fewer than [minOccurrences] charges are dropped.
+List<List<Charge>> _amountTiers(List<Charge> items) {
+  final sorted = stableSorted(items, (a, b) => a.amountMinor.compareTo(b.amountMinor));
+  final tiers = <List<Charge>>[];
+  for (final c in sorted) {
+    if (tiers.isNotEmpty && (c.amountMinor - tiers.last.first.amountMinor) <= tiers.last.first.amountMinor * fixedTolerance) {
+      tiers.last.add(c);
+    } else {
+      tiers.add([c]);
+    }
+  }
+  return [for (final t in tiers) if (t.length >= minOccurrences) t];
+}
+
+Series? _detectGroup(String key, List<Charge> items0, CalDate today) {
+  final items = stableSorted(items0, (a, b) => a.postedOn.compareTo(b.postedOn));
+  // Several charges on one day (split payments) count as one occurrence.
+  final days = <Charge>[];
+  for (final c in items) {
+    if (days.isNotEmpty && days.last.postedOn == c.postedOn) {
+      days[days.length - 1] = Charge(c.postedOn, days.last.amountMinor + c.amountMinor, c.merchant, key, c.categorySlug);
+    } else {
+      days.add(c);
+    }
+  }
+  if (days.length < minOccurrencesYearly) return null;
+  final gaps = [for (var i = 1; i < days.length; i++) days[i].postedOn.daysSince(days[i - 1].postedOn)];
+  final found = _classify(gaps);
+  if (found == null) return null;
+  final (cadence, nominal) = found;
+  if (days.length < minOccurrences && cadence != 'yearly') return null;
+  final amounts = [for (final c in days) c.amountMinor];
+  final med = median(amounts).truncate();
+  final fixed = amounts.every((a) => (a - med).abs() <= med * fixedTolerance);
+  final dayCounts = <int, int>{};
+  for (final c in days) {
+    dayCounts[c.postedOn.day] = (dayCounts[c.postedOn.day] ?? 0) + 1;
+  }
+  final anchor = dayCounts.keys.reduce((a, b) {
+    final ca = dayCounts[a]!, cb = dayCounts[b]!;
+    return (cb > ca || (cb == ca && b > a)) ? b : a;
+  });
+  final last = days.last;
+  final nxt = advance(last.postedOn, cadence, anchor);
+  final grace = math.max(3, nominal ~/ 6);
+  final status = nxt >= today ? 'active' : (today.daysSince(nxt) <= grace ? 'due' : 'lapsed');
+  final recent = amounts.length >= 3 ? amounts.sublist(amounts.length - 3) : amounts;
+  final series = Series(
+    key: key,
+    merchant: last.merchant,
+    cadence: cadence,
+    intervalDays: nominal,
+    amountKind: fixed ? 'fixed' : 'variable',
+    typicalAmountMinor: fixed ? med : median(recent).truncate(),
+    lastAmountMinor: last.amountMinor,
+    lastChargeOn: last.postedOn,
+    nextExpectedOn: nxt,
+    occurrences: days.length,
+    firstChargeOn: days.first.postedOn,
+    categorySlug: last.categorySlug,
+    isSubscription: isSubscriptionMerchant(key),
+    status: status,
+    anchorDay: anchor,
+  );
+  _priceIncrease(series, amounts);
+  return series;
+}
+
+/// A price step: at least two steady charges, then a trailing run of steady
+/// charges at a higher level (one or more). Works right after the first new
+/// charge and still after the new price has been charged a few times.
 void _priceIncrease(Series s, List<int> amounts) {
-  final earlier = amounts.sublist(0, amounts.length - 1);
+  final now = amounts.last;
+  var runStart = amounts.length - 1;
+  while (runStart > 0 && (amounts[runStart - 1] - now).abs() <= now * fixedTolerance) {
+    runStart--;
+  }
+  final earlier = amounts.sublist(0, runStart);
   if (earlier.length < 2) return;
   final base = median(earlier).truncate();
   if (!earlier.every((a) => (a - base).abs() <= base * fixedTolerance)) return;
-  final now = amounts.last;
   final pct = base != 0 ? (now - base) / base * 100 : 0.0;
   if (now - base >= priceIncreaseMinMinor && pct >= priceIncreaseMinPct) {
     s.priceIncrease = PriceIncrease(base, now, now - base, roundTo(pct, 1));

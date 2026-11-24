@@ -92,6 +92,10 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.budgetModeChanged('flex'),
   AnalyticsEvent.budgetModeChanged('category'),
   AnalyticsEvent.moneyMoved,
+  AnalyticsEvent.recurringConfirmed('monthly'),
+  AnalyticsEvent.recurringConfirmed('yearly'),
+  AnalyticsEvent.reportViewed('category'),
+  AnalyticsEvent.reportViewed('member'),
 ];
 
 void main() {
