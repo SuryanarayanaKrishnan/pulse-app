@@ -64,6 +64,7 @@ dependencies:
   workmanager: ^0.10.10
   connectivity_plus: ^7.3.2
   bip39: ^1.0.6
+  qr_flutter: ^4.1.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

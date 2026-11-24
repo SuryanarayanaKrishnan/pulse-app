@@ -70,6 +70,9 @@ class AnalyticsEvent {
   /// `type`: save | paydown. Never the name, the amount or the date.
   factory AnalyticsEvent.goalCreated(String type) => AnalyticsEvent._('goal_created', {'type': type});
   static const goalCompleted = AnalyticsEvent._('goal_completed');
+  /// Household planning. No names, amounts or member counts.
+  static const householdCreated = AnalyticsEvent._('household_created');
+  static const householdMemberJoined = AnalyticsEvent._('household_member_joined');
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 

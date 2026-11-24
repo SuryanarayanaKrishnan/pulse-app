@@ -10,6 +10,9 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../household/joint_views.dart';
+import '../../core/household/household_engine.dart' show NwScope;
+import '../../household/household_providers.dart';
 import 'budget_charts.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
@@ -21,6 +24,9 @@ class BudgetScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final b = ref.watch(budgetProvider);
+    final joint = ref.watch(jointDataProvider).value;
+    final scope = ref.watch(budgetScopeProvider);
+    final showJoint = joint != null && scope == NwScope.joint;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -38,26 +44,34 @@ class BudgetScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            AsyncView<BudgetOverview>(
-              value: b,
-              onRetry: () => ref.invalidate(budgetProvider),
-              loading: const SkeletonList(rows: 4, height: 96),
-              builder: (o) => (o.planned == 0 && o.spent == 0)
-                  ? EmptyState(
-                      icon: Icons.donut_small_outlined,
-                      title: 'No spending or budget yet',
-                      message:
-                          'Once card alerts arrive, or you add a payment by '
-                          'hand, spending shows up here. Set a monthly budget '
-                          'to see how much is left.',
-                      action: PrimaryButton(
-                        label: 'Set a budget',
-                        expand: false,
-                        onPressed: () => context.push(Routes.categories),
-                      ),
-                    )
-                  : _Body(o),
-            ),
+            if (joint != null)
+              ScopeToggle(
+                value: scope,
+                onChanged: (v) => ref.read(budgetScopeProvider.notifier).set(v),
+              ),
+            if (showJoint)
+              JointBudgetView(joint)
+            else
+              AsyncView<BudgetOverview>(
+                value: b,
+                onRetry: () => ref.invalidate(budgetProvider),
+                loading: const SkeletonList(rows: 4, height: 96),
+                builder: (o) => (o.planned == 0 && o.spent == 0)
+                    ? EmptyState(
+                        icon: Icons.donut_small_outlined,
+                        title: 'No spending or budget yet',
+                        message:
+                            'Once card alerts arrive, or you add a payment by '
+                            'hand, spending shows up here. Set a monthly budget '
+                            'to see how much is left.',
+                        action: PrimaryButton(
+                          label: 'Set a budget',
+                          expand: false,
+                          onPressed: () => context.push(Routes.categories),
+                        ),
+                      )
+                    : _Body(o),
+              ),
           ],
         ),
       ),
@@ -248,8 +262,14 @@ class _WhereItWentState extends State<_WhereItWent> {
             CategoryIcon.well(m.category),
           ),
       ],
-      _By.cards => _entries(o.byCard, const IconWell(Icons.credit_card_outlined)),
-      _By.accounts => _entries(o.byAccount, const IconWell(Icons.account_balance_outlined)),
+      _By.cards => _entries(
+        o.byCard,
+        const IconWell(Icons.credit_card_outlined),
+      ),
+      _By.accounts => _entries(
+        o.byAccount,
+        const IconWell(Icons.account_balance_outlined),
+      ),
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

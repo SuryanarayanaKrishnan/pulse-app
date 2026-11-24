@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import '../core/sync/sync_state.dart';
+import '../data/household_service.dart' show ClearableStateStore;
 import '../data/local/database.dart';
 
 /// Keeps the sync state in a file beside the database, and ties it to that
@@ -19,14 +20,16 @@ import '../data/local/database.dart';
 /// else's log first and only then compares its own data. That is safe; the
 /// alternative (trusting a stale state against restored rows) would look like
 /// mass deletes to the other devices.
-class FileSyncStateStore implements SyncStateStore {
-  FileSyncStateStore({required this.locate, required this.db});
+class FileSyncStateStore implements ClearableStateStore {
+  FileSyncStateStore({required this.locate, required this.db, this.settingKey = 'sync_epoch'});
 
   /// Resolved lazily (the app-support directory is found asynchronously).
   final Future<File> Function() locate;
   final PulseDatabase db;
 
-  static const settingKey = 'sync_epoch';
+  /// The `app_settings` key holding the epoch. The household log keeps its
+  /// own state file and its own key.
+  final String settingKey;
 
   @override
   Future<SyncState?> load() async {
@@ -55,6 +58,7 @@ class FileSyncStateStore implements SyncStateStore {
     await db.putSetting(settingKey, epoch);
   }
 
+  @override
   Future<void> clear() async {
     final file = await locate();
     if (await file.exists()) await file.delete();

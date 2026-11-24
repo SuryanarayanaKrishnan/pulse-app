@@ -87,6 +87,8 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.goalCreated('save'),
   AnalyticsEvent.goalCreated('paydown'),
   AnalyticsEvent.goalCompleted,
+  AnalyticsEvent.householdCreated,
+  AnalyticsEvent.householdMemberJoined,
 ];
 
 void main() {

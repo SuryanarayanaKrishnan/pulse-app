@@ -130,6 +130,8 @@ void main() {
       find.byType(ListView).first,
       const Offset(0, -300),
     );
+    await tester.ensureVisible(find.text('Simulate a card tap'));
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Simulate a card tap'));
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 600));

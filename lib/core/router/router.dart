@@ -21,6 +21,7 @@ import '../../features/cards/ranked_screen.dart';
 import '../../features/family/family_screen.dart';
 import '../../features/goals/goal_detail_screen.dart';
 import '../../features/goals/goals_screen.dart';
+import '../../features/household/household_screen.dart';
 import '../../features/family/legacy_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
@@ -62,6 +63,7 @@ abstract class Routes {
   static const privacy = '/privacy';
   static const review = '/review';
   static const goals = '/goals';
+  static const household = '/household';
   static const restore = '/restore';
 
   /// Replay of the first-launch tour (Settings).
@@ -226,6 +228,11 @@ GoRouter buildRouter({
         path: Routes.cardsRanked,
         name: 'cards-ranked',
         builder: (c, s) => const RankedCardsScreen(),
+      ),
+      GoRoute(
+        path: Routes.household,
+        name: 'household',
+        builder: (c, s) => const HouseholdScreen(),
       ),
       GoRoute(
         path: Routes.family,

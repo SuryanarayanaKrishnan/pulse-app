@@ -26,6 +26,13 @@ class Accounts extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Whose it is: `me` (default), `shared`, or another household member's id.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+
+  /// Private items never leave this phone: not in sync to the household, not
+  /// in any joint view. (They still sync to your own devices.)
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -138,6 +145,13 @@ class Transactions extends Table {
   BoolColumn get reviewed => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// Whose it is: `me` (default), `shared`, or another household member's id.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+
+  /// Private items never leave this phone: not in sync to the household, not
+  /// in any joint view. (They still sync to your own devices.)
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -277,6 +291,13 @@ class Assets extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Whose it is: `me` (default), `shared`, or another household member's id.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+
+  /// Private items never leave this phone: not in sync to the household, not
+  /// in any joint view. (They still sync to your own devices.)
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -299,6 +320,13 @@ class Liabilities extends Table {
   TextColumn get endDate => text().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// Whose it is: `me` (default), `shared`, or another household member's id.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+
+  /// Private items never leave this phone: not in sync to the household, not
+  /// in any joint view. (They still sync to your own devices.)
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -354,6 +382,13 @@ class SavingsGoals extends Table {
   DateTimeColumn get completedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  /// Whose it is: `me` (default), `shared`, or another household member's id.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+
+  /// Private items never leave this phone: not in sync to the household, not
+  /// in any joint view. (They still sync to your own devices.)
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -571,4 +606,75 @@ class ValuationSnapshots extends Table {
   List<Set<Column>> get uniqueKeys => [
     {subjectKind, subjectId, snapshotDate},
   ];
+}
+
+
+// ---- Household (schema v6) ---------------------------------------------------
+//
+// None of these tables is on the sync allow-list: the household log is its
+// own end-to-end encrypted channel (see docs/HOUSEHOLD.md), and its key lives
+// in the keystore of this phone only.
+
+/// The one household this phone belongs to (at most one row).
+@DataClassName('HouseholdConfigRow')
+class HouseholdConfigs extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get myMemberId => text()();
+  BoolColumn get shareMine => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('HouseholdMemberRow')
+class HouseholdMembers extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  DateTimeColumn get joinedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A recurring due split between members. `split` is JSON: member id -> basis
+/// points.
+@DataClassName('HouseholdBillRow')
+class HouseholdBills extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  IntColumn get amountMinor => integer()();
+  TextColumn get currency => text().withDefault(const Constant('AED'))();
+  IntColumn get dueDay => integer()();
+  TextColumn get categoryId => text().nullable()();
+  TextColumn get split => text().withDefault(const Constant('{}'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A joint monthly limit on a category.
+@DataClassName('HouseholdLimitRow')
+class HouseholdLimits extends Table {
+  TextColumn get id => text()();
+  TextColumn get categoryId => text()();
+  IntColumn get limitMinor => integer()();
+  TextColumn get currency => text().withDefault(const Constant('AED'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// What the other members shared with this phone: read-only copies of their
+/// rows, kept apart from the ledger so they can never be mistaken for (or
+/// double counted with) your own. `payload` is JSON.
+@DataClassName('HouseholdMirrorRow')
+class HouseholdMirror extends Table {
+  TextColumn get kind => text()();
+  TextColumn get rowId => text()();
+  TextColumn get payload => text()();
+
+  @override
+  Set<Column> get primaryKey => {kind, rowId};
 }

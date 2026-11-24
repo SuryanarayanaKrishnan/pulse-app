@@ -10,6 +10,7 @@ import '../../data/goal_models.dart';
 import '../../data/providers.dart';
 import '../wealth/wealth_widgets.dart' show formatDate;
 import 'contribution_sheet.dart';
+import '../household/ownership_widgets.dart';
 import 'goal_sheet.dart';
 import 'goal_widgets.dart';
 
@@ -174,6 +175,7 @@ class _Body extends ConsumerWidget {
               trailing: Text(aedMinor(v.reservedMinor), key: const Key('goal_reserved'), style: PulseTheme.amount(c.textPrimary, size: 15)),
             ),
             if (v.linkedName != null) ListRow(title: 'Follows', trailing: Text(v.linkedName!, style: tt.bodyMedium)),
+            OwnerRow(table: 'goals', id: v.id, title: rec.name, dense: false),
             if (!s.done)
               ListRow(
                 title: 'Pause set-aside',

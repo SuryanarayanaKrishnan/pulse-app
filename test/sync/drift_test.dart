@@ -203,6 +203,32 @@ void main() {
     expect((await p2.sync()).idle, isTrue);
   });
 
+  test('household: ownership columns sync to my own devices; the household tables never do', () async {
+    for (final t in ['transactions', 'accounts', 'assets', 'liabilities', 'savings_goals']) {
+      expect(isSyncedColumn(t, 'owner'), isTrue, reason: t);
+      expect(isSyncedColumn(t, 'is_private'), isTrue, reason: t);
+    }
+    for (final t in ['household_configs', 'household_members', 'household_bills', 'household_limits', 'household_mirror']) {
+      expect(syncedTables, isNot(contains(t)), reason: t);
+    }
+  });
+
+  test('a transaction marked shared and another marked private reach my other phone as marked', () async {
+    await p1.addAccount();
+    await p1.addTx('t1', 'Spinneys', 4100);
+    await p1.addTx('t2', 'Gift', 9000);
+    p1.nowMs += 1000;
+    await p1.db.customStatement("UPDATE transactions SET owner = 'shared' WHERE id = 't1'");
+    await p1.db.customStatement("UPDATE transactions SET is_private = 1 WHERE id = 't2'");
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows("SELECT id, owner, is_private FROM transactions ORDER BY id"), [
+      {'id': 't1', 'owner': 'shared', 'is_private': 0},
+      {'id': 't2', 'owner': 'me', 'is_private': 1},
+    ]);
+    expect((await p2.sync()).idle, isTrue);
+  });
+
   test('every allow-listed table exists with a primary key', () async {
     final snap = await DriftSyncBridge(p1.db).read();
     expect(snap.keys.toSet(), syncedTables);

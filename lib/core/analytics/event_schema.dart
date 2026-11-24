@@ -162,6 +162,8 @@ abstract final class AnalyticsSchema {
       'type': EnumProp('Saving up, or paying something down', ['save', 'paydown']),
     }),
     EventSpec('goal_completed', 'Everyday use', 'A goal reaches its target.'),
+    EventSpec('household_created', 'Everyday use', 'You start a household.'),
+    EventSpec('household_member_joined', 'Everyday use', 'You join a household with an invite.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
     EventSpec('card_check_shown', 'Everyday use', 'Pulse tells you whether you used the best card.', props: {
@@ -240,7 +242,7 @@ abstract final class AnalyticsSchema {
     '/onboarding', '/sign-in', '/connect', '/home', '/budget', '/cards',
     '/splits', '/wealth', '/activity', '/settings', '/categories',
     '/automations', '/statements', '/family', '/cards-ranked', '/legacy',
-    '/goals', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
+    '/goals', '/household', '/backup', '/backup/setup', '/sync', '/restore', '/tour', '/privacy', '/review', //
   ];
 
   static final _byName = {for (final e in events) e.name: e};

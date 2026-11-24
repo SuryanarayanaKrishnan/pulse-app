@@ -7,7 +7,13 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../../core/household/household_engine.dart' show NwScope;
+import '../../household/household_providers.dart';
 import '../goals/goals_screen.dart' show GoalsSection;
+import '../../data/household_service.dart' show JointData;
+import '../household/household_common.dart';
+import '../household/joint_views.dart';
+import '../household/ownership_widgets.dart';
 import '../wallet/add_sheets.dart';
 import '../wealth/wealth_sections.dart';
 import '../tour/tab_tip.dart';
@@ -31,6 +37,9 @@ class WealthScreen extends ConsumerWidget {
     final c = context.pc;
     final assets = ref.watch(assetsProvider);
     final nw = ref.watch(netWorthProvider).value;
+    final joint = ref.watch(jointDataProvider).value;
+    final scope = ref.watch(wealthScopeProvider);
+    final showJoint = joint != null && scope == NwScope.joint;
     return Scaffold(
       body: SafeArea(
         bottom: false,
@@ -55,6 +64,14 @@ class WealthScreen extends ConsumerWidget {
                 ),
               ],
             ),
+            if (joint != null)
+              ScopeToggle(
+                value: scope,
+                onChanged: (v) => ref.read(wealthScopeProvider.notifier).set(v),
+              ),
+            if (showJoint)
+              JointNetWorthView(joint)
+            else ...[
             if (nw != null) ...[
               HeroNumber(
                 label: 'Net worth',
@@ -113,6 +130,7 @@ class WealthScreen extends ConsumerWidget {
                   : _Body(list),
             ),
             if (nw != null) _LiveValues(nw),
+            ],
           ],
         ),
       ),
@@ -142,7 +160,7 @@ class WealthSections extends StatelessWidget {
   );
 }
 
-class _Body extends StatelessWidget {
+class _Body extends ConsumerWidget {
   const _Body(this.list);
   final List<Asset> list;
 
@@ -153,9 +171,17 @@ class _Body extends StatelessWidget {
     return Color.lerp(c.accent, c.surfaceElevated, t * 0.85)!;
   }
 
+  /// The note, plus how the row is shared when there is a household.
+  static String? _subtitle(JointData? j, Asset a) {
+    final share = j == null ? null : lineCaption(j, a.id);
+    final parts = [if (a.note.isNotEmpty) a.note, ?share];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
+    final joint = ref.watch(jointDataProvider).value;
     final byKind = <AssetKind, List<Asset>>{};
     for (final a in list) {
       byKind.putIfAbsent(a.kind, () => []).add(a);
@@ -248,8 +274,12 @@ class _Body extends StatelessWidget {
             children: [
               for (final a in byKind[k]!.where((a) => !_inSections(a)))
                 ListRow(
+                  key: Key('asset_${a.id}'),
                   title: a.name,
-                  subtitle: a.note.isEmpty ? null : a.note,
+                  subtitle: _subtitle(joint, a),
+                  onTap: joint == null
+                      ? null
+                      : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name),
                   trailing: Text(
                     Money.aed(
                       a.isLiability ? -a.value : a.value,

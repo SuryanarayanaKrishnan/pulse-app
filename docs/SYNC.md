@@ -1,6 +1,6 @@
 # Encrypted multi-device sync
 
-Continuous sync between a user's phones, built on the backup feature (`docs/BACKUP.md`). It shares the backup **data key**, so there is no new secret to remember: a second phone joins by restoring from backup (recovery phrase or passphrase), which puts the data key in its keystore. The server only ever sees ciphertext. Everything is free (Supabase Storage free tier, no new packages; `fake_async` was added as a dev dependency for tests).
+Continuous sync between a user's phones, built on the backup feature (`docs/BACKUP.md`). It shares the backup **data key**, so there is no new secret to remember: a second phone joins by restoring from backup (recovery phrase or passphrase), which puts the data key in its keystore. The server only ever sees ciphertext. Household planning reuses this engine for a second, separately keyed log: see `docs/HOUSEHOLD.md`. Everything is free (Supabase Storage free tier, no new packages; `fake_async` was added as a dev dependency for tests).
 
 ## Design
 
