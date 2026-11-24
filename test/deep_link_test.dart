@@ -129,8 +129,9 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('Open Shortcuts'), findsWidgets);
       expect(find.textContaining('Record Payment'), findsWidgets);
+      await tester.scrollUntilVisible(find.text('Add Record Bank SMS'), 200);
       await tester.scrollUntilVisible(
-        find.text('Add Record Bank SMS'),
+        find.textContaining('Waiting for your first'),
         200,
       );
       expect(find.textContaining('Waiting for your first'), findsOneWidget);
