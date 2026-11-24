@@ -1,4 +1,19 @@
-# Run Pulse on your iPhone for free (from Windows)
+# Run Pulse on your iPhone for free
+
+Two free routes. If you can borrow a Mac, use route A (simplest). Otherwise use route B from Windows.
+
+## Route A: with a friend's Mac (no GitHub build needed)
+One-time setup on the Mac, about an hour mostly waiting on downloads:
+1. Install **Xcode** from the Mac App Store, open it once and accept the licence and extra components.
+2. Install Flutter (flutter.dev/install/macos), then run `flutter doctor` and fix what it flags (CocoaPods etc.).
+3. Xcode > Settings > Accounts > **+** > sign in with your free Apple ID (a spare one is wise).
+4. Clone the repo, run `flutter pub get`, then `open ios/Runner.xcworkspace`. In Runner > Signing & Capabilities tick *Automatically manage signing*, choose your Apple ID as Team, and change the Bundle Identifier to something unique like `com.yourname.pulse`.
+5. Plug in the iPhone, tap **Trust**. On the iPhone enable Settings > Privacy & Security > **Developer Mode** (appears once Xcode sees the phone), restart.
+6. Run `flutter run --release -d <your iPhone>` (see `flutter devices`). Then on the phone: Settings > General > **VPN & Device Management** > trust your Apple ID.
+
+Same free-account limits apply: the app expires after **7 days** (run step 6 again with the phone plugged in to refresh; your data stays) and you can have 3 sideloaded apps. Always use `--release`; debug builds stop working when the cable is unplugged.
+
+## Route B: from Windows (fallback)
 
 No Apple Developer Program ($99/yr) needed. You build an unsigned app on GitHub, then sign it yourself with a free Apple ID using Sideloadly.
 
