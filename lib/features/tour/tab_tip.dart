@@ -30,7 +30,7 @@ class TabTip extends ConsumerStatefulWidget {
     required this.child,
     this.alignEnd = false,
     this.delay = const Duration(milliseconds: 900),
-    this.visibleFor = const Duration(seconds: 10),
+    this.visibleFor = const Duration(seconds: 8),
   });
   final TipTab tab;
   final Widget child;
@@ -194,7 +194,7 @@ class _TipBubble extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    constraints: const BoxConstraints(maxWidth: 264),
+                    constraints: const BoxConstraints(maxWidth: 256),
                     padding: const EdgeInsets.fromLTRB(
                       Space.lg,
                       Space.md,
@@ -214,19 +214,24 @@ class _TipBubble extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          text,
-                          style: context.tt.bodyMedium!.copyWith(color: fg),
+                        Flexible(
+                          child: Text(
+                            text,
+                            style: context.tt.bodyMedium!.copyWith(color: fg),
+                          ),
                         ),
-                        const SizedBox(height: Space.xs),
-                        Text(
-                          'Got it',
-                          style: context.tt.labelLarge!.copyWith(
-                            color: PulseColors.dark.accent,
+                        const SizedBox(width: Space.md),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 2),
+                          child: Icon(
+                            Icons.close_rounded,
+                            size: 16,
+                            semanticLabel: 'Dismiss tip',
+                            color: fg.withValues(alpha: .6),
                           ),
                         ),
                       ],

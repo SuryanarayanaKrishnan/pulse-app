@@ -23,7 +23,7 @@ final _moments = <_Copy>[
     (t) => SafeToSpendMoment(t: t),
   ),
   _Copy(
-    'The right card, every tap',
+    'Always the right card',
     'After you pay, a soft buzz tells you if another card would have earned more.',
     (t) => RightCardMoment(t: t),
   ),
@@ -33,8 +33,8 @@ final _moments = <_Copy>[
     (t) => AutoCaptureMoment(t: t),
   ),
   _Copy(
-    'Everything, as one number',
-    'Cash, gold, funds and property add up quietly, so you always know where you stand.',
+    'Everything adds up',
+    'Cash, gold, funds and property, added up quietly into one number.',
     (t) => NetWorthMoment(t: t),
   ),
 ];

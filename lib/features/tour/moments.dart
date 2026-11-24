@@ -153,41 +153,45 @@ class SafeToSpendMoment extends StatelessWidget {
     );
 
     return _Stage(
-      child: Container(
-        padding: const EdgeInsets.all(Space.lg),
-        decoration: _panel(c),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Safe to spend today', style: context.tt.bodyMedium),
-            const SizedBox(height: Space.xs),
-            Text(
-              'AED ${_n(value.round())}',
-              style: PulseTheme.amount(
-                color,
-                size: 44,
-                weight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: Space.sm),
-            SizedBox(
-              height: 20,
-              child: _Appear(
-                pd,
-                dy: 4,
-                child: Text(
-                  'AED 2,790 free · 14 days left',
-                  style: context.tt.bodySmall,
+      child: Align(
+        alignment: Alignment.center,
+        child: Container(
+          padding: const EdgeInsets.all(Space.lg),
+          decoration: _panel(c),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Safe to spend today', style: context.tt.bodyMedium),
+              const SizedBox(height: Space.xs),
+              Text(
+                'AED ${_n(value.round())}',
+                style: PulseTheme.amount(
+                  color,
+                  size: 44,
+                  weight: FontWeight.w700,
                 ),
               ),
-            ),
-            const SizedBox(height: Space.md),
-            Container(height: 0.5, color: c.border),
-            const SizedBox(height: Space.xs),
-            row('Bills', '−2,800', p1),
-            row('Card dues', '−1,150', p2),
-            row('Goals', '−500', p3),
-          ],
+              const SizedBox(height: Space.sm),
+              SizedBox(
+                height: 20,
+                child: _Appear(
+                  pd,
+                  dy: 4,
+                  child: Text(
+                    'AED 2,790 free · 14 days left',
+                    style: context.tt.bodySmall,
+                  ),
+                ),
+              ),
+              const SizedBox(height: Space.md),
+              Container(height: 0.5, color: c.border),
+              const SizedBox(height: Space.xs),
+              row('Bills', '−2,800', p1),
+              row('Card dues', '−1,150', p2),
+              row('Goals', '−500', p3),
+            ],
+          ),
         ),
       ),
     );
@@ -353,7 +357,7 @@ class RightCardMoment extends StatelessWidget {
           ),
           Positioned(
             left: 46,
-            top: 148 - 10 * ring,
+            top: 158 - 10 * ring,
             child: Opacity(
               opacity: 1 - swap,
               child: Transform.translate(
@@ -371,7 +375,7 @@ class RightCardMoment extends StatelessWidget {
           ),
           Positioned(
             left: 46,
-            top: 148 - 10 * ring,
+            top: 158 - 10 * ring,
             child: Opacity(
               opacity: swap,
               child: Transform.translate(

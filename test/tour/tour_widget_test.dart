@@ -57,9 +57,9 @@ Future<void> _advance(WidgetTester tester) async {
 
 const _headlines = [
   'Your number for today',
-  'The right card, every tap',
+  'Always the right card',
   'It fills itself in',
-  'Everything, as one number',
+  'Everything adds up',
 ];
 
 void main() {
