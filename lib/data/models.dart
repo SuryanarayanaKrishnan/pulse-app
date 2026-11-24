@@ -435,6 +435,7 @@ enum AssetKind {
   cash('Cash', Icons.account_balance_rounded, Color(0xFF2DD4BF)),
   fixedDeposit('Fixed deposits', Icons.savings_rounded, Color(0xFF60A5FA)),
   stocks('Stocks', Icons.show_chart_rounded, Color(0xFFA78BFA)),
+  funds('Mutual funds', Icons.pie_chart_rounded, Color(0xFF34D399)),
   gold('Gold', Icons.diamond_rounded, Color(0xFFFBBF24)),
   realEstate('Real estate', Icons.apartment_rounded, Color(0xFFF472B6)),
   liability('Liabilities', Icons.credit_score_rounded, Color(0xFFFB7185)),
@@ -473,8 +474,12 @@ class NetWorth {
     this.labels = const [],
     this.updatedAt,
     this.prices = const [],
+    this.pricesLive = true,
   });
   final double total;
+
+  /// False when the prices are cached or the bundled demo values (offline).
+  final bool pricesLive;
 
   /// Month-end values, oldest first; the last point is now.
   final List<double> series;

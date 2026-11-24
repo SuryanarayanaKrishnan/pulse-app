@@ -8,6 +8,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../wallet/add_sheets.dart';
+import '../wealth/wealth_sections.dart';
 
 /// "12 min ago", "3 h ago", "6 days ago".
 String ago(DateTime t, {DateTime? now}) {
@@ -40,9 +41,9 @@ class WealthScreen extends ConsumerWidget {
                 RoundIconButton(
                   icon: Icons.add_rounded,
                   label: 'Add an asset or loan',
-                  onTap: () => showPulseSheet<void>(
+                  onTap: () => showWealthAddMenu(
                     context,
-                    builder: (_) => const AddAssetSheet(),
+                    assetSheet: (_) => const AddAssetSheet(),
                   ),
                 ),
               ],
@@ -55,25 +56,7 @@ class WealthScreen extends ConsumerWidget {
                     '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
                 captionColor: nw.changePct >= 0 ? c.positive : c.negative,
               ),
-              if (nw.updatedAt != null)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.gutter,
-                    Space.xs,
-                    Space.gutter,
-                    0,
-                  ),
-                  child: Row(
-                    children: [
-                      Dot(c.positive, size: 6),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Live · updated ${ago(nw.updatedAt!)}',
-                        style: context.tt.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
+              const PriceStatusLine(),
               if (nw.labels.length == nw.series.length && nw.series.length > 1)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -94,79 +77,61 @@ class WealthScreen extends ConsumerWidget {
                     series: [ChartSeries('Net worth', nw.series, c.accent)],
                   ),
                 ),
-              if (nw.prices.isNotEmpty) ...[
-                const SectionHeader('Live values'),
-                RowGroup(
-                  children: [
-                    for (final p in nw.prices)
-                      ListRow(
-                        dense: true,
-                        title: p.name,
-                        subtitle: '${p.source} · ${ago(p.updatedAt)}',
-                        trailing: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              p.value,
-                              style: PulseTheme.amount(c.textPrimary, size: 15),
-                            ),
-                            if (p.changePct != 0)
-                              Text(
-                                '${p.changePct > 0 ? '+' : '−'}${p.changePct.abs().toStringAsFixed(1)}%',
-                                style: context.tt.bodySmall!.copyWith(
-                                  color: p.changePct > 0
-                                      ? c.positive
-                                      : c.negative,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    Space.gutter,
-                    Space.sm,
-                    Space.gutter,
-                    0,
-                  ),
-                  child: Text(
-                    'Gold, property and foreign holdings revalue themselves as these move.',
-                    style: context.tt.bodySmall!.copyWith(
-                      color: c.textTertiary,
-                    ),
-                  ),
-                ),
-              ],
             ],
             AsyncView<List<Asset>>(
               value: assets,
               loading: const SkeletonList(rows: 4),
               onRetry: () => ref.invalidate(assetsProvider),
               builder: (list) => list.isEmpty
-                  ? EmptyState(
-                      icon: Icons.account_balance_wallet_outlined,
-                      title: 'Nothing here yet',
-                      message:
-                          'Add what you own and owe: accounts, property, gold, '
-                          'deposits, loans. Net worth is worked out on this phone.',
-                      action: PrimaryButton(
-                        label: 'Add an asset',
-                        expand: false,
-                        onPressed: () => showPulseSheet<void>(
-                          context,
-                          builder: (_) => const AddAssetSheet(),
+                  ? Column(
+                      children: [
+                        EmptyState(
+                          icon: Icons.account_balance_wallet_outlined,
+                          title: 'Nothing here yet',
+                          message:
+                              'Add what you own and owe: accounts, property, gold, '
+                              'deposits, loans. Net worth is worked out on this phone.',
+                          action: PrimaryButton(
+                            label: 'Add to Wealth',
+                            expand: false,
+                            onPressed: () => showWealthAddMenu(
+                              context,
+                              assetSheet: (_) => const AddAssetSheet(),
+                            ),
+                          ),
                         ),
-                      ),
+                        const WealthSections(),
+                      ],
                     )
                   : _Body(list),
             ),
+            if (nw != null) _LiveValues(nw),
           ],
         ),
       ),
     );
   }
+}
+
+/// Jewellery and funds have their own sections with photos, gain and detail
+/// pages, so the plain per-kind list leaves them out (they still count in the
+/// allocation and the totals).
+bool _inSections(Asset a) =>
+    a.id.startsWith('jewel:') || a.id.startsWith('fund:');
+
+/// Upcoming dates, jewellery, funds and documents.
+class WealthSections extends StatelessWidget {
+  const WealthSections({super.key});
+  @override
+  Widget build(BuildContext context) => const Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      UpcomingSection(),
+      JewellerySection(),
+      FundsSection(),
+      DocumentsSection(),
+    ],
+  );
 }
 
 class _Body extends StatelessWidget {
@@ -206,17 +171,35 @@ class _Body extends StatelessWidget {
             Space.gutter,
             Space.md,
             Space.gutter,
-            Space.xs,
+            Space.lg,
           ),
-          child: StackedBar(
-            slices: [
-              for (var i = 0; i < kinds.length; i++)
-                ChartSlice(
-                  kinds[i].label,
-                  sum(kinds[i]),
-                  _shade(c, i, kinds.length),
+          child: Center(
+            child: Semantics(
+              label:
+                  'Allocation of ${Money.aed(totalAssets, decimals: false)} in assets',
+              child: DonutChart(
+                size: 176,
+                thickness: 20,
+                slices: [
+                  for (var i = 0; i < kinds.length; i++)
+                    ChartSlice(
+                      kinds[i].label,
+                      sum(kinds[i]),
+                      _shade(c, i, kinds.length),
+                    ),
+                ],
+                center: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Assets', style: context.tt.bodySmall),
+                    Text(
+                      Money.aedCompact(totalAssets),
+                      style: PulseTheme.amount(c.textPrimary, size: 22),
+                    ),
+                  ],
                 ),
-            ],
+              ),
+            ),
           ),
         ),
         RowGroup(
@@ -247,14 +230,15 @@ class _Body extends StatelessWidget {
               ),
           ],
         ),
+        const WealthSections(),
         for (final k in [
           ...kinds,
           if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
         ]) ...[
-          SectionHeader(k.label),
+          if (byKind[k]!.any((a) => !_inSections(a))) SectionHeader(k.label),
           RowGroup(
             children: [
-              for (final a in byKind[k]!)
+              for (final a in byKind[k]!.where((a) => !_inSections(a)))
                 ListRow(
                   title: a.name,
                   subtitle: a.note.isEmpty ? null : a.note,
@@ -280,6 +264,62 @@ class _Body extends StatelessWidget {
             'Assets ${Money.aed(totalAssets, decimals: false)} · '
             'Liabilities ${Money.aed(liabilities, decimals: false)}',
             style: context.tt.bodySmall,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The prices Pulse values things with.
+class _LiveValues extends StatelessWidget {
+  const _LiveValues(this.nw);
+  final NetWorth nw;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    if (nw.prices.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionHeader('Live values'),
+        RowGroup(
+          children: [
+            for (final p in nw.prices)
+              ListRow(
+                dense: true,
+                title: p.name,
+                subtitle: '${p.source} · ${ago(p.updatedAt)}',
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      p.value,
+                      style: PulseTheme.amount(c.textPrimary, size: 15),
+                    ),
+                    if (p.changePct != 0)
+                      Text(
+                        '${p.changePct > 0 ? '+' : '−'}${p.changePct.abs().toStringAsFixed(1)}%',
+                        style: context.tt.bodySmall!.copyWith(
+                          color: p.changePct > 0 ? c.positive : c.negative,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            0,
+          ),
+          child: Text(
+            'Gold, property and foreign holdings revalue themselves as these move.',
+            style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
           ),
         ),
       ],

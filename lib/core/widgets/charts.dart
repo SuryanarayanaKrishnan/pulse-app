@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -174,4 +176,69 @@ class TrendBars extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Allocation donut: slices as arcs with thin gaps, an optional centre.
+class DonutChart extends StatelessWidget {
+  const DonutChart({super.key, required this.slices, this.size = 140, this.thickness = 16, this.center});
+  final List<ChartSlice> slices;
+  final double size, thickness;
+  final Widget? center;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: size,
+    height: size,
+    child: Stack(
+      alignment: Alignment.center,
+      children: [
+        CustomPaint(
+          size: Size.square(size),
+          painter: _DonutPainter(slices, thickness, context.pc.surfaceElevated),
+        ),
+        ?center,
+      ],
+    ),
+  );
+}
+
+class _DonutPainter extends CustomPainter {
+  _DonutPainter(this.slices, this.thickness, this.track);
+  final List<ChartSlice> slices;
+  final double thickness;
+  final Color track;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final r = rect.deflate(thickness / 2);
+    final base = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = thickness
+      ..color = track;
+    canvas.drawArc(r, 0, 2 * math.pi, false, base);
+    final total = slices.fold(0.0, (a, s) => a + s.value);
+    if (total <= 0) return;
+    const gap = 0.035;
+    var start = -math.pi / 2;
+    for (final s in slices) {
+      final sweep = s.value / total * 2 * math.pi;
+      final draw = slices.length > 1 ? math.max(sweep - gap, 0.01) : sweep;
+      canvas.drawArc(
+        r,
+        start + (slices.length > 1 ? gap / 2 : 0),
+        draw,
+        false,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = thickness
+          ..strokeCap = StrokeCap.butt
+          ..color = s.color,
+      );
+      start += sweep;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DonutPainter old) => old.slices != slices || old.thickness != thickness || old.track != track;
 }

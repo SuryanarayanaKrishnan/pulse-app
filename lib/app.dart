@@ -8,6 +8,7 @@ import 'core/env/env.dart';
 import 'core/router/router.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_mode.dart';
+import 'data/providers.dart';
 import 'features/auth/session.dart';
 
 class PulseApp extends ConsumerStatefulWidget {
@@ -28,6 +29,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // No-op off Android. Drains buffered SMS/notifications into the offline
     // queue and uploads them.
     ref.read(captureServiceProvider).start();
+    _refreshWealth();
     _router = buildRouter(
       session: ref.read(sessionProvider),
       analytics: ref.read(analyticsProvider),
@@ -39,6 +41,25 @@ class _PulseAppState extends ConsumerState<PulseApp>
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ref.read(captureServiceProvider).onResumed();
+      _refreshWealth();
+    }
+  }
+
+  /// In the background on open and resume: re-register reminders, fetch fresh
+  /// prices and NAVs when a backend is configured (a no-op otherwise), store
+  /// today's valuations. Never blocks the UI; failures keep the cache.
+  Future<void> _refreshWealth() async {
+    try {
+      final svc = ref.read(wealthServiceProvider);
+      await svc.rescheduleReminders();
+      if (svc.prices.canFetch) {
+        await svc.prices.refresh();
+        await svc.refreshNavs();
+      }
+      await svc.recordValuations();
+      if (mounted) invalidateWealth(ref);
+    } on Object catch (e) {
+      debugPrint('Wealth refresh skipped: $e');
     }
   }
 

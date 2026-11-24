@@ -9,6 +9,7 @@ import 'phone.dart';
 import 'repository.dart';
 import 'rules.dart';
 import 'statements.dart';
+import 'wealth_service.dart';
 
 typedef S = SpendCategory;
 
@@ -17,6 +18,7 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
   MockPulseRepository({
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
+    this.wealth,
   }) : _now = now ?? DateTime.now() {
     _tx = [for (final t in _seedTransactions()) applyRules(t, _rules)];
     _groups = _seedGroups();
@@ -24,6 +26,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
   }
 
   final Duration latency;
+
+  /// Demo jewellery and funds, so net worth includes them.
+  final WealthService? wealth;
   final DateTime _now;
   late List<Transaction> _tx;
   late List<SplitGroup> _groups;
@@ -836,9 +841,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
     ),
     Asset(
       id: 'a5',
-      name: 'Gold · 120g 22K',
+      name: 'Gold bars · 120 g 22K',
       kind: AssetKind.gold,
-      value: 41800,
+      value: 51700,
       note: 'Live spot',
     ),
     Asset(
@@ -864,11 +869,13 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
   ];
 
   @override
-  Future<List<Asset>> assets() => _d(_assets);
+  Future<List<Asset>> assets() async =>
+      _d([..._assets, ...?await wealth?.assets()]);
 
   @override
-  Future<NetWorth> netWorth() {
-    final total = _assets.fold(
+  Future<NetWorth> netWorth() async {
+    final all = [..._assets, ...?await wealth?.assets()];
+    final total = all.fold(
       0.0,
       (a, e) => a + (e.isLiability ? -e.value : e.value),
     );
@@ -899,19 +906,23 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository {
         changeAed: s.last - s.first,
         updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
         prices: [
-          PriceInput(
-            name: 'Gold 22K',
-            value: 'AED 348.25 / g',
-            source: 'Dubai gold rate',
-            updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
-            changePct: 0.6,
-          ),
-          PriceInput(
-            name: 'USD / AED',
-            value: '3.6725',
-            source: 'Central Bank peg',
-            updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
-          ),
+          if (wealth != null)
+            ...priceInputs(await wealth!.book())
+          else ...[
+            PriceInput(
+              name: 'Gold 22K',
+              value: 'AED 348.25 / g',
+              source: 'Dubai gold rate',
+              updatedAt: DateTime.now().subtract(const Duration(minutes: 12)),
+              changePct: 0.6,
+            ),
+            PriceInput(
+              name: 'USD / AED',
+              value: '3.6725',
+              source: 'Central Bank peg',
+              updatedAt: DateTime.now().subtract(const Duration(hours: 3)),
+            ),
+          ],
           PriceInput(
             name: 'Dubai Marina 1BR',
             value: 'AED 1,450,000',

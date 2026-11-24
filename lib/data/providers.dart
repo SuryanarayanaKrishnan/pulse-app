@@ -1,11 +1,20 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 import '../core/env/env.dart';
 import '../core/network/api_client.dart';
 import 'api/api_pulse_repository.dart';
+import '../core/engine/prices.dart';
 import 'card_ranking.dart';
+import 'demo_wealth.dart';
+import 'local/attachments.dart';
+import 'local/price_service.dart';
+import 'local/reminders.dart';
+import 'local/wealth_store.dart';
+import 'wealth_models.dart';
+import 'wealth_service.dart';
 import 'insights.dart';
 import 'local/catalog_service.dart';
 import 'local/database.dart';
@@ -39,6 +48,68 @@ final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
   return p;
 });
 
+// ---- Wealth: prices, jewellery, documents, funds ---------------------------
+
+/// Where jewellery, documents, funds and cached prices live: the encrypted
+/// database, or memory (demo data, web, tests).
+final wealthStoreProvider = Provider<WealthStore>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return demoWealthStore();
+  return LocalWealthStore(db);
+});
+
+final photoPickerProvider = Provider<PhotoPicker>(
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? const NoPhotoPicker() : ImagePickerPhotoPicker(),
+);
+
+final attachmentStorageProvider = Provider<AttachmentStorage>(
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? MemoryAttachmentStorage() : PrivateAttachmentStorage(),
+);
+
+final remindersProvider = Provider<Reminders>(
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? const NoopReminders() : LocalNotificationReminders(),
+);
+
+/// Gold and FX prices: fetched from the shared snapshot when `API_BASE_URL`
+/// is set, cached locally, with a bundled fallback.
+final priceServiceProvider = Provider<PriceService>(
+  (ref) => PriceService(store: ref.watch(wealthStoreProvider), dio: Env.useApi ? ref.watch(dioProvider) : null),
+);
+
+final fundLookupProvider = Provider<FundLookup>((ref) => FundLookup(Env.useApi ? ref.watch(dioProvider) : null));
+
+final wealthServiceProvider = Provider<WealthService>(
+  (ref) => WealthService(
+    store: ref.watch(wealthStoreProvider),
+    prices: ref.watch(priceServiceProvider),
+    fundLookup: ref.watch(fundLookupProvider),
+    reminders: ref.watch(remindersProvider),
+    storage: ref.watch(attachmentStorageProvider),
+  ),
+);
+
+/// The price book the phone values things with (cache over bundled).
+final priceBookProvider = FutureProvider<PriceBook>((ref) => ref.watch(wealthServiceProvider).book());
+final jewelleryProvider = FutureProvider<List<JewelleryView>>((ref) => ref.watch(wealthServiceProvider).jewelleryViews());
+final documentsProvider = FutureProvider<List<WealthDocument>>((ref) => ref.watch(wealthServiceProvider).documents());
+final fundsProvider = FutureProvider<List<FundView>>((ref) => ref.watch(wealthServiceProvider).fundViews());
+final upcomingProvider = FutureProvider<List<UpcomingItem>>((ref) => ref.watch(wealthServiceProvider).upcoming());
+final jewelleryHistoryProvider = FutureProvider.family<List<ValuationPoint>, String>(
+  (ref, id) => ref.watch(wealthServiceProvider).jewelleryHistory(id),
+);
+
+/// Refreshes everything after jewellery, documents, funds or prices changed.
+void invalidateWealth(WidgetRef ref) {
+  ref.invalidate(priceBookProvider);
+  ref.invalidate(jewelleryProvider);
+  ref.invalidate(documentsProvider);
+  ref.invalidate(fundsProvider);
+  ref.invalidate(upcomingProvider);
+  ref.invalidate(jewelleryHistoryProvider);
+  ref.invalidate(netWorthProvider);
+  ref.invalidate(assetsProvider);
+}
+
 /// What runs where:
 ///  * on-device (default): [LocalPulseRepository] over the encrypted DB;
 ///  * `DEMO_DATA=true` (or no database, as in tests): [MockPulseRepository];
@@ -48,13 +119,15 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
   final db = ref.watch(localDatabaseProvider);
   final catalog = ref.watch(catalogServiceProvider);
   final pipeline = ref.watch(ingestPipelineProvider);
+  final wealth = ref.watch(wealthServiceProvider);
   if (Env.demoData || db == null || catalog == null || pipeline == null) {
-    return MockPulseRepository();
+    return MockPulseRepository(wealth: wealth);
   }
   return LocalPulseRepository(
     db: db,
     catalog: catalog,
     pipeline: pipeline,
+    wealth: wealth,
     shared: Env.useApi ? ApiPulseRepository(ref.watch(dioProvider)) : null,
   );
 });

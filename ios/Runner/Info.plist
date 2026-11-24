@@ -4,8 +4,14 @@
 <dict>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSCameraUsageDescription</key>
+	<string>Take photos of jewellery and documents. Photos are kept on this phone and never uploaded.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Choose a statement or receipt from your photos to import it into Pulse.</string>
+	<string>Choose photos of jewellery, documents, statements or receipts. Photos are copied into Pulse on this phone and never uploaded.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Pulse does not save to your library; this string is required by the photo picker.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Remind you before a deposit matures or a document expires. Reminders are scheduled on this phone.</string>
 	<key>NSContactsUsageDescription</key>
 	<string>Pick people to split expenses with. Only a one-way fingerprint of each number is checked to show who already uses Pulse.</string>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
