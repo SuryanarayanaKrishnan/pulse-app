@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'app.dart';
+import 'bugreport/bug_log.dart';
 import 'capture/kv_store.dart';
 import 'core/analytics/analytics.dart';
 import 'core/analytics/gated_analytics.dart';
@@ -21,6 +22,7 @@ import 'data/providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  BugLog.instance.installErrorHooks();
 
   if (Env.hasSupabase) {
     await Supabase.initialize(
@@ -73,7 +75,7 @@ Future<void> main() async {
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
-        analyticsProvider.overrideWithValue(analytics),
+        analyticsProvider.overrideWithValue(LoggingAnalytics(analytics, BugLog.instance)),
         if (db != null)
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
       ],

@@ -7,6 +7,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pulse/app.dart';
+import 'package:pulse/bugreport/shake_detector.dart';
+import 'package:pulse/bugreport/shake_host.dart';
 import 'package:pulse/core/analytics/analytics.dart';
 import 'package:pulse/core/analytics/privacy_controller.dart';
 import 'package:pulse/capture/kv_store.dart';
@@ -119,6 +121,7 @@ void main() {
           privacyControllerProvider.overrideWithValue(privacy),
           learningControllerProvider.overrideWithValue(learning),
           analyticsProvider.overrideWithValue(NoopAnalytics()),
+          shakeSourceProvider.overrideWithValue(() => const Stream<Accel>.empty()),
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
         ],
         child: const PulseApp(),
@@ -183,11 +186,31 @@ void main() {
       findsWidgets,
     );
 
-    // Settings > Privacy.
-    await tapText('Not sharing anything');
+    // Settings > Privacy. Park the row mid-screen, clear of the app bar and the reward banner.
+    final privacyRow = find.text('Not sharing anything');
+    final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+    pos.jumpTo(0);
+    await settle();
+    pos.jumpTo(pos.pixels + tester.getCenter(privacyRow).dy - 420);
+    await settle();
+    await tester.tap(privacyRow);
+    await settle();
     expect(find.text('Share anonymous usage'), findsWidgets, reason: 'Privacy screen open');
     Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
     await settle();
+
+    // Settings > Beta tools > Report a bug opens the sheet (testers who cannot shake).
+    final reportRow = find.text('Report a bug');
+    await tester.scrollUntilVisible(reportRow, 300, scrollable: find.byType(Scrollable).first);
+    pos.jumpTo(pos.pixels + tester.getCenter(reportRow).dy - 420);
+    await settle();
+    await tester.tap(reportRow);
+    await settle(16);
+    expect(find.byKey(const Key('bug-note')), findsOneWidget, reason: 'bug report sheet open');
+    Navigator.of(tester.element(find.byKey(const Key('bug-note'))), rootNavigator: true).pop();
+    await settle();
+    expect(find.byKey(const Key('bug-note')), findsNothing);
+
     Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
     await settle();
 

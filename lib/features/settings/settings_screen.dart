@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../backup/backup_providers.dart';
+import '../../bugreport/launcher.dart';
+import '../../bugreport/settings.dart';
 import '../../backup/backup_state.dart';
 import '../../household/household_providers.dart';
 import '../../sync/sync_providers.dart';
@@ -318,6 +320,33 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ],
+          const SectionHeader('Beta tools'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                key: const Key('settings_shake_row'),
+                leading: const IconWell(Icons.vibration_rounded),
+                title: 'Shake to report a bug',
+                subtitle: 'Shake your phone to send feedback with a screenshot',
+                trailing: Switch(
+                  key: const Key('settings_shake_switch'),
+                  value: ref.watch(shakeEnabledProvider),
+                  onChanged: (v) =>
+                      ref.read(shakeEnabledProvider.notifier).set(v),
+                ),
+              ),
+              ListRow(
+                key: const Key('settings_report_bug'),
+                leading: const IconWell(Icons.bug_report_outlined),
+                title: 'Report a bug',
+                subtitle: 'For when shaking is not an option',
+                chevron: true,
+                onTap: () =>
+                    ref.read(bugReportLauncherProvider).launch('settings'),
+              ),
+            ],
+          ),
           const SectionHeader('About'),
           RowGroup(
             children: [

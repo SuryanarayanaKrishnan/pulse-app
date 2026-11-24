@@ -35,6 +35,14 @@ class Env {
   /// (screenshots, demos): `--dart-define=DEMO_DATA=true`.
   static const demoData = bool.fromEnvironment('DEMO_DATA');
 
+  /// Beta builds enable shake-to-report by default. Pass
+  /// `--dart-define=BETA_BUILD=false` for a store build.
+  static const betaBuild = bool.fromEnvironment('BETA_BUILD', defaultValue: true);
+
+  /// Optional bug-report endpoint (docs/BUG_REPORTS.md). Empty: reports go
+  /// through the system share sheet only. Never put a token here.
+  static const bugReportUrl = String.fromEnvironment('BUG_REPORT_URL');
+
   /// True when a backend is configured (for shared features only).
   static bool get useApi => apiBaseUrl.isNotEmpty;
 
