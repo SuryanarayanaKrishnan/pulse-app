@@ -43,6 +43,11 @@ class PulseColors extends ThemeExtension<PulseColors> {
   final Color warning;
   final bool isDark;
 
+  /// Ink for titles and section headers: the primary text colour pulled a
+  /// little toward the accent so headers read as deep green-black (light) or
+  /// soft mint-white (dark) instead of flat black. Contrast stays above 12:1.
+  Color get ink => Color.lerp(textPrimary, accent, isDark ? 0.14 : 0.38)!;
+
   /// Dark: warm graphite, not black; a soft teal accent.
   static const dark = PulseColors(
     bg: Color(0xFF0F1211),

@@ -502,6 +502,8 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
       rulesVerifiedOn: r['verified_on'] == null
           ? null
           : DateTime.parse(r['verified_on']! as String),
+      catalogId: card.catalogId,
+      art: card.art,
     );
   }
 

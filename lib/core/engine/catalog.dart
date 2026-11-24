@@ -3,6 +3,7 @@
 /// replaced by a newer downloaded version (see `CatalogService`). Pure Dart.
 library;
 
+import 'card_art.dart';
 import 'rewards.dart';
 
 class CatalogCard {
@@ -36,6 +37,21 @@ class CatalogCard {
   /// Where they were checked.
   final String? source;
 
+  /// How the card looks: the catalog's own `art` (carried in `perks.art`),
+  /// else the bundled art for this id; null for a product with neither.
+  CardArtSpec? get art => artFromPerks(perks) ?? CardArts.byCatalogId[id];
+
+  /// Reads `perks.art`; a malformed entry is ignored, never fatal.
+  static CardArtSpec? artFromPerks(Map<String, Object?>? perks) {
+    final a = perks?['art'];
+    if (a is! Map) return null;
+    try {
+      return CardArtSpec.fromJson(Map<String, Object?>.from(a));
+    } on Object {
+      return null;
+    }
+  }
+
   bool get verified => verifiedOn != null;
 
   /// Parsed reward rules; throws [FormatException] for a malformed entry.
@@ -48,9 +64,17 @@ class CatalogCard {
     network: j['network'] as String?,
     annualFeeMinor: (j['annual_fee_minor'] as num?)?.toInt() ?? 0,
     minSalaryMinor: (j['min_salary_minor'] as num?)?.toInt(),
-    rewardStructure: Map<String, Object?>.from((j['reward_structure'] as Map?) ?? const {}),
-    perks: Map<String, Object?>.from((j['perks'] as Map?) ?? const {}),
-    verifiedOn: j['verified_on'] == null ? null : DateTime.parse(j['verified_on']! as String),
+    rewardStructure: Map<String, Object?>.from(
+      (j['reward_structure'] as Map?) ?? const {},
+    ),
+    perks: {
+      ...Map<String, Object?>.from((j['perks'] as Map?) ?? const {}),
+      // The backend catalog carries art at the top level of each card.
+      if (j['art'] is Map) 'art': j['art'],
+    },
+    verifiedOn: j['verified_on'] == null
+        ? null
+        : DateTime.parse(j['verified_on']! as String),
     source: j['source'] as String?,
   );
 
