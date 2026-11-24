@@ -18,7 +18,7 @@ Continuous sync between a user's phones, built on the backup feature (`docs/BACK
 
 ## What syncs
 
-An explicit allow-list (`lib/core/sync/sync_scope.dart`): accounts, user cards, categories, transactions, budgets, merchant rules, statements and lines, assets, liabilities, salary records, savings goals, recurring reviews, jewellery, document records, fund holdings. A new table does not sync until it is added on purpose.
+An explicit allow-list (`lib/core/sync/sync_scope.dart`): accounts, user cards, categories, transactions, budgets, budget moves and the budget mode, merchant rules, statements and lines, assets, liabilities, salary records, savings goals, recurring reviews, jewellery, document records, fund holdings. A new table does not sync until it is added on purpose.
 
 Never synced: `raw_ingests` (raw SMS/notification payloads; OTP messages are never stored by the app and are never read by sync), `app_settings`, `catalog_cards`, price/valuation/net-worth caches, local file paths (`photo_paths`, `file_paths`) and per-device notification ids. Photos and document files are not synced (see limits). Table and column names from a segment are checked against the allow-list and the real schema before they reach SQL.
 

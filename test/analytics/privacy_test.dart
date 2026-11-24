@@ -89,6 +89,9 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.goalCompleted,
   AnalyticsEvent.householdCreated,
   AnalyticsEvent.householdMemberJoined,
+  AnalyticsEvent.budgetModeChanged('flex'),
+  AnalyticsEvent.budgetModeChanged('category'),
+  AnalyticsEvent.moneyMoved,
 ];
 
 void main() {

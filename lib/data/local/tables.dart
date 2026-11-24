@@ -96,6 +96,23 @@ class Categories extends Table {
   BoolColumn get isCustom => boolean().withDefault(const Constant(false))();
   BoolColumn get isHidden => boolean().withDefault(const Constant(false))();
 
+  /// Flex budgeting group: `fixed` | `flexible` | `nonmonthly`. Null falls
+  /// back to the default (fixed categories are Fixed, the rest Flexible).
+  TextColumn get budgetGroup => text().nullable()();
+
+  /// Unspent (or overspent) amount carries into the next month.
+  BoolColumn get rollover => boolean().withDefault(const Constant(false))();
+
+  /// First month (`YYYY-MM-01`) the rollover counts from, and the balance it
+  /// opens with. Null start: the category's earliest budget month.
+  TextColumn get rolloverStart => text().nullable()();
+  IntColumn get rolloverStartMinor => integer().withDefault(const Constant(0))();
+
+  /// Non-monthly: the whole cost per cycle and the cycle length in months.
+  /// The monthly amount is the cost spread over the cycle.
+  IntColumn get cycleCostMinor => integer().withDefault(const Constant(0))();
+  IntColumn get cycleMonths => integer().withDefault(const Constant(1))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -677,4 +694,37 @@ class HouseholdMirror extends Table {
 
   @override
   Set<Column> get primaryKey => {kind, rowId};
+}
+
+
+/// A move of planned amount from one category to another, inside one month.
+/// Undo soft-deletes it. `scope` is `me` or `shared` (the Joint view's
+/// limits), so Mine and Joint budgets never mix.
+@DataClassName('BudgetMoveRow')
+class BudgetMoves extends Table {
+  TextColumn get id => text()();
+  TextColumn get scope => text().withDefault(const Constant('me'))();
+
+  /// `YYYY-MM-01`.
+  TextColumn get month => text()();
+  TextColumn get fromCategoryId => text()();
+  TextColumn get toCategoryId => text()();
+  IntColumn get amountMinor => integer()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Budget view preferences, one row (`id = 'main'`). `mode` is `flex`
+/// (Fixed / Flexible / Non-monthly groups) or `category` (every category on
+/// its own).
+@DataClassName('BudgetPrefRow')
+class BudgetPrefs extends Table {
+  TextColumn get id => text()();
+  TextColumn get mode => text().withDefault(const Constant('flex'))();
+
+  @override
+  Set<Column> get primaryKey => {id};
 }
