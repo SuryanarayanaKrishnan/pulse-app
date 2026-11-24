@@ -10,7 +10,6 @@ import 'core/router/router.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_mode.dart';
 import 'data/providers.dart';
-import 'features/splits/auto_settle.dart';
 import 'features/auth/session.dart';
 
 class PulseApp extends ConsumerStatefulWidget {
@@ -84,9 +83,6 @@ class _PulseAppState extends ConsumerState<PulseApp>
       darkTheme: PulseTheme.dark,
       themeMode: ref.watch(themeModeProvider),
       routerConfig: _router,
-      scaffoldMessengerKey: AutoSettleHost.messengerKey,
-      builder: (context, child) =>
-          AutoSettleHost(child: child ?? const SizedBox.shrink()),
     );
   }
 }

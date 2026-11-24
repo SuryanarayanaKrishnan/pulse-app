@@ -521,14 +521,10 @@ class Member {
     this.color, {
     this.phone,
     this.onPulse = false,
-    this.ibanTail,
   });
   final String id;
   final String name;
   final Color color;
-
-  /// Last digits of the member's IBAN, for matching Aani transfers.
-  final String? ibanTail;
 
   /// E.164 mobile number, when the member was added from contacts.
   final String? phone;

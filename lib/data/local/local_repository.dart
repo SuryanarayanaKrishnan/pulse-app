@@ -1165,10 +1165,6 @@ class LocalPulseRepository implements PulseRepository {
       _needsServer('Settling up', (s) => s.confirmSettlement(groupId, settlementId));
 
   @override
-  Future<void> undoSettlement(String groupId, String settlementId) =>
-      _needsServer('Settling up', (s) => s.undoSettlement(groupId, settlementId));
-
-  @override
   Future<List<Statement>> statements() => _orDefault(const [], (s) => s.statements());
 
   @override
