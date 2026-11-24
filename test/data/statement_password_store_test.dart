@@ -24,7 +24,9 @@ void main() {
   test('bank hint is specific for FAB and generic otherwise', () {
     expect(statementPasswordHint('fab'), contains('birth year'));
     expect(statementPasswordHint('fab'), contains('last 4 digits'));
-    expect(statementPasswordHint('mashreq'), contains('statement email'));
+    expect(statementPasswordHint('mashreq'), contains('ddmmyyyy'));
+    expect(statementPasswordHint('sib'), contains('ddmmyy'));
+    expect(statementPasswordHint('adcb'), contains('statement email'));
     expect(statementPasswordHint(null), contains('statement email'));
   });
 }

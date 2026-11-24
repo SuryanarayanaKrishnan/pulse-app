@@ -1,0 +1,14 @@
+Credit Card Statement
+Card Number: 4111 XXXX XXXX 1234
+Page 1 of 2 Statement Period: 02-Mar-26 to 01-Apr-26
+Credit Limit Available Credit Limit (AED) Statement Date Payment Due Date Minimum Payment Due
+20000 15,000.00 01/04/2026 26/04/2026 150.00
+Transaction Date Posting Date Description Amount
+28/02/2026 02/03/2026 EXAMPLE STORE ONE DUBAI ARE 100.00
+05/03/2026 06/03/2026 EXAMPLE STORE TWO DUBAI ARE 250.50
+10/03/2026 10/03/2026 TRANSFER PAYMENT RECEIVED THANK YOU 80.00CR
+20/03/2026 22/03/2026 EXAMPLE CAFE DUBAI ARE 49.50
+STATEMENT SUMMARY
+Previous Statement Purchase / Cash Interest/Other Payments/Credits (AED) Total Payment Due (AED) Current Balance (AED)
+Due (AED) Advance (AED) Charges (AED)
+200.00 400.00 0.00 80.00 520.00 520.00

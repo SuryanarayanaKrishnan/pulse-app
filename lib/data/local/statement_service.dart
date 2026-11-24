@@ -219,6 +219,7 @@ class LocalStatementService {
     required String filename,
     String? institution,
   }) async {
+    institution ??= _detectFromFilename(filename);
     final sha = sha256.convert(bytes).toString();
     final dup =
         await (db.select(db.statements)
@@ -385,6 +386,12 @@ class LocalStatementService {
       iso == null ? null : DateTime.tryParse(iso);
 }
 
+String? _detectFromFilename(String filename) {
+  final up = filename.toUpperCase();
+  if (up.startsWith('SIB_') || up.contains('SHARJAH')) return 'sib';
+  return _detect(up);
+}
+
 String? _detect(String text) {
   final up = text.toUpperCase();
   const markers = {
@@ -400,6 +407,7 @@ String? _detect(String text) {
     'citi': ['CITIBANK', 'CITI '],
     'cbd': ['COMMERCIAL BANK OF DUBAI'],
     'liv': ['LIV '],
+    'sib': ['SHARJAH ISLAMIC'],
   };
   for (final e in markers.entries) {
     if (e.value.any(up.contains)) return e.key;

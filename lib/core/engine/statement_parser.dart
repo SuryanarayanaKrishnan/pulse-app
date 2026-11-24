@@ -52,6 +52,9 @@ final _rowStart = RegExp(
   '^(?<d1>$lineDate)(?:\\s+(?<d2>$lineDate))?\\s+(?<rest>\\S.*)\$',
   caseSensitive: false,
 );
+final _rowStartYearless = RegExp(
+  r'^(?<d1>\d{1,2}/\d{1,2})(?:\s+(?<d2>\d{1,2}/\d{1,2}))?\s+(?<rest>\S.*)$',
+);
 const _knownCcy = {
   'AED', 'USD', 'EUR', 'GBP', 'SAR', 'INR', 'PKR', 'QAR', 'KWD', 'BHD', 'OMR',
   'EGP', 'CHF', 'JPY', 'CAD', 'AUD', 'SGD', 'CNY', 'THB', 'TRY', 'LKR', 'PHP',
@@ -153,11 +156,39 @@ class Layout {
     this.inferCreditFromText = true,
     this.summaryTable = false,
     this.extraNoise = const [],
+    this.yearlessDates = false,
+    this.trailingMinusIsCredit = false,
+    this.collapseDuplicateAmounts = false,
   });
   final Labels labels;
   final bool useSecondDate, foreignBeforeLocal, hasBalanceColumn;
   final bool negativeIsCredit, inferCreditFromText, summaryTable;
   final List<String> extraNoise;
+
+  /// Rows start with `dd/mm` (no year); the year comes from the statement date.
+  final bool yearlessDates;
+
+  /// "44.00 -" after the amount marks a credit.
+  final bool trailingMinusIsCredit;
+
+  /// "AED 40.89 40.89": the amount is printed twice (original and AED).
+  final bool collapseDuplicateAmounts;
+
+  /// The same layout with the options real Mashreq and Sharjah Islamic card
+  /// PDFs need, tried when nothing was found with the standard row format.
+  Layout asYearless() => Layout(
+    labels: labels,
+    useSecondDate: useSecondDate,
+    foreignBeforeLocal: foreignBeforeLocal,
+    hasBalanceColumn: hasBalanceColumn,
+    negativeIsCredit: negativeIsCredit,
+    inferCreditFromText: inferCreditFromText,
+    summaryTable: summaryTable,
+    extraNoise: extraNoise,
+    yearlessDates: true,
+    trailingMinusIsCredit: true,
+    collapseDuplicateAmounts: true,
+  );
 }
 
 class StatementLine {
@@ -206,7 +237,7 @@ class ParsedStatement {
 StatementKind detectKind(String text) =>
     RegExp(
       r'credit card statement|card number|minimum (?:payment|amount)|'
-      r'payment due date|credit limit',
+      r'payment due date|credit limit|main card|\b\d{4,6}[ ]?x{4,}[ x]*\d{4}\b',
       caseSensitive: false,
     ).hasMatch(text)
     ? StatementKind.creditCard
@@ -227,6 +258,7 @@ RegExp _labelRe(List<String> alts) => RegExp(
 (String, List<String>, String?) _moneyTokens(
   String rest, {
   bool foreignAfter = false,
+  bool trailingMinus = false,
 }) {
   final parts = rest.split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
   final tokens = <String>[];
@@ -234,6 +266,15 @@ RegExp _labelRe(List<String> alts) => RegExp(
   while (i > 0 && tokens.length < 4) {
     final tok = parts[i - 1];
     final up = tok.toUpperCase();
+    if (trailingMinus &&
+        tok == '-' &&
+        tokens.isEmpty &&
+        i >= 2 &&
+        _amountToken.hasMatch(parts[i - 2])) {
+      tokens.add('${parts[i - 2]} CR');
+      i -= 2;
+      continue;
+    }
     if ((up == 'CR' || up == 'DR') &&
         i >= 2 &&
         _amountToken.hasMatch(parts[i - 2])) {
@@ -272,10 +313,7 @@ RegExp _labelRe(List<String> alts) => RegExp(
   int? prevBalance,
 ) {
   final posted = layout.useSecondDate && d2 != null ? d2 : d1;
-  var money = [
-    for (final t in tokens)
-      ?parseMoney(t),
-  ];
+  var money = [for (final t in tokens) ?parseMoney(t)];
   if (money.isEmpty) return (null, 'row without amount');
   int? balance;
   if (kind == StatementKind.bankAccount &&
@@ -288,6 +326,15 @@ RegExp _labelRe(List<String> alts) => RegExp(
   int? foreignAmt;
   String? foreignCcy;
   final words = desc.split(' ');
+  if (layout.collapseDuplicateAmounts &&
+      money.length >= 2 &&
+      money.last.minor == money[money.length - 2].minor) {
+    money = [money.last];
+    if (words.isNotEmpty && words.last == 'AED') {
+      words.removeLast();
+      desc = words.join(' ');
+    }
+  }
   if (money.length >= 2) {
     final foreign = layout.foreignBeforeLocal
         ? money[money.length - 2]
@@ -365,6 +412,20 @@ ParsedStatement parseStatementText(
         c,
   ];
   _extractSummary(lines, stmt, layout);
+  final rowStart = layout.yearlessDates ? _rowStartYearless : _rowStart;
+  final refDate = stmt.statementDate ?? stmt.periodEnd;
+  CalDate? rowDate(String? v) {
+    if (v == null) return null;
+    if (!layout.yearlessDates) return parseDate(v);
+    if (refDate == null) return null;
+    final parts = v.split('/');
+    final day = int.parse(parts[0]), month = int.parse(parts[1]);
+    var d = parseDate('$day/$month/${refDate.year}');
+    if (d != null && d > refDate)
+      d = parseDate('$day/$month/${refDate.year - 1}');
+    return d;
+  }
+
   final extraNoise = [
     for (final p in layout.extraNoise) RegExp(p, caseSensitive: false),
   ];
@@ -373,7 +434,7 @@ ParsedStatement parseStatementText(
       : null;
   var canContinue = false;
   for (final ln in lines) {
-    final m = _rowStart.firstMatch(ln);
+    final m = rowStart.firstMatch(ln);
     if (m == null) {
       if (canContinue &&
           _continuation.hasMatch(ln) &&
@@ -391,14 +452,14 @@ ParsedStatement parseStatementText(
       continue;
     }
     canContinue = false;
-    final d1 = parseDate(m.namedGroup('d1')!);
-    final d2s = m.namedGroup('d2');
-    final d2 = d2s == null ? null : parseDate(d2s);
+    final d1 = rowDate(m.namedGroup('d1'));
+    final d2 = rowDate(m.namedGroup('d2'));
     if (d1 == null) continue;
     final (desc, tokens, ccyHint) = _moneyTokens(
       m.namedGroup('rest')!,
       foreignAfter:
           !layout.foreignBeforeLocal && kind == StatementKind.creditCard,
+      trailingMinus: layout.trailingMinusIsCredit,
     );
     if (tokens.isEmpty || extraNoise.any((p) => p.hasMatch(ln))) continue;
     if (_openingRow.hasMatch(desc) || _closingRow.hasMatch(desc)) {
@@ -479,7 +540,10 @@ void _extractSummary(List<String> lines, ParsedStatement stmt, Layout layout) {
   final dueRe = _labelRe(l.dueDate), stmtDateRe = _labelRe(l.statementDate);
   final dateFind = RegExp(lineDate, caseSensitive: false);
   for (final ln in lines) {
-    if (_rowStart.hasMatch(ln)) continue;
+    if (_rowStart.hasMatch(ln) ||
+        (layout.yearlessDates && _rowStartYearless.hasMatch(ln))) {
+      continue;
+    }
     final cc = _ccyLabel.firstMatch(ln);
     if (cc != null) stmt.currency = cc[1]!.toUpperCase();
     if (stmt.last4 == null) {
@@ -545,6 +609,107 @@ void _extractSummary(List<String> lines, ParsedStatement stmt, Layout layout) {
     }
   }
   if (layout.summaryTable) _extractSummaryTable(lines, stmt, layout);
+  // Shapes seen in real statements whose labels are not on the same line as
+  // their values. They only fire on that exact shape, so every layout runs them.
+  _enbdSummary(lines, stmt);
+  _sibSummary(lines, stmt);
+  _fabDates(lines, stmt);
+}
+
+final _valueToken = RegExp('$lineDate|[\\d,]+\\.\\d{2}|\\d+');
+final _plainMoney = RegExp(r'^-?[\d,]+\.\d{2}$');
+
+/// Emirates NBD cards print a row of labels and, on the next line, the values:
+/// "Credit Limit ... Statement Date  Payment Due Date  Minimum Payment Due"
+/// then "19500 15,878.69 28/10/2026 22/11/2026 180.44"; and a second table
+/// "Previous Statement Due | Purchase / Cash Advance | Interest/Other Charges |
+/// Payments/Credits | Total Payment Due | Current Balance" with six amounts.
+void _enbdSummary(List<String> lines, ParsedStatement stmt) {
+  final dueRow = RegExp(
+    r'statement date.*payment due date.*minimum payment due',
+    caseSensitive: false,
+  );
+  final balRow = RegExp(
+    r'total payment due.*current balance',
+    caseSensitive: false,
+  );
+  for (var i = 0; i < lines.length - 1; i++) {
+    if (dueRow.hasMatch(lines[i])) {
+      final tokens = [
+        for (final m in _valueToken.allMatches(lines[i + 1])) m[0]!,
+      ];
+      if (tokens.length >= 3) {
+        final t = tokens.sublist(tokens.length - 3);
+        final stmtDate = parseDate(t[0]), due = parseDate(t[1]);
+        final min = _plainMoney.hasMatch(t[2]) ? parseMinorUnits(t[2]) : null;
+        if (stmtDate != null && due != null && min != null) {
+          stmt.statementDate ??= stmtDate;
+          stmt.dueDate ??= due;
+          stmt.minDueMinor ??= min;
+        }
+      }
+    }
+    if (balRow.hasMatch(lines[i])) {
+      for (var j = i + 1; j <= i + 3 && j < lines.length; j++) {
+        final t = lines[j].split(RegExp(r'\s+'));
+        if (t.length == 6 && t.every(_plainMoney.hasMatch)) {
+          final v = [for (final x in t) parseMinorUnits(x)!];
+          // opening, purchases, charges, payments, closing, current balance
+          stmt.openingMinor ??= v[0];
+          stmt.totalPurchasesMinor ??= v[1];
+          stmt.totalPaymentsMinor ??= v[3];
+          stmt.closingMinor ??= v[4];
+          break;
+        }
+      }
+    }
+  }
+}
+
+/// Sharjah Islamic Bank cards print the summary as two unlabelled rows:
+/// "14/NOV/2026 510299XXXXXX1234 -100.00 30/NOV/2026 10,000.00"
+/// (statement date, card, minimum due, payment due date, limit) and
+/// "-4,449.26 -2,113.66 -360.63 5,417.63 -1,505.92" (previous balance,
+/// purchases, charges, payments, closing). Negative means owed.
+void _sibSummary(List<String> lines, ParsedStatement stmt) {
+  final head = RegExp(
+    r'^(\d{1,2}/[A-Za-z]{3}/\d{4})\s+(\d{4,6}X+\d{4})\s+(-?[\d,]+\.\d{2})\s+'
+    r'(\d{1,2}/[A-Za-z]{3}/\d{4})\s+[\d,]+\.\d{2}$',
+    caseSensitive: false,
+  );
+  for (var i = 0; i < lines.length - 1; i++) {
+    final m = head.firstMatch(lines[i]);
+    if (m == null) continue;
+    final next = lines[i + 1].split(RegExp(r'\s+'));
+    if (next.length != 5 || !next.every(_plainMoney.hasMatch)) continue;
+    CalDate? d(String v) => parseDate(v.replaceAll('/', '-'));
+    stmt.statementDate ??= d(m[1]!);
+    stmt.dueDate ??= d(m[4]!);
+    stmt.last4 ??= _last4(m[2]!);
+    stmt.minDueMinor ??= parseMinorUnits(m[3]!.replaceAll('-', ''));
+    int owed(String v) =>
+        -parseMinorUnits(v.replaceAll('-', ''))! * (v.startsWith('-') ? -1 : 1);
+    stmt.openingMinor ??= owed(next[0]);
+    stmt.totalPurchasesMinor ??= parseMinorUnits(next[1].replaceAll('-', ''));
+    stmt.totalPaymentsMinor ??= parseMinorUnits(next[3].replaceAll('-', ''));
+    stmt.closingMinor ??= owed(next[4]);
+    return;
+  }
+}
+
+/// Dubai First (FAB) cards: "CREDIT 22-Oct-2026 16-Nov-2026" (statement date,
+/// payment due date); the labels are not extractable from the PDF.
+void _fabDates(List<String> lines, ParsedStatement stmt) {
+  final re = RegExp(
+    r'^CREDIT\s+(\d{1,2}-[A-Za-z]{3}-\d{4})\s+(\d{1,2}-[A-Za-z]{3}-\d{4})$',
+  );
+  for (final ln in lines) {
+    final m = re.firstMatch(ln);
+    if (m == null) continue;
+    stmt.statementDate ??= parseDate(m[1]!);
+    stmt.dueDate ??= parseDate(m[2]!);
+    return;
+  }
 }
 
 void _extractSummaryTable(
@@ -631,7 +796,12 @@ final _cardLayouts = <String, Layout>{
   'mashreq': const Layout(
     hasBalanceColumn: false,
     labels: Labels(
-      closing: [r'statement balance', r'total amount due', r'closing balance'],
+      closing: [
+        r'statement balance',
+        r'total amount due',
+        r'total outstanding balance',
+        r'closing balance',
+      ],
     ),
   ),
   'rakbank': const Layout(hasBalanceColumn: false, foreignBeforeLocal: false),
@@ -653,7 +823,12 @@ ParsedStatement? parseStatement(
   final layout = k == StatementKind.creditCard
       ? (_cardLayouts[institution] ?? _generic)
       : (_accountLayouts[institution] ?? const Layout());
-  final stmt = parseStatementText(text, k, layout);
+  var stmt = parseStatementText(text, k, layout);
+  if (stmt.lines.isEmpty && k == StatementKind.creditCard) {
+    // Real Mashreq and Sharjah Islamic cards print rows as "dd/mm dd/mm ...".
+    final retry = parseStatementText(text, k, layout.asYearless());
+    if (retry.lines.isNotEmpty) stmt = retry;
+  }
   stmt.institution = institution;
   stmt.parser =
       '${institution ?? 'generic'}:${k == StatementKind.creditCard ? 'credit_card' : 'bank_account'}';
