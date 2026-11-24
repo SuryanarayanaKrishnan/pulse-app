@@ -56,7 +56,10 @@ class BackupState {
   bool needsAttention(DateTime now) =>
       cloud &&
       lastError != null &&
-      (failures >= 3 || (lastSuccess != null && now.difference(lastSuccess!).inDays >= 2 && dirty));
+      (failures >= 3 ||
+          (lastSuccess != null &&
+              now.difference(lastSuccess!).inDays >= 2 &&
+              dirty));
 
   BackupState copyWith({
     bool? enabled,
@@ -82,7 +85,9 @@ class BackupState {
     keep: keep ?? this.keep,
     lastSuccess: lastSuccess ?? this.lastSuccess,
     lastAttempt: lastAttempt ?? this.lastAttempt,
-    lastError: identical(lastError, _keep) ? this.lastError : lastError as String?,
+    lastError: identical(lastError, _keep)
+        ? this.lastError
+        : lastError as String?,
     failures: failures ?? this.failures,
     running: running ?? this.running,
     progress: progress ?? this.progress,
@@ -140,7 +145,8 @@ String backedUpAgo(DateTime? when, DateTime now) {
   final d = now.difference(when);
   if (d.inSeconds < 60) return 'Last backed up just now';
   if (d.inMinutes < 60) return 'Last backed up ${d.inMinutes} min ago';
-  if (d.inHours < 24) return 'Last backed up ${d.inHours} ${d.inHours == 1 ? 'hour' : 'hours'} ago';
+  if (d.inHours < 24)
+    return 'Last backed up ${d.inHours} ${d.inHours == 1 ? 'hour' : 'hours'} ago';
   if (d.inDays == 1) return 'Last backed up yesterday';
   return 'Last backed up ${d.inDays} days ago';
 }

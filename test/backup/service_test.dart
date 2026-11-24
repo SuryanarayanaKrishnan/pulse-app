@@ -64,7 +64,7 @@ void main() {
     expect(cloud.objects.keys.where((k) => k.startsWith('manifests/')), hasLength(1));
     // The phrase and the data key appear nowhere in what the server holds.
     final all = cloud.objects.values.map((b) => latin1.decode(b)).join();
-    expect(all, isNot(contains(phrase.split(' ').first + ' ')));
+    expect(all, isNot(contains('${phrase.split(' ').first} ')));
     final dk = await keys.load();
     expect(dk, isNotNull);
     expect(all.contains(base64.encode(dk!)), isFalse);

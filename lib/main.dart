@@ -9,6 +9,7 @@ import 'core/analytics/analytics.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
 import 'data/local/catalog_service.dart';
+import 'backup/background.dart';
 import 'data/local/database.dart';
 import 'data/local/open.dart';
 import 'data/providers.dart';
@@ -33,17 +34,18 @@ Future<void> main() async {
   // The ledger lives in an encrypted database on this phone. Without it the
   // app must not pretend to work, so a failure stops here.
   PulseDatabase? db;
-  CatalogService? catalog;
   if (!Env.demoData) {
     try {
       db = await openEncryptedDatabase();
-      catalog = CatalogService(
+      final catalog = CatalogService(
         db: db,
         dio: Env.useApi ? buildApiClient() : null,
       );
       await catalog.loadBundled();
       // A newer catalog is a bonus; never block start-up on the network.
       unawaited(catalog.checkForUpdate());
+      // Registers the daily backup task with the OS (no-op where unsupported).
+      await initBackgroundBackup();
     } catch (e, s) {
       debugPrint('Local database failed to open: $e\n$s');
       runApp(_StartupError(message: '$e'));
@@ -55,8 +57,8 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         analyticsProvider.overrideWithValue(analytics),
-        if (db != null) localDatabaseProvider.overrideWithValue(db),
-        if (catalog != null) catalogServiceProvider.overrideWithValue(catalog),
+        if (db != null)
+          databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
       ],
       child: const PulseApp(),
     ),

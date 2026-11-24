@@ -5,17 +5,21 @@ import 'package:bip39/bip39.dart' as bip39;
 class RecoveryPhrase {
   RecoveryPhrase._();
 
-  static List<String> generate() => bip39.generateMnemonic(strength: 128).split(' ');
+  static List<String> generate() =>
+      bip39.generateMnemonic(strength: 128).split(' ');
 
-  static bool isValid(String phrase) => bip39.validateMnemonic(normalize(phrase));
+  static bool isValid(String phrase) =>
+      bip39.validateMnemonic(normalize(phrase));
 
   /// Lower-case, single spaces.
-  static String normalize(String phrase) => phrase.trim().toLowerCase().split(RegExp(r'\s+')).join(' ');
+  static String normalize(String phrase) =>
+      phrase.trim().toLowerCase().split(RegExp(r'\s+')).join(' ');
 
   /// What actually goes into the key derivation. A valid phrase is normalised
   /// so capitalisation and spacing never matter; anything else is treated as
   /// a passphrase and only trimmed.
-  static String secretFrom(String input) => isValid(input) ? normalize(input) : input.trim();
+  static String secretFrom(String input) =>
+      isValid(input) ? normalize(input) : input.trim();
 
   static bool looksLikePhrase(String input) => isValid(input);
 }
@@ -33,5 +37,7 @@ PassphraseStrength passphraseStrength(String s) {
     RegExp(r'[^A-Za-z0-9]'),
   ].where((r) => r.hasMatch(t)).length;
   final words = t.split(RegExp(r'\s+')).length;
-  return (t.length >= 16 || (t.length >= 12 && classes >= 3) || words >= 4) ? PassphraseStrength.good : PassphraseStrength.fair;
+  return (t.length >= 16 || (t.length >= 12 && classes >= 3) || words >= 4)
+      ? PassphraseStrength.good
+      : PassphraseStrength.fair;
 }

@@ -16,7 +16,8 @@ import 'supabase_backup_provider.dart';
 
 const backupTaskId = 'pulse.backup.daily';
 
-bool get backgroundBackupSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+bool get backgroundBackupSupported =>
+    !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 /// Entry point the OS wakes up (own isolate, app possibly not running).
 /// Android: WorkManager with an "unmetered network" constraint. iOS:
@@ -43,21 +44,27 @@ Future<bool> runBackgroundBackup() async {
   if (!probe) return true;
   if (Env.hasSupabase) {
     try {
-      await Supabase.initialize(url: Env.supabaseUrl, publishableKey: Env.supabaseAnonKey);
+      await Supabase.initialize(
+        url: Env.supabaseUrl,
+        publishableKey: Env.supabaseAnonKey,
+      );
     } catch (_) {
       // Already initialised in a warm isolate.
     }
   }
   final db = await openEncryptedDatabase(background: false);
   try {
-    final BackupProvider? cloud = Env.hasSupabase ? SupabaseBackupProvider(Supabase.instance.client) : null;
+    final BackupProvider? cloud = Env.hasSupabase
+        ? SupabaseBackupProvider(Supabase.instance.client)
+        : null;
     final svc = await BackupService(
       db: db,
       kv: kv,
       keys: SecureBackupKeyStore(),
       cloud: cloud,
       analytics: NoopAnalytics(),
-      exportDir: () async => throw UnsupportedError('no export in the background'),
+      exportDir: () async =>
+          throw UnsupportedError('no export in the background'),
     ).load();
     if (!svc.state.cloud || !svc.state.auto) return true;
     await svc.backupNow(trigger: 'daily');
@@ -76,7 +83,10 @@ Future<bool> _peek(KvStore kv) async {
 
 /// Registers or cancels the daily task to match the current setting. Safe to
 /// call on every start.
-Future<void> syncBackgroundSchedule({required bool enabled, required bool wifiOnly}) async {
+Future<void> syncBackgroundSchedule({
+  required bool enabled,
+  required bool wifiOnly,
+}) async {
   if (!backgroundBackupSupported || Env.demoData) return;
   try {
     final wm = Workmanager();

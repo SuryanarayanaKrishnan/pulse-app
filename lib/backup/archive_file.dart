@@ -16,7 +16,8 @@ const archiveExtension = 'pulsebak';
 class ArchiveWriterProvider implements BackupProvider {
   ArchiveWriterProvider(this.path);
   final String path;
-  late final RandomAccessFile _file = File(path).openSync(mode: FileMode.write)..writeStringSync(archiveMagic);
+  late final RandomAccessFile _file = File(path).openSync(mode: FileMode.write)
+    ..writeStringSync(archiveMagic);
   final _written = <String, int>{};
 
   @override
@@ -34,7 +35,8 @@ class ArchiveWriterProvider implements BackupProvider {
   ];
 
   @override
-  Future<Uint8List?> read(String name) async => throw UnsupportedError('write-only');
+  Future<Uint8List?> read(String name) async =>
+      throw UnsupportedError('write-only');
 
   @override
   Future<void> write(String name, Uint8List bytes) async {
@@ -86,14 +88,17 @@ class ArchiveReaderProvider implements BackupProvider {
       final index = <String, (int, int)>{};
       var pos = magic.length;
       while (pos < total) {
-        if (pos + 2 > total) throw const ArchiveFormatError('This backup file is cut short.');
+        if (pos + 2 > total)
+          throw const ArchiveFormatError('This backup file is cut short.');
         await f.setPosition(pos);
         final nameLen = ByteData.sublistView(await f.read(2)).getUint16(0);
-        if (pos + 2 + nameLen + 8 > total) throw const ArchiveFormatError('This backup file is cut short.');
+        if (pos + 2 + nameLen + 8 > total)
+          throw const ArchiveFormatError('This backup file is cut short.');
         final name = utf8.decode(await f.read(nameLen));
         final len = ByteData.sublistView(await f.read(8)).getUint64(0);
         final start = pos + 2 + nameLen + 8;
-        if (start + len > total) throw const ArchiveFormatError('This backup file is cut short.');
+        if (start + len > total)
+          throw const ArchiveFormatError('This backup file is cut short.');
         index[name] = (start, len);
         pos = start + len;
       }
@@ -130,7 +135,9 @@ class ArchiveReaderProvider implements BackupProvider {
   }
 
   @override
-  Future<void> write(String name, Uint8List bytes) async => throw UnsupportedError('read-only');
+  Future<void> write(String name, Uint8List bytes) async =>
+      throw UnsupportedError('read-only');
   @override
-  Future<void> delete(Iterable<String> names) async => throw UnsupportedError('read-only');
+  Future<void> delete(Iterable<String> names) async =>
+      throw UnsupportedError('read-only');
 }

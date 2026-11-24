@@ -2,7 +2,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/analytics/analytics.dart';
+
+import 'package:go_router/go_router.dart';
+
 import '../../core/env/env.dart';
+import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../auth/session.dart';
@@ -135,9 +139,30 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             Padding(
               padding: const EdgeInsets.all(Space.gutter),
-              child: PrimaryButton(
-                label: last ? 'Get started with ${Env.appName}' : 'Continue',
-                onPressed: _next,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  PrimaryButton(
+                    label: last
+                        ? 'Start fresh with ${Env.appName}'
+                        : 'Continue',
+                    onPressed: _next,
+                  ),
+                  if (last) ...[
+                    const SizedBox(height: Space.md),
+                    PrimaryButton(
+                      label: 'Restore from backup',
+                      icon: Icons.settings_backup_restore_rounded,
+                      secondary: true,
+                      onPressed: () => context.go(Routes.restore),
+                    ),
+                  ] else
+                    TextAction(
+                      'Already use ${Env.appName}? Restore from backup',
+                      color: c.textSecondary,
+                      onTap: () => context.go(Routes.restore),
+                    ),
+                ],
               ),
             ),
           ],

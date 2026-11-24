@@ -7,14 +7,20 @@ import 'backup_controller.dart';
 
 /// Tables whose changes are not worth a backup on their own: caches and
 /// snapshots the app regenerates by itself.
-const quietTables = {'price_cache', 'valuation_snapshots', 'app_settings', 'net_worth_snapshots'};
+const quietTables = {
+  'price_cache',
+  'valuation_snapshots',
+  'app_settings',
+  'net_worth_snapshots',
+};
 
 /// True on Wi-Fi or ethernet: the free approximation of "not metered" that
 /// connectivity_plus offers.
 Future<bool> onUnmeteredNetwork() async {
   try {
     final r = await Connectivity().checkConnectivity();
-    return r.contains(ConnectivityResult.wifi) || r.contains(ConnectivityResult.ethernet);
+    return r.contains(ConnectivityResult.wifi) ||
+        r.contains(ConnectivityResult.ethernet);
   } catch (_) {
     return false;
   }
@@ -34,6 +40,7 @@ class BackupScheduler {
     Stream<dynamic>? networkChanges,
     DateTime Function()? clock,
   }) : _unmetered = isUnmetered ?? onUnmeteredNetwork,
+       // ignore: prefer_initializing_formals
        _networkChanges = networkChanges,
        _clock = clock ?? DateTime.now;
 
@@ -60,7 +67,9 @@ class BackupScheduler {
       _arm(debounce);
     });
     try {
-      _net = (_networkChanges ?? Connectivity().onConnectivityChanged).listen((_) {
+      _net = (_networkChanges ?? Connectivity().onConnectivityChanged).listen((
+        _,
+      ) {
         if (service.state.dirty) _arm(const Duration(seconds: 20));
       });
     } catch (_) {
@@ -72,7 +81,9 @@ class BackupScheduler {
   void onResumed() {
     final s = service.state;
     if (!s.cloud || !s.auto) return;
-    final stale = s.lastSuccess == null || _clock().difference(s.lastSuccess!) > staleAfter;
+    final stale =
+        s.lastSuccess == null ||
+        _clock().difference(s.lastSuccess!) > staleAfter;
     if (s.dirty || stale) _arm(const Duration(seconds: 10));
   }
 
@@ -89,7 +100,8 @@ class BackupScheduler {
     if (_disposed) return false;
     final s = service.state;
     if (!s.cloud || !s.auto || s.running) return false;
-    if (s.wifiOnly && !await _unmetered()) return false; // retried when the network changes
+    if (s.wifiOnly && !await _unmetered())
+      return false; // retried when the network changes
     final stats = await service.backupNow(trigger: 'auto');
     if (stats == null && service.state.lastError != null) {
       final factor = service.state.failures.clamp(1, 12);

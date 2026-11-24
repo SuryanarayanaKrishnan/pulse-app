@@ -4,7 +4,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path/path.dart' as p;
-import 'package:supabase_flutter/supabase_flutter.dart' show AuthException, StorageException;
+import 'package:supabase_flutter/supabase_flutter.dart'
+    show AuthException, StorageException;
 
 import '../core/analytics/analytics.dart';
 import '../capture/kv_store.dart';
@@ -36,7 +37,11 @@ abstract class BackupController {
     bool replaceExisting = false,
   });
   Future<BackupStats?> backupNow({String trigger = 'manual'});
-  Future<void> changePassphrase({required String current, required String next, required String nextKind});
+  Future<void> changePassphrase({
+    required String current,
+    required String next,
+    required String nextKind,
+  });
   Future<void> setAuto(bool v);
   Future<void> setWifiOnly(bool v);
   Future<void> setKeep(int n);
@@ -57,22 +62,48 @@ class BackupAlreadyExists implements Exception {
 /// A calm sentence for the user and a coarse reason code for analytics.
 ({String message, String reason}) describeBackupError(Object e) {
   if (e is WrongPassphrase) {
-    return (message: 'That passphrase or recovery phrase is not right.', reason: 'wrong_passphrase');
+    return (
+      message: 'That passphrase or recovery phrase is not right.',
+      reason: 'wrong_passphrase',
+    );
   }
-  if (e is SocketException || e is TimeoutException || e.runtimeType.toString().contains('ClientException')) {
-    return (message: 'No connection right now. We will try again on Wi-Fi.', reason: 'offline');
+  if (e is SocketException ||
+      e is TimeoutException ||
+      e.runtimeType.toString().contains('ClientException')) {
+    return (
+      message: 'No connection right now. We will try again on Wi-Fi.',
+      reason: 'offline',
+    );
   }
-  if (e is AuthException || (e is StorageException && (e.statusCode == '401' || e.statusCode == '403'))) {
-    return (message: 'Please sign in again so backups can continue.', reason: 'signed_out');
+  if (e is AuthException ||
+      (e is StorageException &&
+          (e.statusCode == '401' || e.statusCode == '403'))) {
+    return (
+      message: 'Please sign in again so backups can continue.',
+      reason: 'signed_out',
+    );
   }
-  if (e is StorageException && (e.statusCode == '413' || e.statusCode == '507' || e.message.toLowerCase().contains('quota'))) {
-    return (message: 'Your free cloud storage is full. Free some space or export a backup file.', reason: 'storage_full');
+  if (e is StorageException &&
+      (e.statusCode == '413' ||
+          e.statusCode == '507' ||
+          e.message.toLowerCase().contains('quota'))) {
+    return (
+      message: 'Your free cloud storage is full. Free some space or export a backup file.',
+      reason: 'storage_full',
+    );
   }
-  if (e is BackupProviderUnavailable) return (message: e.message, reason: 'provider_unavailable');
+  if (e is BackupProviderUnavailable)
+    return (message: e.message, reason: 'provider_unavailable');
   if (e is StateError && e.message == 'keys_missing') {
-    return (message: 'This phone no longer has the backup key. Turn backup on again with your passphrase.', reason: 'keys_missing');
+    return (
+      message: 'This phone no longer has the backup key. Turn backup on again with your passphrase.',
+      reason: 'keys_missing',
+    );
   }
-  return (message: 'Backup did not finish. We will try again soon.', reason: 'other');
+  return (
+    message: 'Backup did not finish. We will try again soon.',
+    reason: 'other',
+  );
 }
 
 class BackupService implements BackupController {
@@ -111,6 +142,7 @@ class BackupService implements BackupController {
     _state = BackupState.fromJson(await kv.read(_stateKey));
     // A crash mid-backup must not leave the screen "running" forever.
     if (_state.running) _state = _state.copyWith(running: false);
+    if (!_ctl.isClosed) _ctl.add(_state);
     return this;
   }
 
@@ -134,27 +166,35 @@ class BackupService implements BackupController {
 
   Future<KeyEnvelope?> _localEnvelope() async {
     final s = await kv.read(_envelopeKey);
-    return s == null ? null : KeyEnvelope.decode(Uint8List.fromList(utf8.encode(s)));
+    return s == null
+        ? null
+        : KeyEnvelope.decode(Uint8List.fromList(utf8.encode(s)));
   }
 
-  Future<void> _saveEnvelope(KeyEnvelope e) => kv.write(_envelopeKey, utf8.decode(e.encode()));
+  Future<void> _saveEnvelope(KeyEnvelope e) =>
+      kv.write(_envelopeKey, utf8.decode(e.encode()));
 
   /// Stores the keys of a backup restored onto this phone, so backups carry
-  /// on from here with no new passphrase.
-  Future<void> adoptRestored({
+  /// on from here with no new passphrase. Static: the service of the old
+  /// database is discarded when the restored one is swapped in.
+  static Future<void> adoptRestored({
+    required KvStore kv,
+    required BackupKeyStore keys,
     required KeyEnvelope envelope,
     required Uint8List dataKey,
     required BackupDestination destination,
+    DateTime? now,
   }) async {
     await keys.save(dataKey);
-    await _saveEnvelope(envelope);
-    await _set(
+    await kv.write(_envelopeKey, utf8.decode(envelope.encode()));
+    await kv.write(
+      _stateKey,
       BackupState(
         enabled: true,
         destination: destination,
         secretKind: envelope.secretKind,
-        lastSuccess: _clock().toUtc(),
-      ),
+        lastSuccess: (now ?? DateTime.now()).toUtc(),
+      ).toJson(),
     );
   }
 
@@ -167,20 +207,43 @@ class BackupService implements BackupController {
   }) async {
     final secretNorm = RecoveryPhrase.secretFrom(secret);
     if (destination == BackupDestination.cloud) {
-      final c = cloud ?? (throw const BackupProviderUnavailable('Cloud backup is not set up in this build.'));
+      final c =
+          cloud ??
+          (throw const BackupProviderUnavailable(
+            'Cloud backup is not set up in this build.',
+          ));
       await c.ensureReady();
       if (await c.read(keyObject) != null) {
         if (!replaceExisting) throw const BackupAlreadyExists();
         await BackupEngine.deleteEverything(c);
       }
     }
-    final (env, dataKey) = await KeyEnvelope.create(secretNorm, secretKind: secretKind, kdf: kdf, now: _clock().toUtc());
-    if (destination == BackupDestination.cloud) await cloud!.write(keyObject, env.encode());
+    final (env, dataKey) = await KeyEnvelope.create(
+      secretNorm,
+      secretKind: secretKind,
+      kdf: kdf,
+      now: _clock().toUtc(),
+    );
+    if (destination == BackupDestination.cloud)
+      await cloud!.write(keyObject, env.encode());
     await keys.save(dataKey);
     await _saveEnvelope(env);
-    await _set(BackupState(enabled: true, destination: destination, secretKind: secretKind, dirty: true));
-    analytics.track(AnalyticsEvent.backupEnabled(secretKind: secretKind, destination: destination.analyticsName));
-    if (destination == BackupDestination.cloud) await backupNow(trigger: 'setup');
+    await _set(
+      BackupState(
+        enabled: true,
+        destination: destination,
+        secretKind: secretKind,
+        dirty: true,
+      ),
+    );
+    analytics.track(
+      AnalyticsEvent.backupEnabled(
+        secretKind: secretKind,
+        destination: destination.analyticsName,
+      ),
+    );
+    if (destination == BackupDestination.cloud)
+      await backupNow(trigger: 'setup');
   }
 
   @override
@@ -191,17 +254,30 @@ class BackupService implements BackupController {
 
   Future<BackupStats?> _run(String trigger) async {
     final started = _clock();
-    await _set(_state.copyWith(running: true, progress: 0, lastAttempt: started.toUtc()), persist: false);
+    await _set(
+      _state.copyWith(running: true, progress: 0, lastAttempt: started.toUtc()),
+      persist: false,
+    );
     try {
       final dataKey = await keys.load() ?? (throw StateError('keys_missing'));
-      final c = cloud ?? (throw const BackupProviderUnavailable('Cloud backup is not set up in this build.'));
+      final c =
+          cloud ??
+          (throw const BackupProviderUnavailable(
+            'Cloud backup is not set up in this build.',
+          ));
       await c.ensureReady();
       // Heal a missing key file (deleted, or a new account on this phone).
       if (await c.read(keyObject) == null) {
-        final env = await _localEnvelope() ?? (throw StateError('keys_missing'));
+        final env =
+            await _localEnvelope() ?? (throw StateError('keys_missing'));
         await c.write(keyObject, env.encode());
       }
-      final engine = BackupEngine(provider: c, dataKey: dataKey, chunkSize: chunkSize, clock: _clock);
+      final engine = BackupEngine(
+        provider: c,
+        dataKey: dataKey,
+        chunkSize: chunkSize,
+        clock: _clock,
+      );
       final stats = await engine.backup(
         db: db,
         keep: _state.keep,
@@ -228,20 +304,38 @@ class BackupService implements BackupController {
       return stats;
     } catch (e) {
       final d = describeBackupError(e);
-      await _set(_state.copyWith(running: false, lastError: d.message, failures: _state.failures + 1));
-      analytics.track(AnalyticsEvent.backupFailed(trigger: trigger, reason: d.reason));
+      await _set(
+        _state.copyWith(
+          running: false,
+          lastError: d.message,
+          failures: _state.failures + 1,
+        ),
+      );
+      analytics.track(
+        AnalyticsEvent.backupFailed(trigger: trigger, reason: d.reason),
+      );
       return null;
     }
   }
 
   @override
-  Future<void> changePassphrase({required String current, required String next, required String nextKind}) async {
+  Future<void> changePassphrase({
+    required String current,
+    required String next,
+    required String nextKind,
+  }) async {
     final dataKey = await keys.load() ?? (throw StateError('keys_missing'));
-    final env = await _localEnvelope() ?? (_state.cloud ? await BackupEngine.readEnvelope(cloud!) : null);
+    final env =
+        await _localEnvelope() ??
+        (_state.cloud ? await BackupEngine.readEnvelope(cloud!) : null);
     if (env == null) throw StateError('keys_missing');
     final proven = await env.unwrap(RecoveryPhrase.secretFrom(current));
     if (!_same(proven, dataKey)) throw const WrongPassphrase();
-    final fresh = await env.rewrap(dataKey, RecoveryPhrase.secretFrom(next), secretKind: nextKind);
+    final fresh = await env.rewrap(
+      dataKey,
+      RecoveryPhrase.secretFrom(next),
+      secretKind: nextKind,
+    );
     // Remote first: if it fails nothing has changed anywhere.
     if (_state.cloud) await cloud!.write(keyObject, fresh.encode());
     await _saveEnvelope(fresh);
@@ -269,11 +363,16 @@ class BackupService implements BackupController {
   Future<void> setDestination(BackupDestination d) async {
     if (d == _state.destination) return;
     if (d == BackupDestination.cloud) {
-      final c = cloud ?? (throw const BackupProviderUnavailable('Cloud backup is not set up in this build.'));
+      final c =
+          cloud ??
+          (throw const BackupProviderUnavailable(
+            'Cloud backup is not set up in this build.',
+          ));
       await c.ensureReady();
       final env = await _localEnvelope() ?? (throw StateError('keys_missing'));
       final remote = await c.read(keyObject);
-      if (remote != null && !_same(KeyEnvelope.decode(remote).wrappedKey, env.wrappedKey)) {
+      if (remote != null &&
+          !_same(KeyEnvelope.decode(remote).wrappedKey, env.wrappedKey)) {
         // A different backup lineage lives there; never mix the two.
         throw const BackupAlreadyExists();
       }
@@ -288,18 +387,28 @@ class BackupService implements BackupController {
     final env = await _localEnvelope() ?? (throw StateError('keys_missing'));
     final dir = await exportDir();
     await dir.create(recursive: true);
-    for (final old in dir.listSync().whereType<File>().where((f) => f.path.endsWith('.$archiveExtension'))) {
+    for (final old in dir.listSync().whereType<File>().where(
+      (f) => f.path.endsWith('.$archiveExtension'),
+    )) {
       try {
         old.deleteSync();
       } catch (_) {}
     }
     final t = _clock().toUtc();
     String two(int n) => n.toString().padLeft(2, '0');
-    final path = p.join(dir.path, 'pulse-backup-${t.year}${two(t.month)}${two(t.day)}-${two(t.hour)}${two(t.minute)}.$archiveExtension');
+    final path = p.join(
+      dir.path,
+      'pulse-backup-${t.year}${two(t.month)}${two(t.day)}-${two(t.hour)}${two(t.minute)}.$archiveExtension',
+    );
     final sink = ArchiveWriterProvider(path);
     try {
       await sink.write(keyObject, env.encode());
-      await BackupEngine(provider: sink, dataKey: dataKey, chunkSize: chunkSize, clock: _clock).backup(db: db, prune: false);
+      await BackupEngine(
+        provider: sink,
+        dataKey: dataKey,
+        chunkSize: chunkSize,
+        clock: _clock,
+      ).backup(db: db, prune: false);
     } catch (_) {
       await sink.close();
       try {
@@ -314,7 +423,11 @@ class BackupService implements BackupController {
 
   @override
   Future<void> deleteCloudBackup() async {
-    final c = cloud ?? (throw const BackupProviderUnavailable('Cloud backup is not set up in this build.'));
+    final c =
+        cloud ??
+        (throw const BackupProviderUnavailable(
+          'Cloud backup is not set up in this build.',
+        ));
     await c.ensureReady();
     await BackupEngine.deleteEverything(c);
     analytics.track(AnalyticsEvent.backupCloudDeleted);

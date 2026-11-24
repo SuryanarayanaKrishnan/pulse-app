@@ -5,14 +5,25 @@ import 'dart:convert';
 const backupFormatVersion = 1;
 
 class TableEntry {
-  const TableEntry({required this.name, required this.rows, required this.chunks});
+  const TableEntry({
+    required this.name,
+    required this.rows,
+    required this.chunks,
+  });
   final String name;
   final int rows;
   final List<String> chunks;
 
-  Map<String, Object> toJson() => {'name': name, 'rows': rows, 'chunks': chunks};
-  static TableEntry fromJson(Map<String, dynamic> j) =>
-      TableEntry(name: j['name'] as String, rows: j['rows'] as int, chunks: (j['chunks'] as List).cast<String>());
+  Map<String, Object> toJson() => {
+    'name': name,
+    'rows': rows,
+    'chunks': chunks,
+  };
+  static TableEntry fromJson(Map<String, dynamic> j) => TableEntry(
+    name: j['name'] as String,
+    rows: j['rows'] as int,
+    chunks: (j['chunks'] as List).cast<String>(),
+  );
 }
 
 class AttachmentEntry {
@@ -108,9 +119,13 @@ class BackupManifest {
         appSchemaVersion: j['schema'] as int,
         createdAt: DateTime.parse(j['created'] as String),
         id: j['id'] as String,
-        tables: [for (final t in (j['tables'] as List)) TableEntry.fromJson((t as Map).cast<String, dynamic>())],
+        tables: [
+          for (final t in (j['tables'] as List))
+            TableEntry.fromJson((t as Map).cast<String, dynamic>()),
+        ],
         attachments: [
-          for (final a in (j['attachments'] as List)) AttachmentEntry.fromJson((a as Map).cast<String, dynamic>()),
+          for (final a in (j['attachments'] as List))
+            AttachmentEntry.fromJson((a as Map).cast<String, dynamic>()),
         ],
         skippedAttachments: (j['skipped'] as int?) ?? 0,
         treeHash: j['tree'] as String,
@@ -131,14 +146,16 @@ class BackupVersion {
 class BackupTooNew implements Exception {
   const BackupTooNew();
   @override
-  String toString() => 'This backup was made by a newer version of the app. Update the app, then try again.';
+  String toString() =>
+      'This backup was made by a newer version of the app. Update the app, then try again.';
 }
 
 class BackupIncomplete implements Exception {
   const BackupIncomplete(this.missing);
   final int missing;
   @override
-  String toString() => 'This backup is incomplete ($missing pieces are missing), so it was not used.';
+  String toString() =>
+      'This backup is incomplete ($missing pieces are missing), so it was not used.';
 }
 
 class NoBackupFound implements Exception {

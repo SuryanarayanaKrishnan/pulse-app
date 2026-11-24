@@ -23,14 +23,26 @@ class WrongPassphrase implements Exception {
 /// Argon2id cost parameters, stored next to the wrapped key so a backup made
 /// today still opens when the defaults are raised later.
 class KdfParams {
-  const KdfParams({required this.memoryKiB, required this.iterations, required this.parallelism});
+  const KdfParams({
+    required this.memoryKiB,
+    required this.iterations,
+    required this.parallelism,
+  });
 
   /// OWASP's second Argon2id recommendation (19 MiB, t=2) with one extra
   /// pass. Pure-Dart Argon2id on a phone, so we stay modest.
-  static const production = KdfParams(memoryKiB: 19456, iterations: 3, parallelism: 1);
+  static const production = KdfParams(
+    memoryKiB: 19456,
+    iterations: 3,
+    parallelism: 1,
+  );
 
   /// Tests only: fast and weak.
-  static const testing = KdfParams(memoryKiB: 64, iterations: 1, parallelism: 1);
+  static const testing = KdfParams(
+    memoryKiB: 64,
+    iterations: 1,
+    parallelism: 1,
+  );
 
   final int memoryKiB;
   final int iterations;
@@ -48,11 +60,21 @@ class KdfParams {
     }
   }
 
-  Map<String, Object> toJson() => {'alg': 'argon2id', 'm': memoryKiB, 't': iterations, 'p': parallelism};
+  Map<String, Object> toJson() => {
+    'alg': 'argon2id',
+    'm': memoryKiB,
+    't': iterations,
+    'p': parallelism,
+  };
 
   static KdfParams fromJson(Map<String, dynamic> j) {
-    if (j['alg'] != 'argon2id') throw const FormatException('Unknown key derivation');
-    return KdfParams(memoryKiB: j['m'] as int, iterations: j['t'] as int, parallelism: j['p'] as int);
+    if (j['alg'] != 'argon2id')
+      throw const FormatException('Unknown key derivation');
+    return KdfParams(
+      memoryKiB: j['m'] as int,
+      iterations: j['t'] as int,
+      parallelism: j['p'] as int,
+    );
   }
 }
 
@@ -70,7 +92,10 @@ Future<List<int>> _argon2(_KdfJob j) async {
     parallelism: j.params.parallelism,
     hashLength: 32,
   );
-  final key = await algo.deriveKeyFromPassword(password: utf8.decode(j.secret), nonce: j.salt);
+  final key = await algo.deriveKeyFromPassword(
+    password: utf8.decode(j.secret),
+    nonce: j.salt,
+  );
   return key.extractBytes();
 }
 
@@ -93,11 +118,19 @@ class BackupCrypto {
   static const tagLength = 16;
   static final _hmac = Hmac.sha256();
 
-  static Uint8List randomBytes(int n) => Uint8List.fromList(SecretKeyData.random(length: n).bytes);
+  static Uint8List randomBytes(int n) =>
+      Uint8List.fromList(SecretKeyData.random(length: n).bytes);
 
-  static Future<SecretKey> deriveMasterKey(String secret, List<int> salt, KdfParams params) async {
+  static Future<SecretKey> deriveMasterKey(
+    String secret,
+    List<int> salt,
+    KdfParams params,
+  ) async {
     params.validate();
-    final bytes = await compute(_argon2, _KdfJob(utf8.encode(secret), salt, params));
+    final bytes = await compute(
+      _argon2,
+      _KdfJob(utf8.encode(secret), salt, params),
+    );
     return SecretKey(bytes);
   }
 
@@ -108,7 +141,11 @@ class BackupCrypto {
         info: utf8.encode(purpose),
       );
 
-  static Future<Uint8List> seal(SecretKey key, List<int> plain, {required List<int> aad}) async {
+  static Future<Uint8List> seal(
+    SecretKey key,
+    List<int> plain, {
+    required List<int> aad,
+  }) async {
     final box = await _aes.encrypt(plain, secretKey: key, aad: aad);
     final out = BytesBuilder(copy: false)
       ..addByte(_version)
@@ -118,7 +155,11 @@ class BackupCrypto {
     return out.toBytes();
   }
 
-  static Future<Uint8List> open(SecretKey key, Uint8List blob, {required List<int> aad}) async {
+  static Future<Uint8List> open(
+    SecretKey key,
+    Uint8List blob, {
+    required List<int> aad,
+  }) async {
     if (blob.length < 1 + nonceLength + tagLength || blob[0] != _version) {
       throw const BackupIntegrityError('format');
     }
@@ -126,7 +167,11 @@ class BackupCrypto {
     final mac = blob.sublist(blob.length - tagLength);
     final cipher = blob.sublist(1 + nonceLength, blob.length - tagLength);
     try {
-      final plain = await _aes.decrypt(SecretBox(cipher, nonce: nonce, mac: Mac(mac)), secretKey: key, aad: aad);
+      final plain = await _aes.decrypt(
+        SecretBox(cipher, nonce: nonce, mac: Mac(mac)),
+        secretKey: key,
+        aad: aad,
+      );
       return Uint8List.fromList(plain);
     } on SecretBoxAuthenticationError {
       throw const BackupIntegrityError();

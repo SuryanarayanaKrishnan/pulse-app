@@ -44,7 +44,11 @@ class BackupStats {
 }
 
 class RestoreStats {
-  const RestoreStats({required this.rows, required this.attachments, required this.createdAt});
+  const RestoreStats({
+    required this.rows,
+    required this.attachments,
+    required this.createdAt,
+  });
   final int rows;
   final int attachments;
   final DateTime createdAt;
@@ -109,7 +113,11 @@ class BackupEngine {
       if (existing.contains(name)) {
         reused++;
       } else {
-        final sealed = await BackupCrypto.seal(_chunkKey!, plain, aad: utf8.encode(id));
+        final sealed = await BackupCrypto.seal(
+          _chunkKey!,
+          plain,
+          aad: utf8.encode(id),
+        );
         await provider.write(name, sealed);
         existing.add(name);
         uploaded++;
@@ -123,8 +131,16 @@ class BackupEngine {
     for (final d in dumps) {
       final ids = <String>[];
       for (var i = 0; i < d.rows.length; i += rowsPerChunk) {
-        final end = i + rowsPerChunk > d.rows.length ? d.rows.length : i + rowsPerChunk;
-        ids.add(await put(Uint8List.fromList(encodeChunk(d.name, d.columns, d.rows.sublist(i, end)))));
+        final end = i + rowsPerChunk > d.rows.length
+            ? d.rows.length
+            : i + rowsPerChunk;
+        ids.add(
+          await put(
+            Uint8List.fromList(
+              encodeChunk(d.name, d.columns, d.rows.sublist(i, end)),
+            ),
+          ),
+        );
       }
       tables.add(TableEntry(name: d.name, rows: d.rows.length, chunks: ids));
     }
@@ -153,8 +169,19 @@ class BackupEngine {
       } finally {
         await raf.close();
       }
-      final fileId = await BackupCrypto.chunkId(_idKey!, utf8.encode(ids.join(',')));
-      attachments.add(AttachmentEntry(origPath: path, name: p.basename(path), size: size, fileId: fileId, chunks: ids));
+      final fileId = await BackupCrypto.chunkId(
+        _idKey!,
+        utf8.encode(ids.join(',')),
+      );
+      attachments.add(
+        AttachmentEntry(
+          origPath: path,
+          name: p.basename(path),
+          size: size,
+          fileId: fileId,
+          chunks: ids,
+        ),
+      );
       onProgress?.call(0.2 + 0.7 * (++done / paths.length));
     }
 
@@ -180,8 +207,13 @@ class BackupEngine {
       skippedAttachments: skipped,
       treeHash: await _treeHash(draft.allChunks),
     );
-    final name = '$manifestPrefix${now.millisecondsSinceEpoch.toString().padLeft(15, '0')}-${id.substring(0, 8)}.bin';
-    final sealed = await BackupCrypto.seal(_manifestKey!, manifest.encode(), aad: utf8.encode(name));
+    final name =
+        '$manifestPrefix${now.millisecondsSinceEpoch.toString().padLeft(15, '0')}-${id.substring(0, 8)}.bin';
+    final sealed = await BackupCrypto.seal(
+      _manifestKey!,
+      manifest.encode(),
+      aad: utf8.encode(name),
+    );
     await provider.write(name, sealed);
     bytes += sealed.length;
     onProgress?.call(0.95);
@@ -207,7 +239,10 @@ class BackupEngine {
 
   /// File paths the ledger refers to (jewellery photos, document scans).
   static List<String> _attachmentPaths(List<TableDump> dumps) {
-    const sources = {'jewellery_items': 'photo_paths', 'document_attachments': 'file_paths'};
+    const sources = {
+      'jewellery_items': 'photo_paths',
+      'document_attachments': 'file_paths',
+    };
     final out = <String>{};
     for (final d in dumps) {
       final col = sources[d.name];
@@ -236,7 +271,8 @@ class BackupEngine {
   Future<List<BackupVersion>> versions() async {
     await _init();
     corruptManifests = 0;
-    final names = [for (final o in await provider.list(manifestPrefix)) o.name]..sort();
+    final names = [for (final o in await provider.list(manifestPrefix)) o.name]
+      ..sort();
     final out = <BackupVersion>[];
     for (final n in names.reversed) {
       try {
@@ -254,18 +290,29 @@ class BackupEngine {
     await _init();
     final blob = await provider.read(name);
     if (blob == null) throw const NoBackupFound();
-    final plain = await BackupCrypto.open(_manifestKey!, blob, aad: utf8.encode(name));
+    final plain = await BackupCrypto.open(
+      _manifestKey!,
+      blob,
+      aad: utf8.encode(name),
+    );
     final m = BackupManifest.decode(plain);
-    if (m.treeHash != await _treeHash(m.allChunks)) throw const BackupIntegrityError('manifest');
+    if (m.treeHash != await _treeHash(m.allChunks))
+      throw const BackupIntegrityError('manifest');
     return m;
   }
 
   /// Keeps the newest [keep] snapshots and deletes chunks nothing refers to
   /// any more. Chunks younger than [grace], or whose age the provider cannot report, are never deleted, so a backup
   /// running on another device is not undermined.
-  Future<int> pruneOld({required int keep, Duration grace = const Duration(hours: 2)}) async {
-    final all = [for (final o in await provider.list(manifestPrefix)) o.name]..sort();
-    final drop = all.length > keep ? all.sublist(0, all.length - keep) : <String>[];
+  Future<int> pruneOld({
+    required int keep,
+    Duration grace = const Duration(hours: 2),
+  }) async {
+    final all = [for (final o in await provider.list(manifestPrefix)) o.name]
+      ..sort();
+    final drop = all.length > keep
+        ? all.sublist(0, all.length - keep)
+        : <String>[];
     if (drop.isNotEmpty) await provider.delete(drop);
     final live = <String>{};
     for (final n in all.skip(drop.length)) {
@@ -279,7 +326,8 @@ class BackupEngine {
     final cutoff = _clock().subtract(grace);
     final stale = [
       for (final o in await provider.list(chunkPrefix))
-        if (!live.contains(o.name.substring(chunkPrefix.length)) && (o.modified != null && o.modified!.isBefore(cutoff)))
+        if (!live.contains(o.name.substring(chunkPrefix.length)) &&
+            (o.modified != null && o.modified!.isBefore(cutoff)))
           o.name,
     ];
     if (stale.isNotEmpty) await provider.delete(stale);
@@ -309,17 +357,26 @@ class BackupEngine {
   }) async {
     await _init();
     final m = await readManifest(manifestName);
-    if (m.format > backupFormatVersion || m.appSchemaVersion > target.schemaVersion) throw const BackupTooNew();
+    if (m.format > backupFormatVersion ||
+        m.appSchemaVersion > target.schemaVersion)
+      throw const BackupTooNew();
 
     final have = {for (final o in await provider.list(chunkPrefix)) o.name};
-    final missing = m.allChunks.where((c) => !have.contains('$chunkPrefix$c')).length;
+    final missing = m.allChunks
+        .where((c) => !have.contains('$chunkPrefix$c'))
+        .length;
     if (missing > 0) throw BackupIncomplete(missing);
 
     Future<Uint8List> fetch(String id) async {
       final blob = await provider.read('$chunkPrefix$id');
       if (blob == null) throw const BackupIncomplete(1);
-      final plain = await BackupCrypto.open(_chunkKey!, blob, aad: utf8.encode(id));
-      if (await BackupCrypto.chunkId(_idKey!, plain) != id) throw const BackupIntegrityError('chunk');
+      final plain = await BackupCrypto.open(
+        _chunkKey!,
+        blob,
+        aad: utf8.encode(id),
+      );
+      if (await BackupCrypto.chunkId(_idKey!, plain) != id)
+        throw const BackupIntegrityError('chunk');
       return plain;
     }
 
@@ -350,7 +407,12 @@ class BackupEngine {
       var done = 0;
       for (final a in m.attachments) {
         final ext = p.extension(a.name);
-        final dest = File(p.join(attachmentsDir.path, '${newId()}${ext.isEmpty ? '.jpg' : ext}'));
+        final dest = File(
+          p.join(
+            attachmentsDir.path,
+            '${newId()}${ext.isEmpty ? '.jpg' : ext}',
+          ),
+        );
         written.add(dest);
         final sink = dest.openWrite();
         try {
@@ -360,7 +422,8 @@ class BackupEngine {
         } finally {
           await sink.close();
         }
-        if (await dest.length() != a.size) throw const BackupIntegrityError('file size');
+        if (await dest.length() != a.size)
+          throw const BackupIntegrityError('file size');
         remap[a.origPath] = dest.path;
         onProgress?.call(0.3 + 0.6 * (++done / m.attachments.length));
       }
@@ -379,10 +442,18 @@ class BackupEngine {
       rethrow;
     }
     onProgress?.call(1);
-    return RestoreStats(rows: m.rowCount, attachments: m.attachments.length, createdAt: m.createdAt);
+    return RestoreStats(
+      rows: m.rowCount,
+      attachments: m.attachments.length,
+      createdAt: m.createdAt,
+    );
   }
 
-  static void _remapPaths(TableDump? d, String column, Map<String, String> remap) {
+  static void _remapPaths(
+    TableDump? d,
+    String column,
+    Map<String, String> remap,
+  ) {
     if (d == null) return;
     final i = d.indexOfColumn(column);
     if (i < 0) return;
@@ -390,7 +461,10 @@ class BackupEngine {
       final v = row[i];
       if (v is! String) continue;
       try {
-        final list = (jsonDecode(v) as List).whereType<String>().map((x) => remap[x] ?? x).toList();
+        final list = (jsonDecode(v) as List)
+            .whereType<String>()
+            .map((x) => remap[x] ?? x)
+            .toList();
         row[i] = jsonEncode(list);
       } catch (_) {}
     }

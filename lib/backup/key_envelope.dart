@@ -37,7 +37,13 @@ class KeyEnvelope {
     DateTime? now,
   }) async {
     final dataKey = BackupCrypto.randomBytes(32);
-    final env = await _wrap(secret, dataKey, kdf, secretKind, now ?? DateTime.now().toUtc());
+    final env = await _wrap(
+      secret,
+      dataKey,
+      kdf,
+      secretKind,
+      now ?? DateTime.now().toUtc(),
+    );
     return (env, dataKey);
   }
 
@@ -50,9 +56,21 @@ class KeyEnvelope {
   ) async {
     final salt = BackupCrypto.randomBytes(16);
     final master = await BackupCrypto.deriveMasterKey(secret, salt, kdf);
-    final draft = KeyEnvelope(kdf: kdf, salt: salt, wrappedKey: Uint8List(0), secretKind: secretKind, createdAt: now);
+    final draft = KeyEnvelope(
+      kdf: kdf,
+      salt: salt,
+      wrappedKey: Uint8List(0),
+      secretKind: secretKind,
+      createdAt: now,
+    );
     final wrapped = await BackupCrypto.seal(master, dataKey, aad: draft._aad);
-    return KeyEnvelope(kdf: kdf, salt: salt, wrappedKey: wrapped, secretKind: secretKind, createdAt: now);
+    return KeyEnvelope(
+      kdf: kdf,
+      salt: salt,
+      wrappedKey: wrapped,
+      secretKind: secretKind,
+      createdAt: now,
+    );
   }
 
   /// The data key, or [WrongPassphrase]. A wrong secret and a tampered
@@ -68,8 +86,18 @@ class KeyEnvelope {
 
   /// Re-wraps the same data key under a new secret and a fresh salt. Existing
   /// backup objects stay valid because the data key does not change.
-  Future<KeyEnvelope> rewrap(Uint8List dataKey, String newSecret, {required String secretKind, KdfParams? newKdf}) =>
-      _wrap(newSecret, dataKey, newKdf ?? kdf, secretKind, DateTime.now().toUtc());
+  Future<KeyEnvelope> rewrap(
+    Uint8List dataKey,
+    String newSecret, {
+    required String secretKind,
+    KdfParams? newKdf,
+  }) => _wrap(
+    newSecret,
+    dataKey,
+    newKdf ?? kdf,
+    secretKind,
+    DateTime.now().toUtc(),
+  );
 
   Uint8List encode() => Uint8List.fromList(
     utf8.encode(
@@ -87,7 +115,8 @@ class KeyEnvelope {
   static KeyEnvelope decode(Uint8List bytes) {
     try {
       final j = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
-      if (j['v'] != formatVersion) throw const FormatException('Unsupported backup key version');
+      if (j['v'] != formatVersion)
+        throw const FormatException('Unsupported backup key version');
       return KeyEnvelope(
         kdf: KdfParams.fromJson((j['kdf'] as Map).cast<String, dynamic>()),
         salt: base64.decode(j['salt'] as String),

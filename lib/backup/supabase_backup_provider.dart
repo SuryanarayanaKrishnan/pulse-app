@@ -22,7 +22,8 @@ class SupabaseBackupProvider implements BackupProvider {
 
   String get _uid {
     final id = _client.auth.currentUser?.id;
-    if (id == null) throw const BackupProviderUnavailable('Sign in to use cloud backup.');
+    if (id == null)
+      throw const BackupProviderUnavailable('Sign in to use cloud backup.');
     return id;
   }
 
@@ -61,7 +62,13 @@ class SupabaseBackupProvider implements BackupProvider {
           final name = dir.isEmpty ? f.name : '$dir/${f.name}';
           if (!name.startsWith(prefix)) continue;
           final size = (f.metadata?['size'] as num?)?.toInt() ?? 0;
-          out.add(BackupObject(name, size, DateTime.tryParse(f.updatedAt ?? f.createdAt ?? '')));
+          out.add(
+            BackupObject(
+              name,
+              size,
+              DateTime.tryParse(f.updatedAt ?? f.createdAt ?? ''),
+            ),
+          );
         }
         if (page.length < 100) break;
         offset += page.length;
@@ -75,7 +82,10 @@ class SupabaseBackupProvider implements BackupProvider {
     try {
       return await _store.download(_path(name));
     } on StorageException catch (e) {
-      if (e.statusCode == '404' || e.statusCode == '400' && (e.message.contains('not found') || e.message.contains('Object'))) {
+      if (e.statusCode == '404' ||
+          e.statusCode == '400' &&
+              (e.message.contains('not found') ||
+                  e.message.contains('Object'))) {
         return null;
       }
       rethrow;
@@ -87,7 +97,10 @@ class SupabaseBackupProvider implements BackupProvider {
     await _store.uploadBinary(
       _path(name),
       bytes,
-      fileOptions: const FileOptions(upsert: true, contentType: 'application/octet-stream'),
+      fileOptions: const FileOptions(
+        upsert: true,
+        contentType: 'application/octet-stream',
+      ),
     );
   }
 
@@ -95,7 +108,9 @@ class SupabaseBackupProvider implements BackupProvider {
   Future<void> delete(Iterable<String> names) async {
     final list = [for (final n in names) _path(n)];
     for (var i = 0; i < list.length; i += 100) {
-      await _store.remove(list.sublist(i, i + 100 > list.length ? list.length : i + 100));
+      await _store.remove(
+        list.sublist(i, i + 100 > list.length ? list.length : i + 100),
+      );
     }
   }
 }

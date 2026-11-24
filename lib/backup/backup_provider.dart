@@ -39,8 +39,11 @@ class BackupProviderUnavailable implements Exception {
 
 /// Reference implementation and test double.
 class MemoryBackupProvider implements BackupProvider {
-  MemoryBackupProvider({this.id = 'memory', this.label = 'Memory', DateTime Function()? clock})
-    : _clock = clock ?? DateTime.now;
+  MemoryBackupProvider({
+    this.id = 'memory',
+    this.label = 'Memory',
+    DateTime Function()? clock,
+  }) : _clock = clock ?? DateTime.now;
 
   @override
   final String id;
@@ -60,7 +63,8 @@ class MemoryBackupProvider implements BackupProvider {
   @override
   Future<List<BackupObject>> list(String prefix) async => [
     for (final e in objects.entries)
-      if (e.key.startsWith(prefix)) BackupObject(e.key, e.value.length, _modified[e.key]),
+      if (e.key.startsWith(prefix))
+        BackupObject(e.key, e.value.length, _modified[e.key]),
   ];
 
   @override
@@ -86,7 +90,11 @@ class MemoryBackupProvider implements BackupProvider {
 /// A destination that is declared but not usable in this build. The UI lists
 /// it as "needs setup" and never offers it as selectable.
 class UnavailableBackupProvider implements BackupProvider {
-  const UnavailableBackupProvider({required this.id, required this.label, required this.reason});
+  const UnavailableBackupProvider({
+    required this.id,
+    required this.label,
+    required this.reason,
+  });
   @override
   final String id;
   @override
@@ -111,11 +119,12 @@ class UnavailableBackupProvider implements BackupProvider {
 /// OAuth client (free) with the `drive.appdata` scope and `google_sign_in`
 /// native configuration (SHA-1, client id): a native step that cannot be done
 /// or verified here, so this stays a stub behind the interface.
-UnavailableBackupProvider googleDriveProvider() => const UnavailableBackupProvider(
-  id: 'google_drive',
-  label: 'Google Drive (app data)',
-  reason: 'Google Drive backup needs a one-time Google sign-in setup that is not enabled in this build.',
-);
+UnavailableBackupProvider googleDriveProvider() =>
+    const UnavailableBackupProvider(
+      id: 'google_drive',
+      label: 'Google Drive (app data)',
+      reason: 'Google Drive backup needs a one-time Google sign-in setup that is not enabled in this build.',
+    );
 
 /// iCloud Drive document container (iOS). Free with the user's Apple ID, but
 /// needs the iCloud capability and a container id in the Xcode project and a

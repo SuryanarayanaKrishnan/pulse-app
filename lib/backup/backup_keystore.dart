@@ -17,7 +17,9 @@ class SecureBackupKeyStore implements BackupKeyStore {
     : _storage =
           storage ??
           const FlutterSecureStorage(
-            iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock_this_device,
+            ),
           );
   final FlutterSecureStorage _storage;
   static const _key = 'pulse.backup.datakey.v1';
@@ -29,7 +31,8 @@ class SecureBackupKeyStore implements BackupKeyStore {
   }
 
   @override
-  Future<void> save(Uint8List dataKey) => _storage.write(key: _key, value: base64.encode(dataKey));
+  Future<void> save(Uint8List dataKey) =>
+      _storage.write(key: _key, value: base64.encode(dataKey));
 
   @override
   Future<void> clear() => _storage.delete(key: _key);

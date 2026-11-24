@@ -86,8 +86,17 @@ class DeviceRestoreHost implements RestoreHost {
   Future<bool> hasExistingData() async {
     final db = live;
     if (db == null) return false;
-    for (final t in const ['transactions', 'accounts', 'assets', 'jewellery_items', 'document_attachments', 'fund_holdings']) {
-      final n = await db.customSelect('SELECT count(*) AS n FROM $t').getSingle();
+    for (final t in const [
+      'transactions',
+      'accounts',
+      'assets',
+      'jewellery_items',
+      'document_attachments',
+      'fund_holdings',
+    ]) {
+      final n = await db
+          .customSelect('SELECT count(*) AS n FROM $t')
+          .getSingle();
       if (n.read<int>('n') > 0) return true;
     }
     return false;
@@ -175,7 +184,12 @@ class DeviceRestoreHost implements RestoreHost {
 
 /// Opens a backup with a secret and restores it onto this phone.
 class RestoreService {
-  RestoreService({required this.host, required this.analytics, this.adopt, this.upgraders = const {}});
+  RestoreService({
+    required this.host,
+    required this.analytics,
+    this.adopt,
+    this.upgraders = const {},
+  });
   final RestoreHost host;
   final Analytics analytics;
   final Map<int, RowUpgrader> upgraders;
@@ -185,9 +199,15 @@ class RestoreService {
 
   /// Reads the key file, opens it with [rawSecret] and lists the snapshots.
   /// Throws [NoBackupFound], [WrongPassphrase] or a [FormatException].
-  Future<UnlockedBackup> unlock(BackupProvider provider, String rawSecret, {required String source}) async {
+  Future<UnlockedBackup> unlock(
+    BackupProvider provider,
+    String rawSecret, {
+    required String source,
+  }) async {
     await provider.ensureReady();
-    final env = await BackupEngine.readEnvelope(provider) ?? (throw const NoBackupFound());
+    final env =
+        await BackupEngine.readEnvelope(provider) ??
+        (throw const NoBackupFound());
     final dataKey = await env.unwrap(RecoveryPhrase.secretFrom(rawSecret));
     final engine = BackupEngine(provider: provider, dataKey: dataKey);
     final versions = await engine.versions();
@@ -205,18 +225,23 @@ class RestoreService {
   /// Restores into a fresh database, verifies it, then swaps it in. The
   /// caller must have confirmed replacing existing data (see
   /// [RestoreHost.hasExistingData]) and must reopen the database afterwards.
-  Future<RestoreStats> restore(UnlockedBackup u, BackupVersion version, {void Function(double)? onProgress}) async {
+  Future<RestoreStats> restore(
+    UnlockedBackup u,
+    BackupVersion version, {
+    void Function(double)? onProgress,
+  }) async {
     analytics.track(AnalyticsEvent.restoreStarted(u.source));
     PulseDatabase? fresh;
     try {
       fresh = await host.createFresh();
-      final stats = await BackupEngine(provider: u.provider, dataKey: u.dataKey).restoreInto(
-        target: fresh,
-        manifestName: version.objectName,
-        attachmentsDir: host.attachmentsDir,
-        upgraders: upgraders,
-        onProgress: onProgress,
-      );
+      final stats = await BackupEngine(provider: u.provider, dataKey: u.dataKey)
+          .restoreInto(
+            target: fresh,
+            manifestName: version.objectName,
+            attachmentsDir: host.attachmentsDir,
+            upgraders: upgraders,
+            onProgress: onProgress,
+          );
       await host.swapIn(fresh);
       fresh = null;
       await adopt?.call(
@@ -228,7 +253,12 @@ class RestoreService {
       return stats;
     } catch (e) {
       if (fresh != null) await host.discard(fresh);
-      analytics.track(AnalyticsEvent.restoreFailed(source: u.source, reason: restoreFailureReason(e)));
+      analytics.track(
+        AnalyticsEvent.restoreFailed(
+          source: u.source,
+          reason: restoreFailureReason(e),
+        ),
+      );
       rethrow;
     }
   }
@@ -245,11 +275,13 @@ String restoreFailureReason(Object e) => switch (e) {
 
 /// Friendly text for any restore error.
 String describeRestoreError(Object e) => switch (e) {
-  WrongPassphrase() => 'That passphrase or recovery phrase is not right. Check it and try again.',
+  WrongPassphrase() =>
+    'That passphrase or recovery phrase is not right. Check it and try again.',
   NoBackupFound() => 'No backup was found here.',
   BackupIncomplete() => 'This backup is incomplete, so it was not used. Nothing on this phone was changed.',
   BackupIntegrityError() => 'This backup failed its safety check and may be damaged. Nothing on this phone was changed.',
   BackupTooNew() => 'This backup was made by a newer version of Pulse. Update the app, then try again.',
-  FormatException(:final message) => '$message. Nothing on this phone was changed.',
+  FormatException(:final message) =>
+    '$message. Nothing on this phone was changed.',
   _ => describeBackupError(e).message,
 };

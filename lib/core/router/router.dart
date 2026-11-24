@@ -2,6 +2,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/session.dart';
+import '../../features/backup/backup_screen.dart';
+import '../../features/backup/backup_setup_screen.dart';
+import '../../features/backup/restore_screen.dart';
 import '../../features/capture/apple_ingest_screen.dart';
 import '../../features/capture/apple_pay_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
@@ -47,6 +50,9 @@ abstract class Routes {
   static const family = '/family';
   static const cardsRanked = '/cards-ranked';
   static const legacy = '/legacy';
+  static const backup = '/backup';
+  static const backupSetup = '/backup/setup';
+  static const restore = '/restore';
 
   /// `/group/<id>`
   static const group = '/group';
@@ -100,6 +106,8 @@ GoRouter buildRouter({
             : Routes.home;
       }
       final loc = state.uri.path;
+      // Restore happens before the app is set up, whatever the session says.
+      if (loc == Routes.restore && !session.connected) return null;
       if (!session.onboarded)
         return loc == Routes.onboarding ? null : Routes.onboarding;
       if (!session.signedIn) return loc == Routes.signIn ? null : Routes.signIn;
@@ -117,6 +125,21 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.onboarding,
         pageBuilder: (c, s) => fade(s, const OnboardingScreen()),
+      ),
+      GoRoute(
+        path: Routes.restore,
+        pageBuilder: (c, s) => fade(s, const RestoreScreen()),
+      ),
+      GoRoute(
+        path: Routes.backup,
+        pageBuilder: (c, s) => fade(s, const BackupScreen()),
+      ),
+      GoRoute(
+        path: Routes.backupSetup,
+        pageBuilder: (c, s) => fade(
+          s,
+          BackupSetupScreen(change: s.uri.queryParameters['change'] == '1'),
+        ),
       ),
       GoRoute(
         path: Routes.signIn,
@@ -180,7 +203,8 @@ GoRouter buildRouter({
       GoRoute(
         path: '${Routes.jewellery}/:id',
         name: 'jewellery',
-        builder: (c, s) => JewelleryDetailScreen(itemId: s.pathParameters['id']!),
+        builder: (c, s) =>
+            JewelleryDetailScreen(itemId: s.pathParameters['id']!),
       ),
       GoRoute(
         path: '${Routes.document}/:id',
