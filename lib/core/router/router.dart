@@ -25,7 +25,7 @@ import '../../features/family/family_screen.dart';
 import '../../features/goals/goal_detail_screen.dart';
 import '../../features/goals/goals_screen.dart';
 import '../../features/household/household_screen.dart';
-import '../../features/family/legacy_screen.dart';
+import '../../features/vault/vault_screen.dart';
 import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
 import '../../features/onboarding/connect_screen.dart';
@@ -263,7 +263,7 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.legacy,
         name: 'legacy',
-        builder: (c, s) => const LegacyScreen(),
+        builder: (c, s) => const VaultScreen(),
       ),
       GoRoute(
         path: Routes.statements,

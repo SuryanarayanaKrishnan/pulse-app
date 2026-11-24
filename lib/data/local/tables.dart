@@ -757,3 +757,57 @@ class RecurringChoices extends Table {
   @override
   Set<Column> get primaryKey => {seriesKey};
 }
+
+/// One thing the family would need to find. It says where to look, never the
+/// secret: the app refuses passwords, PINs and full card or IBAN numbers
+/// before they get here (`core/vault/input_guard.dart`).
+@DataClassName('VaultEntryRow')
+class VaultEntries extends Table {
+  TextColumn get id => text()();
+
+  /// bank | card | loan | insurance | investment | property | crypto |
+  /// subscription | digital | documents | identity
+  TextColumn get type => text()();
+  TextColumn get institution => text()();
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get whereToFind => text().withDefault(const Constant(''))();
+
+  /// The nominee named on the account or policy itself, as free text.
+  TextColumn get nomineeName => text().withDefault(const Constant(''))();
+  TextColumn get contactPerson => text().withDefault(const Constant(''))();
+
+  /// Optional rough value in AED fils.
+  IntColumn get estimatedValueMinor => integer().nullable()();
+
+  /// JSON list of file paths in the app-private attachments folder. Device
+  /// local: never synced.
+  TextColumn get photoPaths => text().withDefault(const Constant('[]'))();
+
+  /// `account:<id>` etc. when the entry came from a suggestion.
+  TextColumn get sourceRef => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A trusted person who may be handed an emergency export. Release secrets
+/// and key shares are never stored here (they live in `app_settings`, which
+/// never syncs).
+@DataClassName('VaultNomineeRow')
+class VaultNominees extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get relationship => text().withDefault(const Constant(''))();
+  TextColumn get contact => text().withDefault(const Constant(''))();
+
+  /// `*` for everything, otherwise a JSON list of entry ids.
+  TextColumn get entryIds => text().withDefault(const Constant('*'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

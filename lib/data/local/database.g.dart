@@ -18937,6 +18937,1248 @@ class RecurringChoicesCompanion extends UpdateCompanion<RecurringChoiceRow> {
   }
 }
 
+class $VaultEntriesTable extends VaultEntries
+    with TableInfo<$VaultEntriesTable, VaultEntryRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VaultEntriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _typeMeta = const VerificationMeta('type');
+  @override
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _institutionMeta = const VerificationMeta(
+    'institution',
+  );
+  @override
+  late final GeneratedColumn<String> institution = GeneratedColumn<String>(
+    'institution',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _whereToFindMeta = const VerificationMeta(
+    'whereToFind',
+  );
+  @override
+  late final GeneratedColumn<String> whereToFind = GeneratedColumn<String>(
+    'where_to_find',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _nomineeNameMeta = const VerificationMeta(
+    'nomineeName',
+  );
+  @override
+  late final GeneratedColumn<String> nomineeName = GeneratedColumn<String>(
+    'nominee_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _contactPersonMeta = const VerificationMeta(
+    'contactPerson',
+  );
+  @override
+  late final GeneratedColumn<String> contactPerson = GeneratedColumn<String>(
+    'contact_person',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _estimatedValueMinorMeta =
+      const VerificationMeta('estimatedValueMinor');
+  @override
+  late final GeneratedColumn<int> estimatedValueMinor = GeneratedColumn<int>(
+    'estimated_value_minor',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _photoPathsMeta = const VerificationMeta(
+    'photoPaths',
+  );
+  @override
+  late final GeneratedColumn<String> photoPaths = GeneratedColumn<String>(
+    'photo_paths',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _sourceRefMeta = const VerificationMeta(
+    'sourceRef',
+  );
+  @override
+  late final GeneratedColumn<String> sourceRef = GeneratedColumn<String>(
+    'source_ref',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    type,
+    institution,
+    title,
+    whereToFind,
+    nomineeName,
+    contactPerson,
+    estimatedValueMinor,
+    photoPaths,
+    sourceRef,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vault_entries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VaultEntryRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('type')) {
+      context.handle(
+        _typeMeta,
+        type.isAcceptableOrUnknown(data['type']!, _typeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_typeMeta);
+    }
+    if (data.containsKey('institution')) {
+      context.handle(
+        _institutionMeta,
+        institution.isAcceptableOrUnknown(
+          data['institution']!,
+          _institutionMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_institutionMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    }
+    if (data.containsKey('where_to_find')) {
+      context.handle(
+        _whereToFindMeta,
+        whereToFind.isAcceptableOrUnknown(
+          data['where_to_find']!,
+          _whereToFindMeta,
+        ),
+      );
+    }
+    if (data.containsKey('nominee_name')) {
+      context.handle(
+        _nomineeNameMeta,
+        nomineeName.isAcceptableOrUnknown(
+          data['nominee_name']!,
+          _nomineeNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('contact_person')) {
+      context.handle(
+        _contactPersonMeta,
+        contactPerson.isAcceptableOrUnknown(
+          data['contact_person']!,
+          _contactPersonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('estimated_value_minor')) {
+      context.handle(
+        _estimatedValueMinorMeta,
+        estimatedValueMinor.isAcceptableOrUnknown(
+          data['estimated_value_minor']!,
+          _estimatedValueMinorMeta,
+        ),
+      );
+    }
+    if (data.containsKey('photo_paths')) {
+      context.handle(
+        _photoPathsMeta,
+        photoPaths.isAcceptableOrUnknown(data['photo_paths']!, _photoPathsMeta),
+      );
+    }
+    if (data.containsKey('source_ref')) {
+      context.handle(
+        _sourceRefMeta,
+        sourceRef.isAcceptableOrUnknown(data['source_ref']!, _sourceRefMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VaultEntryRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VaultEntryRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+      institution: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}institution'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      whereToFind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}where_to_find'],
+      )!,
+      nomineeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}nominee_name'],
+      )!,
+      contactPerson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contact_person'],
+      )!,
+      estimatedValueMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}estimated_value_minor'],
+      ),
+      photoPaths: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}photo_paths'],
+      )!,
+      sourceRef: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source_ref'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $VaultEntriesTable createAlias(String alias) {
+    return $VaultEntriesTable(attachedDatabase, alias);
+  }
+}
+
+class VaultEntryRow extends DataClass implements Insertable<VaultEntryRow> {
+  final String id;
+
+  /// bank | card | loan | insurance | investment | property | crypto |
+  /// subscription | digital | documents | identity
+  final String type;
+  final String institution;
+  final String title;
+  final String whereToFind;
+
+  /// The nominee named on the account or policy itself, as free text.
+  final String nomineeName;
+  final String contactPerson;
+
+  /// Optional rough value in AED fils.
+  final int? estimatedValueMinor;
+
+  /// JSON list of file paths in the app-private attachments folder. Device
+  /// local: never synced.
+  final String photoPaths;
+
+  /// `account:<id>` etc. when the entry came from a suggestion.
+  final String? sourceRef;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? deletedAt;
+  const VaultEntryRow({
+    required this.id,
+    required this.type,
+    required this.institution,
+    required this.title,
+    required this.whereToFind,
+    required this.nomineeName,
+    required this.contactPerson,
+    this.estimatedValueMinor,
+    required this.photoPaths,
+    this.sourceRef,
+    required this.createdAt,
+    required this.updatedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['type'] = Variable<String>(type);
+    map['institution'] = Variable<String>(institution);
+    map['title'] = Variable<String>(title);
+    map['where_to_find'] = Variable<String>(whereToFind);
+    map['nominee_name'] = Variable<String>(nomineeName);
+    map['contact_person'] = Variable<String>(contactPerson);
+    if (!nullToAbsent || estimatedValueMinor != null) {
+      map['estimated_value_minor'] = Variable<int>(estimatedValueMinor);
+    }
+    map['photo_paths'] = Variable<String>(photoPaths);
+    if (!nullToAbsent || sourceRef != null) {
+      map['source_ref'] = Variable<String>(sourceRef);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  VaultEntriesCompanion toCompanion(bool nullToAbsent) {
+    return VaultEntriesCompanion(
+      id: Value(id),
+      type: Value(type),
+      institution: Value(institution),
+      title: Value(title),
+      whereToFind: Value(whereToFind),
+      nomineeName: Value(nomineeName),
+      contactPerson: Value(contactPerson),
+      estimatedValueMinor: estimatedValueMinor == null && nullToAbsent
+          ? const Value.absent()
+          : Value(estimatedValueMinor),
+      photoPaths: Value(photoPaths),
+      sourceRef: sourceRef == null && nullToAbsent
+          ? const Value.absent()
+          : Value(sourceRef),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory VaultEntryRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VaultEntryRow(
+      id: serializer.fromJson<String>(json['id']),
+      type: serializer.fromJson<String>(json['type']),
+      institution: serializer.fromJson<String>(json['institution']),
+      title: serializer.fromJson<String>(json['title']),
+      whereToFind: serializer.fromJson<String>(json['whereToFind']),
+      nomineeName: serializer.fromJson<String>(json['nomineeName']),
+      contactPerson: serializer.fromJson<String>(json['contactPerson']),
+      estimatedValueMinor: serializer.fromJson<int?>(
+        json['estimatedValueMinor'],
+      ),
+      photoPaths: serializer.fromJson<String>(json['photoPaths']),
+      sourceRef: serializer.fromJson<String?>(json['sourceRef']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'type': serializer.toJson<String>(type),
+      'institution': serializer.toJson<String>(institution),
+      'title': serializer.toJson<String>(title),
+      'whereToFind': serializer.toJson<String>(whereToFind),
+      'nomineeName': serializer.toJson<String>(nomineeName),
+      'contactPerson': serializer.toJson<String>(contactPerson),
+      'estimatedValueMinor': serializer.toJson<int?>(estimatedValueMinor),
+      'photoPaths': serializer.toJson<String>(photoPaths),
+      'sourceRef': serializer.toJson<String?>(sourceRef),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  VaultEntryRow copyWith({
+    String? id,
+    String? type,
+    String? institution,
+    String? title,
+    String? whereToFind,
+    String? nomineeName,
+    String? contactPerson,
+    Value<int?> estimatedValueMinor = const Value.absent(),
+    String? photoPaths,
+    Value<String?> sourceRef = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => VaultEntryRow(
+    id: id ?? this.id,
+    type: type ?? this.type,
+    institution: institution ?? this.institution,
+    title: title ?? this.title,
+    whereToFind: whereToFind ?? this.whereToFind,
+    nomineeName: nomineeName ?? this.nomineeName,
+    contactPerson: contactPerson ?? this.contactPerson,
+    estimatedValueMinor: estimatedValueMinor.present
+        ? estimatedValueMinor.value
+        : this.estimatedValueMinor,
+    photoPaths: photoPaths ?? this.photoPaths,
+    sourceRef: sourceRef.present ? sourceRef.value : this.sourceRef,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  VaultEntryRow copyWithCompanion(VaultEntriesCompanion data) {
+    return VaultEntryRow(
+      id: data.id.present ? data.id.value : this.id,
+      type: data.type.present ? data.type.value : this.type,
+      institution: data.institution.present
+          ? data.institution.value
+          : this.institution,
+      title: data.title.present ? data.title.value : this.title,
+      whereToFind: data.whereToFind.present
+          ? data.whereToFind.value
+          : this.whereToFind,
+      nomineeName: data.nomineeName.present
+          ? data.nomineeName.value
+          : this.nomineeName,
+      contactPerson: data.contactPerson.present
+          ? data.contactPerson.value
+          : this.contactPerson,
+      estimatedValueMinor: data.estimatedValueMinor.present
+          ? data.estimatedValueMinor.value
+          : this.estimatedValueMinor,
+      photoPaths: data.photoPaths.present
+          ? data.photoPaths.value
+          : this.photoPaths,
+      sourceRef: data.sourceRef.present ? data.sourceRef.value : this.sourceRef,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultEntryRow(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('institution: $institution, ')
+          ..write('title: $title, ')
+          ..write('whereToFind: $whereToFind, ')
+          ..write('nomineeName: $nomineeName, ')
+          ..write('contactPerson: $contactPerson, ')
+          ..write('estimatedValueMinor: $estimatedValueMinor, ')
+          ..write('photoPaths: $photoPaths, ')
+          ..write('sourceRef: $sourceRef, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    type,
+    institution,
+    title,
+    whereToFind,
+    nomineeName,
+    contactPerson,
+    estimatedValueMinor,
+    photoPaths,
+    sourceRef,
+    createdAt,
+    updatedAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VaultEntryRow &&
+          other.id == this.id &&
+          other.type == this.type &&
+          other.institution == this.institution &&
+          other.title == this.title &&
+          other.whereToFind == this.whereToFind &&
+          other.nomineeName == this.nomineeName &&
+          other.contactPerson == this.contactPerson &&
+          other.estimatedValueMinor == this.estimatedValueMinor &&
+          other.photoPaths == this.photoPaths &&
+          other.sourceRef == this.sourceRef &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class VaultEntriesCompanion extends UpdateCompanion<VaultEntryRow> {
+  final Value<String> id;
+  final Value<String> type;
+  final Value<String> institution;
+  final Value<String> title;
+  final Value<String> whereToFind;
+  final Value<String> nomineeName;
+  final Value<String> contactPerson;
+  final Value<int?> estimatedValueMinor;
+  final Value<String> photoPaths;
+  final Value<String?> sourceRef;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const VaultEntriesCompanion({
+    this.id = const Value.absent(),
+    this.type = const Value.absent(),
+    this.institution = const Value.absent(),
+    this.title = const Value.absent(),
+    this.whereToFind = const Value.absent(),
+    this.nomineeName = const Value.absent(),
+    this.contactPerson = const Value.absent(),
+    this.estimatedValueMinor = const Value.absent(),
+    this.photoPaths = const Value.absent(),
+    this.sourceRef = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VaultEntriesCompanion.insert({
+    required String id,
+    required String type,
+    required String institution,
+    this.title = const Value.absent(),
+    this.whereToFind = const Value.absent(),
+    this.nomineeName = const Value.absent(),
+    this.contactPerson = const Value.absent(),
+    this.estimatedValueMinor = const Value.absent(),
+    this.photoPaths = const Value.absent(),
+    this.sourceRef = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       type = Value(type),
+       institution = Value(institution);
+  static Insertable<VaultEntryRow> custom({
+    Expression<String>? id,
+    Expression<String>? type,
+    Expression<String>? institution,
+    Expression<String>? title,
+    Expression<String>? whereToFind,
+    Expression<String>? nomineeName,
+    Expression<String>? contactPerson,
+    Expression<int>? estimatedValueMinor,
+    Expression<String>? photoPaths,
+    Expression<String>? sourceRef,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (type != null) 'type': type,
+      if (institution != null) 'institution': institution,
+      if (title != null) 'title': title,
+      if (whereToFind != null) 'where_to_find': whereToFind,
+      if (nomineeName != null) 'nominee_name': nomineeName,
+      if (contactPerson != null) 'contact_person': contactPerson,
+      if (estimatedValueMinor != null)
+        'estimated_value_minor': estimatedValueMinor,
+      if (photoPaths != null) 'photo_paths': photoPaths,
+      if (sourceRef != null) 'source_ref': sourceRef,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VaultEntriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? type,
+    Value<String>? institution,
+    Value<String>? title,
+    Value<String>? whereToFind,
+    Value<String>? nomineeName,
+    Value<String>? contactPerson,
+    Value<int?>? estimatedValueMinor,
+    Value<String>? photoPaths,
+    Value<String?>? sourceRef,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return VaultEntriesCompanion(
+      id: id ?? this.id,
+      type: type ?? this.type,
+      institution: institution ?? this.institution,
+      title: title ?? this.title,
+      whereToFind: whereToFind ?? this.whereToFind,
+      nomineeName: nomineeName ?? this.nomineeName,
+      contactPerson: contactPerson ?? this.contactPerson,
+      estimatedValueMinor: estimatedValueMinor ?? this.estimatedValueMinor,
+      photoPaths: photoPaths ?? this.photoPaths,
+      sourceRef: sourceRef ?? this.sourceRef,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (institution.present) {
+      map['institution'] = Variable<String>(institution.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (whereToFind.present) {
+      map['where_to_find'] = Variable<String>(whereToFind.value);
+    }
+    if (nomineeName.present) {
+      map['nominee_name'] = Variable<String>(nomineeName.value);
+    }
+    if (contactPerson.present) {
+      map['contact_person'] = Variable<String>(contactPerson.value);
+    }
+    if (estimatedValueMinor.present) {
+      map['estimated_value_minor'] = Variable<int>(estimatedValueMinor.value);
+    }
+    if (photoPaths.present) {
+      map['photo_paths'] = Variable<String>(photoPaths.value);
+    }
+    if (sourceRef.present) {
+      map['source_ref'] = Variable<String>(sourceRef.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultEntriesCompanion(')
+          ..write('id: $id, ')
+          ..write('type: $type, ')
+          ..write('institution: $institution, ')
+          ..write('title: $title, ')
+          ..write('whereToFind: $whereToFind, ')
+          ..write('nomineeName: $nomineeName, ')
+          ..write('contactPerson: $contactPerson, ')
+          ..write('estimatedValueMinor: $estimatedValueMinor, ')
+          ..write('photoPaths: $photoPaths, ')
+          ..write('sourceRef: $sourceRef, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VaultNomineesTable extends VaultNominees
+    with TableInfo<$VaultNomineesTable, VaultNomineeRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VaultNomineesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _relationshipMeta = const VerificationMeta(
+    'relationship',
+  );
+  @override
+  late final GeneratedColumn<String> relationship = GeneratedColumn<String>(
+    'relationship',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _contactMeta = const VerificationMeta(
+    'contact',
+  );
+  @override
+  late final GeneratedColumn<String> contact = GeneratedColumn<String>(
+    'contact',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  static const VerificationMeta _entryIdsMeta = const VerificationMeta(
+    'entryIds',
+  );
+  @override
+  late final GeneratedColumn<String> entryIds = GeneratedColumn<String>(
+    'entry_ids',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('*'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    relationship,
+    contact,
+    entryIds,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vault_nominees';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VaultNomineeRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('relationship')) {
+      context.handle(
+        _relationshipMeta,
+        relationship.isAcceptableOrUnknown(
+          data['relationship']!,
+          _relationshipMeta,
+        ),
+      );
+    }
+    if (data.containsKey('contact')) {
+      context.handle(
+        _contactMeta,
+        contact.isAcceptableOrUnknown(data['contact']!, _contactMeta),
+      );
+    }
+    if (data.containsKey('entry_ids')) {
+      context.handle(
+        _entryIdsMeta,
+        entryIds.isAcceptableOrUnknown(data['entry_ids']!, _entryIdsMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VaultNomineeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VaultNomineeRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      relationship: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relationship'],
+      )!,
+      contact: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}contact'],
+      )!,
+      entryIds: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entry_ids'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $VaultNomineesTable createAlias(String alias) {
+    return $VaultNomineesTable(attachedDatabase, alias);
+  }
+}
+
+class VaultNomineeRow extends DataClass implements Insertable<VaultNomineeRow> {
+  final String id;
+  final String name;
+  final String relationship;
+  final String contact;
+
+  /// `*` for everything, otherwise a JSON list of entry ids.
+  final String entryIds;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const VaultNomineeRow({
+    required this.id,
+    required this.name,
+    required this.relationship,
+    required this.contact,
+    required this.entryIds,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['relationship'] = Variable<String>(relationship);
+    map['contact'] = Variable<String>(contact);
+    map['entry_ids'] = Variable<String>(entryIds);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  VaultNomineesCompanion toCompanion(bool nullToAbsent) {
+    return VaultNomineesCompanion(
+      id: Value(id),
+      name: Value(name),
+      relationship: Value(relationship),
+      contact: Value(contact),
+      entryIds: Value(entryIds),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory VaultNomineeRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VaultNomineeRow(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      relationship: serializer.fromJson<String>(json['relationship']),
+      contact: serializer.fromJson<String>(json['contact']),
+      entryIds: serializer.fromJson<String>(json['entryIds']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'relationship': serializer.toJson<String>(relationship),
+      'contact': serializer.toJson<String>(contact),
+      'entryIds': serializer.toJson<String>(entryIds),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  VaultNomineeRow copyWith({
+    String? id,
+    String? name,
+    String? relationship,
+    String? contact,
+    String? entryIds,
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => VaultNomineeRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    relationship: relationship ?? this.relationship,
+    contact: contact ?? this.contact,
+    entryIds: entryIds ?? this.entryIds,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  VaultNomineeRow copyWithCompanion(VaultNomineesCompanion data) {
+    return VaultNomineeRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      relationship: data.relationship.present
+          ? data.relationship.value
+          : this.relationship,
+      contact: data.contact.present ? data.contact.value : this.contact,
+      entryIds: data.entryIds.present ? data.entryIds.value : this.entryIds,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultNomineeRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('relationship: $relationship, ')
+          ..write('contact: $contact, ')
+          ..write('entryIds: $entryIds, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    relationship,
+    contact,
+    entryIds,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VaultNomineeRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.relationship == this.relationship &&
+          other.contact == this.contact &&
+          other.entryIds == this.entryIds &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class VaultNomineesCompanion extends UpdateCompanion<VaultNomineeRow> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> relationship;
+  final Value<String> contact;
+  final Value<String> entryIds;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const VaultNomineesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.relationship = const Value.absent(),
+    this.contact = const Value.absent(),
+    this.entryIds = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VaultNomineesCompanion.insert({
+    required String id,
+    required String name,
+    this.relationship = const Value.absent(),
+    this.contact = const Value.absent(),
+    this.entryIds = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<VaultNomineeRow> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? relationship,
+    Expression<String>? contact,
+    Expression<String>? entryIds,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (relationship != null) 'relationship': relationship,
+      if (contact != null) 'contact': contact,
+      if (entryIds != null) 'entry_ids': entryIds,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VaultNomineesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? relationship,
+    Value<String>? contact,
+    Value<String>? entryIds,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return VaultNomineesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      relationship: relationship ?? this.relationship,
+      contact: contact ?? this.contact,
+      entryIds: entryIds ?? this.entryIds,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (relationship.present) {
+      map['relationship'] = Variable<String>(relationship.value);
+    }
+    if (contact.present) {
+      map['contact'] = Variable<String>(contact.value);
+    }
+    if (entryIds.present) {
+      map['entry_ids'] = Variable<String>(entryIds.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VaultNomineesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('relationship: $relationship, ')
+          ..write('contact: $contact, ')
+          ..write('entryIds: $entryIds, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -18987,6 +20229,8 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   late final $RecurringChoicesTable recurringChoices = $RecurringChoicesTable(
     this,
   );
+  late final $VaultEntriesTable vaultEntries = $VaultEntriesTable(this);
+  late final $VaultNomineesTable vaultNominees = $VaultNomineesTable(this);
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -19035,6 +20279,8 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     budgetMoves,
     budgetPrefs,
     recurringChoices,
+    vaultEntries,
+    vaultNominees,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -31100,6 +32346,634 @@ typedef $$RecurringChoicesTableProcessedTableManager =
       RecurringChoiceRow,
       PrefetchHooks Function()
     >;
+typedef $$VaultEntriesTableCreateCompanionBuilder =
+    VaultEntriesCompanion Function({
+      required String id,
+      required String type,
+      required String institution,
+      Value<String> title,
+      Value<String> whereToFind,
+      Value<String> nomineeName,
+      Value<String> contactPerson,
+      Value<int?> estimatedValueMinor,
+      Value<String> photoPaths,
+      Value<String?> sourceRef,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$VaultEntriesTableUpdateCompanionBuilder =
+    VaultEntriesCompanion Function({
+      Value<String> id,
+      Value<String> type,
+      Value<String> institution,
+      Value<String> title,
+      Value<String> whereToFind,
+      Value<String> nomineeName,
+      Value<String> contactPerson,
+      Value<int?> estimatedValueMinor,
+      Value<String> photoPaths,
+      Value<String?> sourceRef,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$VaultEntriesTableFilterComposer
+    extends Composer<_$PulseDatabase, $VaultEntriesTable> {
+  $$VaultEntriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get institution => $composableBuilder(
+    column: $table.institution,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get whereToFind => $composableBuilder(
+    column: $table.whereToFind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get nomineeName => $composableBuilder(
+    column: $table.nomineeName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contactPerson => $composableBuilder(
+    column: $table.contactPerson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get estimatedValueMinor => $composableBuilder(
+    column: $table.estimatedValueMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get sourceRef => $composableBuilder(
+    column: $table.sourceRef,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VaultEntriesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $VaultEntriesTable> {
+  $$VaultEntriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get institution => $composableBuilder(
+    column: $table.institution,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get whereToFind => $composableBuilder(
+    column: $table.whereToFind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get nomineeName => $composableBuilder(
+    column: $table.nomineeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contactPerson => $composableBuilder(
+    column: $table.contactPerson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get estimatedValueMinor => $composableBuilder(
+    column: $table.estimatedValueMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get sourceRef => $composableBuilder(
+    column: $table.sourceRef,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VaultEntriesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $VaultEntriesTable> {
+  $$VaultEntriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get institution => $composableBuilder(
+    column: $table.institution,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get whereToFind => $composableBuilder(
+    column: $table.whereToFind,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get nomineeName => $composableBuilder(
+    column: $table.nomineeName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contactPerson => $composableBuilder(
+    column: $table.contactPerson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get estimatedValueMinor => $composableBuilder(
+    column: $table.estimatedValueMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get photoPaths => $composableBuilder(
+    column: $table.photoPaths,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get sourceRef =>
+      $composableBuilder(column: $table.sourceRef, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$VaultEntriesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $VaultEntriesTable,
+          VaultEntryRow,
+          $$VaultEntriesTableFilterComposer,
+          $$VaultEntriesTableOrderingComposer,
+          $$VaultEntriesTableAnnotationComposer,
+          $$VaultEntriesTableCreateCompanionBuilder,
+          $$VaultEntriesTableUpdateCompanionBuilder,
+          (
+            VaultEntryRow,
+            BaseReferences<_$PulseDatabase, $VaultEntriesTable, VaultEntryRow>,
+          ),
+          VaultEntryRow,
+          PrefetchHooks Function()
+        > {
+  $$VaultEntriesTableTableManager(_$PulseDatabase db, $VaultEntriesTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VaultEntriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VaultEntriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VaultEntriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> type = const Value.absent(),
+                Value<String> institution = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> whereToFind = const Value.absent(),
+                Value<String> nomineeName = const Value.absent(),
+                Value<String> contactPerson = const Value.absent(),
+                Value<int?> estimatedValueMinor = const Value.absent(),
+                Value<String> photoPaths = const Value.absent(),
+                Value<String?> sourceRef = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultEntriesCompanion(
+                id: id,
+                type: type,
+                institution: institution,
+                title: title,
+                whereToFind: whereToFind,
+                nomineeName: nomineeName,
+                contactPerson: contactPerson,
+                estimatedValueMinor: estimatedValueMinor,
+                photoPaths: photoPaths,
+                sourceRef: sourceRef,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String type,
+                required String institution,
+                Value<String> title = const Value.absent(),
+                Value<String> whereToFind = const Value.absent(),
+                Value<String> nomineeName = const Value.absent(),
+                Value<String> contactPerson = const Value.absent(),
+                Value<int?> estimatedValueMinor = const Value.absent(),
+                Value<String> photoPaths = const Value.absent(),
+                Value<String?> sourceRef = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultEntriesCompanion.insert(
+                id: id,
+                type: type,
+                institution: institution,
+                title: title,
+                whereToFind: whereToFind,
+                nomineeName: nomineeName,
+                contactPerson: contactPerson,
+                estimatedValueMinor: estimatedValueMinor,
+                photoPaths: photoPaths,
+                sourceRef: sourceRef,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VaultEntriesTable, VaultEntryRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $VaultEntriesTable,
+                    VaultEntryRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VaultEntriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $VaultEntriesTable,
+      VaultEntryRow,
+      $$VaultEntriesTableFilterComposer,
+      $$VaultEntriesTableOrderingComposer,
+      $$VaultEntriesTableAnnotationComposer,
+      $$VaultEntriesTableCreateCompanionBuilder,
+      $$VaultEntriesTableUpdateCompanionBuilder,
+      (
+        VaultEntryRow,
+        BaseReferences<_$PulseDatabase, $VaultEntriesTable, VaultEntryRow>,
+      ),
+      VaultEntryRow,
+      PrefetchHooks Function()
+    >;
+typedef $$VaultNomineesTableCreateCompanionBuilder =
+    VaultNomineesCompanion Function({
+      required String id,
+      required String name,
+      Value<String> relationship,
+      Value<String> contact,
+      Value<String> entryIds,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$VaultNomineesTableUpdateCompanionBuilder =
+    VaultNomineesCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> relationship,
+      Value<String> contact,
+      Value<String> entryIds,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$VaultNomineesTableFilterComposer
+    extends Composer<_$PulseDatabase, $VaultNomineesTable> {
+  $$VaultNomineesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get contact => $composableBuilder(
+    column: $table.contact,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get entryIds => $composableBuilder(
+    column: $table.entryIds,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VaultNomineesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $VaultNomineesTable> {
+  $$VaultNomineesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get contact => $composableBuilder(
+    column: $table.contact,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entryIds => $composableBuilder(
+    column: $table.entryIds,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VaultNomineesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $VaultNomineesTable> {
+  $$VaultNomineesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get relationship => $composableBuilder(
+    column: $table.relationship,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get contact =>
+      $composableBuilder(column: $table.contact, builder: (column) => column);
+
+  GeneratedColumn<String> get entryIds =>
+      $composableBuilder(column: $table.entryIds, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$VaultNomineesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $VaultNomineesTable,
+          VaultNomineeRow,
+          $$VaultNomineesTableFilterComposer,
+          $$VaultNomineesTableOrderingComposer,
+          $$VaultNomineesTableAnnotationComposer,
+          $$VaultNomineesTableCreateCompanionBuilder,
+          $$VaultNomineesTableUpdateCompanionBuilder,
+          (
+            VaultNomineeRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $VaultNomineesTable,
+              VaultNomineeRow
+            >,
+          ),
+          VaultNomineeRow,
+          PrefetchHooks Function()
+        > {
+  $$VaultNomineesTableTableManager(
+    _$PulseDatabase db,
+    $VaultNomineesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VaultNomineesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VaultNomineesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$VaultNomineesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> relationship = const Value.absent(),
+                Value<String> contact = const Value.absent(),
+                Value<String> entryIds = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultNomineesCompanion(
+                id: id,
+                name: name,
+                relationship: relationship,
+                contact: contact,
+                entryIds: entryIds,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String> relationship = const Value.absent(),
+                Value<String> contact = const Value.absent(),
+                Value<String> entryIds = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VaultNomineesCompanion.insert(
+                id: id,
+                name: name,
+                relationship: relationship,
+                contact: contact,
+                entryIds: entryIds,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$VaultNomineesTable, VaultNomineeRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $VaultNomineesTable,
+                    VaultNomineeRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VaultNomineesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $VaultNomineesTable,
+      VaultNomineeRow,
+      $$VaultNomineesTableFilterComposer,
+      $$VaultNomineesTableOrderingComposer,
+      $$VaultNomineesTableAnnotationComposer,
+      $$VaultNomineesTableCreateCompanionBuilder,
+      $$VaultNomineesTableUpdateCompanionBuilder,
+      (
+        VaultNomineeRow,
+        BaseReferences<_$PulseDatabase, $VaultNomineesTable, VaultNomineeRow>,
+      ),
+      VaultNomineeRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -31166,4 +33040,8 @@ class $PulseDatabaseManager {
       $$BudgetPrefsTableTableManager(_db, _db.budgetPrefs);
   $$RecurringChoicesTableTableManager get recurringChoices =>
       $$RecurringChoicesTableTableManager(_db, _db.recurringChoices);
+  $$VaultEntriesTableTableManager get vaultEntries =>
+      $$VaultEntriesTableTableManager(_db, _db.vaultEntries);
+  $$VaultNomineesTableTableManager get vaultNominees =>
+      $$VaultNomineesTableTableManager(_db, _db.vaultNominees);
 }

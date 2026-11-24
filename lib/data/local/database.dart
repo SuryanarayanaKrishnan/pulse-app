@@ -41,6 +41,8 @@ part 'database.g.dart';
     BudgetMoves,
     BudgetPrefs,
     RecurringChoices,
+    VaultEntries,
+    VaultNominees,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -48,7 +50,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 9;
+  static const currentSchemaVersion = 10;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -145,6 +147,11 @@ class PulseDatabase extends _$PulseDatabase {
       from8To9: (m, schema) async {
         await m.addColumn(schema.transactions, schema.transactions.receiptRef);
         await m.addColumn(schema.transactions, schema.transactions.receiptNotes);
+      },
+      // v10: the family vault. Two new tables; nothing existing is touched.
+      from9To10: (m, schema) async {
+        await m.createTable(schema.vaultEntries);
+        await m.createTable(schema.vaultNominees);
       },
     ),
     beforeOpen: (details) async {

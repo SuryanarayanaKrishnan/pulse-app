@@ -99,6 +99,12 @@ abstract final class AnalyticsSchema {
   ];
   static const sources = ['cloud', 'file'];
 
+  /// The family vault's entry types (a test keeps this in step with `VaultType`).
+  static const vaultTypes = [
+    'bank', 'card', 'loan', 'insurance', 'investment', 'property', 'crypto',
+    'subscription', 'digital', 'documents', 'identity', //
+  ];
+
   /// The built-in Home widgets (a test keeps this in step with `DashKind`).
   static const dashboardWidgetKinds = [
     'safe_to_spend', 'budget_progress', 'upcoming', 'card_rewards',
@@ -194,6 +200,14 @@ abstract final class AnalyticsSchema {
     }),
     EventSpec('permission_denied', 'Everyday use', 'You decline one of those permissions.', props: {
       'permission': EnumProp('Which permission', ['sms_receive', 'sms_read', 'notification_access']),
+    }),
+
+    // ---- Family vault ----
+    EventSpec('vault_entry_added', 'Family vault', 'You add an item to your family vault.', props: {
+      'type': EnumProp('What kind of item (never its name, place or value)', vaultTypes),
+    }),
+    EventSpec('vault_exported', 'Family vault', 'You share the emergency sheet or make an emergency file.', props: {
+      'kind': EnumProp('A plain-text sheet, or a sealed file', ['sheet', 'sealed']),
     }),
 
     // ---- Splits ----

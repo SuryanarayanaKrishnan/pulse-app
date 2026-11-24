@@ -91,8 +91,9 @@ class FamilyScreen extends ConsumerWidget {
                 children: [
                   ListRow(
                     leading: const IconWell(Icons.shield_outlined),
-                    title: 'Nominees & legacy',
-                    subtitle: 'Coming soon',
+                    title: 'Family vault',
+                    subtitle:
+                        'Where things are, for the people who would need them',
                     chevron: true,
                     onTap: () => context.push(Routes.legacy),
                   ),

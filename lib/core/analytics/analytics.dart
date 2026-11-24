@@ -80,6 +80,13 @@ class AnalyticsEvent {
   factory AnalyticsEvent.budgetModeChanged(String mode) => AnalyticsEvent._('budget_mode_changed', {'mode': mode});
   static const moneyMoved = AnalyticsEvent._('money_moved');
 
+  /// Family vault. `type`: a vault entry type key. Never a name, a place or
+  /// a value.
+  factory AnalyticsEvent.vaultEntryAdded(String type) => AnalyticsEvent._('vault_entry_added', {'type': type});
+
+  /// `kind`: sheet | sealed.
+  factory AnalyticsEvent.vaultExported(String kind) => AnalyticsEvent._('vault_exported', {'kind': kind});
+
   /// You confirm a detected recurring payment. `cadence`: weekly |
   /// fortnightly | monthly | quarterly | yearly. Never the merchant or amount.
   factory AnalyticsEvent.recurringConfirmed(String cadence) =>
