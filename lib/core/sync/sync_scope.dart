@@ -30,6 +30,11 @@ const syncedTables = <String>{
   'jewellery_items',
   'document_attachments',
   'fund_holdings',
+  // The family vault: where things are, never secrets (the input guard
+  // refuses them). Release secrets and key shares live in `app_settings`
+  // and never sync.
+  'vault_entries',
+  'vault_nominees',
 };
 
 /// Columns that are meaningful on one phone only: local file paths (files
@@ -37,6 +42,7 @@ const syncedTables = <String>{
 const deviceLocalColumns = <String, Set<String>>{
   'jewellery_items': {'photo_paths'},
   'document_attachments': {'file_paths', 'notification_id'},
+  'vault_entries': {'photo_paths'},
 };
 
 bool isSyncedColumn(String table, String column) =>

@@ -143,19 +143,19 @@ void main() {
     await tester.pump(const Duration(seconds: 9));
   });
 
-  testWidgets('family lists members and the legacy vault is a placeholder', (
+  testWidgets('family lists members and the family vault opens', (
     tester,
   ) async {
     await _pump(tester, location: '/family');
     expect(find.text('What you share'), findsOneWidget);
     expect(find.text('Invite by phone'), findsOneWidget);
     await tester.dragUntilVisible(
-      find.text('Nominees & legacy'),
+      find.text('Family vault'),
       find.byType(ListView).first,
       const Offset(0, -300),
     );
-    await tester.tap(find.text('Nominees & legacy'));
+    await tester.tap(find.text('Family vault'));
     await tester.pumpAndSettle();
-    expect(find.text('Coming soon'), findsOneWidget);
+    expect(find.text('A calm place for the things your family would need to find.'), findsOneWidget);
   });
 }

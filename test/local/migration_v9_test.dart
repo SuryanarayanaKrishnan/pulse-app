@@ -23,21 +23,21 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 9);
+    await verifier.migrateAndValidate(db, 10);
 
     final r = await db.customSelect('SELECT amount_minor, notes, receipt_ref, receipt_notes FROM transactions').getSingle();
     expect(r.read<int>('amount_minor'), 6100);
     expect(r.read<String>('notes'), 'my note');
     expect(r.read<String?>('receipt_ref'), isNull);
     expect(r.read<String?>('receipt_notes'), isNull);
-    expect(PulseDatabase.currentSchemaVersion, 9);
+    expect(PulseDatabase.currentSchemaVersion, 10);
   });
 
   test('a fresh v9 database stores a receipt link and notes', () async {
     final schema = await verifier.schemaAt(9);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 9);
+    await verifier.migrateAndValidate(db, 10);
     await db.customStatement("INSERT INTO accounts (id, type, name) VALUES ('a1', 'credit_card', 'Card')");
     await db.customStatement(
       "INSERT INTO transactions (id, account_id, amount_minor, direction, posted_at, source, receipt_ref, receipt_notes) "

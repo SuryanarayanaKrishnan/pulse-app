@@ -39,7 +39,15 @@ import 'local/statement_service.dart';
 import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
-import 'recurring_providers.dart' show netWorthHistoryProvider;
+import 'recurring_providers.dart' show netWorthHistoryProvider, recurringChoicesProvider, recurringSeriesProvider;
+import '../core/engine/goals.dart' show GoalKind;
+import '../core/engine/recurring.dart' show Series;
+import '../core/engine/recurring_plan.dart' show RecChoice;
+import '../core/vault/release.dart';
+import '../core/vault/suggestions.dart';
+import '../core/vault/vault_models.dart';
+import 'local/vault_store.dart';
+import 'vault_service.dart';
 import 'repository.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
@@ -374,3 +382,99 @@ final receiptServiceProvider = Provider<ReceiptService?>((ref) {
 
 /// Held receipts still waiting for their card charge.
 final receiptsWaitingProvider = FutureProvider<int>((ref) async => await ref.watch(receiptServiceProvider)?.waitingCount() ?? 0);
+
+// ---- Family vault ----------------------------------------------------------
+
+final vaultStoreProvider = Provider<VaultStore>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (db == null) return MemoryVaultStore();
+  return LocalVaultStore(db);
+});
+
+/// The server half of automatic release does not exist yet; swap this for a
+/// real implementation when it does (docs/VAULT.md).
+final inactivityRelayProvider = Provider<InactivityRelay>(
+  (ref) => const UnavailableInactivityRelay(),
+);
+
+final vaultServiceProvider = Provider<VaultService>(
+  (ref) => VaultService(
+    store: ref.watch(vaultStoreProvider),
+    storage: ref.watch(attachmentStorageProvider),
+    relay: ref.watch(inactivityRelayProvider),
+    analytics: ref.watch(analyticsProvider),
+    sources: () async {
+      final repo = ref.read(repositoryProvider);
+      final series = await ref
+          .read(recurringSeriesProvider.future)
+          .catchError((_) => <Series>[]);
+      final choices = await ref
+          .read(recurringChoicesProvider.future)
+          .catchError((_) => <String, RecChoice>{});
+      final goals = await ref
+          .read(goalsProvider.future)
+          .catchError((_) => <GoalView>[]);
+      final funds = await ref
+          .read(fundsProvider.future)
+          .catchError((_) => <FundView>[]);
+      return VaultSourceData(
+        accounts: await repo.bankAccounts().catchError((_) => <BankAccount>[]),
+        cards: await repo.myCards().catchError((_) => <CreditCard>[]),
+        assets: await repo.assets().catchError((_) => <Asset>[]),
+        funds: [for (final f in funds) f.holding],
+        recurring: [
+          for (final s in series)
+            if (choices[s.key] != RecChoice.ignored && s.status != 'lapsed')
+              (
+                key: s.key,
+                merchant: s.merchant,
+                isSubscription: s.isSubscription,
+              ),
+        ],
+        paydownGoals: [
+          for (final g in goals)
+            if (g.record.kind == GoalKind.paydown)
+              (id: g.record.id, name: g.record.name),
+        ],
+      );
+    },
+  ),
+);
+
+final vaultEntriesProvider = FutureProvider<List<VaultEntry>>(
+  (ref) => ref.watch(vaultServiceProvider).entries(),
+);
+final vaultNomineesProvider = FutureProvider<List<Nominee>>(
+  (ref) => ref.watch(vaultServiceProvider).nominees(),
+);
+final vaultScoreProvider = FutureProvider<Completeness>((ref) async {
+  ref.watch(vaultEntriesProvider);
+  return ref.watch(vaultServiceProvider).score();
+});
+final vaultSuggestionsProvider = FutureProvider<List<VaultSource>>((ref) async {
+  ref.watch(vaultEntriesProvider);
+  return ref.watch(vaultServiceProvider).suggestions();
+});
+final vaultStatusProvider = FutureProvider<CheckInStatus>((ref) async {
+  ref.watch(vaultCheckInTickProvider);
+  return ref.watch(vaultServiceProvider).status();
+});
+
+/// Bumped after the interval changes or the app records a check-in.
+class VaultTick extends Notifier<int> {
+  @override
+  int build() => 0;
+  void bump() => state++;
+}
+
+final vaultCheckInTickProvider = NotifierProvider<VaultTick, int>(
+  VaultTick.new,
+);
+
+void invalidateVault(WidgetRef ref) {
+  ref.invalidate(vaultEntriesProvider);
+  ref.invalidate(vaultNomineesProvider);
+  ref.invalidate(vaultScoreProvider);
+  ref.invalidate(vaultSuggestionsProvider);
+  ref.read(vaultCheckInTickProvider.notifier).bump();
+}

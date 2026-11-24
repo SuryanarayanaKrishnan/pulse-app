@@ -39,6 +39,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
     ref.read(captureServiceProvider).start();
     _refreshWealth();
     _noteOpen();
+    _vaultCheckIn();
     _router = buildRouter(
       session: ref.read(sessionProvider),
       analytics: ref.read(analyticsProvider),
@@ -52,10 +53,21 @@ class _PulseAppState extends ConsumerState<PulseApp>
       ref.read(captureServiceProvider).onResumed();
       _refreshWealth();
       _noteOpen();
+      _vaultCheckIn();
       ref.read(backupSchedulerProvider)?.onResumed();
       ref.read(syncServiceProvider)?.onResumed();
       ref.read(householdSchedulerProvider)?.onResume();
       unawaited(ref.read(learningControllerProvider).flushIfDue());
+    }
+  }
+
+  /// Opening the app is the family vault's check-in (the inactivity timer
+  /// restarts). Never blocks and never throws.
+  void _vaultCheckIn() {
+    try {
+      unawaited(ref.read(vaultServiceProvider).checkIn().catchError((Object e) => debugPrint('Vault check-in skipped: $e')));
+    } on Object catch (e) {
+      debugPrint('Vault check-in skipped: $e');
     }
   }
 

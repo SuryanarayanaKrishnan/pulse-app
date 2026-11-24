@@ -473,4 +473,47 @@ void main() {
     expect(File('${dir.path}/p1.json').existsSync(), isTrue);
     expect(File('${dir.path}/p1.json.tmp').existsSync(), isFalse);
   });
+  test('family vault: entries and people sync to my other phone; photo paths and key shares never do', () async {
+    expect(syncedTables, containsAll(['vault_entries', 'vault_nominees']));
+    expect(isSyncedColumn('vault_entries', 'where_to_find'), isTrue);
+    expect(isSyncedColumn('vault_entries', 'photo_paths'), isFalse);
+    await p1.db.customStatement(
+      "INSERT INTO vault_entries (id, type, institution, title, where_to_find, nominee_name, estimated_value_minor, photo_paths) "
+      "VALUES ('v1', 'bank', 'Mashreq', 'Savings', 'Statements in the grey folder', 'Sara', 1250000, '[\"/private/a.jpg\"]')",
+    );
+    await p1.db.customStatement(
+      "INSERT INTO vault_nominees (id, name, relationship, contact, entry_ids) VALUES ('n1', 'Sara', 'Wife', '+971500000000', '[\"v1\"]')",
+    );
+    // Release material lives in app_settings, which is not synced.
+    await p1.db.putSetting('vault.share1.n1', 'PVS1-2-01-SECRET');
+    await p1.db.putSetting('vault.last_checkin', '2026-11-01T00:00:00Z');
+    await p1.sync();
+    await p2.sync();
+    expect(await p2.rows('SELECT id, institution, where_to_find, nominee_name, estimated_value_minor, photo_paths FROM vault_entries'), [
+      {'id': 'v1', 'institution': 'Mashreq', 'where_to_find': 'Statements in the grey folder', 'nominee_name': 'Sara', 'estimated_value_minor': 1250000, 'photo_paths': '[]'},
+    ]);
+    expect(await p2.rows('SELECT name, relationship, entry_ids FROM vault_nominees'), [
+      {'name': 'Sara', 'relationship': 'Wife', 'entry_ids': '["v1"]'},
+    ]);
+    expect(await p2.db.setting('vault.share1.n1'), isNull);
+    expect(await p2.db.setting('vault.last_checkin'), isNull);
+
+    // an edit on the second phone returns; a soft delete too
+    p2.nowMs += 1000;
+    await p2.db.customStatement("UPDATE vault_entries SET where_to_find = 'App, face unlock' WHERE id = 'v1'");
+    await p2.db.customStatement("UPDATE vault_nominees SET deleted_at = 1790000000 WHERE id = 'n1'");
+    await p2.sync();
+    await p1.sync();
+    expect(await p1.rows("SELECT where_to_find FROM vault_entries WHERE id = 'v1'"), [
+      {'where_to_find': 'App, face unlock'},
+    ]);
+    expect((await p1.rows("SELECT deleted_at FROM vault_nominees WHERE id = 'n1'")).single['deleted_at'], isNotNull);
+    expect((await p1.sync()).idle, isTrue);
+    expect((await p2.sync()).idle, isTrue);
+    // no synced column could carry a secret by name
+    final cols = <String>{for (final t in ['vault_entries', 'vault_nominees']) for (final r in await p1.rows('PRAGMA table_info($t)')) '${r['name']}'};
+    for (final bad in ['password', 'pin', 'secret', 'share', 'iban', 'card_number', 'claim_code']) {
+      expect(cols.any((c) => c.contains(bad)), isFalse, reason: bad);
+    }
+  });
 }

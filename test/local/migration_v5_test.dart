@@ -23,7 +23,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 9);
+    await verifier.migrateAndValidate(db, 10);
 
     final goals = await LocalGoalStore(db).goals();
     expect(goals, hasLength(1));
@@ -37,14 +37,14 @@ void main() {
     expect(g.paused, isFalse);
     expect(g.linkedRef, isNull);
     expect(await LocalGoalStore(db).contributions(), isEmpty);
-    expect(PulseDatabase.currentSchemaVersion, 9);
+    expect(PulseDatabase.currentSchemaVersion, 10);
   });
 
   test('a fresh v5 database stores a pay down goal and its contributions', () async {
     final schema = await verifier.schemaAt(5);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 9);
+    await verifier.migrateAndValidate(db, 10);
     await db.customStatement(
       "INSERT INTO savings_goals (id, name, target_minor, saved_minor, kind, icon_key, linked_ref, paused) "
       "VALUES ('g1', 'Clear the card', 0, 900000, 'paydown', 'fees', 'card:a1', 1)",

@@ -168,8 +168,9 @@ class SettingsScreen extends ConsumerWidget {
               ),
               ListRow(
                 leading: const IconWell(Icons.shield_outlined),
-                title: 'Nominees & legacy',
-                subtitle: 'Coming soon',
+                title: 'Family vault',
+                subtitle:
+                    'Where things are, for the people who would need them',
                 chevron: true,
                 onTap: () => context.push(Routes.legacy),
               ),
@@ -225,7 +226,9 @@ class SettingsScreen extends ConsumerWidget {
                   key: const Key('settings_email_receipts_switch'),
                   value: false,
                   // Disabled until a Gmail sign-in is configured.
-                  onChanged: ref.watch(receiptSourceProvider).isConfigured ? (_) {} : null,
+                  onChanged: ref.watch(receiptSourceProvider).isConfigured
+                      ? (_) {}
+                      : null,
                 ),
               ),
             ],
@@ -330,8 +333,7 @@ class SettingsScreen extends ConsumerWidget {
                 dense: true,
                 title: 'Analytics',
                 trailing: Text(
-                  Env.hasPosthog &&
-                          ref.watch(privacyControllerProvider).sharing
+                  Env.hasPosthog && ref.watch(privacyControllerProvider).sharing
                       ? 'PostHog'
                       : 'Off',
                   style: context.tt.bodyMedium,
