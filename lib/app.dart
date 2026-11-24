@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'backup/backup_providers.dart';
+import 'sync/sync_providers.dart';
 import 'capture/providers.dart';
 import 'core/analytics/analytics.dart';
 import 'core/env/env.dart';
@@ -45,6 +46,7 @@ class _PulseAppState extends ConsumerState<PulseApp>
       ref.read(captureServiceProvider).onResumed();
       _refreshWealth();
       ref.read(backupSchedulerProvider)?.onResumed();
+      ref.read(syncServiceProvider)?.onResumed();
     }
   }
 
@@ -77,6 +79,8 @@ class _PulseAppState extends ConsumerState<PulseApp>
   Widget build(BuildContext context) {
     // Keeps the backup change-watcher alive for the life of the app.
     ref.watch(backupSchedulerProvider);
+    // Same for sync: the service watches local writes while it is alive.
+    ref.watch(syncServiceProvider);
     return MaterialApp.router(
       title: Env.appName,
       debugShowCheckedModeBanner: false,

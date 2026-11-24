@@ -80,6 +80,21 @@ class AnalyticsEvent {
   static const backupPassphraseChanged = AnalyticsEvent._('backup_passphrase_changed');
   static const backupCloudDeleted = AnalyticsEvent._('backup_cloud_deleted');
   static const backupDisabled = AnalyticsEvent._('backup_disabled');
+  // ---- Cross-device sync. Never carries rows, names, amounts or key
+  // material; counts are bucketed. ----
+
+  /// `trigger`: manual | auto | resume.
+  factory AnalyticsEvent.syncStarted({required String trigger}) =>
+      AnalyticsEvent._('sync_started', {'trigger': trigger});
+
+  /// `changes_bucket`: none | few | many (sent plus received).
+  factory AnalyticsEvent.syncCompleted({required String trigger, required String changesBucket, required int seconds}) =>
+      AnalyticsEvent._('sync_completed', {'trigger': trigger, 'changes_bucket': changesBucket, 'seconds': seconds});
+
+  /// `reason`: offline | signed_out | too_new | integrity | keys_missing | other.
+  factory AnalyticsEvent.syncFailed({required String trigger, required String reason}) =>
+      AnalyticsEvent._('sync_failed', {'trigger': trigger, 'reason': reason});
+
   factory AnalyticsEvent.restoreStarted(String source) => AnalyticsEvent._('restore_started', {'source': source});
   factory AnalyticsEvent.restoreCompleted(String source) => AnalyticsEvent._('restore_completed', {'source': source});
 

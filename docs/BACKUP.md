@@ -47,6 +47,10 @@ create policy "backup delete own" on storage.objects for delete to authenticated
 
 Free tier limits: 1 GB storage, 50 MB per file. Photos make the quota the practical limit; the app shows "storage full" calmly and the file export remains.
 
+## Multi-device sync
+
+Continuous sync between devices reuses this data key and bucket: see `docs/SYNC.md`.
+
 ## Threat model
 
 Protects against: server or cloud-drive operator, database leak, a Supabase employee, network observers, tampering or swapping of stored objects (detected, restore refused), a stolen backup file without the secret (offline guessing is slowed by Argon2id; a recovery phrase has 128 bits).
