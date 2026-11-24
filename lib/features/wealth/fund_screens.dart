@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/engine/valuation.dart';
@@ -173,6 +172,7 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
   Widget build(BuildContext context) {
     final c = context.pc;
     final canSearch = ref.watch(fundLookupProvider).available;
+    ref.watch(priceBookProvider); // load the exchange rates before the preview needs them
     final detailsVisible = _mode == _Mode.manual || _hasPick;
     return SheetScaffold(
       title: _editing ? 'Edit fund' : 'Add a mutual fund',
@@ -181,10 +181,11 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!_editing)
-            Row(
+            Wrap(
+              spacing: Space.sm,
+              runSpacing: Space.sm,
               children: [
                 Pill('Search funds', selected: _mode == _Mode.search, onTap: () => setState(() => _mode = _Mode.search)),
-                const SizedBox(width: Space.sm),
                 Pill('Enter by hand', selected: _mode == _Mode.manual, onTap: () => setState(() => _mode = _Mode.manual)),
               ],
             ),
@@ -286,6 +287,7 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               controller: _cost,
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(hintText: 'Average cost per unit (optional)', prefixText: '${_mode == _Mode.search && _hasPick ? 'INR' : _currency}  '),
+              onChanged: (_) => setState(() {}),
             ),
             const FieldLabel('Monthly SIP (optional)'),
             Row(
@@ -341,6 +343,7 @@ class _ValuePreview extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final book = ref.watch(priceBookProvider).value;
     final v = valueFund(units: units, nav: nav, avgCostNav: cost, fxToAed: book?.fx(currency));
+    if (book == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(top: Space.lg),
       child: Text(
@@ -451,7 +454,7 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () => leave(context),
         ),
         actions: [
           if (view != null)
@@ -543,7 +546,7 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
                   if (ok != true) return;
                   await svc.deleteFund(f.id);
                   invalidateWealth(ref);
-                  if (context.mounted) context.pop();
+                  if (context.mounted) leave(context);
                 },
               ),
             ],

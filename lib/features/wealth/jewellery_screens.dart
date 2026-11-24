@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/engine/dates.dart';
@@ -332,7 +331,7 @@ class JewelleryDetailScreen extends ConsumerWidget {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () => leave(context),
         ),
         actions: [
           if (view != null)
@@ -457,7 +456,7 @@ class _DetailBody extends ConsumerWidget {
     if (ok != true) return;
     await ref.read(wealthServiceProvider).deleteJewellery(i.id);
     invalidateWealth(ref);
-    if (context.mounted) context.pop();
+    if (context.mounted) leave(context);
   }
 
   Widget _kv(BuildContext context, String k, String v) => ListRow(

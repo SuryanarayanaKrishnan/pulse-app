@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/engine/dates.dart';
@@ -350,4 +351,13 @@ class FieldLabel extends StatelessWidget {
     padding: const EdgeInsets.only(top: Space.lg, bottom: Space.sm),
     child: Text(text, style: context.tt.labelMedium),
   );
+}
+
+/// Back, or to Wealth when there is nothing to go back to (a deep link).
+void leave(BuildContext context) {
+  if (context.canPop()) {
+    context.pop();
+  } else {
+    context.go('/wealth');
+  }
 }
