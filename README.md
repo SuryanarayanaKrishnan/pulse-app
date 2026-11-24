@@ -16,17 +16,56 @@ flutter run \
   --dart-define=POSTHOG_HOST=https://eu.i.posthog.com
 ```
 
-With no `API_BASE_URL` the app runs fully on mock data: sign-in accepts any 6-digit code, analytics print to the debug console.
+The app is **on-device first**: with no defines at all it runs on its own encrypted database, no backend needed. `API_BASE_URL` only switches on the shared features (see Architecture). Sign-in accepts any 6-digit code while `SUPABASE_*` is unset; analytics print to the debug console.
 
 | Define | Purpose | Default |
 | --- | --- | --- |
-| `API_BASE_URL` | Backend base URL (without `/v1`). **Set: real API. Unset: mock data** | none (mock) |
+| `DEMO_DATA=true` | Use the built-in demo data instead of the on-device ledger (screenshots, demos). Tests and previews without a database do the same | false |
+| `API_BASE_URL` | Backend base URL (without `/v1`). Optional: only serves shared features (auth, splits, family, statements, catalog refresh) | none |
 | `APPLE_SHORTCUT_URL` | Shared iCloud link of the "Transaction" Shortcut (iOS guide) | placeholder |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase auth (email OTP, JWT for API calls). Skipped if absent | none |
 | `POSTHOG_API_KEY`, `POSTHOG_HOST` | Product analytics. No-op if key absent | none, EU host |
 | `DEV_SKIP_ONBOARDING=true` | Jump straight to the tabs (dev/screenshots) | false |
 
 Checks: `flutter analyze`, `flutter test`, smoke build `flutter build web --release`.
+
+## Architecture: what runs where
+
+Personal money data and the compute on it live on the phone. The backend is optional and never sees transactions, balances or SMS text.
+
+| Concern | Where | How |
+| --- | --- | --- |
+| Ledger (accounts, transactions, budgets, rules, assets, goals, raw captures) | **Phone** | Encrypted SQLite via drift, `lib/data/local/` |
+| Encryption key | **Phone** | 32 random bytes generated on first run, kept in the platform keystore (`flutter_secure_storage`: iOS Keychain `first_unlock_this_device`, Android Keystore-wrapped) |
+| SMS / notification / Shortcut capture | **Phone** | Android Kotlin layer and iOS App Intent hand items to the local pipeline; nothing is uploaded |
+| Parsing (12 institutions + generic fallback), merchant clean-up, categorisation, user rules, de-duplication | **Phone** | Pure Dart engine, `lib/core/engine/` |
+| Rewards, best card, caps, nudges | **Phone** | `rewards.dart` reading the card catalog |
+| Safe-to-spend, health, cashflow, trends, due dates, recurring, net worth | **Phone** | `LocalPulseRepository` over the engine |
+| Card catalog | **Phone, refreshed from backend** | Bundled `assets/catalog/cards.json`; `CatalogService` fetches a newer version when `API_BASE_URL` is set |
+| Auth, splits with other people, family sharing, statement parsing, Gmail, gold/FX price cache, encrypted backup/sync, AI | **Backend** | `ApiPulseRepository`, used only for these shared features (backup/sync and AI are not built yet) |
+
+`repositoryProvider` (`lib/data/providers.dart`): `DEMO_DATA` or no open database gives `MockPulseRepository`; otherwise `LocalPulseRepository`, with `ApiPulseRepository` as its `shared` delegate when `API_BASE_URL` is set. Without a backend, server-only features return a clear "not supported" error or an empty list.
+
+### Local database and encryption
+
+- drift schema in `lib/data/local/tables.dart` mirrors the pulse-api models (17 tables), so a later encrypted backup can map rows one to one. Money is integer fils; ids are text.
+- Migrations use drift `stepByStep()`. Schema dumps live in `drift_schemas/`, generated step code in `lib/data/local/schema_versions.dart`, and `test/drift/` verifies fresh and migrated databases against the dumps. To change the schema: bump `currentSchemaVersion`, run `dart run drift_dev schema dump lib/data/local/database.dart drift_schemas/`, `dart run drift_dev schema steps drift_schemas/ lib/data/local/schema_versions.dart`, `dart run drift_dev schema generate drift_schemas/ test/drift/generated/`, add the `fromNToN+1` step, then `dart run build_runner build`.
+- Encryption is **SQLite3 Multiple Ciphers**, selected through the `sqlite3` build hook in `pubspec.yaml` (`hooks: user_defines: sqlite3: source: sqlite3mc`). `sqlcipher_flutter_libs` is end-of-life and is not used. The database is keyed with `PRAGMA key`, and opening **refuses to run unencrypted** (`EncryptionUnavailable`); `main.dart` then shows a stop screen instead of silently writing plain text. `test/local/database_test.dart` proves the file contains no plaintext and cannot be read without the key.
+- The hook compiles the library with the platform C toolchain at build time. It has been exercised here on Linux only; run an Android and an iOS build before relying on it.
+
+### Engine, fixtures and parity
+
+`lib/core/engine/` is pure Dart (no Flutter imports) and a port of the pulse-api services: parsers, merchant dictionary, rules (AND conditions, priority, preview and retroactive apply), de-duplication (same account and amount, within 3 days, fuzzy merchant; capture dedupe within an hour across channels), rewards, recurring detection, cashflow, safe-to-spend, health, due dates, net worth, salary detection. Semantics are kept (a capped rule earns nothing beyond its cap, OTP messages are never parsed or stored).
+
+Python and Dart share JSON fixtures generated by running the backend code: `tool/gen_engine_fixtures.py` writes `test/fixtures/engine/*.json`, `assets/catalog/cards.json` and `lib/core/engine/merchant_dictionary.dart`. Regenerate with `/path/to/pulse-api/.venv/bin/python tool/gen_engine_fixtures.py` after changing the backend, then run `flutter test test/engine`.
+
+### Card catalog
+
+`assets/catalog/cards.json` (14 UAE cards) carries per-card `verified_on` and `source`. **The bundled figures are illustrative and unverified** (`verified_on: null`); the UI shows them as unverified until a catalog says otherwise. Update contract: `GET {API_BASE_URL}/v1/catalog/cards` returns the same document shape (`version`, `updated_on`, `cards`); `CatalogService.checkForUpdate()` applies it only when `version` is higher and at least one card is valid, and swallows network errors.
+
+### Ingest pipeline
+
+`IngestPipeline` (`lib/data/local/ingest_pipeline.dart`): drop OTP, parse (structured fields or the parser registry), hash and store the raw payload, resolve the account (last four digits and institution), link to a statement row or merge with another channel's capture, categorise (user rules, then dictionary), store, detect salary, compute the reward moment for card purchases and emit it. Messages with no matching account wait as `needs_review` and are retried when a card or account is added. Raw payloads are kept only for parsed and review items; OTP messages and non-transactions are never stored.
 
 ## Folder layout
 
@@ -44,7 +83,9 @@ lib/
                 ProgressRing, CreditCardVisual, charts (Sparkline, DonutChart, TrendBars), SourceBadge
   data/         models, PulseRepository interface, MockPulseRepository, providers, split/card utils
     api/        ApiPulseRepository, DTOs, error mapping, ingest client
-  capture/      offline ingest queue, capture service + Android bridge, Apple Shortcut link parsing
+  capture/      ingest queue (durable inbox), capture service, Android bridge, iOS inbox bridge, Shortcut link parsing
+  data/local/   encrypted database, repository, ingest pipeline, catalog service
+  core/engine/  pure-Dart parsers, rules, rewards and insights engine
   features/
     capture/    Android permission sheet, Apple Pay setup guide, pulse:// ingest landing
     onboarding/ intro carousel + "connect your money"
@@ -66,7 +107,7 @@ Every transaction carries a source badge (Statement, SMS, Wallet, Apple Pay, Man
 
 ## Backend (`ApiPulseRepository`)
 
-`repositoryProvider` (`lib/data/providers.dart`) returns `ApiPulseRepository` when `API_BASE_URL` is defined and `MockPulseRepository` otherwise. Mock stays the demo default. UI code only sees `PulseRepository`.
+`ApiPulseRepository` is now the delegate for **shared features only** (splits, family, statements, Gmail), selected by `API_BASE_URL`. `MockPulseRepository` stays for demos via `DEMO_DATA=true`. UI code only sees `PulseRepository`.
 
 ```
 lib/data/api/
@@ -106,7 +147,7 @@ Cards and Accounts share one pattern: a combined view (totals, then an overlappi
 
 ## Capturing transactions automatically
 
-Everything funnels into one persistent **offline queue** (`lib/capture/ingest_queue.dart`, backed by shared_preferences): items are deduplicated by a client `external_id`, uploaded in order, retried with exponential backoff (30s up to 1h, dropped after 10 attempts or 14 days), kept on 401 and dropped on 4xx validation errors. It flushes when something is captured, when the app resumes, and every 10 minutes while open. With no `API_BASE_URL` the queue drains into a debug print.
+Everything funnels into one persistent **queue** (`lib/capture/ingest_queue.dart`, backed by shared_preferences) that is now only a durable inbox between the native layer and the on-device pipeline: items are deduplicated by id, handed to `IngestPipeline` in order, retried with exponential backoff if the pipeline throws (30s up to 1h, dropped after 10 attempts or 14 days). It flushes when something is captured, when the app resumes, and every 10 minutes while open. Nothing is uploaded. OTP messages are dropped by the Kotlin layer and again in Dart before queuing. Note the queue briefly holds raw message text in shared_preferences (not the encrypted database) until the pipeline has taken it; it is normally empty within a second.
 
 ### Android: SMS and wallet notifications
 
@@ -121,31 +162,38 @@ Kotlin under `android/app/src/main/kotlin/com/pulse/pulse/capture/`:
 | `CaptureStore` | durable native buffer between receivers and Dart |
 | `CapturePlugin` | `MethodChannel('pulse/ingest')` + `EventChannel('pulse/ingest/events')` |
 
-Flow: receiver filters, writes to the native buffer, pings Dart; Dart `peekPending` -> persists to its queue -> `ackPending` -> upload to `/v1/ingest/sms` or `/v1/ingest/notification`. This is at-least-once and works when the app process was dead; the backend dedupes on `external_id` (hash of sender/app + text + minute, identical for live and backfill).
+Flow: receiver filters, writes to the native buffer, pings Dart; Dart `peekPending` -> persists to its queue -> `ackPending` -> local pipeline. This is at-least-once and works when the app process was dead; the pipeline dedupes on the message hash (identical for live and backfill) and across channels.
 
 - **Sender IDs** (`CaptureConfig.defaultBankSenderIds`): EmiratesNBD, ENBD, ADCBAlert, ADCB, FAB, Mashreq, RAKBANK, DIB, ADIB, HSBC, CBD, EIB, Liv, and more. IDs of 4 characters or fewer must match exactly (or as a `-` separated part, e.g. `AD-FAB`); longer ones match as substrings. Edit the list in Dart; it is pushed to the native layer on start.
 - **Notification packages**: Google Wallet `com.google.android.apps.walletnfcrel`, Google Pay `com.google.android.apps.nbu.paisa.user`, Samsung `com.samsung.android.spay` and `com.samsung.android.samsungpay.gear`, plus bank apps via `bankAppPackages` (exact) and `bankPackageHints` (package-name substrings). Verify real bank package IDs before release; the exact list is empty by default.
-- **Privacy**: non-bank SMS and other apps' notifications are dropped before being stored. Messages containing OTP / verification-code wording are never captured. Raw text is sent to the backend, which parses it (the earlier plan to parse on device is not implemented).
+- **Privacy**: non-bank SMS and other apps' notifications are dropped before being stored. Messages containing OTP / verification-code wording are never captured. Parsing happens on the phone; raw text never leaves it.
 - **Permissions UI**: the connect step (Android tiles "Bank SMS" and "Wallet notifications") and Settings open a sheet explaining each permission, showing live status, requesting SMS permissions in-app, and deep-linking to the system notification-access screen (detail page on Android 11+). On return, the result is re-read. Apps installed outside Google Play on Android 13+ may need "Allow restricted settings" in App info; the sheet says so.
 - Analytics: `permission_granted{permission}` / `permission_denied{permission}` with `permission` = `sms_receive`, `sms_read`, `notification_access`.
+- `allowBackup` is off in the manifest: the database key lives in the Keystore and does not survive a restore, so a backed-up copy would be unreadable anyway.
 - Play Store: `RECEIVE_SMS`/`READ_SMS` need a Play Console declaration. Plan for sideloaded/beta distribution first.
 - No Android SDK is available in this environment, so the Kotlin has not been compiled; run `flutter build apk --debug` before relying on it.
 
-### iOS: Apple Pay via Shortcuts
+### iOS: Shortcuts automation (App Intent)
 
-Apple exposes no Wallet API. `ApplePaySetupScreen` (`/apple-pay-setup`, reachable from the connect step and Settings) walks the user through the Shortcuts **Transaction** automation:
+Apple exposes no Wallet API and no SMS access, so the supported route is a Shortcuts **Transaction** automation that hands each payment to the app without a server.
 
-1. Button opens the shared Shortcut (`Env.appleShortcutUrl`, override with `--dart-define=APPLE_SHORTCUT_URL=...`; currently a placeholder, so the button shows a message until set).
-2. Automation: Shortcuts, Automation, New, Transaction, Run Immediately.
-3. The Shortcut runs **Open URL** `pulse://ingest?amount=[Amount]&merchant=[Merchant]&card=[Card or Pass]` (optional `currency`, `ts`, `direction`). The scheme is registered in `ios/Runner/Info.plist`; go_router rewrites it to `/apple-ingest`, which parses it (`ShortcutTransaction`, tolerant of `AED 1,234.50` style amounts), queues it and posts structured `fields` to `/v1/ingest/apple-shortcut`.
-4. A per-install ingest token is shown with copy/reveal for Shortcuts that upload directly. **The backend has no ingest-token endpoint yet** (ingest authenticates with the Supabase JWT), so this token is generated locally and not accepted server-side; the Open-URL flow does not need it.
+**Primary: the "Record Payment" App Intent** (`ios/Runner/ShortcutCapture.swift`). The Shortcut calls the intent in the background; the intent appends `{amount, merchant, card, timestamp}` to a small file inbox in the app's Application Support folder (`PulseInbox/`). Flutter drains that inbox (`AppleInboxCapturePlatform`, channel `pulse/shortcut_inbox`) when the app starts and whenever it returns to the foreground, and feeds each item to the on-device pipeline. No server, no network. Because iOS does not start Flutter for a background intent, a payment is shown in the app the next time it is opened (the reward banner appears then).
 
-There is no "send test transaction" button yet; it would create a real transaction server-side.
+Set it up (also shown in the in-app guide, `ApplePaySetupScreen`):
+
+1. Open **Shortcuts**, then **Automation**, **New Automation**, **Transaction**.
+2. Pick the cards (Wallet) to watch and choose **Run Immediately** (not "Ask Before Running"), then Next.
+3. Add the action **Record Payment** (from Pulse). Fill its fields with the variables the trigger offers: **Amount** from `Amount`, **Merchant** from `Merchant`, **Card** from `Card or Pass`. Amounts like `AED 1,234.50` are fine.
+4. Save. Repeat for each card, or choose several cards in one automation.
+
+**Fallback: the `pulse://` deep link.** If you prefer, the automation can run **Open URL** `pulse://ingest?amount=[Amount]&merchant=[Merchant]&card=[Card or Pass]` (optional `currency`, `ts`, `direction`). The scheme is registered in `ios/Runner/Info.plist`; go_router rewrites it to `/apple-ingest`, which parses it (`ShortcutTransaction`) and runs it through the same queue and local pipeline. This opens the app on every payment, so the App Intent is preferred.
+
+**Uncompiled.** The Swift file (about 130 lines: inbox, Flutter channel, App Intent, `AppShortcutsProvider`) was written without Xcode and has never been built or run. It is added to `Runner.xcodeproj` by hand; open the project, build once, and fix anything the compiler finds. The Dart side (`AppleInboxCapturePlatform`) is covered by tests with a mocked channel. The shared "Transaction" Shortcut link (`APPLE_SHORTCUT_URL`) is still a placeholder.
 
 ## Status
 
-- Done: API repository (selected by `API_BASE_URL`), cursor pagination, DTO mapping, offline ingest queue, Android SMS/notification capture and permission UI, iOS Shortcut guide and `pulse://` deep link.
-- Mock data remains the default and powers the UI demo.
-- Not done: statement upload/passwords/Gmail connect (backend routes missing), server-side ingest tokens, card catalog and rewards data, net-worth history, on-device compilation check of the Kotlin code.
+- Done: encrypted on-device database with migrations; `LocalPulseRepository` as the default; pure-Dart engine with golden parity tests against pulse-api; on-device ingest pipeline fed by Android SMS/notifications, the iOS App Intent inbox and the `pulse://` fallback; reward banner driven by real pipeline results; empty states and add-card/account/asset flows; card catalog loader with remote refresh.
+- Stubbed or not built: statement upload and parsing, Gmail, splits with other people and family sharing work only through the backend (`API_BASE_URL`); encrypted backup/sync, gold and FX prices, AI features are not built; health "bills on time" is neutral until statements exist; card minimum due is unknown on-device (shown as 0); non-AED transactions are stored but left out of AED totals.
+- Unverified: the card catalog figures (`verified_on` is null for every card); the sqlite3mc build hook on Android and iOS; the Kotlin and Swift code (neither compiled here).
 
 Checks: `flutter analyze`, `flutter test`.
