@@ -1,0 +1,240 @@
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../core/env/env.dart';
+import '../../core/router/router.dart';
+import '../../core/theme/theme_mode.dart';
+import '../../core/theme/tokens.dart';
+import '../../core/widgets/widgets.dart';
+import '../../data/providers.dart';
+import '../auth/session.dart';
+import '../capture/capture_setup_sheet.dart';
+import '../rewards/reward_moment.dart';
+import '../statements/statement_actions.dart';
+
+bool get _android => !kIsWeb && Platform.isAndroid;
+
+class SettingsScreen extends ConsumerWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
+    final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
+    final connected = gmail.where((g) => g.active).firstOrNull;
+    final rules = ref.watch(rulesProvider).value;
+    final statements = ref.watch(statementsProvider).value;
+    final attention = statements?.where((s) => s.needsAttention).length ?? 0;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Settings'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        children: [
+          RowGroup(
+            children: [
+              ListRow(
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: c.surfaceElevated,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text('S', style: context.tt.titleLarge),
+                ),
+                title: 'Sara Al Mansoori',
+                subtitle: 'sara@example.ae',
+              ),
+            ],
+          ),
+          const SectionHeader('Money'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.category_outlined),
+                title: 'Categories & budgets',
+                chevron: true,
+                onTap: () => context.push(Routes.categories),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.auto_mode_rounded),
+                title: 'Automations',
+                subtitle: rules == null
+                    ? null
+                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+                chevron: true,
+                onTap: () => context.push(Routes.automations),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.fact_check_outlined),
+                title: 'Monthly close',
+                subtitle: statements == null
+                    ? null
+                    : (attention == 0
+                          ? 'All statements match'
+                          : '$attention need you'),
+                subtitleColor: attention == 0 ? null : c.warning,
+                chevron: true,
+                onTap: () => context.push(Routes.statements),
+              ),
+            ],
+          ),
+          const SectionHeader('Household'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.people_outline_rounded),
+                title: 'Family',
+                subtitle: 'Members, invites and what each person shares',
+                chevron: true,
+                onTap: () => context.push(Routes.family),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.shield_outlined),
+                title: 'Nominees & legacy',
+                subtitle: 'Coming soon',
+                chevron: true,
+                onTap: () => context.push(Routes.legacy),
+              ),
+            ],
+          ),
+          const SectionHeader('Automatic capture'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: const IconWell(Icons.mail_outline_rounded),
+                title: 'Gmail statements',
+                subtitle: connected == null
+                    ? 'Not connected'
+                    : 'Connected · ${connected.email}',
+                trailing: connected == null
+                    ? TextAction(
+                        'Connect',
+                        onTap: () => connectGmail(context, ref),
+                      )
+                    : Icon(Icons.check_rounded, color: c.positive, size: 20),
+              ),
+              if (_android)
+                ListRow(
+                  leading: const IconWell(Icons.sms_outlined),
+                  title: 'Bank SMS and wallet alerts',
+                  subtitle: 'Permissions, status and what is read',
+                  chevron: true,
+                  onTap: () => showCaptureSetupSheet(context),
+                )
+              else
+                ListRow(
+                  leading: const IconWell(Icons.apple),
+                  title: 'Apple Pay Shortcut',
+                  subtitle: 'Capture every tap-to-pay instantly',
+                  chevron: true,
+                  onTap: () => context.push(Routes.applePaySetup),
+                ),
+            ],
+          ),
+          const SectionHeader('Appearance'),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.md,
+              Space.gutter,
+              0,
+            ),
+            child: Segmented<ThemeMode>(
+              segments: const {
+                ThemeMode.system: 'System',
+                ThemeMode.light: 'Light',
+                ThemeMode.dark: 'Dark',
+              },
+              value: ref.watch(themeModeProvider),
+              onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
+            ),
+          ),
+          const SectionHeader('Preferences'),
+          RowGroup(
+            children: [
+              ListRow(
+                dense: true,
+                title: 'Currency',
+                trailing: Text('AED', style: context.tt.bodyMedium),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Notifications',
+                trailing: Text(
+                  'Due dates, budgets',
+                  style: context.tt.bodyMedium,
+                ),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Face ID',
+                trailing: Text('On', style: context.tt.bodyMedium),
+              ),
+            ],
+          ),
+          if (!Env.useApi) ...[
+            const SectionHeader('Demo'),
+            RowGroup(
+              indent: ListRow.leadingInset,
+              children: [
+                ListRow(
+                  leading: IconWell(
+                    Icons.contactless_outlined,
+                    color: c.accent,
+                  ),
+                  title: 'Simulate a card tap',
+                  subtitle: 'Shows the live rewards moment',
+                  onTap: () => simulateCardTap(context, ref),
+                ),
+              ],
+            ),
+          ],
+          const SectionHeader('About'),
+          RowGroup(
+            children: [
+              ListRow(
+                dense: true,
+                title: '${Env.appName} beta',
+                trailing: Text(
+                  'Friends & family',
+                  style: context.tt.bodyMedium,
+                ),
+              ),
+              ListRow(
+                dense: true,
+                title: 'Analytics',
+                trailing: Text(
+                  Env.hasPosthog ? 'PostHog' : 'Off',
+                  style: context.tt.bodyMedium,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.xxl),
+          Center(
+            child: TextAction(
+              'Sign out',
+              color: c.negative,
+              onTap: () => ref.read(sessionProvider).signOut(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
