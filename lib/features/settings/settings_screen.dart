@@ -25,6 +25,7 @@ import '../cards/digit_widgets.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
+import '../coach/coach_progress.dart';
 import '../tour/tour_progress.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
@@ -298,6 +299,21 @@ class SettingsScreen extends ConsumerWidget {
                 subtitle: 'Four short moments, about 20 seconds',
                 chevron: true,
                 onTap: () => context.push(Routes.tour),
+              ),
+              ListRow(
+                key: const Key('replay_walkthroughs'),
+                leading: const IconWell(Icons.tour_outlined),
+                title: 'Replay walkthroughs',
+                subtitle: 'Show the guide on every screen again',
+                onTap: () async {
+                  await ref.read(coachProgressProvider.notifier).resetAll();
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Walkthroughs will show again on each screen'),
+                    ),
+                  );
+                },
               ),
               ListRow(
                 leading: const IconWell(Icons.lightbulb_outline_rounded),

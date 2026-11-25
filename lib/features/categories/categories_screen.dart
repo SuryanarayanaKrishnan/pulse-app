@@ -10,6 +10,7 @@ import '../../data/api/api_exception.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import 'icon_picker.dart';
+import '../coach/coach.dart';
 
 /// Categories and their monthly budgets. Defaults plus your own.
 class CategoriesScreen extends ConsumerWidget {
@@ -23,7 +24,9 @@ class CategoriesScreen extends ConsumerWidget {
       for (final l in budget?.lines ?? const <BudgetLine>[])
         if (l.planned > 0) l.category: l.planned,
     };
-    return Scaffold(
+    return CoachHost(
+      screen: CoachScreen.categories,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Categories'),
         leading: IconButton(
@@ -31,14 +34,16 @@ class CategoriesScreen extends ConsumerWidget {
           onPressed: () => context.popOrHome(),
         ),
         actions: [
-          IconButton(
+          CoachTarget(
+            id: 'new',
+            child: IconButton(
             tooltip: 'New category',
             icon: const Icon(Icons.add_rounded),
             onPressed: () => showPulseSheet<void>(
               context,
               builder: (_) => const NewCategorySheet(),
             ),
-          ),
+          )),
         ],
       ),
       body: AsyncView<List<SpendCategory>>(
@@ -82,13 +87,25 @@ class CategoriesScreen extends ConsumerWidget {
                 ),
               ),
               const SectionHeader('Spending'),
-              RowGroup(
+              CoachTarget(
+                id: 'list',
+                child: RowGroup(
                 indent: ListRow.leadingInset,
                 children: [
                   for (final x in list)
                     if (x.kind == CategoryKind.expense) row(x),
+                  ListRow(
+                    key: const Key('category_new_row'),
+                    leading: const IconWell(Icons.add_rounded),
+                    title: 'New category',
+                    subtitle: 'Your own name, icon and monthly budget',
+                    onTap: () => showPulseSheet<void>(
+                      context,
+                      builder: (_) => const NewCategorySheet(),
+                    ),
+                  ),
                 ],
-              ),
+              )),
               const SectionHeader('Income and transfers'),
               RowGroup(
                 indent: ListRow.leadingInset,
@@ -102,7 +119,7 @@ class CategoriesScreen extends ConsumerWidget {
           );
         },
       ),
-    );
+    ));
   }
 }
 

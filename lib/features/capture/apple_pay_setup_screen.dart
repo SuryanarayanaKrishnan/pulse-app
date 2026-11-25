@@ -11,6 +11,7 @@ import '../../core/analytics/analytics.dart';
 import '../../core/env/env.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
+import '../coach/coach.dart';
 
 /// Guided setup of the iOS Shortcuts "Transaction" automation.
 /// Guided setup of the iOS Shortcuts "Transaction" automation.
@@ -118,7 +119,9 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen>
   Widget build(BuildContext context) {
     final c = context.pc;
     final seen = _seen;
-    return Scaffold(
+    return CoachHost(
+      screen: CoachScreen.capture,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Apple Pay setup'),
         leading: IconButton(
@@ -129,13 +132,15 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen>
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, 40),
         children: [
-          Text(
+          CoachTarget(
+            id: 'steps',
+            child: Text(
             'Apple keeps Wallet private, but Shortcuts can run an action each '
             'time you pay with a card. ${Env.appName} already includes that '
             'action, so there is nothing to download. Payments stay on this '
             'phone. It takes about a minute, once.',
             style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
-          ),
+          )),
           const SizedBox(height: Space.xl),
           _step(
             context,
@@ -270,6 +275,6 @@ class _ApplePaySetupScreenState extends ConsumerState<ApplePaySetupScreen>
           ),
         ],
       ),
-    );
+    ));
   }
 }

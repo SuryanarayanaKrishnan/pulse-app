@@ -20,6 +20,7 @@ import '../wealth/investing_screens.dart';
 import '../wealth/wealth_sections.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
+import '../coach/coach.dart';
 
 /// "12 min ago", "3 h ago", "6 days ago".
 String ago(DateTime t, {DateTime? now}) {
@@ -42,95 +43,116 @@ class WealthScreen extends ConsumerWidget {
     final joint = ref.watch(jointDataProvider).value;
     final scope = ref.watch(wealthScopeProvider);
     final showJoint = joint != null && scope == NwScope.joint;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 120),
-          children: [
-            ScreenHeader(
-              'Wealth',
-              subtitle: 'Assets and liabilities',
-              trailing: [
-                TabTip(
-                  tab: TipTab.wealth,
-                  child: RoundIconButton(
-                    icon: Icons.add_rounded,
-                    label: 'Add an asset or loan',
-                    onTap: () => showWealthAddMenu(
-                      context,
-                      assetSheet: (_) => const AddAssetSheet(),
+    return CoachHost(
+      screen: CoachScreen.wealth,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              ScreenHeader(
+                'Wealth',
+                subtitle: 'Assets and liabilities',
+                trailing: [
+                  CoachTarget(
+                    id: 'add',
+                    child: TabTip(
+                      tab: TipTab.wealth,
+                      child: RoundIconButton(
+                        icon: Icons.add_rounded,
+                        label: 'Add an asset or loan',
+                        onTap: () => showWealthAddMenu(
+                          context,
+                          assetSheet: (_) => const AddAssetSheet(),
+                        ),
+                      ),
                     ),
                   ),
+                ],
+              ),
+              if (joint != null)
+                ScopeToggle(
+                  value: scope,
+                  onChanged: (v) =>
+                      ref.read(wealthScopeProvider.notifier).set(v),
                 ),
-              ],
-            ),
-            if (joint != null)
-              ScopeToggle(
-                value: scope,
-                onChanged: (v) => ref.read(wealthScopeProvider.notifier).set(v),
-              ),
-            if (showJoint)
-              JointNetWorthView(joint)
-            else ...[
-            if (nw != null) ...[
-              HeroNumber(
-                label: 'Net worth',
-                value: nw.total,
-                caption:
-                    '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
-                captionColor: nw.changePct >= 0 ? c.positive : c.negative,
-              ),
-              const PriceStatusLine(),
-              NetWorthHistorySection(
-                fallback: nw.labels.length == nw.series.length && nw.series.length > 1
-                    ? Padding(
-                        padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
-                        child: InspectLineChart(
-                          labels: [
-                            for (final (i, l) in nw.labels.indexed)
-                              i.isEven || i == nw.labels.length - 1 ? l : '',
-                          ],
-                          title: (i) => nw.labels[i],
-                          fill: true,
-                          height: 140,
-                          format: Money.aedCompact,
-                          series: [ChartSeries('Net worth', nw.series, c.accent)],
-                        ),
-                      )
-                    : null,
-              ),
-            ],
-            AsyncView<List<Asset>>(
-              value: assets,
-              loading: const SkeletonList(rows: 4),
-              onRetry: () => ref.invalidate(assetsProvider),
-              builder: (list) => list.isEmpty
-                  ? Column(
-                      children: [
-                        EmptyState(
-                          icon: Icons.account_balance_wallet_outlined,
-                          title: 'Nothing here yet',
-                          message:
-                              'Add what you own and owe: accounts, property, gold, '
-                              'deposits, loans. Net worth is worked out on this phone.',
-                          action: PrimaryButton(
-                            label: 'Add to Wealth',
-                            expand: false,
-                            onPressed: () => showWealthAddMenu(
-                              context,
-                              assetSheet: (_) => const AddAssetSheet(),
+              if (showJoint)
+                JointNetWorthView(joint)
+              else ...[
+                if (nw != null) ...[
+                  CoachTarget(
+                    id: 'hero',
+                    child: HeroNumber(
+                      label: 'Net worth',
+                      value: nw.total,
+                      caption:
+                          '${nw.changePct >= 0 ? '+' : ''}${nw.changePct.toStringAsFixed(1)}% this month',
+                      captionColor: nw.changePct >= 0 ? c.positive : c.negative,
+                    ),
+                  ),
+                  const PriceStatusLine(),
+                  NetWorthHistorySection(
+                    fallback:
+                        nw.labels.length == nw.series.length &&
+                            nw.series.length > 1
+                        ? Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              Space.gutter,
+                              Space.xl,
+                              Space.gutter,
+                              0,
                             ),
-                          ),
-                        ),
-                        const WealthSections(),
-                      ],
-                    )
-                  : _Body(list),
-            ),
-            if (nw != null) _LiveValues(nw),
+                            child: InspectLineChart(
+                              labels: [
+                                for (final (i, l) in nw.labels.indexed)
+                                  i.isEven || i == nw.labels.length - 1
+                                      ? l
+                                      : '',
+                              ],
+                              title: (i) => nw.labels[i],
+                              fill: true,
+                              height: 140,
+                              format: Money.aedCompact,
+                              series: [
+                                ChartSeries('Net worth', nw.series, c.accent),
+                              ],
+                            ),
+                          )
+                        : null,
+                  ),
+                ],
+                AsyncView<List<Asset>>(
+                  value: assets,
+                  loading: const SkeletonList(rows: 4),
+                  onRetry: () => ref.invalidate(assetsProvider),
+                  builder: (list) => list.isEmpty
+                      ? Column(
+                          children: [
+                            EmptyState(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: 'Nothing here yet',
+                              message:
+                                  'Add what you own and owe: accounts, property, gold, '
+                                  'deposits, loans. Net worth is worked out on this phone.',
+                              action: PrimaryButton(
+                                label: 'Add to Wealth',
+                                expand: false,
+                                onPressed: () => showWealthAddMenu(
+                                  context,
+                                  assetSheet: (_) => const AddAssetSheet(),
+                                ),
+                              ),
+                            ),
+                            const WealthSections(),
+                          ],
+                        )
+                      : _Body(list),
+                ),
+                if (nw != null) _LiveValues(nw),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -248,7 +270,12 @@ class _Body extends ConsumerWidget {
         ),
         if (allocated.isEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.lg),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              0,
+              Space.gutter,
+              Space.lg,
+            ),
             child: Text(
               'Add an asset or an account balance to see how your money is split.',
               style: context.tt.bodySmall,
@@ -257,33 +284,33 @@ class _Body extends ConsumerWidget {
           )
         else
           RowGroup(
-          children: [
-            for (var i = 0; i < allocated.length; i++)
-              ListRow(
-                dense: true,
-                leading: Dot(_shade(c, i, allocated.length), size: 10),
-                title: allocated[i].label,
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${(sum(allocated[i]) / totalAssets * 100).round()}%',
-                      style: num(c.textSecondary),
-                    ),
-                    const SizedBox(width: Space.lg),
-                    SizedBox(
-                      width: 104,
-                      child: Text(
-                        Money.aedCompact(sum(allocated[i])),
-                        style: num(),
-                        textAlign: TextAlign.right,
+            children: [
+              for (var i = 0; i < allocated.length; i++)
+                ListRow(
+                  dense: true,
+                  leading: Dot(_shade(c, i, allocated.length), size: 10),
+                  title: allocated[i].label,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        '${(sum(allocated[i]) / totalAssets * 100).round()}%',
+                        style: num(c.textSecondary),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: Space.lg),
+                      SizedBox(
+                        width: 104,
+                        child: Text(
+                          Money.aedCompact(sum(allocated[i])),
+                          style: num(),
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        ),
+            ],
+          ),
         const WealthSections(),
         for (final k in [
           ...kinds,
@@ -307,11 +334,21 @@ class _Body extends ConsumerWidget {
                             a,
                             onOwnership: joint == null
                                 ? null
-                                : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name),
+                                : () => showOwnershipSheet(
+                                    context,
+                                    table: 'lines',
+                                    id: a.id,
+                                    title: a.name,
+                                  ),
                           )
                         : (joint == null
                               ? null
-                              : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name)),
+                              : () => showOwnershipSheet(
+                                  context,
+                                  table: 'lines',
+                                  id: a.id,
+                                  title: a.name,
+                                )),
                     trailing: Text(
                       Money.aed(
                         a.isLiability ? -a.value : a.value,
@@ -400,7 +437,12 @@ class _LiveValues extends StatelessWidget {
 
 /// Swipe left to delete a row the user typed in; priced holdings and cards
 /// are managed on their own screens and do not swipe.
-Widget _swipeToDelete(BuildContext context, WidgetRef ref, Asset a, Widget row) {
+Widget _swipeToDelete(
+  BuildContext context,
+  WidgetRef ref,
+  Asset a,
+  Widget row,
+) {
   if (!a.editable) return row;
   final c = context.pc;
   return Dismissible(

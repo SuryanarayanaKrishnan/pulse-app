@@ -19,6 +19,7 @@ import '../../goals/goal_widgets.dart';
 import '../../goals/goals_screen.dart';
 import '../home_sheets.dart';
 import 'dashboard_layout.dart';
+import '../../coach/coach.dart';
 
 /// One metric widget as it appears on Home. Regular shows the detail, compact
 /// folds it to a single quiet row. Widgets with nothing to say yet render
@@ -109,55 +110,58 @@ class SafeToSpendTile extends ConsumerWidget {
         final none = v.available <= 0;
         void open() =>
             showPulseSheet<void>(context, builder: (_) => SafeToSpendSheet(v));
-        return TabTip(
-          tab: TipTab.home,
-          child: compact
-              ? Pressable(
-                  onTap: open,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      Space.gutter,
-                      Space.lg,
-                      Space.gutter,
-                      Space.xs,
+        return CoachTarget(
+          id: 'safe',
+          child: TabTip(
+            tab: TipTab.home,
+            child: compact
+                ? Pressable(
+                    onTap: open,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        Space.gutter,
+                        Space.lg,
+                        Space.gutter,
+                        Space.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              'Safe to spend today',
+                              style: context.tt.bodyLarge,
+                            ),
+                          ),
+                          Text(
+                            Money.aed(v.today, decimals: false),
+                            style: PulseTheme.amount(
+                              none ? c.warning : c.textPrimary,
+                              size: 22,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Safe to spend today',
-                            style: context.tt.bodyLarge,
-                          ),
-                        ),
-                        Text(
-                          Money.aed(v.today, decimals: false),
-                          style: PulseTheme.amount(
-                            none ? c.warning : c.textPrimary,
-                            size: 22,
-                          ),
-                        ),
-                      ],
+                  )
+                : Pressable(
+                    onTap: open,
+                    child: HeroNumber(
+                      label: 'Safe to spend today',
+                      value: v.today,
+                      color: none ? c.warning : null,
+                      caption: none
+                          ? 'Bills, card dues and goals take what is left this month'
+                          : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
+                      footer: Row(
+                        children: [
+                          _Figure('Bills', v.bills),
+                          _Figure('Card dues', v.cardDues),
+                          _Figure('Goals', v.goals),
+                        ],
+                      ),
                     ),
                   ),
-                )
-              : Pressable(
-                  onTap: open,
-                  child: HeroNumber(
-                    label: 'Safe to spend today',
-                    value: v.today,
-                    color: none ? c.warning : null,
-                    caption: none
-                        ? 'Bills, card dues and goals take what is left this month'
-                        : '${Money.aed(v.available, decimals: false)} free for the next ${v.daysLeft} days, after bills, card dues and goals',
-                    footer: Row(
-                      children: [
-                        _Figure('Bills', v.bills),
-                        _Figure('Card dues', v.cardDues),
-                        _Figure('Goals', v.goals),
-                      ],
-                    ),
-                  ),
-                ),
+          ),
         );
       },
     );
@@ -683,7 +687,6 @@ class _RecentTile extends ConsumerWidget {
     );
   }
 }
-
 
 // ---- Goals ----
 

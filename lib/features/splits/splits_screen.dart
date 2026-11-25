@@ -14,6 +14,7 @@ import '../../data/splits_util.dart';
 import 'split_widgets.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
+import '../coach/coach.dart';
 
 class SplitsScreen extends ConsumerWidget {
   const SplitsScreen({super.key});
@@ -21,51 +22,60 @@ class SplitsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final groups = ref.watch(splitGroupsProvider);
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 120),
-          children: [
-            ScreenHeader(
-              'Splits',
-              subtitle: 'Shared expenses',
-              trailing: [
-                TabTip(
-                  tab: TipTab.splits,
-                  child: RoundIconButton(
-                    icon: Icons.add_rounded,
-                    label: 'Add expense',
-                    onTap: () {
-                      final list = groups.value;
-                      if (list != null && list.isNotEmpty) {
-                        showPulseSheet<void>(
-                          context,
-                          full: true,
-                          builder: (_) => AddSplitSheet(groups: list),
-                        );
-                      }
-                    },
+    return CoachHost(
+      screen: CoachScreen.splits,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              ScreenHeader(
+                'Splits',
+                subtitle: 'Shared expenses',
+                trailing: [
+                  CoachTarget(
+                    id: 'add',
+                    child: TabTip(
+                      tab: TipTab.splits,
+                      child: RoundIconButton(
+                        icon: Icons.add_rounded,
+                        label: 'Add expense',
+                        onTap: () {
+                          final list = groups.value;
+                          if (list != null && list.isNotEmpty) {
+                            showPulseSheet<void>(
+                              context,
+                              full: true,
+                              builder: (_) => AddSplitSheet(groups: list),
+                            );
+                          }
+                        },
+                      ),
+                    ),
                   ),
+                ],
+              ),
+              CoachTarget(
+                id: 'groups',
+                child: AsyncView<List<SplitGroup>>(
+                  value: groups,
+                  onRetry: () => ref.invalidate(splitGroupsProvider),
+                  loading: const SkeletonList(rows: 3, height: 64),
+                  builder: (list) {
+                    if (list.isEmpty) {
+                      return const EmptyState(
+                        icon: Icons.people_outline_rounded,
+                        title: 'No groups yet',
+                        message: 'Create a group to split bills with friends.',
+                      );
+                    }
+                    return _Body(list);
+                  },
                 ),
-              ],
-            ),
-            AsyncView<List<SplitGroup>>(
-              value: groups,
-              onRetry: () => ref.invalidate(splitGroupsProvider),
-              loading: const SkeletonList(rows: 3, height: 64),
-              builder: (list) {
-                if (list.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.people_outline_rounded,
-                    title: 'No groups yet',
-                    message: 'Create a group to split bills with friends.',
-                  );
-                }
-                return _Body(list);
-              },
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );

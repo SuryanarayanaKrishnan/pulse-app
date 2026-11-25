@@ -20,6 +20,7 @@ import 'cashflow_sankey.dart';
 import 'flex_budget_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
+import '../coach/coach.dart';
 
 /// Budget: spent against plan, by category, and where it went.
 class BudgetScreen extends ConsumerWidget {
@@ -31,68 +32,74 @@ class BudgetScreen extends ConsumerWidget {
     final joint = ref.watch(jointDataProvider).value;
     final scope = ref.watch(budgetScopeProvider);
     final showJoint = joint != null && scope == NwScope.joint;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 120),
-          children: [
-            ScreenHeader(
-              'Budget',
-              subtitle: DateFormat('MMMM y').format(DateTime.now()),
-              trailing: [
-                RoundIconButton(
-                  icon: Icons.receipt_long_outlined,
-                  label: 'Activity',
-                  onTap: () => context.push(Routes.activity),
+    return CoachHost(
+      screen: CoachScreen.budget,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 120),
+            children: [
+              ScreenHeader(
+                'Budget',
+                subtitle: DateFormat('MMMM y').format(DateTime.now()),
+                trailing: [
+                  RoundIconButton(
+                    icon: Icons.receipt_long_outlined,
+                    label: 'Activity',
+                    onTap: () => context.push(Routes.activity),
+                  ),
+                ],
+              ),
+              if (joint != null)
+                ScopeToggle(
+                  value: scope,
+                  onChanged: (v) =>
+                      ref.read(budgetScopeProvider.notifier).set(v),
                 ),
-              ],
-            ),
-            if (joint != null)
-              ScopeToggle(
-                value: scope,
-                onChanged: (v) => ref.read(budgetScopeProvider.notifier).set(v),
-              ),
-            if (showJoint)
-              JointBudgetView(joint)
-            else
-              AsyncView<BudgetOverview>(
-                value: b,
-                onRetry: () => ref.invalidate(budgetProvider),
-                loading: const SkeletonList(rows: 4, height: 96),
-                builder: (o) => (o.planned == 0 && o.spent == 0)
-                    ? EmptyState(
-                        icon: Icons.donut_small_outlined,
-                        title: 'No spending or budget yet',
-                        message:
-                            'Once card alerts arrive, or you add a payment by '
-                            'hand, spending shows up here. Set a monthly budget '
-                            'to see how much is left.',
-                        action: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            PrimaryButton(
-                              key: const Key('budget_build'),
-                              label: 'Build my budget',
-                              icon: Icons.auto_awesome_outlined,
-                              expand: false,
-                              onPressed: () => context.push(Routes.budgetSetup),
-                            ),
-                            const SizedBox(height: Space.sm),
-                            PrimaryButton(
-                              key: const Key('budget_import'),
-                              label: 'Import my sheet',
-                              icon: Icons.upload_file_outlined,
-                              secondary: true,
-                              expand: false,
-                              onPressed: () => context.push(Routes.budgetImport),
-                            ),
-                          ],
-                        ),
-                      )
-                    : _Body(o),
-              ),
-          ],
+              if (showJoint)
+                JointBudgetView(joint)
+              else
+                AsyncView<BudgetOverview>(
+                  value: b,
+                  onRetry: () => ref.invalidate(budgetProvider),
+                  loading: const SkeletonList(rows: 4, height: 96),
+                  builder: (o) => (o.planned == 0 && o.spent == 0)
+                      ? EmptyState(
+                          icon: Icons.donut_small_outlined,
+                          title: 'No spending or budget yet',
+                          message:
+                              'Once card alerts arrive, or you add a payment by '
+                              'hand, spending shows up here. Set a monthly budget '
+                              'to see how much is left.',
+                          action: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              PrimaryButton(
+                                key: const Key('budget_build'),
+                                label: 'Build my budget',
+                                icon: Icons.auto_awesome_outlined,
+                                expand: false,
+                                onPressed: () =>
+                                    context.push(Routes.budgetSetup),
+                              ),
+                              const SizedBox(height: Space.sm),
+                              PrimaryButton(
+                                key: const Key('budget_import'),
+                                label: 'Import my sheet',
+                                icon: Icons.upload_file_outlined,
+                                secondary: true,
+                                expand: false,
+                                onPressed: () =>
+                                    context.push(Routes.budgetImport),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _Body(o),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -123,45 +130,58 @@ class _Body extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         if (!flex)
-          HeroNumber(
-            label: 'Spent this month',
-            value: o.spent,
-            caption: o.planned == 0
-                ? 'No budget set yet · ${o.daysLeft} days left'
-                : 'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
-            // Without a budget there is nothing to be on track or over against.
-            footer: o.planned == 0
-                ? Padding(
-                    padding: const EdgeInsets.only(top: Space.md),
-                    child: Text(
-                      'Set an amount on a category to see how much is left.',
-                      style: context.tt.bodyMedium!.copyWith(color: c.textPrimary),
-                    ),
-                  )
-                : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Meter(value: o.progress, color: c.forProgress(o.progress)),
-                const SizedBox(height: Space.md),
-                Row(
-                  children: [
-                    Dot(c.forProgress(o.progress)),
-                    const SizedBox(width: Space.sm),
-                    Expanded(
+          CoachTarget(
+            id: 'hero',
+            child: HeroNumber(
+              label: 'Spent this month',
+              value: o.spent,
+              caption: o.planned == 0
+                  ? 'No budget set yet · ${o.daysLeft} days left'
+                  : 'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
+              // Without a budget there is nothing to be on track or over against.
+              footer: o.planned == 0
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: Space.md),
                       child: Text(
-                        '${PulseColors.statusLabel(o.progress)} · ${Money.aed(o.remaining.abs(), decimals: false)} ${o.remaining < 0 ? 'over' : 'left'}',
+                        'Set an amount on a category to see how much is left.',
                         style: context.tt.bodyMedium!.copyWith(
                           color: c.textPrimary,
                         ),
                       ),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Meter(
+                          value: o.progress,
+                          color: c.forProgress(o.progress),
+                        ),
+                        const SizedBox(height: Space.md),
+                        Row(
+                          children: [
+                            Dot(c.forProgress(o.progress)),
+                            const SizedBox(width: Space.sm),
+                            Expanded(
+                              child: Text(
+                                '${PulseColors.statusLabel(o.progress)} · ${Money.aed(o.remaining.abs(), decimals: false)} ${o.remaining < 0 ? 'over' : 'left'}',
+                                style: context.tt.bodyMedium!.copyWith(
+                                  color: c.textPrimary,
+                                ),
+                              ),
+                            ),
+                            Text(
+                              '$autoPct% automatic',
+                              style: context.tt.bodySmall,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    Text('$autoPct% automatic', style: context.tt.bodySmall),
-                  ],
-                ),
-              ],
             ),
           ),
-        const FlexBudgetSection(),
+        flex
+            ? const CoachTarget(id: 'hero', child: FlexBudgetSection())
+            : const FlexBudgetSection(),
         if (!flex) ...[
           SectionHeader(
             'Categories',
@@ -170,85 +190,94 @@ class _Body extends ConsumerWidget {
           ),
           const SizedBox(height: Space.sm),
         ],
-        TabTip(
-          tab: TipTab.budget,
-          child: flex
-              ? const SizedBox.shrink()
-              : SnapRail(
-                  height: 128,
-                  itemCount: lines.length,
-                  itemBuilder: (context, i) =>
-                      _CategoryTile(lines[i], plan?.row(lines[i].category.id)),
-                ),
+        CoachTarget(
+          id: 'categories',
+          child: TabTip(
+            tab: TipTab.budget,
+            child: flex
+                ? const SizedBox.shrink()
+                : SnapRail(
+                    height: 128,
+                    itemCount: lines.length,
+                    itemBuilder: (context, i) => _CategoryTile(
+                      lines[i],
+                      plan?.row(lines[i].category.id),
+                    ),
+                  ),
+          ),
         ),
         const CashflowSankeySection(),
         const CashflowSection(),
         const CategoryTrendSection(),
         _WhereItWent(o),
         const SectionHeader('Manage'),
-        RowGroup(
-          indent: ListRow.leadingInset,
-          children: [
-            ListRow(
-              key: const Key('manage_build'),
-              leading: const IconWell(Icons.auto_awesome_outlined),
-              title: 'Build my budget',
-              subtitle: 'A full month from a few answers',
-              chevron: true,
-              onTap: () => context.push(Routes.budgetSetup),
-            ),
-            ListRow(
-              key: const Key('manage_import'),
-              leading: const IconWell(Icons.upload_file_outlined),
-              title: 'Import my sheet',
-              subtitle: 'Excel, Google Sheets or CSV',
-              chevron: true,
-              onTap: () => context.push(Routes.budgetImport),
-            ),
-            ListRow(
-              leading: const IconWell(Icons.category_outlined),
-              title: 'Categories & budgets',
-              chevron: true,
-              onTap: () => context.push(Routes.categories),
-            ),
-            ListRow(
-              key: const Key('manage_recurring'),
-              leading: const IconWell(Icons.event_repeat_rounded),
-              title: 'Recurring',
-              subtitle: 'Bills and subscriptions',
-              chevron: true,
-              onTap: () => context.push(Routes.recurring),
-            ),
-            ListRow(
-              key: const Key('manage_reports'),
-              leading: const IconWell(Icons.grid_view_rounded),
-              title: 'Reports',
-              subtitle: 'Where the month went',
-              chevron: true,
-              onTap: () => context.push(Routes.reports),
-            ),
-            ListRow(
-              leading: const IconWell(Icons.auto_mode_rounded),
-              title: 'Automations',
-              subtitle: rules == null
-                  ? null
-                  : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
-              chevron: true,
-              onTap: () => context.push(Routes.automations),
-            ),
-            ListRow(
-              leading: const IconWell(Icons.fact_check_outlined),
-              title: 'Monthly close',
-              subtitle: statements == null
-                  ? null
-                  : (attention == 0
-                        ? 'All statements match'
-                        : '$attention need you'),
-              subtitleColor: attention == 0 ? null : c.warning,
-              chevron: true,
-              onTap: () => context.push(Routes.statements),
-            ),
-          ],
+        CoachTarget(
+          id: 'manage',
+          child: RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                key: const Key('manage_build'),
+                leading: const IconWell(Icons.auto_awesome_outlined),
+                title: 'Build my budget',
+                subtitle: 'A full month from a few answers',
+                chevron: true,
+                onTap: () => context.push(Routes.budgetSetup),
+              ),
+              ListRow(
+                key: const Key('manage_import'),
+                leading: const IconWell(Icons.upload_file_outlined),
+                title: 'Import my sheet',
+                subtitle: 'Excel, Google Sheets or CSV',
+                chevron: true,
+                onTap: () => context.push(Routes.budgetImport),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.category_outlined),
+                title: 'Categories & budgets',
+                subtitle: 'Add your own, set budgets and icons',
+                chevron: true,
+                onTap: () => context.push(Routes.categories),
+              ),
+              ListRow(
+                key: const Key('manage_recurring'),
+                leading: const IconWell(Icons.event_repeat_rounded),
+                title: 'Recurring',
+                subtitle: 'Bills and subscriptions',
+                chevron: true,
+                onTap: () => context.push(Routes.recurring),
+              ),
+              ListRow(
+                key: const Key('manage_reports'),
+                leading: const IconWell(Icons.grid_view_rounded),
+                title: 'Reports',
+                subtitle: 'Where the month went',
+                chevron: true,
+                onTap: () => context.push(Routes.reports),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.auto_mode_rounded),
+                title: 'Automations',
+                subtitle: rules == null
+                    ? null
+                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+                chevron: true,
+                onTap: () => context.push(Routes.automations),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.fact_check_outlined),
+                title: 'Monthly close',
+                subtitle: statements == null
+                    ? null
+                    : (attention == 0
+                          ? 'All statements match'
+                          : '$attention need you'),
+                subtitleColor: attention == 0 ? null : c.warning,
+                chevron: true,
+                onTap: () => context.push(Routes.statements),
+              ),
+            ],
+          ),
         ),
       ],
     );

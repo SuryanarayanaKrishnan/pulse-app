@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../theme/tokens.dart';
+import '../../features/coach/coach.dart';
 import 'pressable.dart';
 
 /// Large title with an optional quiet line above it and trailing actions.
@@ -62,6 +63,13 @@ class ScreenHeader extends StatelessWidget {
           ),
         ),
         ...?trailing,
+        if (CoachHost.isAvailable(context))
+          RoundIconButton(
+            key: const Key('coach_help'),
+            icon: Icons.help_outline_rounded,
+            label: 'Show me around',
+            onTap: () => CoachHost.replay(context),
+          ),
       ],
     ),
   );
