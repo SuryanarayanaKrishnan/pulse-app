@@ -23,6 +23,8 @@ import 'local/budget_plan_store.dart';
 import 'goal_service.dart';
 import 'local/goal_store.dart';
 import 'local/attachments.dart';
+import 'local/db_key.dart';
+import 'local/encrypted_attachments.dart';
 import 'local/price_service.dart';
 import 'local/reminders.dart';
 import '../core/engine/investing.dart' show InvestRule, RuleOccurrence;
@@ -107,6 +109,13 @@ final photoPickerProvider = Provider<PhotoPicker>(
 
 final attachmentStorageProvider = Provider<AttachmentStorage>(
   (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? MemoryAttachmentStorage() : PrivateAttachmentStorage(),
+);
+
+/// The family vault's papers: photos and PDFs, encrypted on the phone.
+final vaultAttachmentStorageProvider = Provider<AttachmentStorage>(
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null
+      ? MemoryAttachmentStorage()
+      : EncryptedAttachmentStorage(keys: SecureStorageKeyStore()),
 );
 
 final remindersProvider = Provider<Reminders>(
@@ -464,7 +473,7 @@ final inactivityRelayProvider = Provider<InactivityRelay>(
 final vaultServiceProvider = Provider<VaultService>(
   (ref) => VaultService(
     store: ref.watch(vaultStoreProvider),
-    storage: ref.watch(attachmentStorageProvider),
+    storage: ref.watch(vaultAttachmentStorageProvider),
     relay: ref.watch(inactivityRelayProvider),
     analytics: ref.watch(analyticsProvider),
     sources: () async {

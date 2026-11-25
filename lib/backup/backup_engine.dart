@@ -242,6 +242,7 @@ class BackupEngine {
     const sources = {
       'jewellery_items': 'photo_paths',
       'document_attachments': 'file_paths',
+      'vault_entries': 'photo_paths',
     };
     final out = <String>{};
     for (final d in dumps) {
@@ -430,6 +431,7 @@ class BackupEngine {
 
       _remapPaths(dumps['jewellery_items'], 'photo_paths', remap);
       _remapPaths(dumps['document_attachments'], 'file_paths', remap);
+      _remapPaths(dumps['vault_entries'], 'photo_paths', remap);
 
       // 3. Database.
       await importTables(target, dumps.values);

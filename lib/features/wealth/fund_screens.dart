@@ -14,6 +14,8 @@ import '../../data/providers.dart';
 import '../../data/wealth_models.dart';
 import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
+import '../../core/vault/vault_models.dart';
+import '../vault/held_at.dart';
 import 'wealth_widgets.dart';
 
 const fundCurrencies = ['INR', 'AED', 'USD', 'EUR', 'GBP'];
@@ -65,6 +67,21 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
   );
   late String _currency = widget.initial?.currency ?? 'AED';
   bool _busy = false;
+  final _heldAt = TextEditingController();
+  VaultEntry? _heldEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    final old = widget.initial;
+    if (old == null) return;
+    heldAtEntry(ref, 'asset:fund:${old.id}').then((e) {
+      if (e != null && mounted) {
+        _heldEntry = e;
+        setState(() => _heldAt.text = e.institution);
+      }
+    });
+  }
 
   bool get _editing => widget.initial != null;
   bool get _hasPick =>
@@ -73,7 +90,7 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
   @override
   void dispose() {
     _debounce?.cancel();
-    for (final c in [_query, _name, _units, _nav, _cost, _sip, _sipDay]) {
+    for (final c in [_query, _name, _units, _nav, _cost, _sip, _sipDay, _heldAt]) {
       c.dispose();
     }
     super.dispose();
@@ -185,6 +202,17 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
         createdAt: old?.createdAt ?? DateTime.now(),
       );
       await ref.read(wealthServiceProvider).saveFund(f);
+      final problem = await saveHeldAt(
+        ref,
+        sourceRef: 'asset:fund:${f.id}',
+        type: VaultType.investment,
+        where: _heldAt.text,
+        title: f.name,
+        existing: _heldEntry,
+      );
+      if (problem != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+      }
       invalidateWealth(ref);
       if (mounted) Navigator.of(context).pop(f.id);
     } on Object {
@@ -406,6 +434,11 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: Space.md),
+            HeldAtField(
+              controller: _heldAt,
+              hint: 'Held at, e.g. Groww, Kuvera, Mashreq, CAMS',
             ),
             if (_valid)
               _ValuePreview(

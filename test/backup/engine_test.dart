@@ -164,6 +164,31 @@ void main() {
     expect(dupe.fileId, ring.fileId);
   });
 
+  test('vault papers are backed up and restored with the entry', () async {
+    final paper = File('${tmp.path}/deed.pdf.enc')
+      ..writeAsBytesSync([80, 65, 84, 49, 9, 9, 9, 9]);
+    await db.into(db.vaultEntries).insert(
+          VaultEntriesCompanion.insert(
+            id: 'v1',
+            type: 'property',
+            institution: 'Marina flat',
+            photoPaths: Value(jsonEncode([paper.path])),
+          ),
+        );
+    final stats = await engine().backup(db: db);
+    final fresh = memoryDb();
+    addTearDown(fresh.close);
+    await engine().restoreInto(
+      target: fresh,
+      manifestName: stats.manifestName,
+      attachmentsDir: restoreDir,
+    );
+    final row = await fresh.select(fresh.vaultEntries).getSingle();
+    final paths = (jsonDecode(row.photoPaths) as List).cast<String>();
+    expect(paths.single, startsWith(restoreDir.path));
+    expect(File(paths.single).readAsBytesSync(), paper.readAsBytesSync());
+  });
+
   test('manifest carries the schema version and format', () async {
     final s = await engine().backup(db: db);
     final m = await engine().readManifest(s.manifestName);

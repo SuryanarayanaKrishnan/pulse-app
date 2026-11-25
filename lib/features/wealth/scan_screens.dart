@@ -277,7 +277,11 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
     }
     for (final f in _funds) {
       final u = parseNumber(f.units.text) ?? f.draft.unitsHeld;
-      if (f.name.text.trim().isNotEmpty && u != null && u > 0) n++;
+      final amount = f.draft.current ?? parseNumber(f.invested.text);
+      if (f.name.text.trim().isNotEmpty &&
+          ((u != null && u > 0) || (amount != null && amount > 0))) {
+        n++;
+      }
     }
     return n;
   }

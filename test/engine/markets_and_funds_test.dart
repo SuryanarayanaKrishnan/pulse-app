@@ -3,6 +3,7 @@ import 'package:pulse/core/engine/capture_parser.dart';
 import 'package:pulse/core/engine/markets.dart';
 
 void main() {
+  typedFundTests();
   group('listingOf', () {
     test('US tickers stay bare', () {
       expect(listingOf('voo').symbol, 'VOO');
@@ -105,6 +106,39 @@ Units 250.120
       const us =
           'VOO Vanguard S&P 500 ETF\n10 shares\nAvg cost 400.00\nLast price 500.00';
       expect(classify(us), CaptureKind.portfolio);
+    });
+  });
+}
+
+void typedFundTests() {
+  group('typed fund entries', () {
+    test('lakh and k, amount is today\'s value', () {
+      final f = parseApproximateFund('about ₹1.5 lakh in Parag Parikh Flexi Cap')!;
+      expect(f.name, 'Parag Parikh Flexi Cap');
+      expect(f.current, 150000);
+      expect(f.invested, isNull);
+      expect(f.units, isNull);
+      expect(f.approximate, isTrue);
+    });
+    test('"invested" makes the amount what was put in, with SIP', () {
+      final f = parseApproximateFund(
+        'invested 50k in HDFC Index Fund Nifty 50 since 2021, SIP 2000',
+      )!;
+      expect(f.name, 'HDFC Index Fund Nifty 50');
+      expect(f.invested, 50000);
+      expect(f.current, isNull);
+      expect(f.sipAmountMinor, 200000);
+      expect(f.sipDay, isNull);
+    });
+    test('units without money', () {
+      final f = parseApproximateFund('500 units of Mirae Asset Large Cap fund')!;
+      expect(f.units, 500);
+      expect(f.name, 'Mirae Asset Large Cap fund');
+    });
+    test('routes through parseApproximate; US and NSE stocks stay stocks', () {
+      expect(parseApproximate('about ₹1 lakh in Parag Parikh Flexi Cap').kind, CaptureKind.mutualFunds);
+      expect(parseApproximate('50 shares of VOO avg 400').kind, CaptureKind.portfolio);
+      expect(parseApproximate('10 shares of RELIANCE.NS avg 1200').holdings.single.symbol, 'RELIANCE.NS');
     });
   });
 }

@@ -13,6 +13,8 @@ import '../../data/providers.dart';
 import '../../data/wealth_models.dart';
 import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
+import '../../core/vault/vault_models.dart';
+import '../vault/held_at.dart';
 import 'wealth_widgets.dart';
 
 /// Add or edit a piece of jewellery. The value shown is worked out from the
@@ -54,13 +56,28 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
   final _removed = <String>[];
   final _added = <String>[];
   bool _busy = false;
+  final _heldAt = TextEditingController();
+  VaultEntry? _heldEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    final old = widget.initial;
+    if (old == null) return;
+    heldAtEntry(ref, 'asset:jewel:${old.id}').then((e) {
+      if (e != null && mounted) {
+        _heldEntry = e;
+        setState(() => _heldAt.text = e.institution);
+      }
+    });
+  }
 
   static String _fmtG(double g) =>
       g == g.roundToDouble() ? g.toStringAsFixed(0) : g.toString();
 
   @override
   void dispose() {
-    for (final c in [_name, _weight, _price, _making, _notes, _fineness]) {
+    for (final c in [_name, _weight, _price, _making, _notes, _fineness, _heldAt]) {
       c.dispose();
     }
     super.dispose();
@@ -111,7 +128,18 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
         newPhotoSources: _added,
         removedPhotos: _removed,
       );
+      final problem = await saveHeldAt(
+        ref,
+        sourceRef: 'asset:jewel:${item.id}',
+        type: VaultType.investment,
+        where: _heldAt.text,
+        title: item.name,
+        existing: _heldEntry,
+      );
       invalidateWealth(ref);
+      if (problem != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+      }
       if (mounted) Navigator.of(context).pop(item.id);
     } on Object {
       if (mounted) {
@@ -277,6 +305,11 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             maxLines: 3,
             textCapitalization: TextCapitalization.sentences,
             decoration: const InputDecoration(hintText: 'Notes (optional)'),
+          ),
+          const SizedBox(height: Space.md),
+          HeldAtField(
+            controller: _heldAt,
+            hint: 'Kept at, e.g. bank locker, home safe, jeweller',
           ),
           const SizedBox(height: Space.xl),
           PrimaryButton(
