@@ -1,0 +1,90 @@
+name: Release Android (testers)
+
+# After CI is green on main, publish the APK CI already built (no rebuild, no extra minutes)
+# to a rolling GitHub release `android-latest`, and optionally to Firebase App Distribution.
+# Skips pushes that only touch docs. Stable link:
+#   https://github.com/<owner>/pulse-app/releases/download/android-latest/Pulse.apk
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency: release-android
+
+jobs:
+  publish:
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+      FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+    steps:
+      - name: Resolve the CI run to publish
+        run: |
+          if [ -n "${{ github.event.workflow_run.id }}" ]; then
+            echo "RUN_ID=${{ github.event.workflow_run.id }}" >> "$GITHUB_ENV"
+            echo "SHA=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_ENV"
+          else
+            read -r id sha < <(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --status success --limit 1 --json databaseId,headSha -q '.[0] | "\(.databaseId) \(.headSha)"')
+            echo "RUN_ID=$id" >> "$GITHUB_ENV"
+            echo "SHA=$sha" >> "$GITHUB_ENV"
+          fi
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ env.SHA }}
+
+      - name: Skip if nothing user-facing changed
+        if: github.event_name == 'workflow_run'
+        run: |
+          prev="$(gh release view android-latest --json body -q .body 2>/dev/null | sed -n 's/^sha: //p' | head -1 || true)"
+          if [ -n "$prev" ] && git cat-file -e "$prev^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$prev" "$SHA")"
+            if [ -z "$changed" ] || ! echo "$changed" | grep -qvE '^docs/|\.md$|^\.github/'; then
+              echo "::notice::No app changes since $prev; skipping"; echo "SKIP=1" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Download the APK built by CI
+        if: env.SKIP != '1'
+        run: |
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n Pulse-android-apk -D dl
+          cp dl/app-release.apk Pulse.apk
+          ls -lh Pulse.apk
+
+      - name: Publish rolling release
+        if: env.SKIP != '1'
+        run: |
+          prev="$(gh release view android-latest --json body -q .body 2>/dev/null | sed -n 's/^sha: //p' | head -1 || true)"
+          if [ -n "$prev" ] && git cat-file -e "$prev^{commit}" 2>/dev/null; then
+            log="$(git log --no-merges --format='- %s' "$prev..$SHA" | head -30)"
+          else
+            log="$(git log --no-merges --format='- %s' -10 "$SHA")"
+          fi
+          printf 'sha: %s\n\nWhat changed:\n%s\n\nInstall: open this page on your Android phone, download Pulse.apk, allow "install unknown apps" for your browser, tap to update. Your data stays.\n' "$SHA" "$log" > notes.md
+          gh release delete android-latest --cleanup-tag -y 2>/dev/null || true
+          gh release create android-latest Pulse.apk --target "$SHA" --prerelease \
+            --title "Pulse Android (build $(git rev-parse --short "$SHA"))" --notes-file notes.md
+          echo "### Android build published" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://github.com/$GITHUB_REPOSITORY/releases/tag/android-latest" >> "$GITHUB_STEP_SUMMARY"
+
+      # Optional, free: runs only once FIREBASE_APP_ID and FIREBASE_SERVICE_ACCOUNT secrets exist.
+      - name: Firebase App Distribution (optional)
+        if: env.SKIP != '1' && env.FIREBASE_APP_ID != '' && env.FIREBASE_SERVICE_ACCOUNT != ''
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers
+          file: Pulse.apk
+          releaseNotesFile: notes.md
