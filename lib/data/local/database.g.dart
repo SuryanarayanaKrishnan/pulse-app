@@ -22558,6 +22558,2105 @@ class InvestingOccurrencesCompanion
   }
 }
 
+class $SplitGroupsTable extends SplitGroups
+    with TableInfo<$SplitGroupsTable, SplitGroupRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitGroupsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _emojiMeta = const VerificationMeta('emoji');
+  @override
+  late final GeneratedColumn<String> emoji = GeneratedColumn<String>(
+    'emoji',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('👥'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    emoji,
+    createdAt,
+    syncedAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_groups';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitGroupRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('emoji')) {
+      context.handle(
+        _emojiMeta,
+        emoji.isAcceptableOrUnknown(data['emoji']!, _emojiMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitGroupRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitGroupRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      emoji: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}emoji'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $SplitGroupsTable createAlias(String alias) {
+    return $SplitGroupsTable(attachedDatabase, alias);
+  }
+}
+
+class SplitGroupRow extends DataClass implements Insertable<SplitGroupRow> {
+  final String id;
+  final String name;
+  final String emoji;
+  final DateTime createdAt;
+
+  /// When the server last accepted this group; null until it has.
+  final DateTime? syncedAt;
+  final DateTime? deletedAt;
+  const SplitGroupRow({
+    required this.id,
+    required this.name,
+    required this.emoji,
+    required this.createdAt,
+    this.syncedAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['emoji'] = Variable<String>(emoji);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  SplitGroupsCompanion toCompanion(bool nullToAbsent) {
+    return SplitGroupsCompanion(
+      id: Value(id),
+      name: Value(name),
+      emoji: Value(emoji),
+      createdAt: Value(createdAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory SplitGroupRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitGroupRow(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      emoji: serializer.fromJson<String>(json['emoji']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'emoji': serializer.toJson<String>(emoji),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  SplitGroupRow copyWith({
+    String? id,
+    String? name,
+    String? emoji,
+    DateTime? createdAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => SplitGroupRow(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    emoji: emoji ?? this.emoji,
+    createdAt: createdAt ?? this.createdAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  SplitGroupRow copyWithCompanion(SplitGroupsCompanion data) {
+    return SplitGroupRow(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      emoji: data.emoji.present ? data.emoji.value : this.emoji,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitGroupRow(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('emoji: $emoji, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, name, emoji, createdAt, syncedAt, deletedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitGroupRow &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.emoji == this.emoji &&
+          other.createdAt == this.createdAt &&
+          other.syncedAt == this.syncedAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class SplitGroupsCompanion extends UpdateCompanion<SplitGroupRow> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> emoji;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> syncedAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const SplitGroupsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.emoji = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitGroupsCompanion.insert({
+    required String id,
+    required String name,
+    this.emoji = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name);
+  static Insertable<SplitGroupRow> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? emoji,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? syncedAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (emoji != null) 'emoji': emoji,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitGroupsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? emoji,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? syncedAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return SplitGroupsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      emoji: emoji ?? this.emoji,
+      createdAt: createdAt ?? this.createdAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (emoji.present) {
+      map['emoji'] = Variable<String>(emoji.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitGroupsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('emoji: $emoji, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitMembersTable extends SplitMembers
+    with TableInfo<$SplitMembersTable, SplitMemberRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitMembersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _colorValueMeta = const VerificationMeta(
+    'colorValue',
+  );
+  @override
+  late final GeneratedColumn<int> colorValue = GeneratedColumn<int>(
+    'color_value',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _phoneMeta = const VerificationMeta('phone');
+  @override
+  late final GeneratedColumn<String> phone = GeneratedColumn<String>(
+    'phone',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _onPulseMeta = const VerificationMeta(
+    'onPulse',
+  );
+  @override
+  late final GeneratedColumn<bool> onPulse = GeneratedColumn<bool>(
+    'on_pulse',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("on_pulse" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _ibanTailMeta = const VerificationMeta(
+    'ibanTail',
+  );
+  @override
+  late final GeneratedColumn<String> ibanTail = GeneratedColumn<String>(
+    'iban_tail',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    groupId,
+    id,
+    name,
+    colorValue,
+    phone,
+    onPulse,
+    ibanTail,
+    createdAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_members';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitMemberRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color_value')) {
+      context.handle(
+        _colorValueMeta,
+        colorValue.isAcceptableOrUnknown(data['color_value']!, _colorValueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_colorValueMeta);
+    }
+    if (data.containsKey('phone')) {
+      context.handle(
+        _phoneMeta,
+        phone.isAcceptableOrUnknown(data['phone']!, _phoneMeta),
+      );
+    }
+    if (data.containsKey('on_pulse')) {
+      context.handle(
+        _onPulseMeta,
+        onPulse.isAcceptableOrUnknown(data['on_pulse']!, _onPulseMeta),
+      );
+    }
+    if (data.containsKey('iban_tail')) {
+      context.handle(
+        _ibanTailMeta,
+        ibanTail.isAcceptableOrUnknown(data['iban_tail']!, _ibanTailMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {groupId, id};
+  @override
+  SplitMemberRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitMemberRow(
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      colorValue: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}color_value'],
+      )!,
+      phone: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}phone'],
+      ),
+      onPulse: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}on_pulse'],
+      )!,
+      ibanTail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}iban_tail'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $SplitMembersTable createAlias(String alias) {
+    return $SplitMembersTable(attachedDatabase, alias);
+  }
+}
+
+class SplitMemberRow extends DataClass implements Insertable<SplitMemberRow> {
+  final String groupId;
+  final String id;
+  final String name;
+
+  /// ARGB colour of the avatar.
+  final int colorValue;
+
+  /// E.164, when the member came from contacts.
+  final String? phone;
+  final bool onPulse;
+  final String? ibanTail;
+  final DateTime createdAt;
+  final DateTime? syncedAt;
+  const SplitMemberRow({
+    required this.groupId,
+    required this.id,
+    required this.name,
+    required this.colorValue,
+    this.phone,
+    required this.onPulse,
+    this.ibanTail,
+    required this.createdAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['group_id'] = Variable<String>(groupId);
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['color_value'] = Variable<int>(colorValue);
+    if (!nullToAbsent || phone != null) {
+      map['phone'] = Variable<String>(phone);
+    }
+    map['on_pulse'] = Variable<bool>(onPulse);
+    if (!nullToAbsent || ibanTail != null) {
+      map['iban_tail'] = Variable<String>(ibanTail);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  SplitMembersCompanion toCompanion(bool nullToAbsent) {
+    return SplitMembersCompanion(
+      groupId: Value(groupId),
+      id: Value(id),
+      name: Value(name),
+      colorValue: Value(colorValue),
+      phone: phone == null && nullToAbsent
+          ? const Value.absent()
+          : Value(phone),
+      onPulse: Value(onPulse),
+      ibanTail: ibanTail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(ibanTail),
+      createdAt: Value(createdAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory SplitMemberRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitMemberRow(
+      groupId: serializer.fromJson<String>(json['groupId']),
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      colorValue: serializer.fromJson<int>(json['colorValue']),
+      phone: serializer.fromJson<String?>(json['phone']),
+      onPulse: serializer.fromJson<bool>(json['onPulse']),
+      ibanTail: serializer.fromJson<String?>(json['ibanTail']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'groupId': serializer.toJson<String>(groupId),
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'colorValue': serializer.toJson<int>(colorValue),
+      'phone': serializer.toJson<String?>(phone),
+      'onPulse': serializer.toJson<bool>(onPulse),
+      'ibanTail': serializer.toJson<String?>(ibanTail),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  SplitMemberRow copyWith({
+    String? groupId,
+    String? id,
+    String? name,
+    int? colorValue,
+    Value<String?> phone = const Value.absent(),
+    bool? onPulse,
+    Value<String?> ibanTail = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => SplitMemberRow(
+    groupId: groupId ?? this.groupId,
+    id: id ?? this.id,
+    name: name ?? this.name,
+    colorValue: colorValue ?? this.colorValue,
+    phone: phone.present ? phone.value : this.phone,
+    onPulse: onPulse ?? this.onPulse,
+    ibanTail: ibanTail.present ? ibanTail.value : this.ibanTail,
+    createdAt: createdAt ?? this.createdAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  SplitMemberRow copyWithCompanion(SplitMembersCompanion data) {
+    return SplitMemberRow(
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      colorValue: data.colorValue.present
+          ? data.colorValue.value
+          : this.colorValue,
+      phone: data.phone.present ? data.phone.value : this.phone,
+      onPulse: data.onPulse.present ? data.onPulse.value : this.onPulse,
+      ibanTail: data.ibanTail.present ? data.ibanTail.value : this.ibanTail,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitMemberRow(')
+          ..write('groupId: $groupId, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('phone: $phone, ')
+          ..write('onPulse: $onPulse, ')
+          ..write('ibanTail: $ibanTail, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    groupId,
+    id,
+    name,
+    colorValue,
+    phone,
+    onPulse,
+    ibanTail,
+    createdAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitMemberRow &&
+          other.groupId == this.groupId &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.colorValue == this.colorValue &&
+          other.phone == this.phone &&
+          other.onPulse == this.onPulse &&
+          other.ibanTail == this.ibanTail &&
+          other.createdAt == this.createdAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class SplitMembersCompanion extends UpdateCompanion<SplitMemberRow> {
+  final Value<String> groupId;
+  final Value<String> id;
+  final Value<String> name;
+  final Value<int> colorValue;
+  final Value<String?> phone;
+  final Value<bool> onPulse;
+  final Value<String?> ibanTail;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const SplitMembersCompanion({
+    this.groupId = const Value.absent(),
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.colorValue = const Value.absent(),
+    this.phone = const Value.absent(),
+    this.onPulse = const Value.absent(),
+    this.ibanTail = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitMembersCompanion.insert({
+    required String groupId,
+    required String id,
+    required String name,
+    required int colorValue,
+    this.phone = const Value.absent(),
+    this.onPulse = const Value.absent(),
+    this.ibanTail = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : groupId = Value(groupId),
+       id = Value(id),
+       name = Value(name),
+       colorValue = Value(colorValue);
+  static Insertable<SplitMemberRow> custom({
+    Expression<String>? groupId,
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<int>? colorValue,
+    Expression<String>? phone,
+    Expression<bool>? onPulse,
+    Expression<String>? ibanTail,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (groupId != null) 'group_id': groupId,
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (colorValue != null) 'color_value': colorValue,
+      if (phone != null) 'phone': phone,
+      if (onPulse != null) 'on_pulse': onPulse,
+      if (ibanTail != null) 'iban_tail': ibanTail,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitMembersCompanion copyWith({
+    Value<String>? groupId,
+    Value<String>? id,
+    Value<String>? name,
+    Value<int>? colorValue,
+    Value<String?>? phone,
+    Value<bool>? onPulse,
+    Value<String?>? ibanTail,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return SplitMembersCompanion(
+      groupId: groupId ?? this.groupId,
+      id: id ?? this.id,
+      name: name ?? this.name,
+      colorValue: colorValue ?? this.colorValue,
+      phone: phone ?? this.phone,
+      onPulse: onPulse ?? this.onPulse,
+      ibanTail: ibanTail ?? this.ibanTail,
+      createdAt: createdAt ?? this.createdAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (colorValue.present) {
+      map['color_value'] = Variable<int>(colorValue.value);
+    }
+    if (phone.present) {
+      map['phone'] = Variable<String>(phone.value);
+    }
+    if (onPulse.present) {
+      map['on_pulse'] = Variable<bool>(onPulse.value);
+    }
+    if (ibanTail.present) {
+      map['iban_tail'] = Variable<String>(ibanTail.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitMembersCompanion(')
+          ..write('groupId: $groupId, ')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('colorValue: $colorValue, ')
+          ..write('phone: $phone, ')
+          ..write('onPulse: $onPulse, ')
+          ..write('ibanTail: $ibanTail, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitExpensesTable extends SplitExpenses
+    with TableInfo<$SplitExpensesTable, SplitExpenseRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitExpensesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _paidByMeta = const VerificationMeta('paidBy');
+  @override
+  late final GeneratedColumn<String> paidBy = GeneratedColumn<String>(
+    'paid_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _participantsMeta = const VerificationMeta(
+    'participants',
+  );
+  @override
+  late final GeneratedColumn<String> participants = GeneratedColumn<String>(
+    'participants',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sharesMeta = const VerificationMeta('shares');
+  @override
+  late final GeneratedColumn<String> shares = GeneratedColumn<String>(
+    'shares',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    groupId,
+    title,
+    paidBy,
+    amountMinor,
+    participants,
+    shares,
+    date,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_expenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitExpenseRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('paid_by')) {
+      context.handle(
+        _paidByMeta,
+        paidBy.isAcceptableOrUnknown(data['paid_by']!, _paidByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_paidByMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('participants')) {
+      context.handle(
+        _participantsMeta,
+        participants.isAcceptableOrUnknown(
+          data['participants']!,
+          _participantsMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_participantsMeta);
+    }
+    if (data.containsKey('shares')) {
+      context.handle(
+        _sharesMeta,
+        shares.isAcceptableOrUnknown(data['shares']!, _sharesMeta),
+      );
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitExpenseRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitExpenseRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      paidBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}paid_by'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      participants: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}participants'],
+      )!,
+      shares: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}shares'],
+      ),
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $SplitExpensesTable createAlias(String alias) {
+    return $SplitExpensesTable(attachedDatabase, alias);
+  }
+}
+
+class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
+  final String id;
+  final String groupId;
+  final String title;
+  final String paidBy;
+  final int amountMinor;
+
+  /// JSON list of member ids.
+  final String participants;
+
+  /// JSON map of member id to minor units; null for an equal split.
+  final String? shares;
+  final DateTime date;
+  final DateTime? syncedAt;
+  const SplitExpenseRow({
+    required this.id,
+    required this.groupId,
+    required this.title,
+    required this.paidBy,
+    required this.amountMinor,
+    required this.participants,
+    this.shares,
+    required this.date,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['group_id'] = Variable<String>(groupId);
+    map['title'] = Variable<String>(title);
+    map['paid_by'] = Variable<String>(paidBy);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['participants'] = Variable<String>(participants);
+    if (!nullToAbsent || shares != null) {
+      map['shares'] = Variable<String>(shares);
+    }
+    map['date'] = Variable<DateTime>(date);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  SplitExpensesCompanion toCompanion(bool nullToAbsent) {
+    return SplitExpensesCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      title: Value(title),
+      paidBy: Value(paidBy),
+      amountMinor: Value(amountMinor),
+      participants: Value(participants),
+      shares: shares == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shares),
+      date: Value(date),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory SplitExpenseRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitExpenseRow(
+      id: serializer.fromJson<String>(json['id']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      title: serializer.fromJson<String>(json['title']),
+      paidBy: serializer.fromJson<String>(json['paidBy']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      participants: serializer.fromJson<String>(json['participants']),
+      shares: serializer.fromJson<String?>(json['shares']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'groupId': serializer.toJson<String>(groupId),
+      'title': serializer.toJson<String>(title),
+      'paidBy': serializer.toJson<String>(paidBy),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'participants': serializer.toJson<String>(participants),
+      'shares': serializer.toJson<String?>(shares),
+      'date': serializer.toJson<DateTime>(date),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  SplitExpenseRow copyWith({
+    String? id,
+    String? groupId,
+    String? title,
+    String? paidBy,
+    int? amountMinor,
+    String? participants,
+    Value<String?> shares = const Value.absent(),
+    DateTime? date,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => SplitExpenseRow(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    title: title ?? this.title,
+    paidBy: paidBy ?? this.paidBy,
+    amountMinor: amountMinor ?? this.amountMinor,
+    participants: participants ?? this.participants,
+    shares: shares.present ? shares.value : this.shares,
+    date: date ?? this.date,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  SplitExpenseRow copyWithCompanion(SplitExpensesCompanion data) {
+    return SplitExpenseRow(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      title: data.title.present ? data.title.value : this.title,
+      paidBy: data.paidBy.present ? data.paidBy.value : this.paidBy,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      participants: data.participants.present
+          ? data.participants.value
+          : this.participants,
+      shares: data.shares.present ? data.shares.value : this.shares,
+      date: data.date.present ? data.date.value : this.date,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitExpenseRow(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('paidBy: $paidBy, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('participants: $participants, ')
+          ..write('shares: $shares, ')
+          ..write('date: $date, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    groupId,
+    title,
+    paidBy,
+    amountMinor,
+    participants,
+    shares,
+    date,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitExpenseRow &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.title == this.title &&
+          other.paidBy == this.paidBy &&
+          other.amountMinor == this.amountMinor &&
+          other.participants == this.participants &&
+          other.shares == this.shares &&
+          other.date == this.date &&
+          other.syncedAt == this.syncedAt);
+}
+
+class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
+  final Value<String> id;
+  final Value<String> groupId;
+  final Value<String> title;
+  final Value<String> paidBy;
+  final Value<int> amountMinor;
+  final Value<String> participants;
+  final Value<String?> shares;
+  final Value<DateTime> date;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const SplitExpensesCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.paidBy = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.participants = const Value.absent(),
+    this.shares = const Value.absent(),
+    this.date = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitExpensesCompanion.insert({
+    required String id,
+    required String groupId,
+    required String title,
+    required String paidBy,
+    required int amountMinor,
+    required String participants,
+    this.shares = const Value.absent(),
+    required DateTime date,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       groupId = Value(groupId),
+       title = Value(title),
+       paidBy = Value(paidBy),
+       amountMinor = Value(amountMinor),
+       participants = Value(participants),
+       date = Value(date);
+  static Insertable<SplitExpenseRow> custom({
+    Expression<String>? id,
+    Expression<String>? groupId,
+    Expression<String>? title,
+    Expression<String>? paidBy,
+    Expression<int>? amountMinor,
+    Expression<String>? participants,
+    Expression<String>? shares,
+    Expression<DateTime>? date,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (title != null) 'title': title,
+      if (paidBy != null) 'paid_by': paidBy,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (participants != null) 'participants': participants,
+      if (shares != null) 'shares': shares,
+      if (date != null) 'date': date,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitExpensesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? groupId,
+    Value<String>? title,
+    Value<String>? paidBy,
+    Value<int>? amountMinor,
+    Value<String>? participants,
+    Value<String?>? shares,
+    Value<DateTime>? date,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return SplitExpensesCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      title: title ?? this.title,
+      paidBy: paidBy ?? this.paidBy,
+      amountMinor: amountMinor ?? this.amountMinor,
+      participants: participants ?? this.participants,
+      shares: shares ?? this.shares,
+      date: date ?? this.date,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (paidBy.present) {
+      map['paid_by'] = Variable<String>(paidBy.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (participants.present) {
+      map['participants'] = Variable<String>(participants.value);
+    }
+    if (shares.present) {
+      map['shares'] = Variable<String>(shares.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitExpensesCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('paidBy: $paidBy, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('participants: $participants, ')
+          ..write('shares: $shares, ')
+          ..write('date: $date, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SplitSettlementsTable extends SplitSettlements
+    with TableInfo<$SplitSettlementsTable, SplitSettlementRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SplitSettlementsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _groupIdMeta = const VerificationMeta(
+    'groupId',
+  );
+  @override
+  late final GeneratedColumn<String> groupId = GeneratedColumn<String>(
+    'group_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fromMemberMeta = const VerificationMeta(
+    'fromMember',
+  );
+  @override
+  late final GeneratedColumn<String> fromMember = GeneratedColumn<String>(
+    'from_member',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _toMemberMeta = const VerificationMeta(
+    'toMember',
+  );
+  @override
+  late final GeneratedColumn<String> toMember = GeneratedColumn<String>(
+    'to_member',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('confirmed'),
+  );
+  static const VerificationMeta _methodMeta = const VerificationMeta('method');
+  @override
+  late final GeneratedColumn<String> method = GeneratedColumn<String>(
+    'method',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('aani'),
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    groupId,
+    fromMember,
+    toMember,
+    amountMinor,
+    date,
+    status,
+    method,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'split_settlements';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SplitSettlementRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(
+        _groupIdMeta,
+        groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('from_member')) {
+      context.handle(
+        _fromMemberMeta,
+        fromMember.isAcceptableOrUnknown(data['from_member']!, _fromMemberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fromMemberMeta);
+    }
+    if (data.containsKey('to_member')) {
+      context.handle(
+        _toMemberMeta,
+        toMember.isAcceptableOrUnknown(data['to_member']!, _toMemberMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_toMemberMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('method')) {
+      context.handle(
+        _methodMeta,
+        method.isAcceptableOrUnknown(data['method']!, _methodMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SplitSettlementRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SplitSettlementRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      groupId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}group_id'],
+      )!,
+      fromMember: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}from_member'],
+      )!,
+      toMember: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}to_member'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}date'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      method: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}method'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $SplitSettlementsTable createAlias(String alias) {
+    return $SplitSettlementsTable(attachedDatabase, alias);
+  }
+}
+
+class SplitSettlementRow extends DataClass
+    implements Insertable<SplitSettlementRow> {
+  final String id;
+  final String groupId;
+  final String fromMember;
+  final String toMember;
+  final int amountMinor;
+  final DateTime date;
+
+  /// awaitingConfirmation | confirmed
+  final String status;
+  final String method;
+  final DateTime? syncedAt;
+  const SplitSettlementRow({
+    required this.id,
+    required this.groupId,
+    required this.fromMember,
+    required this.toMember,
+    required this.amountMinor,
+    required this.date,
+    required this.status,
+    required this.method,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['group_id'] = Variable<String>(groupId);
+    map['from_member'] = Variable<String>(fromMember);
+    map['to_member'] = Variable<String>(toMember);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['date'] = Variable<DateTime>(date);
+    map['status'] = Variable<String>(status);
+    map['method'] = Variable<String>(method);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  SplitSettlementsCompanion toCompanion(bool nullToAbsent) {
+    return SplitSettlementsCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      fromMember: Value(fromMember),
+      toMember: Value(toMember),
+      amountMinor: Value(amountMinor),
+      date: Value(date),
+      status: Value(status),
+      method: Value(method),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory SplitSettlementRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SplitSettlementRow(
+      id: serializer.fromJson<String>(json['id']),
+      groupId: serializer.fromJson<String>(json['groupId']),
+      fromMember: serializer.fromJson<String>(json['fromMember']),
+      toMember: serializer.fromJson<String>(json['toMember']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      status: serializer.fromJson<String>(json['status']),
+      method: serializer.fromJson<String>(json['method']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'groupId': serializer.toJson<String>(groupId),
+      'fromMember': serializer.toJson<String>(fromMember),
+      'toMember': serializer.toJson<String>(toMember),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'date': serializer.toJson<DateTime>(date),
+      'status': serializer.toJson<String>(status),
+      'method': serializer.toJson<String>(method),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  SplitSettlementRow copyWith({
+    String? id,
+    String? groupId,
+    String? fromMember,
+    String? toMember,
+    int? amountMinor,
+    DateTime? date,
+    String? status,
+    String? method,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => SplitSettlementRow(
+    id: id ?? this.id,
+    groupId: groupId ?? this.groupId,
+    fromMember: fromMember ?? this.fromMember,
+    toMember: toMember ?? this.toMember,
+    amountMinor: amountMinor ?? this.amountMinor,
+    date: date ?? this.date,
+    status: status ?? this.status,
+    method: method ?? this.method,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  SplitSettlementRow copyWithCompanion(SplitSettlementsCompanion data) {
+    return SplitSettlementRow(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      fromMember: data.fromMember.present
+          ? data.fromMember.value
+          : this.fromMember,
+      toMember: data.toMember.present ? data.toMember.value : this.toMember,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      date: data.date.present ? data.date.value : this.date,
+      status: data.status.present ? data.status.value : this.status,
+      method: data.method.present ? data.method.value : this.method,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitSettlementRow(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('fromMember: $fromMember, ')
+          ..write('toMember: $toMember, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('date: $date, ')
+          ..write('status: $status, ')
+          ..write('method: $method, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    groupId,
+    fromMember,
+    toMember,
+    amountMinor,
+    date,
+    status,
+    method,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SplitSettlementRow &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.fromMember == this.fromMember &&
+          other.toMember == this.toMember &&
+          other.amountMinor == this.amountMinor &&
+          other.date == this.date &&
+          other.status == this.status &&
+          other.method == this.method &&
+          other.syncedAt == this.syncedAt);
+}
+
+class SplitSettlementsCompanion extends UpdateCompanion<SplitSettlementRow> {
+  final Value<String> id;
+  final Value<String> groupId;
+  final Value<String> fromMember;
+  final Value<String> toMember;
+  final Value<int> amountMinor;
+  final Value<DateTime> date;
+  final Value<String> status;
+  final Value<String> method;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const SplitSettlementsCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.fromMember = const Value.absent(),
+    this.toMember = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.date = const Value.absent(),
+    this.status = const Value.absent(),
+    this.method = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SplitSettlementsCompanion.insert({
+    required String id,
+    required String groupId,
+    required String fromMember,
+    required String toMember,
+    required int amountMinor,
+    required DateTime date,
+    this.status = const Value.absent(),
+    this.method = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       groupId = Value(groupId),
+       fromMember = Value(fromMember),
+       toMember = Value(toMember),
+       amountMinor = Value(amountMinor),
+       date = Value(date);
+  static Insertable<SplitSettlementRow> custom({
+    Expression<String>? id,
+    Expression<String>? groupId,
+    Expression<String>? fromMember,
+    Expression<String>? toMember,
+    Expression<int>? amountMinor,
+    Expression<DateTime>? date,
+    Expression<String>? status,
+    Expression<String>? method,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (fromMember != null) 'from_member': fromMember,
+      if (toMember != null) 'to_member': toMember,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (date != null) 'date': date,
+      if (status != null) 'status': status,
+      if (method != null) 'method': method,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SplitSettlementsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? groupId,
+    Value<String>? fromMember,
+    Value<String>? toMember,
+    Value<int>? amountMinor,
+    Value<DateTime>? date,
+    Value<String>? status,
+    Value<String>? method,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return SplitSettlementsCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      fromMember: fromMember ?? this.fromMember,
+      toMember: toMember ?? this.toMember,
+      amountMinor: amountMinor ?? this.amountMinor,
+      date: date ?? this.date,
+      status: status ?? this.status,
+      method: method ?? this.method,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<String>(groupId.value);
+    }
+    if (fromMember.present) {
+      map['from_member'] = Variable<String>(fromMember.value);
+    }
+    if (toMember.present) {
+      map['to_member'] = Variable<String>(toMember.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (method.present) {
+      map['method'] = Variable<String>(method.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SplitSettlementsCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('fromMember: $fromMember, ')
+          ..write('toMember: $toMember, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('date: $date, ')
+          ..write('status: $status, ')
+          ..write('method: $method, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -22615,6 +24714,12 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   late final $InvestingRulesTable investingRules = $InvestingRulesTable(this);
   late final $InvestingOccurrencesTable investingOccurrences =
       $InvestingOccurrencesTable(this);
+  late final $SplitGroupsTable splitGroups = $SplitGroupsTable(this);
+  late final $SplitMembersTable splitMembers = $SplitMembersTable(this);
+  late final $SplitExpensesTable splitExpenses = $SplitExpensesTable(this);
+  late final $SplitSettlementsTable splitSettlements = $SplitSettlementsTable(
+    this,
+  );
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -22668,6 +24773,10 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     investmentHoldings,
     investingRules,
     investingOccurrences,
+    splitGroups,
+    splitMembers,
+    splitExpenses,
+    splitSettlements,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -36532,6 +38641,1117 @@ typedef $$InvestingOccurrencesTableProcessedTableManager =
       InvestingOccurrenceRow,
       PrefetchHooks Function()
     >;
+typedef $$SplitGroupsTableCreateCompanionBuilder =
+    SplitGroupsCompanion Function({
+      required String id,
+      required String name,
+      Value<String> emoji,
+      Value<DateTime> createdAt,
+      Value<DateTime?> syncedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$SplitGroupsTableUpdateCompanionBuilder =
+    SplitGroupsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> emoji,
+      Value<DateTime> createdAt,
+      Value<DateTime?> syncedAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$SplitGroupsTableFilterComposer
+    extends Composer<_$PulseDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SplitGroupsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get emoji => $composableBuilder(
+    column: $table.emoji,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitGroupsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $SplitGroupsTable> {
+  $$SplitGroupsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get emoji =>
+      $composableBuilder(column: $table.emoji, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$SplitGroupsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $SplitGroupsTable,
+          SplitGroupRow,
+          $$SplitGroupsTableFilterComposer,
+          $$SplitGroupsTableOrderingComposer,
+          $$SplitGroupsTableAnnotationComposer,
+          $$SplitGroupsTableCreateCompanionBuilder,
+          $$SplitGroupsTableUpdateCompanionBuilder,
+          (
+            SplitGroupRow,
+            BaseReferences<_$PulseDatabase, $SplitGroupsTable, SplitGroupRow>,
+          ),
+          SplitGroupRow,
+          PrefetchHooks Function()
+        > {
+  $$SplitGroupsTableTableManager(_$PulseDatabase db, $SplitGroupsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitGroupsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitGroupsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitGroupsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> emoji = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitGroupsCompanion(
+                id: id,
+                name: name,
+                emoji: emoji,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                Value<String> emoji = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitGroupsCompanion.insert(
+                id: id,
+                name: name,
+                emoji: emoji,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SplitGroupsTable, SplitGroupRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $SplitGroupsTable,
+                    SplitGroupRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SplitGroupsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $SplitGroupsTable,
+      SplitGroupRow,
+      $$SplitGroupsTableFilterComposer,
+      $$SplitGroupsTableOrderingComposer,
+      $$SplitGroupsTableAnnotationComposer,
+      $$SplitGroupsTableCreateCompanionBuilder,
+      $$SplitGroupsTableUpdateCompanionBuilder,
+      (
+        SplitGroupRow,
+        BaseReferences<_$PulseDatabase, $SplitGroupsTable, SplitGroupRow>,
+      ),
+      SplitGroupRow,
+      PrefetchHooks Function()
+    >;
+typedef $$SplitMembersTableCreateCompanionBuilder =
+    SplitMembersCompanion Function({
+      required String groupId,
+      required String id,
+      required String name,
+      required int colorValue,
+      Value<String?> phone,
+      Value<bool> onPulse,
+      Value<String?> ibanTail,
+      Value<DateTime> createdAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$SplitMembersTableUpdateCompanionBuilder =
+    SplitMembersCompanion Function({
+      Value<String> groupId,
+      Value<String> id,
+      Value<String> name,
+      Value<int> colorValue,
+      Value<String?> phone,
+      Value<bool> onPulse,
+      Value<String?> ibanTail,
+      Value<DateTime> createdAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$SplitMembersTableFilterComposer
+    extends Composer<_$PulseDatabase, $SplitMembersTable> {
+  $$SplitMembersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get onPulse => $composableBuilder(
+    column: $table.onPulse,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ibanTail => $composableBuilder(
+    column: $table.ibanTail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SplitMembersTableOrderingComposer
+    extends Composer<_$PulseDatabase, $SplitMembersTable> {
+  $$SplitMembersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get phone => $composableBuilder(
+    column: $table.phone,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get onPulse => $composableBuilder(
+    column: $table.onPulse,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ibanTail => $composableBuilder(
+    column: $table.ibanTail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitMembersTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $SplitMembersTable> {
+  $$SplitMembersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get colorValue => $composableBuilder(
+    column: $table.colorValue,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get phone =>
+      $composableBuilder(column: $table.phone, builder: (column) => column);
+
+  GeneratedColumn<bool> get onPulse =>
+      $composableBuilder(column: $table.onPulse, builder: (column) => column);
+
+  GeneratedColumn<String> get ibanTail =>
+      $composableBuilder(column: $table.ibanTail, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$SplitMembersTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $SplitMembersTable,
+          SplitMemberRow,
+          $$SplitMembersTableFilterComposer,
+          $$SplitMembersTableOrderingComposer,
+          $$SplitMembersTableAnnotationComposer,
+          $$SplitMembersTableCreateCompanionBuilder,
+          $$SplitMembersTableUpdateCompanionBuilder,
+          (
+            SplitMemberRow,
+            BaseReferences<_$PulseDatabase, $SplitMembersTable, SplitMemberRow>,
+          ),
+          SplitMemberRow,
+          PrefetchHooks Function()
+        > {
+  $$SplitMembersTableTableManager(_$PulseDatabase db, $SplitMembersTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitMembersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> groupId = const Value.absent(),
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> colorValue = const Value.absent(),
+                Value<String?> phone = const Value.absent(),
+                Value<bool> onPulse = const Value.absent(),
+                Value<String?> ibanTail = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitMembersCompanion(
+                groupId: groupId,
+                id: id,
+                name: name,
+                colorValue: colorValue,
+                phone: phone,
+                onPulse: onPulse,
+                ibanTail: ibanTail,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String groupId,
+                required String id,
+                required String name,
+                required int colorValue,
+                Value<String?> phone = const Value.absent(),
+                Value<bool> onPulse = const Value.absent(),
+                Value<String?> ibanTail = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitMembersCompanion.insert(
+                groupId: groupId,
+                id: id,
+                name: name,
+                colorValue: colorValue,
+                phone: phone,
+                onPulse: onPulse,
+                ibanTail: ibanTail,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SplitMembersTable, SplitMemberRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $SplitMembersTable,
+                    SplitMemberRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SplitMembersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $SplitMembersTable,
+      SplitMemberRow,
+      $$SplitMembersTableFilterComposer,
+      $$SplitMembersTableOrderingComposer,
+      $$SplitMembersTableAnnotationComposer,
+      $$SplitMembersTableCreateCompanionBuilder,
+      $$SplitMembersTableUpdateCompanionBuilder,
+      (
+        SplitMemberRow,
+        BaseReferences<_$PulseDatabase, $SplitMembersTable, SplitMemberRow>,
+      ),
+      SplitMemberRow,
+      PrefetchHooks Function()
+    >;
+typedef $$SplitExpensesTableCreateCompanionBuilder =
+    SplitExpensesCompanion Function({
+      required String id,
+      required String groupId,
+      required String title,
+      required String paidBy,
+      required int amountMinor,
+      required String participants,
+      Value<String?> shares,
+      required DateTime date,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$SplitExpensesTableUpdateCompanionBuilder =
+    SplitExpensesCompanion Function({
+      Value<String> id,
+      Value<String> groupId,
+      Value<String> title,
+      Value<String> paidBy,
+      Value<int> amountMinor,
+      Value<String> participants,
+      Value<String?> shares,
+      Value<DateTime> date,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$SplitExpensesTableFilterComposer
+    extends Composer<_$PulseDatabase, $SplitExpensesTable> {
+  $$SplitExpensesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get paidBy => $composableBuilder(
+    column: $table.paidBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get participants => $composableBuilder(
+    column: $table.participants,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shares => $composableBuilder(
+    column: $table.shares,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SplitExpensesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $SplitExpensesTable> {
+  $$SplitExpensesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get paidBy => $composableBuilder(
+    column: $table.paidBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get participants => $composableBuilder(
+    column: $table.participants,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shares => $composableBuilder(
+    column: $table.shares,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitExpensesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $SplitExpensesTable> {
+  $$SplitExpensesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get paidBy =>
+      $composableBuilder(column: $table.paidBy, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get participants => $composableBuilder(
+    column: $table.participants,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get shares =>
+      $composableBuilder(column: $table.shares, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$SplitExpensesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $SplitExpensesTable,
+          SplitExpenseRow,
+          $$SplitExpensesTableFilterComposer,
+          $$SplitExpensesTableOrderingComposer,
+          $$SplitExpensesTableAnnotationComposer,
+          $$SplitExpensesTableCreateCompanionBuilder,
+          $$SplitExpensesTableUpdateCompanionBuilder,
+          (
+            SplitExpenseRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $SplitExpensesTable,
+              SplitExpenseRow
+            >,
+          ),
+          SplitExpenseRow,
+          PrefetchHooks Function()
+        > {
+  $$SplitExpensesTableTableManager(
+    _$PulseDatabase db,
+    $SplitExpensesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitExpensesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitExpensesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitExpensesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> paidBy = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> participants = const Value.absent(),
+                Value<String?> shares = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitExpensesCompanion(
+                id: id,
+                groupId: groupId,
+                title: title,
+                paidBy: paidBy,
+                amountMinor: amountMinor,
+                participants: participants,
+                shares: shares,
+                date: date,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String groupId,
+                required String title,
+                required String paidBy,
+                required int amountMinor,
+                required String participants,
+                Value<String?> shares = const Value.absent(),
+                required DateTime date,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitExpensesCompanion.insert(
+                id: id,
+                groupId: groupId,
+                title: title,
+                paidBy: paidBy,
+                amountMinor: amountMinor,
+                participants: participants,
+                shares: shares,
+                date: date,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SplitExpensesTable, SplitExpenseRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $SplitExpensesTable,
+                    SplitExpenseRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SplitExpensesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $SplitExpensesTable,
+      SplitExpenseRow,
+      $$SplitExpensesTableFilterComposer,
+      $$SplitExpensesTableOrderingComposer,
+      $$SplitExpensesTableAnnotationComposer,
+      $$SplitExpensesTableCreateCompanionBuilder,
+      $$SplitExpensesTableUpdateCompanionBuilder,
+      (
+        SplitExpenseRow,
+        BaseReferences<_$PulseDatabase, $SplitExpensesTable, SplitExpenseRow>,
+      ),
+      SplitExpenseRow,
+      PrefetchHooks Function()
+    >;
+typedef $$SplitSettlementsTableCreateCompanionBuilder =
+    SplitSettlementsCompanion Function({
+      required String id,
+      required String groupId,
+      required String fromMember,
+      required String toMember,
+      required int amountMinor,
+      required DateTime date,
+      Value<String> status,
+      Value<String> method,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$SplitSettlementsTableUpdateCompanionBuilder =
+    SplitSettlementsCompanion Function({
+      Value<String> id,
+      Value<String> groupId,
+      Value<String> fromMember,
+      Value<String> toMember,
+      Value<int> amountMinor,
+      Value<DateTime> date,
+      Value<String> status,
+      Value<String> method,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$SplitSettlementsTableFilterComposer
+    extends Composer<_$PulseDatabase, $SplitSettlementsTable> {
+  $$SplitSettlementsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fromMember => $composableBuilder(
+    column: $table.fromMember,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get toMember => $composableBuilder(
+    column: $table.toMember,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get method => $composableBuilder(
+    column: $table.method,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SplitSettlementsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $SplitSettlementsTable> {
+  $$SplitSettlementsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get groupId => $composableBuilder(
+    column: $table.groupId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fromMember => $composableBuilder(
+    column: $table.fromMember,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get toMember => $composableBuilder(
+    column: $table.toMember,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get method => $composableBuilder(
+    column: $table.method,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SplitSettlementsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $SplitSettlementsTable> {
+  $$SplitSettlementsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get groupId =>
+      $composableBuilder(column: $table.groupId, builder: (column) => column);
+
+  GeneratedColumn<String> get fromMember => $composableBuilder(
+    column: $table.fromMember,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get toMember =>
+      $composableBuilder(column: $table.toMember, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get method =>
+      $composableBuilder(column: $table.method, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$SplitSettlementsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $SplitSettlementsTable,
+          SplitSettlementRow,
+          $$SplitSettlementsTableFilterComposer,
+          $$SplitSettlementsTableOrderingComposer,
+          $$SplitSettlementsTableAnnotationComposer,
+          $$SplitSettlementsTableCreateCompanionBuilder,
+          $$SplitSettlementsTableUpdateCompanionBuilder,
+          (
+            SplitSettlementRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $SplitSettlementsTable,
+              SplitSettlementRow
+            >,
+          ),
+          SplitSettlementRow,
+          PrefetchHooks Function()
+        > {
+  $$SplitSettlementsTableTableManager(
+    _$PulseDatabase db,
+    $SplitSettlementsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SplitSettlementsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SplitSettlementsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SplitSettlementsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> groupId = const Value.absent(),
+                Value<String> fromMember = const Value.absent(),
+                Value<String> toMember = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<DateTime> date = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> method = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitSettlementsCompanion(
+                id: id,
+                groupId: groupId,
+                fromMember: fromMember,
+                toMember: toMember,
+                amountMinor: amountMinor,
+                date: date,
+                status: status,
+                method: method,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String groupId,
+                required String fromMember,
+                required String toMember,
+                required int amountMinor,
+                required DateTime date,
+                Value<String> status = const Value.absent(),
+                Value<String> method = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SplitSettlementsCompanion.insert(
+                id: id,
+                groupId: groupId,
+                fromMember: fromMember,
+                toMember: toMember,
+                amountMinor: amountMinor,
+                date: date,
+                status: status,
+                method: method,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$SplitSettlementsTable, SplitSettlementRow>(
+                    table,
+                  ),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $SplitSettlementsTable,
+                    SplitSettlementRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SplitSettlementsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $SplitSettlementsTable,
+      SplitSettlementRow,
+      $$SplitSettlementsTableFilterComposer,
+      $$SplitSettlementsTableOrderingComposer,
+      $$SplitSettlementsTableAnnotationComposer,
+      $$SplitSettlementsTableCreateCompanionBuilder,
+      $$SplitSettlementsTableUpdateCompanionBuilder,
+      (
+        SplitSettlementRow,
+        BaseReferences<
+          _$PulseDatabase,
+          $SplitSettlementsTable,
+          SplitSettlementRow
+        >,
+      ),
+      SplitSettlementRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -36608,4 +39828,12 @@ class $PulseDatabaseManager {
       $$InvestingRulesTableTableManager(_db, _db.investingRules);
   $$InvestingOccurrencesTableTableManager get investingOccurrences =>
       $$InvestingOccurrencesTableTableManager(_db, _db.investingOccurrences);
+  $$SplitGroupsTableTableManager get splitGroups =>
+      $$SplitGroupsTableTableManager(_db, _db.splitGroups);
+  $$SplitMembersTableTableManager get splitMembers =>
+      $$SplitMembersTableTableManager(_db, _db.splitMembers);
+  $$SplitExpensesTableTableManager get splitExpenses =>
+      $$SplitExpensesTableTableManager(_db, _db.splitExpenses);
+  $$SplitSettlementsTableTableManager get splitSettlements =>
+      $$SplitSettlementsTableTableManager(_db, _db.splitSettlements);
 }
