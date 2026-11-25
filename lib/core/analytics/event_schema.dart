@@ -245,6 +245,14 @@ abstract final class AnalyticsSchema {
     EventSpec('backup_passphrase_changed', 'Backup and sync', 'You change your backup passphrase.'),
     EventSpec('backup_cloud_deleted', 'Backup and sync', 'You delete your cloud backup.'),
     EventSpec('backup_disabled', 'Backup and sync', 'You turn backup off.'),
+    // ---- Beta feedback ----
+    EventSpec('bug_report_opened', 'Beta feedback', 'You open the bug report sheet. Nothing you write or capture is recorded.', props: {
+      'source': EnumProp('Shake or Settings', ['shake', 'settings']),
+    }),
+    EventSpec('bug_report_sent', 'Beta feedback', 'You send or share a bug report. Only how it was sent is recorded, never its content.', props: {
+      'method': EnumProp('Share sheet or issue tracker', ['local', 'issue']),
+    }),
+
     EventSpec('sync_enabled', 'Backup and sync', 'You turn on sync between your devices.'),
     EventSpec('sync_started', 'Backup and sync', 'A sync starts.', props: {'trigger': _trigger}),
     EventSpec('sync_completed', 'Backup and sync', 'A sync finishes.', props: {

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'bugreport/shake_host.dart';
 import 'core/learning/learning_controller.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -129,8 +130,9 @@ class _PulseAppState extends ConsumerState<PulseApp>
       themeMode: ref.watch(themeModeProvider),
       routerConfig: _router,
       scaffoldMessengerKey: AutoSettleHost.messengerKey,
-      builder: (context, child) =>
-          AutoSettleHost(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => ShakeHost(
+        child: AutoSettleHost(child: child ?? const SizedBox.shrink()),
+      ),
     );
   }
 }

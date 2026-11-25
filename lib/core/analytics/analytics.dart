@@ -158,6 +158,16 @@ class AnalyticsEvent {
   static const backupPassphraseChanged = AnalyticsEvent._('backup_passphrase_changed');
   static const backupCloudDeleted = AnalyticsEvent._('backup_cloud_deleted');
   static const backupDisabled = AnalyticsEvent._('backup_disabled');
+
+  // ---- Beta bug reports. Never carries the note, screenshot or log. ----
+
+  /// `source`: shake | settings.
+  factory AnalyticsEvent.bugReportOpened(String source) =>
+      AnalyticsEvent._('bug_report_opened', {'source': source});
+
+  /// `method`: local | issue.
+  factory AnalyticsEvent.bugReportSent(String method) =>
+      AnalyticsEvent._('bug_report_sent', {'method': method});
   // ---- Cross-device sync. Never carries rows, names, amounts or key
   // material; counts and times are bucketed. ----
   static const syncEnabled = AnalyticsEvent._('sync_enabled');
