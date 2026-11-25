@@ -246,7 +246,7 @@ class _Body extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '${(sum(kinds[i]) / totalAssets * 100).round()}%',
+                      totalAssets > 0 ? '${(sum(kinds[i]) / totalAssets * 100).round()}%' : '0%',
                       style: num(c.textSecondary),
                     ),
                     const SizedBox(width: Space.lg),

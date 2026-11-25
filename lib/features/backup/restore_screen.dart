@@ -276,6 +276,9 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
           children: [
             TextField(
               controller: _email,
+              onChanged: (_) {
+                if (_error != null) setState(() => _error = null);
+              },
               enabled: !_codeSent,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(

@@ -89,6 +89,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     controller: _email,
                     enabled: !_codeSent,
                     keyboardType: TextInputType.emailAddress,
+                    onChanged: (_) {
+                      if (_error != null) setState(() => _error = null);
+                    },
                     decoration: const InputDecoration(
                       hintText: 'Email address',
                       prefixIcon: Icon(Icons.mail_outline_rounded),
