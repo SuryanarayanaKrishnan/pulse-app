@@ -22,6 +22,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
 import '../cards/digit_widgets.dart';
+import '../../capture/providers.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
@@ -78,7 +79,10 @@ class SettingsScreen extends ConsumerWidget {
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: IconWell(Icons.workspace_premium_outlined, color: context.pc.accent),
+                leading: IconWell(
+                  Icons.workspace_premium_outlined,
+                  color: context.pc.accent,
+                ),
                 title: 'Pulse Plus',
                 subtitle: ref.watch(entitlementProvider).isPlus
                     ? 'On (test billing)'
@@ -93,7 +97,8 @@ class SettingsScreen extends ConsumerWidget {
             RowGroup(
               indent: ListRow.leadingInset,
               children: [
-                for (final d in ref.watch(dismissedDigitsProvider).toList()..sort())
+                for (final d
+                    in ref.watch(dismissedDigitsProvider).toList()..sort())
                   ListRow(
                     leading: const IconWell(Icons.undo_rounded),
                     title: 'Ask again about ••$d',
@@ -242,8 +247,15 @@ class SettingsScreen extends ConsumerWidget {
               else
                 ListRow(
                   leading: const IconWell(Icons.apple),
-                  title: 'Apple Pay Shortcut',
-                  subtitle: 'Capture every tap-to-pay instantly',
+                  title: 'iPhone capture setup',
+                  subtitle: ref
+                      .watch(captureProgressProvider)
+                      .maybeWhen(
+                        data: (d) =>
+                            '${d.length} of 4 working: Apple Pay, bank SMS, screenshots, shopping nudge',
+                        orElse: () =>
+                            'Apple Pay, bank SMS, screenshots, shopping nudge',
+                      ),
                   chevron: true,
                   onTap: () => context.push(Routes.applePaySetup),
                 ),
@@ -310,7 +322,9 @@ class SettingsScreen extends ConsumerWidget {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Walkthroughs will show again on each screen'),
+                      content: Text(
+                        'Walkthroughs will show again on each screen',
+                      ),
                     ),
                   );
                 },
