@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
+import '../../core/router/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/theme/tokens.dart';
@@ -56,7 +56,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
         title: const Text('Activity'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.pop(),
+          onPressed: () => context.popOrHome(),
         ),
         actions: [
           // Manual entry is intentionally a small overflow action.

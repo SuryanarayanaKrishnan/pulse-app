@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/router/router.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -16,7 +17,7 @@ import 'goal_widgets.dart';
 
 void _back(BuildContext context) {
   if (context.canPop()) {
-    context.pop();
+    context.popOrHome();
   } else {
     context.go('/wealth');
   }

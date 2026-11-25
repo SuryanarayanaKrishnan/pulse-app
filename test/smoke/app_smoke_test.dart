@@ -158,6 +158,7 @@ void main() {
       expect(tile, findsWidgets, reason: 'catalog entry for "$search"');
       await tester.tap(tile.last, warnIfMissed: false);
       await settle();
+      await tapText('Add with details');
       await tester.enterText(find.byType(TextField).first, last4);
       await settle();
       await tapText('Add card');

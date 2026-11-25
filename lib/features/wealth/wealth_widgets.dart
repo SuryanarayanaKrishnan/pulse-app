@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import '../../core/router/router.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -475,7 +476,7 @@ class FieldLabel extends StatelessWidget {
 /// Back, or to Wealth when there is nothing to go back to (a deep link).
 void leave(BuildContext context) {
   if (context.canPop()) {
-    context.pop();
+    context.popOrHome();
   } else {
     context.go('/wealth');
   }

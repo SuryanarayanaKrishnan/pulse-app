@@ -27,7 +27,7 @@ class GoalsScreen extends ConsumerWidget {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.wealth),
+          onPressed: () => context.popOrHome(Routes.wealth),
         ),
       ),
       body: ListView(
