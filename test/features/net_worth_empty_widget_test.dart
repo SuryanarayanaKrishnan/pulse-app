@@ -50,7 +50,9 @@ void main() {
     ]);
     expect(tester.takeException(), isNull);
     expect(find.text('Allocation'), findsOneWidget);
-    expect(find.text('0%'), findsWidgets);
+    // No 0% rows: with nothing to split there is a hint instead.
+    expect(find.text('0%'), findsNothing);
+    expect(find.textContaining('to see how your money is split'), findsOneWidget);
     expect(find.textContaining('NaN'), findsNothing);
     expect(find.textContaining('Infinity'), findsNothing);
   });
