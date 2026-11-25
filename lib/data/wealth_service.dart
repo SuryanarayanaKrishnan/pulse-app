@@ -1,4 +1,5 @@
 import '../core/engine/dates.dart';
+import '../core/engine/investing.dart';
 import '../core/engine/prices.dart';
 import '../core/engine/valuation.dart';
 import 'local/attachments.dart';
@@ -22,7 +23,7 @@ class FundView {
   final FundValue value;
 }
 
-enum UpcomingKind { document, sip }
+enum UpcomingKind { document, sip, buy }
 
 /// One line in the Wealth "upcoming" list.
 class UpcomingItem {
@@ -246,6 +247,22 @@ class WealthService {
         detail: 'SIP ${dueText(next, t)} · ${f.currency} ${_money(f.sipAmountMinor! / 100)}',
         date: next,
         // A regular debit, not something to worry about.
+        status: DueStatus.upcoming,
+      ));
+    }
+    // Stock and ETF buys planned by an investing rule. Fund SIPs are already
+    // listed above through the fund's own SIP fields.
+    for (final r in await investing?.rules() ?? const <InvestRule>[]) {
+      if (r.isFund) continue;
+      final next = nextDue(r, t);
+      if (next == null || next.daysSince(t) > sipWithinDays) continue;
+      final amount = '${r.currency} ${_money(r.amountMinor / 100)}';
+      out.add(UpcomingItem(
+        kind: UpcomingKind.buy,
+        refId: r.id,
+        title: 'Buy ${r.symbol}',
+        detail: '$amount ${dueText(next, t)}',
+        date: next,
         status: DueStatus.upcoming,
       ));
     }

@@ -9,8 +9,9 @@
 library;
 
 import 'dates.dart';
+import 'markets.dart';
 
-enum CaptureKind { goldBill, portfolio, unknown }
+enum CaptureKind { goldBill, portfolio, mutualFunds, unknown }
 
 /// A gold purchase read from a bill, or typed by hand.
 class GoldDraft {
@@ -95,13 +96,87 @@ class HoldingDraft {
   );
 }
 
+/// One mutual fund line read from a fund-app or statement screenshot (an
+/// Indian MF app, a CAS statement), or typed. The scheme is matched to the
+/// free AMFI data by name when it is saved.
+class FundDraft {
+  const FundDraft({
+    required this.name,
+    this.units,
+    this.nav,
+    this.invested,
+    this.current,
+    this.sipAmountMinor,
+    this.sipDay,
+    this.approximate = false,
+    this.note,
+  });
+
+  final String name;
+  final double? units, nav;
+
+  /// Rupees put in, and today's value, as printed.
+  final double? invested, current;
+  final int? sipAmountMinor, sipDay;
+  final bool approximate;
+  final String? note;
+
+  bool get hasSip => sipAmountMinor != null && sipAmountMinor! > 0;
+
+  /// Units held, or current value over NAV when only those were printed.
+  double? get unitsHeld {
+    if (units != null) return units;
+    if (current != null && nav != null && nav! > 0) return current! / nav!;
+    return null;
+  }
+
+  /// Average cost per unit from what was invested.
+  double? get avgCostNav {
+    final u = unitsHeld;
+    return invested != null && u != null && u > 0 ? invested! / u : null;
+  }
+
+  /// NAV as printed, or current value over units.
+  double? get navUsed {
+    if (nav != null) return nav;
+    final u = unitsHeld;
+    return current != null && u != null && u > 0 ? current! / u : null;
+  }
+
+  List<String> get missing => [if (unitsHeld == null) 'units'];
+
+  FundDraft copyWith({
+    String? name,
+    double? units,
+    double? nav,
+    bool? approximate,
+    bool clearSip = false,
+  }) => FundDraft(
+    name: name ?? this.name,
+    units: units ?? this.units,
+    nav: nav ?? this.nav,
+    invested: invested,
+    current: current,
+    sipAmountMinor: clearSip ? null : sipAmountMinor,
+    sipDay: clearSip ? null : sipDay,
+    approximate: approximate ?? this.approximate,
+    note: note,
+  );
+}
+
 class CaptureResult {
-  const CaptureResult(this.kind, {this.gold, this.holdings = const []});
+  const CaptureResult(
+    this.kind, {
+    this.gold,
+    this.holdings = const [],
+    this.funds = const [],
+  });
   final CaptureKind kind;
   final GoldDraft? gold;
   final List<HoldingDraft> holdings;
+  final List<FundDraft> funds;
 
-  bool get isEmpty => gold == null && holdings.isEmpty;
+  bool get isEmpty => gold == null && holdings.isEmpty && funds.isEmpty;
 }
 
 // ---- numbers ---------------------------------------------------------------
@@ -280,6 +355,9 @@ GoldDraft parseGoldBill(String text) {
 
 /// All-caps words that are not tickers.
 const _notTickers = {
+  'LTP',
+  'SIP',
+  'XIRR',
   'USD',
   'AED',
   'INR',
@@ -373,12 +451,25 @@ const _knownNames = {
 final _tickerRe = RegExp(
   r'(?<![A-Za-z0-9$])\$?([A-Z]{1,5}(?:[.\-][A-Z])?)(?![A-Za-z0-9])',
 );
+
+/// `RELIANCE.NS`, `EMAAR.DFM`, `NSE:TCS`: a ticker with its exchange, any length.
+final _exchangeTickerRe = RegExp(
+  r'(?<![A-Za-z0-9])(?:(?:NSE|BSE|DFM|ADX):[A-Z][A-Z0-9&\-]{0,14}|[A-Z][A-Z0-9&\-]{0,14}\.(?:NS|NSE|BO|BSE|DFM|ADX))(?![A-Za-z0-9])',
+  caseSensitive: false,
+);
+
+/// Indian broker apps list bare NSE names (RELIANCE, HDFCBANK).
+final _indianBareRe = RegExp(r'^[A-Z][A-Z&\-]{2,14}$');
+
+bool _hasRupees(String text) =>
+    text.contains('₹') ||
+    RegExp(r'\bINR\b|\bRs\.?\s?\d', caseSensitive: false).hasMatch(text);
 final _qtyRe = RegExp(
   r'(\d+(?:[.,]\d+)?)\s*(?:shares?|units?|qty|sh\b|x\b)',
   caseSensitive: false,
 );
 final _qtyLabelRe = RegExp(
-  r'(?:qty|quantity|shares|units)\s*[:\-]?\s*(\d+(?:[.,]\d+)?)',
+  r'(?:qty|quantity|shares|units)\.?\s*[:\-]?\s*(\d+(?:[.,]\d+)?)',
   caseSensitive: false,
 );
 
@@ -414,8 +505,9 @@ List<HoldingDraft> parsePortfolio(String text) {
       .toList();
   final starts = <int>[];
   final symbols = <String>[];
+  final indian = _hasRupees(text);
   for (var i = 0; i < lines.length; i++) {
-    final s = _tickerIn(lines[i]);
+    final s = _tickerIn(lines[i], indian: indian);
     if (s != null) {
       starts.add(i);
       symbols.add(s);
@@ -433,7 +525,9 @@ List<HoldingDraft> parsePortfolio(String text) {
   return out;
 }
 
-String? _tickerIn(String line) {
+String? _tickerIn(String line, {bool indian = false}) {
+  final ex = _exchangeTickerRe.firstMatch(line);
+  if (ex != null) return normaliseSymbol(ex[0]!);
   final lower = line.toLowerCase();
   for (final e in _knownNames.entries) {
     if (lower.contains(e.key)) return e.value;
@@ -446,8 +540,45 @@ String? _tickerIn(String line) {
     if (line.split(RegExp(r'\s+')).length > 9) continue;
     return t;
   }
+  if (indian) {
+    // "RELIANCE" or "HDFCBANK  Qty 10": a bare NSE name sitting first on the line.
+    final first = line.split(RegExp(r'\s+')).first.toUpperCase();
+    if (_indianBareRe.hasMatch(first) &&
+        !_notTickers.contains(first) &&
+        !_indianWords.contains(first)) {
+      return '$first.NS';
+    }
+  }
   return null;
 }
+
+const _indianWords = {
+  'LTP',
+  'QTY',
+  'HOLDINGS',
+  'POSITIONS',
+  'DAY',
+  'INVESTED',
+  'CURRENT',
+  'OVERALL',
+  'PROFIT',
+  'SIP',
+  'MUTUAL',
+  'FUNDS',
+  'PORTFOLIO',
+  'ZERODHA',
+  'GROWW',
+  'KITE',
+  'COIN',
+  'UPSTOX',
+  'ETMONEY',
+  'STOCKS',
+  'MARKET',
+  'TOTAL',
+  'GAINS',
+  'RETURNS',
+  'ORDERS',
+};
 
 HoldingDraft? _holdingFromBlock(String sym, String block) {
   final qty = _firstNum(_qtyLabelRe, block) ?? _firstNum(_qtyRe, block);
@@ -461,8 +592,10 @@ HoldingDraft? _holdingFromBlock(String sym, String block) {
       !(hasMoney && numbersIn(block).length >= 2))
     return null;
   final firstLine = block.split('\n').first;
+  final listing = listingOf(sym);
   final name = firstLine
-      .replaceAll(RegExp('\\\$?$sym'), '')
+      .replaceAll(RegExp(r'\$?' + RegExp.escape(listing.base)), '')
+      .replaceAll(RegExp(r'\.(?:NS|NSE|BO|BSE|DFM|ADX)\b|\b(?:NSE|BSE|DFM|ADX):', caseSensitive: false), '')
       .replaceAll(RegExp(r'[\d.,$%+\-]+'), '')
       .trim();
   var currency = 'USD';
@@ -470,6 +603,8 @@ HoldingDraft? _holdingFromBlock(String sym, String block) {
     currency = 'AED';
   if (block.contains('₹') || RegExp(r'\bINR\b').hasMatch(block))
     currency = 'INR';
+  // A listing knows its own currency (RELIANCE.NS is rupees, EMAAR.DFM dirhams).
+  if (listing.exchange != Exchange.us) currency = listing.currency;
   return HoldingDraft(
     symbol: sym,
     name: name.length >= 3 ? name : null,
@@ -494,16 +629,26 @@ CaptureKind classify(String text) {
   final hasWeight = _weightRe.hasMatch(text);
   if ((goldHits >= 2 && hasWeight) || (lower.contains('gold') && hasWeight))
     return CaptureKind.goldBill;
+  if (_looksLikeIndianFunds(text)) return CaptureKind.mutualFunds;
   if (parsePortfolio(text).isNotEmpty) return CaptureKind.portfolio;
   if (goldHits >= 1 && hasWeight) return CaptureKind.goldBill;
   return CaptureKind.unknown;
 }
+
+bool _looksLikeIndianFunds(String text) =>
+    _indiaFundSignal.allMatches(text).length >= 2 &&
+    parseMutualFunds(text).isNotEmpty;
 
 /// One call for the scan screen.
 CaptureResult parseCapture(String text) {
   switch (classify(text)) {
     case CaptureKind.goldBill:
       return CaptureResult(CaptureKind.goldBill, gold: parseGoldBill(text));
+    case CaptureKind.mutualFunds:
+      return CaptureResult(
+        CaptureKind.mutualFunds,
+        funds: parseMutualFunds(text),
+      );
     case CaptureKind.portfolio:
       return CaptureResult(
         CaptureKind.portfolio,
@@ -588,8 +733,12 @@ CaptureResult parseApproximate(String text, {CalDate? today}) {
   ).firstMatch(t);
   String? sym;
   double? qty;
+  // "10 shares of RELIANCE.NS", "1000 EMAAR.DFM", "NSE:TCS 5": exchange-qualified.
+  final exm = _exchangeTickerRe.firstMatch(t);
+  final typedSym = exm?[0];
+  if (exm != null) sym = normaliseSymbol(exm[0]!);
   for (final e in _knownNames.entries) {
-    if (lower.contains(e.key)) sym = e.value;
+    if (sym == null && lower.contains(e.key)) sym = e.value;
   }
   final tm = RegExp(r'(?:\bof\s+|\b)\$?([A-Z]{1,5})\b')
       .allMatches(t)
@@ -607,11 +756,11 @@ CaptureResult parseApproximate(String text, {CalDate? today}) {
         caseSensitive: false,
       ).firstMatch(t) ??
       RegExp(
-        '(\\d+(?:[.,]\\d+)?)\\s*(?:of\\s+)?\\\$?$sym',
+        '(\\d+(?:[.,]\\d+)?)\\s*(?:of\\s+)?\\\$?${RegExp.escape(typedSym ?? sym)}',
         caseSensitive: false,
       ).firstMatch(t) ??
       RegExp(
-        '$sym\\s*[x:]?\\s*(\\d+(?:[.,]\\d+)?)',
+        '${RegExp.escape(typedSym ?? sym)}\\s*[x:]?\\s*(\\d+(?:[.,]\\d+)?)',
         caseSensitive: false,
       ).firstMatch(t);
   if (qtyM != null) qty = parseLooseNumber(qtyM[1]!);
@@ -629,11 +778,143 @@ CaptureResult parseApproximate(String text, {CalDate? today}) {
     holdings: [
       HoldingDraft(
         symbol: sym,
+        currency: listingOf(sym).currency,
         quantity: qty,
         avgCost: avg,
         approximate: true,
         note: notes.isEmpty ? 'approximate' : notes.join(' · '),
       ),
     ],
+  );
+}
+
+// ---- Indian mutual funds ----------------------------------------------------------
+
+final _fundNameRe = RegExp(
+  r'\bfund\b|\bplan\b.*\b(?:growth|idcw)\b|\b(?:direct|regular)\b.*\bgrowth\b|\belss\b|\bnifty\b.*\bindex\b',
+  caseSensitive: false,
+);
+final _indiaFundSignal = RegExp(
+  r'\bdirect\b|\bregular\b|\bgrowth\b|\bidcw\b|\bfolio\b|\bsip\b|\belss\b|\bnav\b|₹|\brs\.?\s?\d|\bamfi\b|\bcams\b|\bkfintech\b',
+  caseSensitive: false,
+);
+final _nameTail = RegExp(
+  r'^(?:[-–]\s*)?(?:direct|regular|growth|plan|idcw|option|\(|-)',
+  caseSensitive: false,
+);
+
+/// A line that opens a fund block: mostly letters, names a fund, no money.
+bool _isFundNameLine(String l) {
+  if (l.length < 10) return false;
+  final digits = RegExp(r'\d').allMatches(l).length;
+  if (digits > 4) return false;
+  if (RegExp(r'^(?:invested|current|nav|units?|sip|returns?|xirr)\b', caseSensitive: false).hasMatch(l))
+    return false;
+  return _fundNameRe.hasMatch(l);
+}
+
+double? _moneyAfter(String block, RegExp label) {
+  final m = label.firstMatch(block);
+  if (m == null) return null;
+  final eol = block.indexOf('\n', m.end);
+  final rest = block.substring(m.end, eol < 0 ? block.length : eol);
+  var n = _numRe.firstMatch(rest);
+  if (n == null && eol >= 0) {
+    // The figure sits on the line below its label.
+    final next = block.substring(eol + 1);
+    final nl = next.indexOf('\n');
+    n = _numRe.firstMatch(nl < 0 ? next : next.substring(0, nl));
+  }
+  return n == null ? null : parseLooseNumber(n[0]!);
+}
+
+final _unitsRe = RegExp(r'\bunits?\b(?:\s*held)?\s*[:\-]?', caseSensitive: false);
+final _navRe = RegExp(r'\bnav\b', caseSensitive: false);
+final _investedRe = RegExp(r'\binvest(?:ed|ment)\b(?:\s*(?:amount|value))?\s*[:\-]?', caseSensitive: false);
+final _currentRe = RegExp(r'\b(?:current|market)\s*value\b\s*[:\-]?|\bcurrent\b\s*[:\-]?', caseSensitive: false);
+
+/// Reads Indian mutual fund lines (fund name, units, NAV, invested, current
+/// value, an active SIP) from an MF app or statement screenshot.
+List<FundDraft> parseMutualFunds(String text) {
+  final lines = text
+      .split(RegExp(r'[\r\n]+'))
+      .map((l) => l.trim())
+      .where((l) => l.isNotEmpty)
+      .toList();
+  final starts = <int>[];
+  for (var i = 0; i < lines.length; i++) {
+    if (!_isFundNameLine(lines[i])) continue;
+    // "Direct Plan - Growth" under a wrapped name belongs to the line above.
+    if (starts.isNotEmpty &&
+        starts.last == i - 1 &&
+        _nameTail.hasMatch(lines[i])) {
+      continue;
+    }
+    starts.add(i);
+  }
+  final out = <FundDraft>[];
+  for (var k = 0; k < starts.length; k++) {
+    final end = k + 1 < starts.length ? starts[k + 1] : lines.length;
+    var name = lines[starts[k]];
+    var bodyFrom = starts[k] + 1;
+    // A long name wraps: "... Fund -" then "Direct Plan - Growth".
+    while (bodyFrom < end &&
+        bodyFrom < starts[k] + 3 &&
+        _nameTail.hasMatch(lines[bodyFrom]) &&
+        !RegExp(r'\d{3}').hasMatch(lines[bodyFrom])) {
+      name = '$name ${lines[bodyFrom]}';
+      bodyFrom++;
+    }
+    name = name.replaceAll(RegExp(r'\s+'), ' ').replaceAll(RegExp(r'[\s\-–]+$'), '').trim();
+    final body = lines.sublist(bodyFrom, end).join('\n');
+    final d = _fundFromBlock(name, body);
+    if (d != null) out.add(d);
+  }
+  return out;
+}
+
+FundDraft? _fundFromBlock(String name, String body) {
+  var units = _firstNum(
+    RegExp(r'([\d,]+\.\d+|\d+)[ \t]*units?\b', caseSensitive: false),
+    body,
+  );
+  units ??= _moneyAfter(body, _unitsRe);
+  var nav = _moneyAfter(body, _navRe);
+  // NAV is printed with decimals; a date ("NAV as on 20 Nov") is not a NAV.
+  if (nav != null && nav > 5000) nav = null;
+  final invested = _moneyAfter(body, _investedRe);
+  final current = _moneyAfter(body, _currentRe);
+
+  int? sip;
+  int? sipDay;
+  final sm = RegExp(r'\bsip\b[^\n]*', caseSensitive: false).firstMatch(body);
+  if (sm != null) {
+    final line = sm[0]!;
+    final amounts = numbersIn(
+      line.replaceAll(RegExp(r'\d{1,2}(?:st|nd|rd|th)\b', caseSensitive: false), ''),
+    ).where((v) => v >= 100);
+    if (amounts.isNotEmpty) sip = _toMinor(amounts.first);
+    final dm = RegExp(r'(\d{1,2})(?:st|nd|rd|th)\b', caseSensitive: false).firstMatch(line);
+    if (dm != null) {
+      final v = int.parse(dm[1]!);
+      if (v >= 1 && v <= 31) sipDay = v;
+    }
+  }
+  if (units == null && current == null && invested == null && sip == null) {
+    return null;
+  }
+  final derived = nav == null && units != null && current != null;
+  return FundDraft(
+    name: name,
+    units: units,
+    nav: nav,
+    invested: invested,
+    current: current,
+    sipAmountMinor: sip,
+    sipDay: sipDay,
+    approximate: derived || units == null,
+    note: derived
+        ? 'NAV worked out from current value'
+        : (units == null ? 'units not read' : null),
   );
 }

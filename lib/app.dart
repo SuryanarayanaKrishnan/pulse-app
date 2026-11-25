@@ -96,7 +96,10 @@ class _PulseAppState extends ConsumerState<PulseApp>
     try {
       final svc = ref.read(wealthServiceProvider);
       await svc.rescheduleReminders();
+      final inv = ref.read(investingServiceProvider);
+      await inv.rescheduleBuyReminders();
       if (svc.prices.canFetch) {
+        await inv.refreshPrices();
         await svc.prices.refresh();
         await svc.refreshNavs();
       }
