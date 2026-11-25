@@ -241,6 +241,7 @@ class PaymentDetails extends StatelessWidget {
                   c.textSecondary,
                 ),
               ),
+            if (card.hasDueDate)
             ListRow(
               dense: true,
               title: 'Due',

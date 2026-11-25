@@ -271,7 +271,7 @@ class _UpcomingTile extends ConsumerWidget {
     if (cards == null) return const SizedBox.shrink();
     final dues = [
       for (final k in cards)
-        if (k.totalDue > 0) dueInfo(k),
+        if (k.totalDue > 0 && k.hasDueDate) dueInfo(k),
     ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
     if (dues.isEmpty) return const SizedBox.shrink();
     if (compact) {

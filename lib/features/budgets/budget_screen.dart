@@ -126,9 +126,19 @@ class _Body extends ConsumerWidget {
           HeroNumber(
             label: 'Spent this month',
             value: o.spent,
-            caption:
-                'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
-            footer: Column(
+            caption: o.planned == 0
+                ? 'No budget set yet · ${o.daysLeft} days left'
+                : 'of ${Money.aed(o.planned, decimals: false)} · ${o.daysLeft} days left',
+            // Without a budget there is nothing to be on track or over against.
+            footer: o.planned == 0
+                ? Padding(
+                    padding: const EdgeInsets.only(top: Space.md),
+                    child: Text(
+                      'Set an amount on a category to see how much is left.',
+                      style: context.tt.bodyMedium!.copyWith(color: c.textPrimary),
+                    ),
+                  )
+                : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Meter(value: o.progress, color: c.forProgress(o.progress)),

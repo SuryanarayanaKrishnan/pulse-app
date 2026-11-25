@@ -790,6 +790,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       limit: limit,
       balance: balance,
       dueDate: dueDate ?? DateTime(_clock().year + 1, _clock().month, 1),
+      hasDueDate: dueDate != null,
       minDue: 0,
       rewardsLabel: spec.isCashback ? 'Cashback this cycle' : 'Points this cycle',
       rewardPoints: spec.isCashback ? 0 : earnedUnits.round(),
@@ -947,7 +948,12 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         ..orderBy([(a) => OrderingTerm.asc(a.createdAt), (a) => OrderingTerm.asc(a.id)]))
       .get();
 
-  Future<int> _balance(AccountRow a) async => (a.balanceAnchorMinor ?? 0) + await _netSince(a);
+  /// Account balance in minor units. The Cash pot never goes below zero: money
+  /// spent in cash with no float entered is spending, not an overdrawn account.
+  Future<int> _balance(AccountRow a) async {
+    final raw = (a.balanceAnchorMinor ?? 0) + await _netSince(a);
+    return a.type == 'cash' && raw < 0 ? 0 : raw;
+  }
 
   static BankAccountKind _accountKind(AccountRow a) => switch (a.type) {
     'wallet' => BankAccountKind.wallet,
@@ -1068,6 +1074,38 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
+  Future<void> updateAsset(String id, {required String name, required double value}) async {
+    final label = name.trim();
+    if (label.isEmpty) throw const ApiException(message: 'Give it a name');
+    final minor = (value * 100).round();
+    if (id.startsWith('account:')) {
+      await (db.update(db.accounts)..where((a) => a.id.equals(id.substring(8)))).write(
+        AccountsCompanion(name: Value(label), balanceAnchorMinor: Value(minor), balanceAnchorAt: Value(_clock().toUtc())),
+      );
+      return;
+    }
+    final updated = await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(
+      LiabilitiesCompanion(name: Value(label), outstandingMinor: Value(minor)),
+    );
+    if (updated > 0) return;
+    await (db.update(db.assets)..where((a) => a.id.equals(id))).write(
+      AssetsCompanion(name: Value(label), manualValueMinor: Value(minor), valuedAt: Value(_clock().toUtc())),
+    );
+  }
+
+  @override
+  Future<void> deleteAsset(String id) async {
+    final now = Value(_clock().toUtc());
+    if (id.startsWith('account:')) {
+      await (db.update(db.accounts)..where((a) => a.id.equals(id.substring(8)))).write(AccountsCompanion(deletedAt: now));
+      return;
+    }
+    final updated = await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(LiabilitiesCompanion(deletedAt: now));
+    if (updated > 0) return;
+    await (db.update(db.assets)..where((a) => a.id.equals(id))).write(AssetsCompanion(deletedAt: now));
+  }
+
+  @override
   Future<List<Asset>> assets() async {
     final (assetRows, liabilityRows, accounts, cards) = await (
       (db.select(db.assets)..where((a) => a.deletedAt.isNull())).get(),
@@ -1077,14 +1115,17 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     ).wait;
     final out = <Asset>[];
     for (final a in accounts) {
-      out.add(Asset(id: 'account:${a.id}', name: _label(a), kind: AssetKind.cash, value: _aed(await _balance(a)), note: 'Account balance'));
+      final balance = await _balance(a);
+      // An empty Cash pot is just a place for cash expenses; it is not an asset yet.
+      if (a.type == 'cash' && balance <= 0) continue;
+      out.add(Asset(id: 'account:${a.id}', name: _label(a), kind: AssetKind.cash, value: _aed(balance), note: 'Account balance', editable: true));
     }
     for (final a in assetRows) {
-      out.add(Asset(id: a.id, name: a.name, kind: _assetKind(a.kind), value: _aed(a.manualValueMinor ?? a.costBasisMinor ?? 0)));
+      out.add(Asset(id: a.id, name: a.name, kind: _assetKind(a.kind), value: _aed(a.manualValueMinor ?? a.costBasisMinor ?? 0), editable: true));
     }
     if (wealth != null) out.addAll(await wealth!.assets());
     for (final l in liabilityRows) {
-      out.add(Asset(id: l.id, name: l.name, kind: AssetKind.liability, value: _aed(l.outstandingMinor), note: l.lender ?? ''));
+      out.add(Asset(id: l.id, name: l.name, kind: AssetKind.liability, value: _aed(l.outstandingMinor), note: l.lender ?? '', editable: true));
     }
     for (final c in cards) {
       final owed = await _owed(c.account);

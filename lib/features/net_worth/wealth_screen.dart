@@ -277,19 +277,32 @@ class _Body extends ConsumerWidget {
           RowGroup(
             children: [
               for (final a in byKind[k]!.where((a) => !_inSections(a)))
-                ListRow(
-                  key: Key('asset_${a.id}'),
-                  title: a.name,
-                  subtitle: _subtitle(joint, a),
-                  onTap: joint == null
-                      ? null
-                      : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name),
-                  trailing: Text(
-                    Money.aed(
-                      a.isLiability ? -a.value : a.value,
-                      decimals: false,
+                _swipeToDelete(
+                  context,
+                  ref,
+                  a,
+                  ListRow(
+                    key: Key('asset_${a.id}'),
+                    title: a.name,
+                    subtitle: _subtitle(joint, a),
+                    onTap: a.editable
+                        ? () => showEditAssetSheet(
+                            context,
+                            a,
+                            onOwnership: joint == null
+                                ? null
+                                : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name),
+                          )
+                        : (joint == null
+                              ? null
+                              : () => showOwnershipSheet(context, table: 'lines', id: a.id, title: a.name)),
+                    trailing: Text(
+                      Money.aed(
+                        a.isLiability ? -a.value : a.value,
+                        decimals: false,
+                      ),
+                      style: num(),
                     ),
-                    style: num(),
                   ),
                 ),
             ],
@@ -367,4 +380,23 @@ class _LiveValues extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Swipe left to delete a row the user typed in; priced holdings and cards
+/// are managed on their own screens and do not swipe.
+Widget _swipeToDelete(BuildContext context, WidgetRef ref, Asset a, Widget row) {
+  if (!a.editable) return row;
+  final c = context.pc;
+  return Dismissible(
+    key: Key('swipe_${a.id}'),
+    direction: DismissDirection.endToStart,
+    background: Container(
+      color: c.negative,
+      alignment: Alignment.centerRight,
+      padding: const EdgeInsets.only(right: Space.gutter),
+      child: const Icon(Icons.delete_outline_rounded, color: Colors.white),
+    ),
+    confirmDismiss: (_) => confirmDeleteAsset(context, ref, a),
+    child: row,
+  );
 }

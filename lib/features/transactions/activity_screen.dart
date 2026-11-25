@@ -136,6 +136,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                   if (_manualOnly && t.source.automatic) return false;
                   return q.isEmpty || t.merchant.toLowerCase().contains(q);
                 }).toList();
+                if (list.isEmpty) {
+                  // A brand-new ledger: welcome the user rather than blame a filter.
+                  return const EmptyState(
+                    icon: Icons.receipt_long_outlined,
+                    title: 'Your spending will show up here',
+                    message:
+                        'Card alerts, bank texts and statements land here on their own. '
+                        'Spent cash? Add it from the menu at the top.',
+                  );
+                }
                 if (f.isEmpty) {
                   return const EmptyState(
                     icon: Icons.search_rounded,

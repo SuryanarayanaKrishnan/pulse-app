@@ -428,3 +428,128 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     ),
   );
 }
+
+/// Edits or deletes something the user typed in: a manual asset, a loan or an
+/// account balance. [onOwnership] adds a "Who owns this" link for households.
+Future<void> showEditAssetSheet(BuildContext context, Asset asset, {VoidCallback? onOwnership}) =>
+    showPulseSheet<void>(context, builder: (_) => EditAssetSheet(asset, onOwnership: onOwnership));
+
+/// Asks before deleting [asset]; returns true when it was deleted.
+Future<bool> confirmDeleteAsset(BuildContext context, WidgetRef ref, Asset asset) async {
+  final sure = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text('Delete ${asset.name}?'),
+      content: Text(
+        asset.id.startsWith('account:')
+            ? 'It leaves your net worth. Its transactions stay in Activity.'
+            : 'It leaves your net worth.',
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
+        TextButton(key: const Key('confirm_delete_asset'), onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+      ],
+    ),
+  );
+  if (sure != true) return false;
+  try {
+    await ref.read(repositoryProvider).deleteAsset(asset.id);
+    ref.invalidate(assetsProvider);
+    ref.invalidate(netWorthProvider);
+    return true;
+  } on Object catch (e) {
+    if (context.mounted) _fail(context, e);
+    return false;
+  }
+}
+
+class EditAssetSheet extends ConsumerStatefulWidget {
+  const EditAssetSheet(this.asset, {super.key, this.onOwnership});
+  final Asset asset;
+  final VoidCallback? onOwnership;
+  @override
+  ConsumerState<EditAssetSheet> createState() => _EditAssetSheetState();
+}
+
+class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
+  late final _name = TextEditingController(text: widget.asset.name);
+  late final _value = TextEditingController(text: _plain(widget.asset.value));
+  bool _busy = false;
+
+  static String _plain(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+
+  @override
+  void dispose() {
+    _name.dispose();
+    _value.dispose();
+    super.dispose();
+  }
+
+  bool get _valid => _name.text.trim().isNotEmpty && _parseAmount(_value.text) != null;
+
+  Future<void> _save() async {
+    setState(() => _busy = true);
+    try {
+      await ref.read(repositoryProvider).updateAsset(widget.asset.id, name: _name.text.trim(), value: _parseAmount(_value.text)!);
+      ref.invalidate(assetsProvider);
+      ref.invalidate(netWorthProvider);
+      if (mounted) Navigator.of(context).pop();
+    } on Object catch (e) {
+      if (mounted) _fail(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    final navigator = Navigator.of(context);
+    if (await confirmDeleteAsset(context, ref, widget.asset)) navigator.pop();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isAccount = widget.asset.id.startsWith('account:');
+    final owed = widget.asset.isLiability;
+    return SheetScaffold(
+      title: 'Edit ${widget.asset.name}',
+      subtitle: isAccount ? 'Set today\'s balance; it moves with your transactions from here.' : 'Update the value whenever it changes.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const Key('edit_asset_name'),
+            controller: _name,
+            textCapitalization: TextCapitalization.sentences,
+            textInputAction: TextInputAction.next,
+            decoration: const InputDecoration(hintText: 'Name'),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: Space.md),
+          TextField(
+            key: const Key('edit_asset_value'),
+            controller: _value,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: InputDecoration(hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'), prefixText: 'AED  '),
+            onChanged: (_) => setState(() {}),
+          ),
+          const SizedBox(height: Space.xl),
+          PrimaryButton(key: const Key('edit_asset_save'), label: 'Save', loading: _busy, onPressed: _valid ? _save : null),
+          const SizedBox(height: Space.sm),
+          if (widget.onOwnership != null)
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onOwnership!();
+              },
+              child: const Text('Who owns this'),
+            ),
+          TextButton(
+            key: const Key('edit_asset_delete'),
+            onPressed: _delete,
+            child: Text('Delete', style: TextStyle(color: context.pc.negative)),
+          ),
+        ],
+      ),
+    );
+  }
+}

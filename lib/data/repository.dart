@@ -108,6 +108,13 @@ abstract class PulseRepository {
     required double value,
   });
 
+  /// Renames an [Asset] with `editable` set and sets its value (for an
+  /// account, its balance from now on).
+  Future<void> updateAsset(String id, {required String name, required double value});
+
+  /// Removes an [Asset] with `editable` set. An account's transactions stay.
+  Future<void> deleteAsset(String id);
+
   /// How many past transactions [rule] would match, and how many of those
   /// it would change. Null when the repository cannot say.
   Future<RulePreviewSummary?> previewRule(AutomationRule rule);
@@ -252,6 +259,13 @@ mixin LocalOnlyFeatures implements PulseRepository {
     required AssetKind kind,
     required double value,
   }) => _unsupported('Adding assets');
+
+  @override
+  Future<void> updateAsset(String id, {required String name, required double value}) =>
+      _unsupported('Editing assets');
+
+  @override
+  Future<void> deleteAsset(String id) => _unsupported('Deleting assets');
 
   @override
   Future<RulePreviewSummary?> previewRule(AutomationRule rule) async => null;
