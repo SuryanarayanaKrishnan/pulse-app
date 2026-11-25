@@ -28,6 +28,7 @@ import 'local/encrypted_attachments.dart';
 import 'local/price_service.dart';
 import 'local/reminders.dart';
 import '../core/engine/investing.dart' show InvestRule, RuleOccurrence;
+import 'http_relay.dart';
 import 'investing_service.dart';
 import 'local/investing_store.dart';
 import 'local/ocr_service.dart';
@@ -464,10 +465,12 @@ final vaultStoreProvider = Provider<VaultStore>((ref) {
   return LocalVaultStore(db);
 });
 
-/// The server half of automatic release does not exist yet; swap this for a
-/// real implementation when it does (docs/VAULT.md).
+/// Automatic release goes through the Pulse backend when `API_BASE_URL` is set;
+/// otherwise nothing is released automatically (docs/VAULT.md).
 final inactivityRelayProvider = Provider<InactivityRelay>(
-  (ref) => const UnavailableInactivityRelay(),
+  (ref) => Env.useApi
+      ? HttpInactivityRelay(ref.watch(dioProvider))
+      : const UnavailableInactivityRelay(),
 );
 
 final vaultServiceProvider = Provider<VaultService>(
@@ -475,6 +478,7 @@ final vaultServiceProvider = Provider<VaultService>(
     store: ref.watch(vaultStoreProvider),
     storage: ref.watch(vaultAttachmentStorageProvider),
     relay: ref.watch(inactivityRelayProvider),
+    reminders: ref.watch(remindersProvider),
     analytics: ref.watch(analyticsProvider),
     sources: () async {
       final repo = ref.read(repositoryProvider);

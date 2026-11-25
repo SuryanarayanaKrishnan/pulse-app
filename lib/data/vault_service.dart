@@ -4,6 +4,7 @@ import 'dart:typed_data';
 
 import '../core/analytics/analytics.dart';
 import '../core/engine/investing.dart';
+import '../core/engine/valuation.dart' show notificationIdFor;
 import '../core/vault/emergency_sheet.dart';
 import '../core/vault/input_guard.dart';
 import '../core/vault/release.dart';
@@ -11,6 +12,7 @@ import '../core/vault/suggestions.dart';
 import '../core/vault/vault_models.dart';
 import 'local/attachments.dart';
 import 'local/ids.dart';
+import 'local/reminders.dart';
 import 'local/vault_store.dart';
 import 'models.dart';
 import 'wealth_models.dart';
@@ -185,6 +187,7 @@ class VaultService {
     required this.storage,
     required this.relay,
     required this.sources,
+    this.reminders,
     this.analytics,
     DateTime Function()? clock,
     this.random,
@@ -193,6 +196,10 @@ class VaultService {
   final VaultStore store;
   final AttachmentStorage storage;
   final InactivityRelay relay;
+
+  /// Phone notifications that warn the owner before a release. Local only:
+  /// they work with no push service.
+  final Reminders? reminders;
   final Future<VaultSourceData> Function() sources;
   final Analytics? analytics;
   final DateTime Function() _clock;
@@ -332,7 +339,14 @@ class VaultService {
 
   Future<void> setIntervalDays(int days) async {
     await store.putSetting(_kInterval, '$days');
-    await relay.setInterval(days);
+    await scheduleOwnerWarnings();
+    try {
+      await relay.setInterval(days);
+    } on Object {
+      // Offline: the next check-in's server call carries on with the old
+      // interval until this is changed again; the local timer already follows
+      // the new one.
+    }
   }
 
   Future<DateTime?> lastCheckIn() async =>
@@ -342,7 +356,47 @@ class VaultService {
   Future<void> checkIn() async {
     final now = _clock().toUtc();
     await store.putSetting(_kLastCheckIn, now.toIso8601String());
+    // Local warnings first: they must not depend on the network.
+    await scheduleOwnerWarnings();
     await relay.heartbeat(now);
+  }
+
+  /// Local warnings that a file will be shared soon, rescheduled on every
+  /// check-in (opening the app pushes them out again). Needs a sealed file to
+  /// exist; one 14 days before the release date and one the day before.
+  Future<void> scheduleOwnerWarnings() async {
+    final r = reminders;
+    if (r == null) return;
+    final soon = notificationIdFor('vault-release:soon');
+    final last = notificationIdFor('vault-release:last');
+    await r.cancel(soon);
+    await r.cancel(last);
+    var sealed = false;
+    for (final n in await store.nominees()) {
+      if (await kitCreatedAt(n.id) != null) sealed = true;
+    }
+    if (!sealed) return;
+    final st = await status();
+    final now = _clock();
+    final heads = st.releaseAt.subtract(const Duration(days: reminderWindowDays));
+    final eve = st.releaseAt.subtract(const Duration(days: 1));
+    if (heads.isAfter(now)) {
+      await r.schedule(
+        id: soon,
+        title: 'Open Pulse to keep your family vault private',
+        body:
+            'Your vault will be shared with a trusted person in $reminderWindowDays days unless you open Pulse.',
+        at: heads,
+      );
+    }
+    if (eve.isAfter(now)) {
+      await r.schedule(
+        id: last,
+        title: 'Your family vault is shared tomorrow',
+        body: 'Open Pulse today to keep it private.',
+        at: eve,
+      );
+    }
   }
 
   Future<CheckInStatus> status() async {
@@ -382,15 +436,26 @@ class VaultService {
       _kKit(nominee.id),
       kit.createdAt.toUtc().toIso8601String(),
     );
-    await relay.arm(
-      nomineeId: nominee.id,
-      sealedFile: kit.sealedFile,
-      claimCodeHash: kit.claimCodeHash,
-      intervalDays: await intervalDays(),
-      now: _clock().toUtc(),
-    );
+    var armed = false;
+    try {
+      await relay.arm(
+        nomineeId: nominee.id,
+        sealedFile: kit.sealedFile,
+        claimCodeHash: kit.claimCodeHash,
+        intervalDays: await intervalDays(),
+        now: _clock().toUtc(),
+      );
+      armed = relay.isAvailable;
+    } on Object {
+      armed = false; // offline or server down: the owner hands the file over
+    }
     noteExported('sealed');
-    return kit;
+    try {
+      await scheduleOwnerWarnings();
+    } on Object {
+      // Notifications are a courtesy; sealing must not fail because of them.
+    }
+    return kit.withRelayArmed(armed);
   }
 
   Future<DateTime?> kitCreatedAt(String nomineeId) async =>

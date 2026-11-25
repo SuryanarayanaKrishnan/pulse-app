@@ -416,15 +416,18 @@ class _KitSheetState extends ConsumerState<KitSheet> {
                   style: context.tt.bodySmall,
                 ),
               ),
-            if (!relay.isAvailable)
-              Padding(
-                padding: const EdgeInsets.only(top: Space.md),
-                child: Text(
-                  'Automatic release after a long silence needs a service that is not switched on yet, so hand the file over yourself for now.',
-                  key: const Key('kit_relay_note'),
-                  style: context.tt.bodySmall,
-                ),
+            Padding(
+              padding: const EdgeInsets.only(top: Space.md),
+              child: Text(
+                kit.relayArmed
+                    ? 'Automatic release is on. If you do not open Pulse for a long while, ${n.name} can ask for the file with the release code. They wait 3 days first, you are warned, and opening Pulse stops it.'
+                    : relay.isAvailable
+                    ? 'Pulse could not reach its server just now, so automatic release is not on for this file. Hand it over yourself, or seal it again when you are online.'
+                    : 'Automatic release after a long silence needs a service that is not switched on yet, so hand the file over yourself for now.',
+                key: const Key('kit_relay_note'),
+                style: context.tt.bodySmall,
               ),
+            ),
           ],
         ],
       ),

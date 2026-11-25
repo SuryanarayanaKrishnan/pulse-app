@@ -75,8 +75,25 @@ class ReleaseKit {
     required this.createdAt,
     this.papersIncluded = 0,
     this.papersLeftOut = 0,
+    this.relayArmed = false,
   });
   final String nomineeId;
+
+  /// True when the relay accepted the file, so release happens on its own.
+  final bool relayArmed;
+
+  ReleaseKit withRelayArmed(bool armed) => ReleaseKit(
+    nomineeId: nomineeId,
+    ownerShare: ownerShare,
+    nomineeShare: nomineeShare,
+    escrowShare: escrowShare,
+    claimCode: claimCode,
+    sealedFile: sealedFile,
+    createdAt: createdAt,
+    papersIncluded: papersIncluded,
+    papersLeftOut: papersLeftOut,
+    relayArmed: armed,
+  );
 
   /// Photos and PDFs sealed into the file, and how many did not fit.
   final int papersIncluded, papersLeftOut;
@@ -309,13 +326,20 @@ class ClaimReleased extends ClaimResult {
   final String sealedFile;
 }
 
+/// The owner has been silent and the code is right, but a waiting period
+/// (during which the owner is warned and can cancel) has not ended yet.
+class ClaimPending extends ClaimResult {
+  const ClaimPending(this.releaseAt);
+  final DateTime releaseAt;
+}
+
 class ClaimUnavailable extends ClaimResult {
   const ClaimUnavailable();
 }
 
 /// What a server must do for automatic release. It only ever sees ciphertext
-/// and a hash of the claim code. NOT IMPLEMENTED against a real service: see
-/// docs/VAULT.md. [InMemoryInactivityRelay] is the fake used by tests.
+/// and a hash of the claim code. [HttpInactivityRelay] talks to the Pulse
+/// backend; [InMemoryInactivityRelay] is the fake used by tests.
 abstract class InactivityRelay {
   /// False for the production stub: nothing will be released automatically.
   bool get isAvailable;
@@ -378,6 +402,7 @@ class InMemoryInactivityRelay implements InactivityRelay {
   final int maxWrongCodes;
 
   final _armed = <String, _Armed>{};
+  int _wrong = 0;
   DateTime? _lastHeartbeat;
   int _interval = defaultCheckInDays;
 
@@ -421,12 +446,18 @@ class InMemoryInactivityRelay implements InactivityRelay {
     required String claimCode,
     required DateTime now,
   }) async {
-    final a = _armed[nomineeId];
-    if (a == null) return const ClaimWrongCode();
-    if (a.wrong >= maxWrongCodes) return const ClaimWrongCode(locked: true);
-    if (a.hash != hashClaimCode(claimCode)) {
-      a.wrong++;
-      return ClaimWrongCode(locked: a.wrong >= maxWrongCodes);
+    // Like the real server: the code alone identifies the file; [nomineeId]
+    // is ignored because a nominee only has the code. Wrong guesses are
+    // throttled across the board.
+    if (_wrong >= maxWrongCodes) return const ClaimWrongCode(locked: true);
+    final hash = hashClaimCode(claimCode);
+    _Armed? a;
+    for (final x in _armed.values) {
+      if (x.hash == hash) a = x;
+    }
+    if (a == null) {
+      _wrong++;
+      return ClaimWrongCode(locked: _wrong >= maxWrongCodes);
     }
     final st = checkInStatus(
       lastCheckIn: _lastHeartbeat!,
@@ -441,5 +472,4 @@ class InMemoryInactivityRelay implements InactivityRelay {
 class _Armed {
   _Armed(this.sealedFile, this.hash);
   final String sealedFile, hash;
-  int wrong = 0;
 }
