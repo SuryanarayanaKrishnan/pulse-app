@@ -14,6 +14,7 @@ import 'core/analytics/gated_analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
+import 'core/packs/content_packs.dart';
 import 'core/remote_config/remote_config.dart';
 import 'data/local/catalog_service.dart';
 import 'backup/background.dart';
@@ -55,7 +56,13 @@ Future<void> main() async {
     publicKeyB64: Env.configPublicKey,
   );
   await remoteConfig.load();
-  unawaited(remoteConfig.refresh());
+  final packs = ContentPackService(
+    kv: SharedPrefsKvStore(),
+    config: remoteConfig,
+    dio: Env.useApi ? buildApiClient() : null,
+  );
+  await packs.load(const ['tips', 'walkthrough', 'parser_rules']);
+  unawaited(remoteConfig.refresh().then((_) => packs.refresh()));
 
   // The ledger lives in an encrypted database on this phone. Without it the
   // app must not pretend to work, so a failure stops here.
@@ -83,6 +90,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         remoteConfigProvider.overrideWithValue(remoteConfig),
+        contentPacksProvider.overrideWithValue(packs),
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),

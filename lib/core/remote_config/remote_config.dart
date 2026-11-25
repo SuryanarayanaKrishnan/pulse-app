@@ -154,6 +154,27 @@ class RemoteConfigService {
     }
   }
 
+  /// Checks a `{payload, signature, public_key}` envelope from the backend
+  /// and returns its payload, or null when the signature is missing or wrong.
+  /// Key order: one baked into the build, else the one pinned on first
+  /// contact (trust on first use), else - first fetch only - the key the
+  /// server sent, which is then pinned if the signature matches it.
+  Future<Map<String, Object?>?> verifyEnvelope(Map<String, Object?> data) async {
+    final payload = Map<String, Object?>.from(data['payload'] as Map);
+    final sig = data['signature'] as String?;
+    final pinned = await kv.read(_pinKey);
+    final key = publicKeyB64.isNotEmpty ? publicKeyB64 : (pinned ?? '');
+    final offered = data['public_key'] as String?;
+    final candidate = key.isNotEmpty ? key : (offered ?? '');
+    if (candidate.isNotEmpty) {
+      if (sig == null || !await verifyConfigSignature(payload: payload, signatureB64: sig, publicKeyB64: candidate)) {
+        return null;
+      }
+      if (key.isEmpty) await kv.write(_pinKey, candidate);
+    }
+    return payload;
+  }
+
   /// Fetches a newer signed config. True when one was applied.
   Future<bool> refresh() async {
     final client = dio;
@@ -162,21 +183,8 @@ class RemoteConfigService {
       final res = await client.get<Object?>(path);
       final data = res.data;
       if (data is! Map) return false;
-      final payload = Map<String, Object?>.from(data['payload'] as Map);
-      final sig = data['signature'] as String?;
-      // Key order: one baked into the build, else the one pinned on first
-      // contact (trust on first use), else - first fetch only - the key the
-      // server sent, which is then pinned if the signature matches it.
-      final pinned = await kv.read(_pinKey);
-      final key = publicKeyB64.isNotEmpty ? publicKeyB64 : (pinned ?? '');
-      final offered = data['public_key'] as String?;
-      final candidate = key.isNotEmpty ? key : (offered ?? '');
-      if (candidate.isNotEmpty) {
-        if (sig == null || !await verifyConfigSignature(payload: payload, signatureB64: sig, publicKeyB64: candidate)) {
-          return false;
-        }
-        if (key.isEmpty) await kv.write(_pinKey, candidate);
-      }
+      final payload = await verifyEnvelope(Map<String, Object?>.from(data));
+      if (payload == null) return false;
       final next = RemoteConfig.fromJson(payload);
       if (next.version <= _config.version) return false;
       await kv.write(_cacheKey, jsonEncode(payload));
