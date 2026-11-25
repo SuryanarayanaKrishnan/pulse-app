@@ -25,6 +25,7 @@ The app is **on-device first**: with no defines at all it runs on its own encryp
 | `APPLE_SHORTCUT_URL` | Shared iCloud link of the "Transaction" Shortcut (iOS guide) | placeholder |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | Supabase auth (email OTP, JWT for API calls). Skipped if absent | none |
 | `POSTHOG_API_KEY`, `POSTHOG_HOST` | Product analytics. No-op if key absent | none, EU host |
+| `DEV_AUTH=true` | Local debug builds only: get a backend token from `/v1/dev/token` (docs/LOCAL_DEV.md) | false |
 | `DEV_SKIP_ONBOARDING=true` | Jump straight to the tabs (dev/screenshots) | false |
 
 Checks: `flutter analyze`, `flutter test`, smoke build `flutter build web --release --no-web-resources-cdn --dart-define=DEMO_DATA=true` (the web build only runs demo data: `lib/data/local/open.dart` swaps in a stub for the native encrypted database). Screenshots: serve `build/web` and drive it with Playwright at 390x844, scale 2, `colorScheme` dark and light.

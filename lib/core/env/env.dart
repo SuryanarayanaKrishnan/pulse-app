@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 /// Build-time configuration via `--dart-define`.
 class Env {
   const Env._();
@@ -20,6 +22,14 @@ class Env {
 
   /// Dev convenience: skip onboarding, sign-in and connect steps.
   static const devSkipOnboarding = bool.fromEnvironment('DEV_SKIP_ONBOARDING');
+
+  /// Local dev only: fetch a token from the local backend's `POST /v1/dev/token`
+  /// (needs ALLOW_DEV_AUTH=true there). Ignored in release builds; see
+  /// [devAuthEnabled]. `--dart-define=DEV_AUTH=true`.
+  static const devAuth = bool.fromEnvironment('DEV_AUTH');
+
+  /// [devAuth], but never in a release build.
+  static bool get devAuthEnabled => devAuth && !kReleaseMode && useApi;
 
   /// Placeholder public iCloud link of the shared "Transaction" Shortcut.
   /// Replace once the Shortcut is published.

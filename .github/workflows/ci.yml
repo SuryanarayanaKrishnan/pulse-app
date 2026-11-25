@@ -68,6 +68,16 @@ jobs:
 
       - run: flutter pub get
 
+      # The repo default heap (android/gradle.properties) is sized for 8 GB dev PCs; the 7 GB runner keeps
+      # the larger heaps this build was proven with. User-level properties override the project's.
+      - name: Gradle heap for CI
+        run: |
+          mkdir -p ~/.gradle
+          {
+            echo 'org.gradle.jvmargs=-Xmx3G -XX:MaxMetaspaceSize=1G -XX:ReservedCodeCacheSize=256m -XX:+HeapDumpOnOutOfMemoryError'
+            echo 'kotlin.daemon.jvmargs=-Xmx1536m'
+          } >> ~/.gradle/gradle.properties
+
       # Compiles the Kotlin capture code (SMS receiver, notification listener).
       # The release build is signed with the debug keystore (android/app/build.gradle.kts),
       # so the APK installs directly on a phone with "install unknown apps" allowed.
