@@ -267,6 +267,16 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
   final _merchant = TextEditingController();
   final _amount = TextEditingController();
   SpendCategory _cat = SpendCategory.dining;
+  bool _busy = false;
+
+  /// One-tap categories for everyday cash spending; "More" opens the full list.
+  static const _quick = [
+    SpendCategory.dining,
+    SpendCategory.groceries,
+    SpendCategory.transport,
+    SpendCategory.shopping,
+    SpendCategory.health,
+  ];
 
   @override
   void dispose() {
@@ -275,69 +285,79 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
     super.dispose();
   }
 
+  double? get _parsed {
+    final a = double.tryParse(_amount.text.trim().replaceAll(',', ''));
+    return (a == null || a <= 0 || !a.isFinite) ? null : a;
+  }
+
   Future<void> _save() async {
-    final amt = double.tryParse(_amount.text.replaceAll(',', ''));
-    if (amt == null || amt <= 0 || _merchant.text.trim().isEmpty) return;
-    await ref
-        .read(repositoryProvider)
-        .addManualTransaction(
-          merchant: _merchant.text.trim(),
-          amount: amt,
-          category: _cat,
-        );
-    ref
-        .read(analyticsProvider)
-        .track(AnalyticsEvent.manualTransactionAdded(category: _cat.name));
-    invalidateLedger(ref);
-    if (mounted) Navigator.of(context).pop();
+    final amt = _parsed;
+    if (amt == null || _busy) return;
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(repositoryProvider)
+          .addManualTransaction(
+            // The note is optional: the category names the expense.
+            merchant: _merchant.text.trim().isEmpty ? _cat.label : _merchant.text.trim(),
+            amount: amt,
+            category: _cat,
+          );
+      ref.read(analyticsProvider).track(AnalyticsEvent.manualTransactionAdded(category: _cat.name));
+      invalidateLedger(ref);
+      if (mounted) Navigator.of(context).pop();
+    } on Object {
+      if (mounted) {
+        setState(() => _busy = false);
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save that expense. Try again.')));
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context) => SheetScaffold(
-    title: 'Add a cash expense',
-    subtitle:
-        'Most spending is captured automatically. Use this only for cash or '
-        'things we could not see.',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        TextField(
-          controller: _merchant,
-          decoration: const InputDecoration(hintText: 'Merchant or note'),
-        ),
-        const SizedBox(height: Space.md),
-        TextField(
-          controller: _amount,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            hintText: 'Amount',
-            prefixText: 'AED  ',
+  Widget build(BuildContext context) {
+    final inQuick = _quick.any((q) => q.id == _cat.id);
+    return SheetScaffold(
+      title: 'Add a cash expense',
+      subtitle: 'Most spending is captured automatically. Use this only for cash or things we could not see.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _amount,
+            autofocus: true,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            textInputAction: TextInputAction.next,
+            decoration: const InputDecoration(hintText: 'Amount', prefixText: 'AED  '),
+            onChanged: (_) => setState(() {}),
           ),
-        ),
-        const SizedBox(height: Space.md),
-        RowGroup(
-          padding: EdgeInsets.zero,
-          children: [
-            ListRow(
-              dense: true,
-              leading: CategoryIcon(_cat, size: 22),
-              title: 'Category',
-              trailing: Text(_cat.label, style: context.tt.bodyLarge),
-              chevron: true,
-              onTap: () async {
-                final c = await pickCategory(
-                  context,
-                  selected: _cat,
-                  includeIncome: false,
-                );
-                if (c != null) setState(() => _cat = c);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Save', onPressed: _save),
-      ],
-    ),
-  );
+          const SizedBox(height: Space.md),
+          Wrap(
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              for (final q in [..._quick, if (!inQuick) _cat])
+                ChoiceChip(label: Text(q.label), selected: _cat.id == q.id, onSelected: (_) => setState(() => _cat = q)),
+              ActionChip(
+                label: const Text('More'),
+                onPressed: () async {
+                  final c = await pickCategory(context, selected: _cat, includeIncome: false);
+                  if (c != null) setState(() => _cat = c);
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.md),
+          TextField(
+            controller: _merchant,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(hintText: 'Note (optional)'),
+            onSubmitted: (_) => _save(),
+          ),
+          const SizedBox(height: Space.xl),
+          PrimaryButton(label: 'Save', loading: _busy, onPressed: _parsed == null ? null : _save),
+        ],
+      ),
+    );
+  }
 }

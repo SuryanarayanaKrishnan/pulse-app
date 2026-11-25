@@ -137,6 +137,8 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
           TextField(
             key: const Key('goal_name'),
             controller: _name,
+            autofocus: widget.initial == null,
+            textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.sentences,
             decoration: InputDecoration(hintText: _paydown ? 'Name, like "Clear the card"' : 'Name, like "Trip to Japan"'),
             onChanged: (_) => setState(() {}),

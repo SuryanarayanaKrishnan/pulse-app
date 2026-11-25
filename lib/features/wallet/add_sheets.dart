@@ -253,6 +253,9 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
 
   bool get _isCash => _kind == BankAccountKind.cash;
 
+  /// One-tap banks; anything else is typed.
+  static const _banks = ['Emirates NBD', 'Mashreq', 'ADCB', 'FAB', 'DIB', 'RAKBANK', 'Wio', 'Revolut'];
+
   Future<void> _save() async {
     final bank = _isCash ? 'Cash' : _bank.text.trim();
     if (bank.isEmpty) return;
@@ -293,6 +296,19 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
         ),
         const SizedBox(height: Space.lg),
         if (!_isCash) ...[
+          Wrap(
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              for (final b in _banks)
+                ChoiceChip(
+                  label: Text(b),
+                  selected: _bank.text == b,
+                  onSelected: (_) => setState(() => _bank.text = b),
+                ),
+            ],
+          ),
+          const SizedBox(height: Space.md),
           TextField(
             controller: _bank,
             autofocus: true,
@@ -344,12 +360,15 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     super.dispose();
   }
 
+  /// The name is optional: "Gold" or "Loan or debt" is enough to start.
+  String get _kindName => _kind == AssetKind.liability ? 'Loan or debt' : _kind.label;
+
   Future<void> _save() async {
     final v = _parseAmount(_value.text);
-    if (_name.text.trim().isEmpty || v == null) return;
+    if (v == null) return;
     setState(() => _busy = true);
     try {
-      await ref.read(repositoryProvider).addAsset(name: _name.text.trim(), kind: _kind, value: v);
+      await ref.read(repositoryProvider).addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
       ref.invalidate(assetsProvider);
       ref.invalidate(netWorthProvider);
       if (mounted) Navigator.of(context).pop();
@@ -382,14 +401,15 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
         const SizedBox(height: Space.lg),
         TextField(
           controller: _name,
-          autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(hintText: 'Name, like "Marina apartment"'),
+          textInputAction: TextInputAction.next,
+          decoration: const InputDecoration(hintText: 'Name (optional), like "Marina apartment"'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.md),
         TextField(
           controller: _value,
+          autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixText: 'AED  '),
           onChanged: (_) => setState(() {}),
@@ -398,7 +418,7 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
         PrimaryButton(
           label: 'Add',
           loading: _busy,
-          onPressed: (_name.text.trim().isNotEmpty && _parseAmount(_value.text) != null) ? _save : null,
+          onPressed: _parseAmount(_value.text) != null ? _save : null,
         ),
         if (_parseAmount(_value.text) != null) ...[
           const SizedBox(height: Space.sm),
