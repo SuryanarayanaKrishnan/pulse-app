@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
@@ -387,11 +390,32 @@ class _KitSheetState extends ConsumerState<KitSheet> {
               icon: Icons.ios_share_rounded,
               onPressed: () => SharePlus.instance.share(
                 ShareParams(
-                  text: kit.sealedFile,
+                  files: [
+                    XFile.fromData(
+                      Uint8List.fromList(utf8.encode(kit.sealedFile)),
+                      mimeType: 'application/json',
+                      name: 'pulse-emergency-file.json',
+                    ),
+                  ],
+                  fileNameOverrides: const ['pulse-emergency-file.json'],
                   subject: 'Pulse emergency file',
                 ),
               ),
             ),
+            if (kit.papersIncluded > 0 || kit.papersLeftOut > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: Space.sm),
+                child: Text(
+                  [
+                    if (kit.papersIncluded > 0)
+                      '${kit.papersIncluded} ${kit.papersIncluded == 1 ? 'paper is' : 'papers are'} sealed inside.',
+                    if (kit.papersLeftOut > 0)
+                      '${kit.papersLeftOut} did not fit and ${kit.papersLeftOut == 1 ? 'was' : 'were'} left out.',
+                  ].join(' '),
+                  key: const Key('kit_papers_note'),
+                  style: context.tt.bodySmall,
+                ),
+              ),
             if (!relay.isAvailable)
               Padding(
                 padding: const EdgeInsets.only(top: Space.md),

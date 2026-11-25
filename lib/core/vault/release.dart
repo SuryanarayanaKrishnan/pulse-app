@@ -73,8 +73,13 @@ class ReleaseKit {
     required this.claimCode,
     required this.sealedFile,
     required this.createdAt,
+    this.papersIncluded = 0,
+    this.papersLeftOut = 0,
   });
   final String nomineeId;
+
+  /// Photos and PDFs sealed into the file, and how many did not fit.
+  final int papersIncluded, papersLeftOut;
   final String ownerShare, nomineeShare, escrowShare;
 
   /// Presented to the relay by the nominee; the relay keeps only its hash.
@@ -94,11 +99,20 @@ class OpenedVault {
     required this.preparedAt,
     required this.entries,
     required this.sheet,
+    this.papers = const {},
   });
   final String ownerName, nomineeName, sheet;
   final DateTime preparedAt;
   final List<VaultEntry> entries;
+
+  /// Decrypted papers by entry id, in the order they were added.
+  final Map<String, List<Uint8List>> papers;
 }
+
+/// Most paper bytes sealed into one file. Photos and PDFs travel inside the
+/// ciphertext, so the relay and any chat app that carries the file see only
+/// noise; the cap keeps the file small enough to send.
+const maxSealedPaperBytes = 12 * 1024 * 1024;
 
 class VaultOpenException implements Exception {
   const VaultOpenException(this.message);
@@ -142,6 +156,8 @@ abstract final class VaultSeal {
     required List<VaultEntry> entries,
     required DateTime now,
     Random? random,
+    Future<Uint8List?> Function(String path)? readPaper,
+    int maxPaperBytes = maxSealedPaperBytes,
   }) async {
     final rnd = random ?? Random.secure();
     final secret = Uint8List.fromList([
@@ -152,11 +168,32 @@ abstract final class VaultSeal {
     ]);
     final shares = Shamir.split(secret, threshold: 2, shares: 3, random: rnd);
     final visible = visibleTo(nominee, entries);
+    final papers = <String, List<String>>{};
+    var used = 0, included = 0, leftOut = 0;
+    for (final e in visible) {
+      for (final path in e.photoPaths) {
+        Uint8List? bytes;
+        try {
+          bytes = readPaper == null ? null : await readPaper(path);
+        } catch (_) {
+          bytes = null;
+        }
+        if (bytes == null || bytes.isEmpty) continue;
+        if (used + bytes.length > maxPaperBytes) {
+          leftOut++;
+          continue;
+        }
+        used += bytes.length;
+        included++;
+        (papers[e.id] ??= []).add(base64Encode(bytes));
+      }
+    }
     final payload = jsonEncode({
       'owner': ownerName,
       'nominee': nominee.name,
       'at': now.toUtc().toIso8601String(),
       'entries': [for (final e in visible) e.toExportJson()],
+      if (papers.isNotEmpty) 'papers': papers,
     });
     final saltB64 = base64Encode(salt);
     final sealed = await BackupCrypto.seal(
@@ -179,6 +216,8 @@ abstract final class VaultSeal {
       claimCode: newClaimCode(rnd),
       sealedFile: file,
       createdAt: now,
+      papersIncluded: included,
+      papersLeftOut: leftOut,
     );
   }
 
@@ -220,6 +259,13 @@ abstract final class VaultSeal {
         for (final e in j['entries'] as List)
           VaultEntry.fromExportJson(e as Map<String, dynamic>),
       ];
+      final papers = <String, List<Uint8List>>{
+        for (final kv in ((j['papers'] as Map?) ?? const {}).entries)
+          kv.key as String: [
+            for (final b in kv.value as List)
+              Uint8List.fromList(base64Decode(b as String)),
+          ],
+      };
       final at = DateTime.parse(j['at'] as String);
       final owner = j['owner'] as String? ?? '';
       final nomineeName = j['nominee'] as String? ?? '';
@@ -228,6 +274,7 @@ abstract final class VaultSeal {
         nomineeName: nomineeName,
         preparedAt: at,
         entries: entries,
+        papers: papers,
         sheet: emergencySheet(ownerName: owner, entries: entries, now: at),
       );
     } on BackupIntegrityError {

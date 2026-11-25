@@ -12,7 +12,7 @@ Settings > **Family vault** (also under Family > Planning ahead). No new tab.
 - **Add these N items to your vault**: suggestions from bank accounts, cards, assets and liabilities, funds, confirmed recurring payments (subscriptions, insurance, loans by merchant name) and pay-down goals. Only names are copied (and a rough value for non-loans), never account numbers. Nothing is added until confirmed; an item already in the vault (same source, or same type and name) is not suggested again.
 - Entries: type, institution, title, where to find it (free text), nominee named on the account itself, contact person, rough value in AED, optional photos of the papers (the same private attachments storage as Wealth documents).
 - **People you trust**: name, relationship, contact, and what they may see (everything, or chosen entries). **Preview what Sara would see** shows exactly the sheet they would get.
-- **Share emergency sheet**: a plain-text/markdown list through the share sheet. Photos are never included.
+- **Share emergency sheet**: a plain-text/markdown list through the share sheet. Photos are never included (the sealed file is the only way papers travel).
 - **Release window** (60 / 90 / 180 days / 1 year) and a quiet in-app note when the window is close. Opening Pulse is the check-in.
 
 ## No secrets, by design (`lib/core/vault/input_guard.dart`)
@@ -50,7 +50,7 @@ Not protected:
 - A **disguised secret** can pass the input guard.
 - Two colluding share holders (nominee plus escrow) can open the file early, whenever they like, if they also have the file. The claim code and the relay only gate *who gets the file*, not who can open it once they have it.
 - Shares or the claim code written down insecurely, a lost escrow share plus a lost owner share (the file becomes unopenable), a phone lost without backup.
-- Photos are not in the sealed file, so the nominee learns where papers are, not what they look like.
+- Papers (photos and PDFs) on entries a nominee may see are sealed inside the file too, up to 12 MB in total; any that do not fit are left out and the owner is told how many. They are decrypted only in the nominee's app (Family vault > Open a file someone left me), with the same two-of-three key codes. Nothing is stored on the nominee's phone or on a server. Older files without papers still open.
 - Metadata: a relay would see that a file exists, its size, and claim times.
 
 ## Legal caveats
