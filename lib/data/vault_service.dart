@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import '../core/analytics/analytics.dart';
+import '../core/engine/investing.dart';
 import '../core/vault/emergency_sheet.dart';
 import '../core/vault/input_guard.dart';
 import '../core/vault/release.dart';
@@ -30,6 +31,8 @@ class VaultSourceData {
     this.funds = const [],
     this.recurring = const [],
     this.paydownGoals = const [],
+    this.documents = const [],
+    this.rules = const [],
   });
   final List<BankAccount> accounts;
   final List<CreditCard> cards;
@@ -41,6 +44,12 @@ class VaultSourceData {
   /// (key, merchant, isSubscription) of confirmed recurring payments.
   final List<({String key, String merchant, bool isSubscription})> recurring;
   final List<({String id, String name})> paydownGoals;
+
+  /// Wealth documents: title deeds, FD certificates, insurance, gold bills.
+  final List<WealthDocument> documents;
+
+  /// Standing buys and SIPs, so the family knows money leaves on a schedule.
+  final List<InvestRule> rules;
 }
 
 /// Maps the app's own data to vault sources. Pure, so it is tested directly.
@@ -114,6 +123,34 @@ List<VaultSource> sourcesFrom(VaultSourceData d) {
           title: 'Recurring payment',
         ),
       );
+  }
+  for (final doc in d.documents) {
+    final type = switch (doc.category) {
+      DocCategory.titleDeed => VaultType.property,
+      DocCategory.fdCertificate => VaultType.investment,
+      DocCategory.insurance => VaultType.insurance,
+      _ => VaultType.documents,
+    };
+    out.add(
+      VaultSource(
+        ref: 'doc:${doc.id}',
+        type: type,
+        institution: doc.title,
+        title: doc.category.label,
+      ),
+    );
+  }
+  for (final r in d.rules) {
+    final amount =
+        '${r.currency} ${(r.amountMinor / 100).toStringAsFixed(r.amountMinor % 100 == 0 ? 0 : 2)}';
+    out.add(
+      VaultSource(
+        ref: 'rule:${r.id}',
+        type: VaultType.investment,
+        institution: r.label,
+        title: 'Recurring buy · $amount ${r.cadenceLabel}',
+      ),
+    );
   }
   for (final g in d.paydownGoals) {
     out.add(

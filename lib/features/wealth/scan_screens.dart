@@ -62,6 +62,59 @@ class _HoldingForm {
   );
 }
 
+class _FundForm {
+  _FundForm(FundDraft d)
+    : draft = d,
+      name = TextEditingController(text: d.name),
+      units = TextEditingController(
+        text: d.unitsHeld == null
+            ? ''
+            : fmtNum(d.unitsHeld!, maxDecimals: 4).replaceAll(',', ''),
+      ),
+      invested = TextEditingController(
+        text: d.invested == null
+            ? ''
+            : fmtNum(d.invested!, maxDecimals: 2).replaceAll(',', ''),
+      ),
+      sip = TextEditingController(
+        text: d.sipAmountMinor == null
+            ? ''
+            : (d.sipAmountMinor! / 100).toStringAsFixed(0),
+      ),
+      sipDay = TextEditingController(text: d.sipDay?.toString() ?? '');
+  final FundDraft draft;
+  final TextEditingController name, units, invested, sip, sipDay;
+
+  void dispose() {
+    for (final c in [name, units, invested, sip, sipDay]) {
+      c.dispose();
+    }
+  }
+
+  int? get sipMinor => parseMinor(sip.text);
+  int? get day {
+    final d = int.tryParse(sipDay.text.trim());
+    return d != null && d >= 1 && d <= 31 ? d : null;
+  }
+
+  FundDraft toDraft() {
+    final u = parseNumber(units.text);
+    final money = parseNumber(invested.text);
+    final withSip = (sipMinor ?? 0) > 0 && day != null;
+    return FundDraft(
+      name: name.text.trim(),
+      units: u,
+      nav: draft.nav,
+      invested: money,
+      current: draft.current,
+      sipAmountMinor: withSip ? sipMinor : null,
+      sipDay: withSip ? day : null,
+      approximate: draft.approximate,
+      note: draft.note,
+    );
+  }
+}
+
 class _ScanSheetState extends ConsumerState<ScanSheet> {
   late final _text = TextEditingController(text: widget.initialText);
   Timer? _debounce;
@@ -82,6 +135,7 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
   bool _hasGold = false;
 
   final List<_HoldingForm> _holdings = [];
+  final List<_FundForm> _funds = [];
 
   @override
   void initState() {
@@ -98,6 +152,9 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
     _paid.dispose();
     for (final h in _holdings) {
       h.dispose();
+    }
+    for (final f in _funds) {
+      f.dispose();
     }
     super.dispose();
   }
@@ -120,6 +177,12 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
     _holdings
       ..clear()
       ..addAll(r.holdings.map(_HoldingForm.new));
+    for (final f in _funds) {
+      f.dispose();
+    }
+    _funds
+      ..clear()
+      ..addAll(r.funds.map(_FundForm.new));
     final g = r.gold;
     _hasGold = g != null;
     if (g != null) {
@@ -202,6 +265,7 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
             note: _goldNote,
           ),
     holdings: [for (final h in _holdings) h.toDraft()],
+    funds: [for (final f in _funds) f.toDraft()],
   );
 
   int get _saveable {
@@ -210,6 +274,10 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
     for (final h in _holdings) {
       final q = parseNumber(h.quantity.text) ?? h.draft.units;
       if (h.symbol.text.trim().isNotEmpty && q != null && q > 0) n++;
+    }
+    for (final f in _funds) {
+      final u = parseNumber(f.units.text) ?? f.draft.unitsHeld;
+      if (f.name.text.trim().isNotEmpty && u != null && u > 0) n++;
     }
     return n;
   }
@@ -233,6 +301,13 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
         if (r.holdingsAdded > 0)
           '${r.holdingsAdded} ${r.holdingsAdded == 1 ? 'holding' : 'holdings'} added',
         if (r.holdingsUpdated > 0) '${r.holdingsUpdated} updated',
+        if (r.fundsAdded > 0)
+          '${r.fundsAdded} ${r.fundsAdded == 1 ? 'fund' : 'funds'} added',
+        if (r.fundsUpdated > 0) '${r.fundsUpdated} ${r.fundsUpdated == 1 ? 'fund' : 'funds'} updated',
+        if (r.sipsAdded > 0)
+          '${r.sipsAdded} ${r.sipsAdded == 1 ? 'SIP' : 'SIPs'} tracked',
+        if (r.fundsUnmatched > 0)
+          '${r.fundsUnmatched} without a live NAV',
       ];
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -316,6 +391,7 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
             FieldLabel(_banner()),
             if (_hasGold) _goldForm(context),
             for (var i = 0; i < _holdings.length; i++) _holdingForm(context, i),
+            for (var i = 0; i < _funds.length; i++) _fundForm(context, i),
             const SizedBox(height: Space.xl),
             PrimaryButton(
               label: n == 0
@@ -342,6 +418,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
       CaptureKind.goldBill => _fromImage ? 'Looks like a gold bill' : 'Gold',
       CaptureKind.portfolio =>
         _holdings.length == 1 ? 'One holding' : '${_holdings.length} holdings',
+      CaptureKind.mutualFunds =>
+        _funds.length == 1 ? 'One mutual fund' : '${_funds.length} mutual funds',
       CaptureKind.unknown => 'Found',
     };
     return '$what · check before saving';
@@ -470,7 +548,7 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                 ),
                 onPressed: () => setState(() {
                   _holdings.removeAt(i).dispose();
-                  if (_holdings.isEmpty && !_hasGold)
+                  if (_holdings.isEmpty && _funds.isEmpty && !_hasGold)
                     _result = const CaptureResult(CaptureKind.unknown);
                 }),
               ),
@@ -514,6 +592,113 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
             h.approximate,
             (v) => setState(() => h.approximate = v),
             note: h.draft.note,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fundForm(BuildContext context, int i) {
+    final f = _funds[i];
+    final c = context.pc;
+    return Container(
+      margin: const EdgeInsets.only(top: Space.md),
+      padding: const EdgeInsets.all(Space.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(Radii.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: f.name,
+                  minLines: 1,
+                  maxLines: 3,
+                  decoration: const InputDecoration(hintText: 'Fund name'),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove',
+                icon: Icon(
+                  Icons.close_rounded,
+                  size: 20,
+                  color: c.textSecondary,
+                ),
+                onPressed: () => setState(() {
+                  _funds.removeAt(i).dispose();
+                  if (_holdings.isEmpty && _funds.isEmpty && !_hasGold) {
+                    _result = const CaptureResult(CaptureKind.unknown);
+                  }
+                }),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.md),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: f.units,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(hintText: 'Units'),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: Space.md),
+              Expanded(
+                child: TextField(
+                  controller: f.invested,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'Invested',
+                    prefixText: '₹  ',
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.md),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: f.sip,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    hintText: 'SIP (optional)',
+                    prefixText: '₹  ',
+                  ),
+                ),
+              ),
+              const SizedBox(width: Space.md),
+              SizedBox(
+                width: 110,
+                child: TextField(
+                  controller: f.sipDay,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(hintText: 'Day 1-31'),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: Space.sm),
+            child: Text(
+              f.draft.note ??
+                  'Matched to the official fund list for a live NAV. A SIP is tracked monthly and you confirm each instalment.',
+              style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+            ),
           ),
         ],
       ),

@@ -200,9 +200,9 @@ class UpcomingSection extends ConsumerWidget {
               ListRow(
                 dense: true,
                 leading: IconWell(
-                  u.kind == UpcomingKind.sip
-                      ? Icons.autorenew_rounded
-                      : Icons.event_available_outlined,
+                  u.kind == UpcomingKind.document
+                      ? Icons.event_available_outlined
+                      : Icons.autorenew_rounded,
                   color: statusColor(context, u.status),
                 ),
                 title: u.title,
@@ -214,12 +214,14 @@ class UpcomingSection extends ConsumerWidget {
                   formatDate(u.date),
                   style: PulseTheme.amount(c.textSecondary, size: 13),
                 ),
-                chevron: true,
-                onTap: () => context.push(
-                  u.kind == UpcomingKind.sip
-                      ? '${Routes.fund}/${u.refId}'
-                      : '${Routes.document}/${u.refId}',
-                ),
+                chevron: u.kind != UpcomingKind.buy,
+                onTap: u.kind == UpcomingKind.buy
+                    ? null
+                    : () => context.push(
+                        u.kind == UpcomingKind.sip
+                            ? '${Routes.fund}/${u.refId}'
+                            : '${Routes.document}/${u.refId}',
+                      ),
               ),
           ],
         ),

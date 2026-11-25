@@ -486,6 +486,13 @@ final vaultServiceProvider = Provider<VaultService>(
         cards: await repo.myCards().catchError((_) => <CreditCard>[]),
         assets: await repo.assets().catchError((_) => <Asset>[]),
         funds: [for (final f in funds) f.holding],
+        documents: await ref
+            .read(documentsProvider.future)
+            .catchError((_) => <WealthDocument>[]),
+        rules: await ref
+            .read(investingStoreProvider)
+            .rules()
+            .catchError((_) => <InvestRule>[]),
         recurring: [
           for (final s in series)
             if (choices[s.key] != RecChoice.ignored && s.status != 'lapsed')

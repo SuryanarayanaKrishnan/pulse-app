@@ -26,6 +26,9 @@ enum OccurrenceStatus {
       values.firstWhere((f) => f.name == s, orElse: () => pending);
 }
 
+const fundRulePrefix = 'MF:';
+String fundRuleSymbol(String holdingId) => '$fundRulePrefix$holdingId';
+
 /// The plan: put [amountMinor] (of [currency], minor units) into [symbol].
 class InvestRule {
   const InvestRule({
@@ -73,6 +76,13 @@ class InvestRule {
     endDate: clearEnd ? null : (endDate ?? this.endDate),
     active: active ?? this.active,
   );
+
+  /// A SIP into a mutual fund: [symbol] is `MF:<fund holding id>`.
+  bool get isFund => symbol.startsWith(fundRulePrefix);
+  String? get fundId => isFund ? symbol.substring(fundRulePrefix.length) : null;
+
+  /// What to call it on screen: the fund's name, or the ticker.
+  String get label => isFund ? (name ?? 'mutual fund') : symbol;
 
   String get cadenceLabel => switch (frequency) {
     RuleFrequency.monthly => 'every month on the ${ordinal(day)}',
@@ -412,6 +422,110 @@ RuleDraft? parseRuleText(String text) {
   }
   return RuleDraft(
     symbol: sym,
+    amountMinor: (amount * 100).round(),
+    currency: currency,
+    frequency: freq,
+    day: day,
+  );
+}
+
+// ---- "SIP of 5000 rupees monthly in Parag Parikh Flexi Cap" ------------------------
+
+class SipDraft {
+  const SipDraft({
+    required this.fundQuery,
+    required this.amountMinor,
+    required this.currency,
+    required this.frequency,
+    required this.day,
+  });
+
+  /// The words that name the fund, for a scheme search.
+  final String fundQuery;
+  final String currency;
+  final int amountMinor, day;
+  final RuleFrequency frequency;
+}
+
+/// Understands "SIP 5000 monthly in Parag Parikh Flexi Cap", "invest ₹10,000
+/// every month on the 7th into HDFC Index Fund Nifty 50", "₹2000 weekly sip
+/// mirae asset large cap". Null without an amount or a fund name. Rupees are
+/// the default: SIPs are an Indian product.
+SipDraft? parseSipText(String text) {
+  final t = text.trim();
+  if (t.isEmpty) return null;
+  RegExpMatch? amountMatch;
+  double? amount;
+  for (final m in RegExp(
+    r'(?:₹|rs\.?|inr|\$|usd|aed)?\s*(\d[\d,]*(?:\.\d+)?)\s*(?:rupees?|inr|aed|usd)?',
+    caseSensitive: false,
+  ).allMatches(t)) {
+    // "7th" and the 50 in "Nifty 50" are not the amount: it is the first
+    // figure of 100 or more that is not an ordinal.
+    if (RegExp(
+      r'^(?:st|nd|rd|th)',
+      caseSensitive: false,
+    ).hasMatch(t.substring(m.start + m[0]!.indexOf(m[1]!) + m[1]!.length))) {
+      continue;
+    }
+    final v = double.tryParse(m[1]!.replaceAll(',', ''));
+    if (v != null && v >= 100) {
+      amount = v;
+      amountMatch = m;
+      break;
+    }
+  }
+  if (amount == null || amountMatch == null) return null;
+  var currency = 'INR';
+  if (RegExp(r'\baed\b|dirham', caseSensitive: false).hasMatch(t))
+    currency = 'AED';
+  if (t.contains(r'$') ||
+      RegExp(r'\busd\b', caseSensitive: false).hasMatch(t)) {
+    currency = 'USD';
+  }
+
+  final lower = t.toLowerCase();
+  var freq = RuleFrequency.monthly;
+  var day = 1;
+  if (RegExp(r'\bweekly\b|\bevery week\b|\beach week\b').hasMatch(lower) ||
+      _dayNames.keys.any((d) => RegExp('\\b$d\\b').hasMatch(lower))) {
+    freq = RuleFrequency.weekly;
+    for (final e in _dayNames.entries) {
+      if (RegExp('\\b${e.key}\\b').hasMatch(lower)) {
+        day = e.value;
+        break;
+      }
+    }
+  } else {
+    final dm = RegExp(r'\b(\d{1,2})(?:st|nd|rd|th)\b').firstMatch(lower);
+    if (dm != null) {
+      final v = int.parse(dm[1]!);
+      if (v >= 1 && v <= 31) day = v;
+    }
+  }
+
+  var q = '${t.substring(0, amountMatch.start)} ${t.substring(amountMatch.end)}'
+      .replaceAll(
+        RegExp(r'\b\d{1,2}(?:st|nd|rd|th)\b', caseSensitive: false),
+        ' ',
+      )
+      .replaceAll(
+        RegExp(
+          r'\b(?:sip|invest|investing|buy|monthly|weekly|every|each|month|week|day|on|the|of|in|into|a|an|per|for|my|to|mutual fund|rupees?)\b',
+          caseSensitive: false,
+        ),
+        ' ',
+      );
+  for (final d in _dayNames.keys) {
+    q = q.replaceAll(RegExp('\\b$d\\b', caseSensitive: false), ' ');
+  }
+  q = q
+      .replaceAll(RegExp(r'[^A-Za-z0-9&\- ]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  if (q.length < 3) return null;
+  return SipDraft(
+    fundQuery: q,
     amountMinor: (amount * 100).round(),
     currency: currency,
     frequency: freq,

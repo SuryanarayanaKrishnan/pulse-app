@@ -5,12 +5,15 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../core/engine/dates.dart';
 import '../../core/engine/investing.dart';
+import '../../core/engine/markets.dart';
 import '../../core/engine/valuation.dart' show dueText;
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../core/vault/vault_models.dart';
 import '../../data/investing_service.dart';
+import '../../data/vault_service.dart' show VaultGuardException;
 import '../../data/local/wealth_store.dart' show newWealthId;
 import '../../data/providers.dart';
 import '../../data/wealth_models.dart';
@@ -235,7 +238,7 @@ class InvestingPlanSection extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
             child: Text(
-              'Say it once: "buy \$200 of VOO monthly". Pulse reminds you each time and tracks whether you kept to it.',
+              'Say it once: "buy \$200 of VOO monthly" or "SIP 5000 in Parag Parikh Flexi Cap". Pulse reminds you each time and tracks whether you kept to it.',
               style: context.tt.bodySmall,
             ),
           ),
@@ -257,7 +260,7 @@ class InvestingPlanSection extends ConsumerWidget {
                   color: v.rule.active ? c.accent : c.textTertiary,
                 ),
                 title:
-                    '${_ccy(v.rule.currency, v.rule.amountMinor / 100, decimals: v.rule.amountMinor % 100 != 0)} into ${v.rule.symbol}',
+                    '${_ccy(v.rule.currency, v.rule.amountMinor / 100, decimals: v.rule.amountMinor % 100 != 0)} into ${v.rule.label}',
                 subtitle: !v.rule.active
                     ? 'Paused'
                     : '${v.rule.cadenceLabel}${v.next == null ? '' : ' · next ${formatDate(v.next!)}'}',
@@ -319,7 +322,9 @@ class _PendingCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Did you buy $amount of ${rule.symbol}?',
+            rule.isFund
+                ? 'Did your $amount SIP into ${rule.label} go through?'
+                : 'Did you buy $amount of ${rule.symbol}?',
             style: context.tt.titleSmall,
           ),
           const SizedBox(height: 2),
@@ -355,6 +360,24 @@ class _PendingCard extends ConsumerWidget {
               ),
             ],
           ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: () async {
+                await ref
+                    .read(investingServiceProvider)
+                    .remindTomorrow(occurrence, rule);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Not yet. I will ask again tomorrow morning.'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Not yet, remind me tomorrow'),
+            ),
+          ),
         ],
       ),
     );
@@ -382,10 +405,22 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
     ),
   );
   bool _busy = false;
+  double? _lastNav;
 
   @override
   void initState() {
     super.initState();
+    if (widget.rule.isFund) {
+      // Blank NAV = today's official NAV; the last one is shown as a hint.
+      ref.read(wealthServiceProvider).fundViews().then((all) {
+        final f = all
+            .map((v) => v.holding)
+            .where((e) => e.id == widget.rule.fundId)
+            .firstOrNull;
+        if (f != null && mounted) setState(() => _lastNav = f.nav);
+      });
+      return;
+    }
     ref.read(investingStoreProvider).holdings().then((all) {
       final h = all.where((e) => e.symbol == widget.rule.symbol).firstOrNull;
       if (h?.lastPrice != null && mounted)
@@ -421,10 +456,12 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
   Widget build(BuildContext context) {
     final r = widget.rule;
     final units = _p != null && _p! > 0 && _a != null ? _a! / _p! : null;
+    final fund = r.isFund;
     return SheetScaffold(
-      title: 'Bought ${r.symbol}',
-      subtitle:
-          'Planned for ${formatDate(widget.occurrence.due)}. Use the price your broker filled at.',
+      title: fund ? 'SIP into ${r.label}' : 'Bought ${r.symbol}',
+      subtitle: fund
+          ? 'Planned for ${formatDate(widget.occurrence.due)}. Leave the NAV blank to use the official NAV; type the one on your confirmation if it differs.'
+          : 'Planned for ${formatDate(widget.occurrence.due)}. Use the price your broker filled at.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -440,24 +477,32 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
           const SizedBox(height: Space.md),
           TextField(
             controller: _price,
-            autofocus: true,
+            autofocus: !fund,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Price per share'),
+            decoration: InputDecoration(
+              hintText: fund
+                  ? (_lastNav == null
+                        ? 'NAV per unit (optional)'
+                        : 'NAV per unit (last ${fmtNum(_lastNav!, maxDecimals: 4)})')
+                  : 'Price per share',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           if (units != null)
             Padding(
               padding: const EdgeInsets.only(top: Space.md),
               child: Text(
-                'That is ${fmtNum(units, maxDecimals: 4)} shares.',
+                'That is ${fmtNum(units, maxDecimals: 4)} ${fund ? 'units' : 'shares'}.',
                 style: context.tt.bodySmall,
               ),
             ),
           const SizedBox(height: Space.xl),
           PrimaryButton(
-            label: 'Add to holding',
+            label: fund ? 'Add units' : 'Add to holding',
             loading: _busy,
-            onPressed: _p != null && _p! > 0 && (_a ?? 0) > 0 ? _save : null,
+            onPressed: (fund || (_p != null && _p! > 0)) && (_a ?? 0) > 0
+                ? _save
+                : null,
           ),
         ],
       ),
@@ -487,11 +532,72 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
     text: widget.initial?.lastPrice?.toString() ?? '',
   );
   late String _currency = widget.initial?.currency ?? 'USD';
+  late Exchange _market = widget.initial == null
+      ? Exchange.us
+      : listingOf(widget.initial!.symbol).exchange;
   late bool _approx = widget.initial?.approximate ?? false;
   bool _busy = false;
+  final _platform = TextEditingController();
+  VaultEntry? _vaultEntry;
+
+  @override
+  void initState() {
+    super.initState();
+    final base = widget.initial;
+    if (base == null) return;
+    // "Held at" lives in the family vault, so nominees can find the account.
+    ref.read(vaultServiceProvider).entries().then((all) {
+      final e = all
+          .where((x) => x.sourceRef == 'asset:stock:${base.id}')
+          .firstOrNull;
+      if (e != null && mounted) {
+        _vaultEntry = e;
+        setState(() => _platform.text = e.institution);
+      }
+    });
+  }
 
   bool get _editing => widget.initial != null;
   double? get _q => parseNumber(_qty.text);
+
+  /// Writes (or updates) the vault entry that says where this is held.
+  Future<void> _saveHeldAt(StockHolding h) async {
+    final where = _platform.text.trim();
+    final vault = ref.read(vaultServiceProvider);
+    if (where.isEmpty) return;
+    final now = DateTime.now().toUtc();
+    final e = _vaultEntry;
+    try {
+      await vault.saveEntry(
+        e != null
+            ? e.copyWith(institution: where)
+            : VaultEntry(
+                id: vault.blank(VaultType.investment).id,
+                type: VaultType.investment,
+                institution: where,
+                title: h.title,
+                sourceRef: 'asset:stock:${h.id}',
+                createdAt: now,
+                updatedAt: now,
+              ),
+      );
+      ref.invalidate(vaultEntriesProvider);
+    } on VaultGuardException catch (ex) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(ex.message)),
+        );
+      }
+    }
+  }
+
+  Listing get _listing {
+    final l = listingOf(_symbol.text);
+    // Typing "RELIANCE" with India picked means RELIANCE.NS.
+    return l.exchange == Exchange.us && _market != Exchange.us
+        ? Listing(l.base, _market)
+        : l;
+  }
   bool get _valid => _symbol.text.trim().isNotEmpty && (_q ?? 0) > 0;
 
   @override
@@ -500,6 +606,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
     _qty.dispose();
     _avg.dispose();
     _price.dispose();
+    _platform.dispose();
     super.dispose();
   }
 
@@ -511,7 +618,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
     final base = widget.initial;
     final h = StockHolding(
       id: base?.id ?? newWealthId(),
-      symbol: _symbol.text.trim().toUpperCase(),
+      symbol: _editing ? base!.symbol : _listing.symbol,
       name: base?.name,
       currency: _currency,
       quantity: _q!,
@@ -529,6 +636,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
       createdAt: base?.createdAt ?? now,
     );
     await svc.saveHolding(h);
+    await _saveHeldAt(h);
     if (price == null) await svc.refreshPrices();
     invalidateWealth(ref);
     if (mounted) Navigator.of(context).pop();
@@ -548,8 +656,40 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             enabled: !_editing,
             autofocus: !_editing,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(hintText: 'Ticker, e.g. VOO'),
+            decoration: InputDecoration(
+              hintText: switch (_market) {
+                Exchange.nse => 'Ticker, e.g. RELIANCE',
+                Exchange.dfm => 'Ticker, e.g. EMAAR',
+                Exchange.adx => 'Ticker, e.g. FAB',
+                Exchange.bse => 'BSE code, e.g. 500325',
+                Exchange.us => 'Ticker, e.g. VOO',
+              },
+            ),
             onChanged: (_) => setState(() {}),
+          ),
+          const FieldLabel('Market'),
+          Wrap(
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              for (final m in Exchange.values)
+                Pill(
+                  switch (m) {
+                    Exchange.us => 'US',
+                    Exchange.nse => 'India NSE',
+                    Exchange.bse => 'India BSE',
+                    Exchange.dfm => 'Dubai DFM',
+                    Exchange.adx => 'Abu Dhabi ADX',
+                  },
+                  selected: _market == m,
+                  onTap: _editing
+                      ? null
+                      : () => setState(() {
+                          _market = m;
+                          _currency = m.currency;
+                        }),
+                ),
+            ],
           ),
           const SizedBox(height: Space.md),
           TextField(
@@ -572,7 +712,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             controller: _price,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              hintText: _currency == 'USD'
+              hintText: _market.livePrice
                   ? 'Price (blank = fetch live)'
                   : 'Current price',
               prefixText: '$_currency  ',
@@ -591,14 +731,29 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
                 ),
             ],
           ),
-          if (_currency != 'USD')
+          if (!_market.livePrice)
             Padding(
               padding: const EdgeInsets.only(top: Space.sm),
               child: Text(
-                'Live prices cover US tickers. For $_currency, enter the price and update it when you like.',
+                'There is no free live price for ${_market.label} yet. Enter the price and update it when you like; value and gain still work.',
                 style: context.tt.bodySmall,
               ),
             ),
+          const SizedBox(height: Space.md),
+          TextField(
+            controller: _platform,
+            textCapitalization: TextCapitalization.words,
+            decoration: const InputDecoration(
+              hintText: 'Held at, e.g. Mashreq Securities or Zerodha',
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: Space.xs),
+            child: Text(
+              'Added to your family vault so a nominee knows where to look. No logins, ever.',
+              style: context.tt.bodySmall,
+            ),
+          ),
           const SizedBox(height: Space.md),
           Row(
             children: [
@@ -674,24 +829,86 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
   late final _dayCtl = TextEditingController(text: '$_day');
   bool _busy = false;
 
+  // A SIP into a mutual fund instead of a ticker.
+  late bool _fundMode = widget.initial?.isFund ?? false;
+  final _fundQuery = TextEditingController();
+  Timer? _debounce;
+  List<FundScheme> _hits = const [];
+  FundScheme? _scheme;
+  bool _searching = false;
+  String? _searchError;
+
   bool get _editing => widget.initial != null;
   double? get _a => parseNumber(_amount.text);
   bool get _valid =>
-      _symbol.text.trim().isNotEmpty &&
+      (_fundMode
+          ? (_editing || _scheme != null)
+          : _symbol.text.trim().isNotEmpty) &&
       (_a ?? 0) > 0 &&
       _day >= 1 &&
       _day <= (_freq == RuleFrequency.weekly ? 7 : 31);
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _sentence.dispose();
     _symbol.dispose();
+    _fundQuery.dispose();
     _amount.dispose();
     _dayCtl.dispose();
     super.dispose();
   }
 
+  void _onFundQuery(String q) {
+    _debounce?.cancel();
+    if (q.trim().length < 2) {
+      setState(() {
+        _hits = const [];
+        _searchError = null;
+      });
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 350), () => _search(q));
+  }
+
+  Future<void> _search(String q) async {
+    setState(() {
+      _searching = true;
+      _searchError = null;
+    });
+    try {
+      final r = await ref.read(wealthServiceProvider).searchFunds(q);
+      if (mounted && q == _fundQuery.text) setState(() => _hits = r.take(6).toList());
+    } on Object {
+      if (mounted) {
+        setState(() => _searchError = 'Fund search is not reachable right now.');
+      }
+    } finally {
+      if (mounted) setState(() => _searching = false);
+    }
+  }
+
   void _fromSentence(String t) {
+    final lower = t.toLowerCase();
+    if (RegExp(r'\bsip\b|mutual fund|\bfund\b|flexi|\belss\b|\bnifty\b|₹').hasMatch(lower)) {
+      final s = parseSipText(t);
+      if (s != null) {
+        setState(() {
+          _fundMode = true;
+          _scheme = null;
+          _amount.text = (s.amountMinor / 100).toStringAsFixed(
+            s.amountMinor % 100 == 0 ? 0 : 2,
+          );
+          _currency = s.currency;
+          _freq = s.frequency;
+          _day = s.day;
+          _dayCtl.text = '$_day';
+          _fundQuery.text = s.fundQuery;
+        });
+        _onFundQuery(s.fundQuery);
+        return;
+      }
+    }
     final d = parseRuleText(t);
     if (d == null) return;
     setState(() {
@@ -711,7 +928,14 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
     final svc = ref.read(investingServiceProvider);
     final minor = (_a! * 100).round();
     final base = widget.initial;
-    if (base == null) {
+    if (base == null && _fundMode) {
+      await svc.startFundSip(
+        _scheme!,
+        amountMinor: minor,
+        day: _day,
+        frequency: _freq,
+      );
+    } else if (base == null) {
       await svc.saveRule(
         svc.newRule(
           RuleDraft(
@@ -737,6 +961,58 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
+  List<Widget> _fundPicker(BuildContext context) {
+    final c = context.pc;
+    if (_editing) {
+      return [
+        Text(widget.initial!.label, style: context.tt.titleSmall),
+      ];
+    }
+    return [
+      TextField(
+        controller: _fundQuery,
+        decoration: const InputDecoration(
+          hintText: 'Search the fund, e.g. Parag Parikh Flexi Cap',
+        ),
+        onChanged: (v) {
+          _scheme = null;
+          _onFundQuery(v);
+        },
+      ),
+      if (_searching)
+        Padding(
+          padding: const EdgeInsets.only(top: Space.sm),
+          child: Text('Searching…', style: context.tt.bodySmall),
+        ),
+      if (_searchError != null)
+        Padding(
+          padding: const EdgeInsets.only(top: Space.sm),
+          child: Text(
+            _searchError!,
+            style: context.tt.bodySmall!.copyWith(color: c.negative),
+          ),
+        ),
+      if (_scheme != null)
+        Padding(
+          padding: const EdgeInsets.only(top: Space.sm),
+          child: Text(
+            _scheme!.name,
+            style: context.tt.titleSmall!.copyWith(color: c.accent),
+          ),
+        )
+      else
+        for (final h in _hits)
+          ListRow(
+            dense: true,
+            title: h.name,
+            onTap: () => setState(() {
+              _scheme = h;
+              _hits = const [];
+            }),
+          ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
@@ -757,13 +1033,32 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             ),
             const SizedBox(height: Space.md),
             const Hairline(),
+            const FieldLabel('Invest in'),
+            Wrap(
+              spacing: Space.sm,
+              children: [
+                Pill(
+                  'Stock or ETF',
+                  selected: !_fundMode,
+                  onTap: () => setState(() => _fundMode = false),
+                ),
+                Pill(
+                  'Mutual fund SIP',
+                  selected: _fundMode,
+                  onTap: () => setState(() {
+                    _fundMode = true;
+                    if (_currency == 'USD') _currency = 'INR';
+                  }),
+                ),
+              ],
+            ),
           ],
           const SizedBox(height: Space.md),
-          TextField(
+          if (_fundMode) ..._fundPicker(context) else TextField(
             controller: _symbol,
             enabled: !_editing,
             textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(hintText: 'Ticker'),
+            decoration: const InputDecoration(hintText: 'Ticker, e.g. VOO or RELIANCE.NS'),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -781,7 +1076,7 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             spacing: Space.sm,
             runSpacing: Space.sm,
             children: [
-              for (final k in const ['USD', 'AED', 'EUR', 'GBP'])
+              for (final k in const ['USD', 'AED', 'EUR', 'GBP', 'INR'])
                 Pill(
                   k,
                   selected: _currency == k,
