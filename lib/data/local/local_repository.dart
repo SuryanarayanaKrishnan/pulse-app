@@ -397,6 +397,44 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     return _txById(id);
   }
 
+  @override
+  Future<int> importTransactions(List<ImportedTransaction> txs) async {
+    if (txs.isEmpty) return 0;
+    final acct = await _cashAccount();
+    String key(DateTime d, int minor, String name, String cat) => '${d.year}-${d.month}-${d.day}|$minor|${name.toLowerCase()}|$cat';
+    final existing = <String>{
+      for (final r in await (db.select(db.transactions)..where((t) => t.sources.equals('["import"]'))).get())
+        key(r.postedAt.toLocal(), r.amountMinor, r.merchantRaw ?? '', r.categoryId ?? ''),
+    };
+    var added = 0;
+    await db.transaction(() async {
+      for (final t in txs) {
+        if (t.amountMinor <= 0) continue;
+        final catId = await _categoryId(t.category);
+        final name = t.merchant.trim().isEmpty ? t.category.label : t.merchant.trim();
+        final k = key(t.date, t.amountMinor, name, catId);
+        if (!existing.add(k)) continue;
+        await db.into(db.transactions).insert(
+          TransactionsCompanion.insert(
+            id: newId(),
+            accountId: acct.id,
+            amountMinor: t.amountMinor,
+            direction: t.isIncome ? 'credit' : 'debit',
+            categoryId: Value(catId),
+            merchantRaw: Value(name),
+            merchantNormalized: Value(name),
+            postedAt: DateTime(t.date.year, t.date.month, t.date.day, 12).toUtc(),
+            source: 'manual',
+            sources: const Value('["import"]'),
+            reviewed: const Value(true),
+          ),
+        );
+        added++;
+      }
+    });
+    return added;
+  }
+
   // ---- categories & budgets ------------------------------------------------------
 
   @override

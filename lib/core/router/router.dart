@@ -13,6 +13,8 @@ import '../../features/capture/apple_pay_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
+import '../../features/budgets/budget_import_screen.dart';
+import '../../features/budgets/budget_setup_screen.dart';
 import '../../features/categories/categories_screen.dart';
 import '../../features/recurring/recurring_screen.dart';
 import '../../features/reports/reports_screen.dart';
@@ -55,6 +57,8 @@ abstract class Routes {
   static const applePaySetup = '/apple-pay-setup';
   static const appleIngest = '/apple-ingest';
   static const categories = '/categories';
+  static const budgetSetup = '/budget-setup';
+  static const budgetImport = '/budget-import';
   static const automations = '/automations';
   static const statements = '/statements';
   static const family = '/family';
@@ -234,6 +238,16 @@ GoRouter buildRouter({
         path: Routes.tour,
         name: 'tour',
         builder: (c, s) => TourScreen(onFinished: (_) => c.pop()),
+      ),
+      GoRoute(
+        path: Routes.budgetSetup,
+        name: 'budget-setup',
+        builder: (c, s) => const BudgetSetupScreen(),
+      ),
+      GoRoute(
+        path: Routes.budgetImport,
+        name: 'budget-import',
+        builder: (c, s) => const BudgetImportScreen(),
       ),
       GoRoute(
         path: Routes.categories,

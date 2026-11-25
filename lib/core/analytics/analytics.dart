@@ -80,6 +80,16 @@ class AnalyticsEvent {
   factory AnalyticsEvent.budgetModeChanged(String mode) => AnalyticsEvent._('budget_mode_changed', {'mode': mode});
   static const moneyMoved = AnalyticsEvent._('money_moved');
 
+  /// One-step budget. `history`: whether past spending was used. Never an
+  /// amount, an income or a household size.
+  factory AnalyticsEvent.budgetSuggested({required bool history}) =>
+      AnalyticsEvent._('budget_suggested', {'history': history});
+
+  /// A sheet brought in. `source`: file | link. `items`: few | some | many.
+  /// Never a label or an amount.
+  factory AnalyticsEvent.budgetImported({required String source, required bool history, required String items}) =>
+      AnalyticsEvent._('budget_imported', {'source': source, 'history': history, 'items': items});
+
   /// Family vault. `type`: a vault entry type key. Never a name, a place or
   /// a value.
   factory AnalyticsEvent.vaultEntryAdded(String type) => AnalyticsEvent._('vault_entry_added', {'type': type});

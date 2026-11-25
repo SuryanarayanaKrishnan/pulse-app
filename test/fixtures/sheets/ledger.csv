@@ -1,0 +1,6 @@
+ ,Date,Group,Item,Amount,Comment,Method,SplitID,Source
+8/10/2026 16:19:43,8/1/2026,FIXED,Car loan,"1,200.00",,,,auto
+8/8/2026 11:52:57,8/8/2026 11:52:57,FIXED VARIABLE,Parking,40.00,mall,Credit card,,shortcut
+8/9/2026 1:50:41,8/9/2026 1:50:41,FIXED VARIABLE,Groceries,"1,234.50",weekly shop,Debit card,,shortcut
+8/20/2026,8/20/2026,INCOME,Salary,"12,000.00",,,,auto
+8/21/2026,8/21/2026,PERSONAL,Overall fun,,no amount,,,

@@ -49,6 +49,7 @@ import '../core/vault/vault_models.dart';
 import 'local/vault_store.dart';
 import 'vault_service.dart';
 import 'repository.dart';
+import 'budget_import_service.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
 final dioProvider = Provider<Dio>((ref) => buildApiClient());
@@ -495,3 +496,12 @@ void invalidateVault(WidgetRef ref) {
   ref.invalidate(vaultSuggestionsProvider);
   ref.read(vaultCheckInTickProvider.notifier).bump();
 }
+
+// ---- Budget setup: suggestion and import -------------------------------------
+
+final budgetImportServiceProvider = Provider<BudgetImportService>(
+  (ref) => BudgetImportService(
+    repo: ref.watch(repositoryProvider),
+    plan: ref.watch(budgetPlanServiceProvider),
+  ),
+);

@@ -182,6 +182,22 @@ class SpendCategory {
   String toString() => 'SpendCategory($id)';
 }
 
+/// A payment read from a sheet the user brought, before it is stored.
+class ImportedTransaction {
+  const ImportedTransaction({
+    required this.date,
+    required this.merchant,
+    required this.amountMinor,
+    required this.category,
+    this.isIncome = false,
+  });
+  final DateTime date;
+  final String merchant;
+  final int amountMinor;
+  final SpendCategory category;
+  final bool isIncome;
+}
+
 class Transaction {
   const Transaction({
     required this.id,
