@@ -21,6 +21,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
+import '../cards/digit_widgets.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
@@ -86,6 +87,24 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (ref.watch(dismissedDigitsProvider).isNotEmpty) ...[
+            const SectionHeader('Card digits you skipped'),
+            RowGroup(
+              indent: ListRow.leadingInset,
+              children: [
+                for (final d in ref.watch(dismissedDigitsProvider).toList()..sort())
+                  ListRow(
+                    leading: const IconWell(Icons.undo_rounded),
+                    title: 'Ask again about ••$d',
+                    subtitle: 'You said these alerts are not yours',
+                    onTap: () {
+                      ref.read(dismissedDigitsProvider.notifier).restore(d);
+                      ref.invalidate(digitSuggestionsProvider);
+                    },
+                  ),
+              ],
+            ),
+          ],
           const SectionHeader('Money'),
           RowGroup(
             indent: ListRow.leadingInset,

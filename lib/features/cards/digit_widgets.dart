@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
@@ -8,13 +9,42 @@ import '../../data/api/api_exception.dart';
 import '../../data/digit_suggestion.dart';
 import '../../data/providers.dart';
 
-/// Digits the user said "not mine" to, for this run of the app.
-final dismissedDigitsProvider = NotifierProvider<_Dismissed, Set<String>>(_Dismissed.new);
+/// Digits the user said "not mine" to. Kept across restarts; Settings can undo.
+final dismissedDigitsProvider = NotifierProvider<DismissedDigits, Set<String>>(DismissedDigits.new);
 
-class _Dismissed extends Notifier<Set<String>> {
+class DismissedDigits extends Notifier<Set<String>> {
+  static const _key = 'dismissed_digits';
+
   @override
-  Set<String> build() => {};
-  void add(String last4) => state = {...state, last4};
+  Set<String> build() {
+    _load();
+    return {};
+  }
+
+  Future<void> _load() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      final saved = p.getStringList(_key);
+      if (saved != null && ref.mounted) state = {...state, ...saved};
+    } catch (_) {}
+  }
+
+  Future<void> _save() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setStringList(_key, state.toList());
+    } catch (_) {}
+  }
+
+  void add(String last4) {
+    state = {...state, last4};
+    _save();
+  }
+
+  void restore(String last4) {
+    state = {...state}..remove(last4);
+    _save();
+  }
 }
 
 Future<void> _assign(BuildContext context, WidgetRef ref, String accountId, String last4) async {
