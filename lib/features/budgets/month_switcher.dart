@@ -7,13 +7,7 @@ import '../../core/widgets/widgets.dart';
 /// "‹ November 2026 ›": steps the month the plan and the cash flow show.
 /// Never past the current month; back as far as [monthsBack].
 class MonthSwitcher extends StatelessWidget {
-  const MonthSwitcher({
-    super.key,
-    required this.month,
-    required this.onChanged,
-    this.now,
-    this.monthsBack = 24,
-  });
+  const MonthSwitcher({super.key, required this.month, required this.onChanged, this.now, this.monthsBack = 24});
   final DateTime month;
   final ValueChanged<DateTime> onChanged;
   final DateTime? now;
@@ -36,11 +30,7 @@ class MonthSwitcher extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(
-            icon,
-            size: 22,
-            color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4),
-          ),
+          child: Icon(icon, size: 22, color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4)),
         ),
       ),
     );

@@ -1,51 +1,27 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/core/engine/sankey.dart';
 
-List<FlowItem> items(Map<String, int> m) => [
-  for (final e in m.entries) FlowItem(e.key, e.key, e.value),
-];
+List<FlowItem> items(Map<String, int> m) => [for (final e in m.entries) FlowItem(e.key, e.key, e.value)];
 
 void expectSound(SankeyLayout l, {double min = 6, double gap = 8}) {
   for (final col in [0, 1]) {
-    final ns = l.nodes.where((n) => n.column == col).toList()
-      ..sort((a, b) => a.y.compareTo(b.y));
+    final ns = l.nodes.where((n) => n.column == col).toList()..sort((a, b) => a.y.compareTo(b.y));
     for (var i = 0; i < ns.length; i++) {
       expect(ns[i].y, greaterThanOrEqualTo(-1e-9), reason: ns[i].id);
-      expect(
-        ns[i].bottom,
-        lessThanOrEqualTo(l.height + 1e-9),
-        reason: ns[i].id,
-      );
+      expect(ns[i].bottom, lessThanOrEqualTo(l.height + 1e-9), reason: ns[i].id);
       expect(ns[i].height, greaterThanOrEqualTo(min - 1e-9), reason: ns[i].id);
-      if (i > 0)
-        expect(
-          ns[i].y,
-          greaterThanOrEqualTo(ns[i - 1].bottom + gap - 1e-9),
-          reason: 'overlap ${ns[i - 1].id}/${ns[i].id}',
-        );
+      if (i > 0) expect(ns[i].y, greaterThanOrEqualTo(ns[i - 1].bottom + gap - 1e-9), reason: 'overlap ${ns[i - 1].id}/${ns[i].id}');
     }
   }
   for (final n in l.nodes) {
-    final out = l.links.where((k) => k.sourceId == n.id),
-        inn = l.links.where((k) => k.targetId == n.id);
+    final out = l.links.where((k) => k.sourceId == n.id), inn = l.links.where((k) => k.targetId == n.id);
     final links = n.column == 0 ? out : inn;
-    expect(
-      links.fold(0, (a, k) => a + k.valueMinor),
-      n.valueMinor,
-      reason: 'exact ${n.id}',
-    );
-    final thick = links.fold(
-      0.0,
-      (a, k) => a + (n.column == 0 ? k.sourceHeight : k.targetHeight),
-    );
+    expect(links.fold(0, (a, k) => a + k.valueMinor), n.valueMinor, reason: 'exact ${n.id}');
+    final thick = links.fold(0.0, (a, k) => a + (n.column == 0 ? k.sourceHeight : k.targetHeight));
     expect(thick, closeTo(n.height, 1e-6), reason: 'thickness ${n.id}');
   }
-  final left = l.nodes
-      .where((n) => n.column == 0)
-      .fold(0, (a, n) => a + n.valueMinor);
-  final right = l.nodes
-      .where((n) => n.column == 1)
-      .fold(0, (a, n) => a + n.valueMinor);
+  final left = l.nodes.where((n) => n.column == 0).fold(0, (a, n) => a + n.valueMinor);
+  final right = l.nodes.where((n) => n.column == 1).fold(0, (a, n) => a + n.valueMinor);
   expect(left, right);
 }
 
@@ -64,47 +40,27 @@ void main() {
   });
 
   test('spending above income shows a From savings source', () {
-    final l = sankeyLayout(
-      incomes: items({'salary': 100000}),
-      spends: items({'rent': 150000}),
-      width: 300,
-      height: 300,
-    );
+    final l = sankeyLayout(incomes: items({'salary': 100000}), spends: items({'rent': 150000}), width: 300, height: 300);
     expectSound(l);
     expect(l.node(sankeyDeficitId).valueMinor, 50000);
     expect(l.nodes.where((n) => n.kind == SankeyKind.saved), isEmpty);
   });
 
   test('exact balance has neither Saved nor a deficit', () {
-    final l = sankeyLayout(
-      incomes: items({'a': 500}),
-      spends: items({'b': 500}),
-      width: 300,
-      height: 300,
-    );
+    final l = sankeyLayout(incomes: items({'a': 500}), spends: items({'b': 500}), width: 300, height: 300);
     expectSound(l);
     expect(l.nodes.length, 2);
   });
 
   test('many small categories fold into Other with exact totals and never go under the minimum height', () {
     final spends = {for (var i = 0; i < 20; i++) 'c$i': 1000 + i * 37};
-    final l = sankeyLayout(
-      incomes: items({'salary': 1000000}),
-      spends: items(spends),
-      width: 340,
-      height: 300,
-    );
+    final l = sankeyLayout(incomes: items({'salary': 1000000}), spends: items(spends), width: 340, height: 300);
     expectSound(l);
     final right = l.nodes.where((n) => n.column == 1).toList();
     expect(right.length, lessThanOrEqualTo(7 + 1));
     final other = right.firstWhere((n) => n.kind == SankeyKind.other);
     expect(other.members.length, 20 - 6);
-    expect(
-      right
-          .where((n) => n.kind != SankeyKind.saved)
-          .fold(0, (a, n) => a + n.valueMinor),
-      spends.values.fold(0, (a, b) => a + b),
-    );
+    expect(right.where((n) => n.kind != SankeyKind.saved).fold(0, (a, n) => a + n.valueMinor), spends.values.fold(0, (a, b) => a + b));
   });
 
   test('a tiny flow next to a huge one stays visible and nothing overlaps', () {
@@ -138,38 +94,14 @@ void main() {
     );
     for (var i = 1; i < l.links.length; i++) {
       final a = l.links[i - 1], b = l.links[i];
-      expect(
-        b.sourceY >= a.sourceY - 1e-9 && b.targetY >= a.targetY - 1e-9,
-        isTrue,
-      );
+      expect(b.sourceY >= a.sourceY - 1e-9 && b.targetY >= a.targetY - 1e-9, isTrue);
     }
   });
 
   test('empty and zero input give an empty layout; zero items are dropped', () {
-    expect(
-      sankeyLayout(
-        incomes: const [],
-        spends: const [],
-        width: 300,
-        height: 300,
-      ).isEmpty,
-      isTrue,
-    );
-    expect(
-      sankeyLayout(
-        incomes: items({'a': 0}),
-        spends: items({'b': 0}),
-        width: 300,
-        height: 300,
-      ).isEmpty,
-      isTrue,
-    );
-    final l = sankeyLayout(
-      incomes: const [],
-      spends: items({'b': 100}),
-      width: 300,
-      height: 300,
-    );
+    expect(sankeyLayout(incomes: const [], spends: const [], width: 300, height: 300).isEmpty, isTrue);
+    expect(sankeyLayout(incomes: items({'a': 0}), spends: items({'b': 0}), width: 300, height: 300).isEmpty, isTrue);
+    final l = sankeyLayout(incomes: const [], spends: items({'b': 100}), width: 300, height: 300);
     expectSound(l);
     expect(l.nodes.length, 2);
   });

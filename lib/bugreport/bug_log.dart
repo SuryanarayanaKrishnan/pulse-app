@@ -49,8 +49,7 @@ class BugLog {
     var t = Redactor.redact(text.replaceAll('\n', ' '));
     if (t.length > _maxLine) t = '${t.substring(0, _maxLine)}...';
     _entries.add(LogEntry(_now(), kind, t));
-    if (_entries.length > capacity)
-      _entries.removeRange(0, _entries.length - capacity);
+    if (_entries.length > capacity) _entries.removeRange(0, _entries.length - capacity);
   }
 
   void route(String name) {
@@ -69,10 +68,7 @@ class BugLog {
   void error(Object error, [StackTrace? stack]) {
     _add(LogKind.error, '${error.runtimeType}: $error');
     if (stack == null) return;
-    final frames = stack
-        .toString()
-        .split('\n')
-        .where((l) => l.trim().isNotEmpty);
+    final frames = stack.toString().split('\n').where((l) => l.trim().isNotEmpty);
     for (final f in frames.take(12)) {
       _add(LogKind.trace, f.trim());
     }

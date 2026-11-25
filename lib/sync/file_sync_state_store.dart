@@ -21,11 +21,7 @@ import '../data/local/database.dart';
 /// alternative (trusting a stale state against restored rows) would look like
 /// mass deletes to the other devices.
 class FileSyncStateStore implements ClearableStateStore {
-  FileSyncStateStore({
-    required this.locate,
-    required this.db,
-    this.settingKey = 'sync_epoch',
-  });
+  FileSyncStateStore({required this.locate, required this.db, this.settingKey = 'sync_epoch'});
 
   /// Resolved lazily (the app-support directory is found asynchronously).
   final Future<File> Function() locate;
@@ -57,10 +53,7 @@ class FileSyncStateStore implements ClearableStateStore {
     final file = await locate();
     final tmp = File('${file.path}.tmp');
     await file.parent.create(recursive: true);
-    await tmp.writeAsString(
-      jsonEncode({'epoch': epoch, 'state': state.encode()}),
-      flush: true,
-    );
+    await tmp.writeAsString(jsonEncode({'epoch': epoch, 'state': state.encode()}), flush: true);
     await tmp.rename(file.path);
     await db.putSetting(settingKey, epoch);
   }

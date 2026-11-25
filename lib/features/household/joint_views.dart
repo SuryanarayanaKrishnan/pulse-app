@@ -27,12 +27,8 @@ class ScopeNotifier extends Notifier<NwScope> {
   void set(NwScope s) => state = s;
 }
 
-final budgetScopeProvider = NotifierProvider<ScopeNotifier, NwScope>(
-  ScopeNotifier.new,
-);
-final wealthScopeProvider = NotifierProvider<ScopeNotifier, NwScope>(
-  ScopeNotifier.new,
-);
+final budgetScopeProvider = NotifierProvider<ScopeNotifier, NwScope>(ScopeNotifier.new);
+final wealthScopeProvider = NotifierProvider<ScopeNotifier, NwScope>(ScopeNotifier.new);
 
 /// The Mine / Joint switch shown under a tab's header.
 class ScopeToggle extends StatelessWidget {
@@ -52,8 +48,7 @@ class ScopeToggle extends StatelessWidget {
   );
 }
 
-String _daysAway(int d) =>
-    d == 0 ? 'today' : (d == 1 ? 'tomorrow' : 'in $d days');
+String _daysAway(int d) => d == 0 ? 'today' : (d == 1 ? 'tomorrow' : 'in $d days');
 
 // ---- Budget > Joint -------------------------------------------------------------------
 
@@ -76,12 +71,7 @@ class JointBudgetView extends ConsumerWidget {
     final b = jointBudget(
       [
         for (final l in j.limits)
-          HLimit(
-            id: l.id,
-            categoryId: l.categoryId,
-            limitMinor: l.limitMinor + (delta[l.categoryId] ?? 0),
-            currency: l.currency,
-          ),
+          HLimit(id: l.id, categoryId: l.categoryId, limitMinor: l.limitMinor + (delta[l.categoryId] ?? 0), currency: l.currency),
       ],
       j.txs,
       month: now,
@@ -92,15 +82,8 @@ class JointBudgetView extends ConsumerWidget {
       for (final m in moves.reversed)
         if (m.month == monthKey && m.scope == MoveScope.joint) m,
     ];
-    final from = DateTime.utc(now.year, now.month, 1),
-        to = DateTime.utc(now.year, now.month + 1, 1);
-    final by = spendByMember(
-      j.txs,
-      from: from,
-      to: to,
-      me: j.me,
-      shareMine: j.shareMine,
-    );
+    final from = DateTime.utc(now.year, now.month, 1), to = DateTime.utc(now.year, now.month + 1, 1);
+    final by = spendByMember(j.txs, from: from, to: to, me: j.me, shareMine: j.shareMine);
     final totalSpent = by.fold(0, (a, s) => a + s.spentMinor);
     final today = CalDate(now.year, now.month, now.day);
     final bills = upcomingBills(j.bills, today, j.me);
@@ -131,9 +114,7 @@ class JointBudgetView extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             '${PulseColors.statusLabel(b.progress)} · ${aedMinor(b.remainingMinor.abs())} ${b.remainingMinor < 0 ? 'over' : 'left'} in limits',
-                            style: context.tt.bodyMedium!.copyWith(
-                              color: c.textPrimary,
-                            ),
+                            style: context.tt.bodyMedium!.copyWith(color: c.textPrimary),
                           ),
                         ),
                       ],
@@ -142,11 +123,7 @@ class JointBudgetView extends ConsumerWidget {
                 )
               : null,
         ),
-        SectionHeader(
-          'Joint limits',
-          action: 'Add',
-          onAction: () => addJointLimit(context, ref),
-        ),
+        SectionHeader('Joint limits', action: 'Add', onAction: () => addJointLimit(context, ref)),
         if (!hasLimits)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -165,12 +142,7 @@ class JointBudgetView extends ConsumerWidget {
           ),
         if (b.lines.length >= 2)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.sm,
-              Space.gutter,
-              0,
-            ),
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
             child: Align(
               alignment: Alignment.centerLeft,
               child: TextAction(
@@ -184,16 +156,9 @@ class JointBudgetView extends ConsumerWidget {
                   scope: MoveScope.joint,
                   sources: [
                     for (final l in b.lines)
-                      MoveSource(
-                        categoryFor(cats, l.limit.categoryId),
-                        l.limit.limitMinor,
-                        l.spentMinor,
-                      ),
+                      MoveSource(categoryFor(cats, l.limit.categoryId), l.limit.limitMinor, l.spentMinor),
                   ],
-                  targets: [
-                    for (final l in b.lines)
-                      categoryFor(cats, l.limit.categoryId),
-                  ],
+                  targets: [for (final l in b.lines) categoryFor(cats, l.limit.categoryId)],
                   onChanged: () => ref.invalidate(budgetMovesProvider),
                 ),
               ),
@@ -203,8 +168,7 @@ class JointBudgetView extends ConsumerWidget {
           ListRow(
             key: Key('joint_move_${m.id}'),
             dense: true,
-            title:
-                '${categoryFor(cats, m.fromId).label} to ${categoryFor(cats, m.toId).label}',
+            title: '${categoryFor(cats, m.fromId).label} to ${categoryFor(cats, m.toId).label}',
             subtitle: aedMinor(m.amountMinor),
             trailing: TextAction(
               'Undo',
@@ -219,10 +183,7 @@ class JointBudgetView extends ConsumerWidget {
         if (by.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text(
-              'Nothing shared yet this month.',
-              style: context.tt.bodySmall,
-            ),
+            child: Text('Nothing shared yet this month.', style: context.tt.bodySmall),
           )
         else
           RowGroup(
@@ -244,28 +205,15 @@ class JointBudgetView extends ConsumerWidget {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    s.owner == j.me
-                                        ? '${j.nameOf(s.owner)} (you)'
-                                        : j.nameOf(s.owner),
+                                    s.owner == j.me ? '${j.nameOf(s.owner)} (you)' : j.nameOf(s.owner),
                                     style: context.tt.bodyLarge,
                                   ),
                                 ),
-                                Text(
-                                  aedMinor(s.spentMinor),
-                                  style: PulseTheme.amount(
-                                    c.textPrimary,
-                                    size: 15,
-                                  ),
-                                ),
+                                Text(aedMinor(s.spentMinor), style: PulseTheme.amount(c.textPrimary, size: 15)),
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Meter(
-                              value: totalSpent == 0
-                                  ? 0
-                                  : s.spentMinor / totalSpent,
-                              height: 4,
-                            ),
+                            Meter(value: totalSpent == 0 ? 0 : s.spentMinor / totalSpent, height: 4),
                           ],
                         ),
                       ),
@@ -274,18 +222,11 @@ class JointBudgetView extends ConsumerWidget {
                 ),
             ],
           ),
-        SectionHeader(
-          'Shared bills',
-          action: j.bills.isEmpty ? 'Add' : 'Manage',
-          onAction: () => context.push(Routes.household),
-        ),
+        SectionHeader('Shared bills', action: j.bills.isEmpty ? 'Add' : 'Manage', onAction: () => context.push(Routes.household)),
         if (bills.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text(
-              'Split rent, internet or the helper and see what each of you owes.',
-              style: context.tt.bodySmall,
-            ),
+            child: Text('Split rent, internet or the helper and see what each of you owes.', style: context.tt.bodySmall),
           )
         else
           RowGroup(
@@ -294,12 +235,8 @@ class JointBudgetView extends ConsumerWidget {
               for (final d in bills)
                 ListRow(
                   title: d.bill.name,
-                  subtitle:
-                      'Due ${_daysAway(d.daysAway)} · your share ${aedMinor(d.myShareMinor)}',
-                  trailing: Text(
-                    aedMinor(d.bill.amountMinor),
-                    style: PulseTheme.amount(c.textPrimary, size: 15),
-                  ),
+                  subtitle: 'Due ${_daysAway(d.daysAway)} · your share ${aedMinor(d.myShareMinor)}',
+                  trailing: Text(aedMinor(d.bill.amountMinor), style: PulseTheme.amount(c.textPrimary, size: 15)),
                 ),
             ],
           ),
@@ -307,10 +244,7 @@ class JointBudgetView extends ConsumerWidget {
         if (goals.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-            child: Text(
-              'Mark a goal as Shared and it shows here for everyone.',
-              style: context.tt.bodySmall,
-            ),
+            child: Text('Mark a goal as Shared and it shows here for everyone.', style: context.tt.bodySmall),
           )
         else
           RowGroup(
@@ -319,28 +253,15 @@ class JointBudgetView extends ConsumerWidget {
             children: [
               for (final g in goals)
                 ListRow(
-                  leading: ProgressRing(
-                    progress: g.progress,
-                    size: 32,
-                    stroke: 4,
-                  ),
+                  leading: ProgressRing(progress: g.progress, size: 32, stroke: 4),
                   title: g.name,
-                  subtitle:
-                      '${aedMinor(g.kind == 'paydown' ? g.targetMinor - g.currentMinor : g.currentMinor)} of ${aedMinor(g.targetMinor)} · ${absOwnerLabel(j, g.owner)}',
-                  trailing: Text(
-                    '${(g.progress * 100).round()}%',
-                    style: PulseTheme.amount(c.textPrimary, size: 15),
-                  ),
+                  subtitle: '${aedMinor(g.kind == 'paydown' ? g.targetMinor - g.currentMinor : g.currentMinor)} of ${aedMinor(g.targetMinor)} · ${absOwnerLabel(j, g.owner)}',
+                  trailing: Text('${(g.progress * 100).round()}%', style: PulseTheme.amount(c.textPrimary, size: 15)),
                 ),
             ],
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.xl,
-            Space.gutter,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
           child: Text(
             'Joint totals count what is shared and what each person has chosen to share. Private items are never included.',
             style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
@@ -364,14 +285,7 @@ class _LimitRow extends ConsumerWidget {
     return Pressable(
       onTap: () => showPulseSheet<void>(
         context,
-        builder: (_) => JointLimitSheet(
-          categoryId: cat.id,
-          categoryLabel: cat.label,
-          existing: j.limits.firstWhere(
-            (x) => x.id == l.limit.id,
-            orElse: () => l.limit,
-          ),
-        ),
+        builder: (_) => JointLimitSheet(categoryId: cat.id, categoryLabel: cat.label, existing: j.limits.firstWhere((x) => x.id == l.limit.id, orElse: () => l.limit)),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: Space.md),
@@ -385,16 +299,10 @@ class _LimitRow extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Expanded(
-                        child: Text(cat.label, style: context.tt.bodyLarge),
-                      ),
+                      Expanded(child: Text(cat.label, style: context.tt.bodyLarge)),
                       Text(
-                        over
-                            ? '${aedMinor(-l.remainingMinor)} over'
-                            : '${aedMinor(l.remainingMinor)} left',
-                        style: context.tt.bodyMedium!.copyWith(
-                          color: over ? c.negative : c.textSecondary,
-                        ),
+                        over ? '${aedMinor(-l.remainingMinor)} over' : '${aedMinor(l.remainingMinor)} left',
+                        style: context.tt.bodyMedium!.copyWith(color: over ? c.negative : c.textSecondary),
                       ),
                     ],
                   ),
@@ -425,20 +333,13 @@ class JointNetWorthView extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final nw = j.netWorth(NwScope.joint);
-    final lines =
-        [
-          for (final l in j.lines)
-            if (visibleInJoint(
-              owner: l.owner,
-              isPrivate: l.isPrivate,
-              me: j.me,
-              shareMine: j.shareMine,
-            ))
-              l,
-        ]..sort((a, b) {
-          if (a.isLiability != b.isLiability) return a.isLiability ? 1 : -1;
-          return b.valueMinor.compareTo(a.valueMinor);
-        });
+    final lines = [
+      for (final l in j.lines)
+        if (visibleInJoint(owner: l.owner, isPrivate: l.isPrivate, me: j.me, shareMine: j.shareMine)) l,
+    ]..sort((a, b) {
+        if (a.isLiability != b.isLiability) return a.isLiability ? 1 : -1;
+        return b.valueMinor.compareTo(a.valueMinor);
+      });
     return Column(
       key: const Key('joint_networth'),
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -446,8 +347,7 @@ class JointNetWorthView extends StatelessWidget {
         HeroNumber(
           label: 'Joint net worth',
           value: nw.netMinor / 100,
-          caption:
-              'Assets ${aedMinor(nw.assetsMinor)} · Liabilities ${aedMinor(nw.liabilitiesMinor)}',
+          caption: 'Assets ${aedMinor(nw.assetsMinor)} · Liabilities ${aedMinor(nw.liabilitiesMinor)}',
         ),
         const SectionHeader('By person'),
         RowGroup(
@@ -457,9 +357,7 @@ class JointNetWorthView extends StatelessWidget {
             for (final o in nw.byOwner)
               ListRow(
                 leading: ownerAvatar(j, o.owner),
-                title: o.owner == j.me
-                    ? '${j.nameOf(o.owner)} (you)'
-                    : j.nameOf(o.owner),
+                title: o.owner == j.me ? '${j.nameOf(o.owner)} (you)' : j.nameOf(o.owner),
                 trailing: Text(
                   Money.aed(o.netMinor / 100, decimals: false),
                   style: PulseTheme.amount(c.textPrimary, size: 15),
@@ -476,22 +374,14 @@ class JointNetWorthView extends StatelessWidget {
                 title: l.name,
                 subtitle: absOwnerLabel(j, l.owner),
                 trailing: Text(
-                  Money.aed(
-                    (l.isLiability ? -l.valueMinor : l.valueMinor) / 100,
-                    decimals: false,
-                  ),
+                  Money.aed((l.isLiability ? -l.valueMinor : l.valueMinor) / 100, decimals: false),
                   style: PulseTheme.amount(c.textPrimary, size: 15),
                 ),
               ),
           ],
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.lg,
-            Space.gutter,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
           child: Text(
             j.shareMine
                 ? 'Includes shared items and what each person shares. Anything marked Private is left out, here and on their phone.'

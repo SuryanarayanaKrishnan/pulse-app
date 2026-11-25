@@ -59,32 +59,80 @@ class SpendCategory {
     'Salary',
     kind: CategoryKind.income,
   );
-  static const groceries = SpendCategory('groceries', 'Groceries');
-  static const dining = SpendCategory('dining', 'Dining & Delivery');
-  static const transport = SpendCategory('transport', 'Transport & Fuel');
-  static const carLoan = SpendCategory('car_loan', 'Car Loan');
-  static const homeLoan = SpendCategory('home_loan', 'Home Loan');
-  static const rent = SpendCategory('rent', 'Rent & Housing');
-  static const utilities = SpendCategory('utilities', 'Utilities');
-  static const telecom = SpendCategory('telecom', 'Telecom');
+  static const groceries = SpendCategory(
+    'groceries',
+    'Groceries',
+  );
+  static const dining = SpendCategory(
+    'dining',
+    'Dining & Delivery',
+  );
+  static const transport = SpendCategory(
+    'transport',
+    'Transport & Fuel',
+  );
+  static const carLoan = SpendCategory(
+    'car_loan',
+    'Car Loan',
+  );
+  static const homeLoan = SpendCategory(
+    'home_loan',
+    'Home Loan',
+  );
+  static const rent = SpendCategory(
+    'rent',
+    'Rent & Housing',
+  );
+  static const utilities = SpendCategory(
+    'utilities',
+    'Utilities',
+  );
+  static const telecom = SpendCategory(
+    'telecom',
+    'Telecom',
+  );
   static const fixedExpenses = SpendCategory(
     'fixed_expenses',
     'Fixed Expenses',
   );
-  static const education = SpendCategory('education', 'Education Fees');
-  static const health = SpendCategory('health', 'Health');
-  static const shopping = SpendCategory('shopping', 'Shopping');
-  static const travel = SpendCategory('travel', 'Travel');
-  static const entertainment = SpendCategory('entertainment', 'Entertainment');
-  static const family = SpendCategory('family', 'Family & Remittances');
-  static const savings = SpendCategory('savings', 'Savings & Investments');
+  static const education = SpendCategory(
+    'education',
+    'Education Fees',
+  );
+  static const health = SpendCategory(
+    'health',
+    'Health',
+  );
+  static const shopping = SpendCategory(
+    'shopping',
+    'Shopping',
+  );
+  static const travel = SpendCategory(
+    'travel',
+    'Travel',
+  );
+  static const entertainment = SpendCategory(
+    'entertainment',
+    'Entertainment',
+  );
+  static const family = SpendCategory(
+    'family',
+    'Family & Remittances',
+  );
+  static const savings = SpendCategory(
+    'savings',
+    'Savings & Investments',
+  );
   static const cardPayments = SpendCategory(
     'cc_payment',
     'Credit Card Payments',
     kind: CategoryKind.transfer,
   );
   static const fees = SpendCategory('fees', 'Fees');
-  static const other = SpendCategory('other', 'Other');
+  static const other = SpendCategory(
+    'other',
+    'Other',
+  );
 
   /// The income bucket.
   static const income = salary;

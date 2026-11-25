@@ -17,16 +17,13 @@ abstract class PhotoPicker {
 }
 
 class ImagePickerPhotoPicker implements PhotoPicker {
-  ImagePickerPhotoPicker([ImagePicker? picker])
-    : _picker = picker ?? ImagePicker();
+  ImagePickerPhotoPicker([ImagePicker? picker]) : _picker = picker ?? ImagePicker();
   final ImagePicker _picker;
 
   @override
   Future<String?> pick(PhotoSource source) async {
     final x = await _picker.pickImage(
-      source: source == PhotoSource.camera
-          ? ImageSource.camera
-          : ImageSource.gallery,
+      source: source == PhotoSource.camera ? ImageSource.camera : ImageSource.gallery,
       imageQuality: 85,
       maxWidth: 2400,
     );
@@ -50,8 +47,7 @@ abstract class AttachmentStorage {
 }
 
 class PrivateAttachmentStorage implements AttachmentStorage {
-  PrivateAttachmentStorage({Future<Directory> Function()? root})
-    : _root = root ?? _defaultRoot;
+  PrivateAttachmentStorage({Future<Directory> Function()? root}) : _root = root ?? _defaultRoot;
   final Future<Directory> Function() _root;
 
   static Future<Directory> _defaultRoot() async {

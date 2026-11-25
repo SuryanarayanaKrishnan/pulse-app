@@ -52,18 +52,11 @@ MoveProblem? checkMove({
   return null;
 }
 
-Iterable<BudgetMove> activeMoves(
-  Iterable<BudgetMove> moves, {
-  required String month,
-  required MoveScope scope,
-}) => moves.where((m) => !m.undone && m.month == month && m.scope == scope);
+Iterable<BudgetMove> activeMoves(Iterable<BudgetMove> moves, {required String month, required MoveScope scope}) =>
+    moves.where((m) => !m.undone && m.month == month && m.scope == scope);
 
 /// Net change per category from the moves of [month] and [scope].
-Map<String, int> moveDeltas(
-  Iterable<BudgetMove> moves, {
-  required String month,
-  required MoveScope scope,
-}) {
+Map<String, int> moveDeltas(Iterable<BudgetMove> moves, {required String month, required MoveScope scope}) {
   final d = <String, int>{};
   for (final m in activeMoves(moves, month: month, scope: scope)) {
     d[m.fromId] = (d[m.fromId] ?? 0) - m.amountMinor;
@@ -80,29 +73,19 @@ Map<String, int> applyMoves(
   required MoveScope scope,
 }) {
   final out = {...planned};
-  moveDeltas(
-    moves,
-    month: month,
-    scope: scope,
-  ).forEach((k, v) => out[k] = (out[k] ?? 0) + v);
+  moveDeltas(moves, month: month, scope: scope).forEach((k, v) => out[k] = (out[k] ?? 0) + v);
   return out;
 }
 
 /// Categories with room to give, most spare first: planned (moves applied)
 /// minus spent, above zero. Used to pre-pick the "from" of an overspend fix.
-List<(String, int)> spareMoney(
-  Map<String, int> plannedAfterMoves,
-  Map<String, int> spent, {
-  String? except,
-}) {
+List<(String, int)> spareMoney(Map<String, int> plannedAfterMoves, Map<String, int> spent, {String? except}) {
   final out = <(String, int)>[];
   plannedAfterMoves.forEach((id, p) {
     if (id == except) return;
     final spare = p - (spent[id] ?? 0);
     if (spare > 0) out.add((id, spare));
   });
-  out.sort(
-    (a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : a.$1.compareTo(b.$1),
-  );
+  out.sort((a, b) => b.$2 != a.$2 ? b.$2.compareTo(a.$2) : a.$1.compareTo(b.$1));
   return out;
 }

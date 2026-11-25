@@ -12,9 +12,9 @@ import 'shake_detector.dart';
 final shakeSourceProvider = Provider<Stream<Accel> Function()>((ref) {
   return () {
     try {
-      return accelerometerEventStream(
-        samplingPeriod: SensorInterval.gameInterval,
-      ).map<Accel>((e) => (x: e.x, y: e.y, z: e.z)).handleError((Object _) {});
+      return accelerometerEventStream(samplingPeriod: SensorInterval.gameInterval)
+          .map<Accel>((e) => (x: e.x, y: e.y, z: e.z))
+          .handleError((Object _) {});
     } on Object {
       return const Stream<Accel>.empty();
     }
@@ -31,8 +31,7 @@ class ShakeHost extends ConsumerStatefulWidget {
   ConsumerState<ShakeHost> createState() => _ShakeHostState();
 }
 
-class _ShakeHostState extends ConsumerState<ShakeHost>
-    with WidgetsBindingObserver {
+class _ShakeHostState extends ConsumerState<ShakeHost> with WidgetsBindingObserver {
   late final ShakeListener _listener;
   bool _foreground = true;
 
@@ -42,8 +41,7 @@ class _ShakeHostState extends ConsumerState<ShakeHost>
     WidgetsBinding.instance.addObserver(this);
     _listener = ShakeListener(
       source: ref.read(shakeSourceProvider),
-      onShake: () =>
-          unawaited(ref.read(bugReportLauncherProvider).launch('shake')),
+      onShake: () => unawaited(ref.read(bugReportLauncherProvider).launch('shake')),
     );
     final state = WidgetsBinding.instance.lifecycleState;
     _foreground = state == null || state == AppLifecycleState.resumed;
@@ -72,9 +70,6 @@ class _ShakeHostState extends ConsumerState<ShakeHost>
   @override
   Widget build(BuildContext context) {
     ref.listen<bool>(shakeEnabledProvider, (_, _) => _sync());
-    return RepaintBoundary(
-      key: ref.watch(captureKeyProvider),
-      child: widget.child,
-    );
+    return RepaintBoundary(key: ref.watch(captureKeyProvider), child: widget.child);
   }
 }

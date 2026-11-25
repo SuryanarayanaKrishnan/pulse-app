@@ -151,11 +151,7 @@ void main() {
     await t.tap(find.text('Undo'));
     await _settle(t);
     expect(repo.group.settlements, isEmpty);
-    expect(rec.names, [
-      'split_auto_settled',
-      'first_split_settled',
-      'split_settle_undone',
-    ]);
+    expect(rec.names, ['split_auto_settled', 'first_split_settled', 'split_settle_undone']);
   });
 
   testWidgets('unsure match asks once, remembers yes, then auto-settles', (

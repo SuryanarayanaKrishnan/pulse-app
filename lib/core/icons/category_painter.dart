@@ -16,10 +16,7 @@ class CategoryGlyphPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final k = size.shortestSide / glyphGrid;
     canvas.save();
-    canvas.translate(
-      (size.width - glyphGrid * k) / 2,
-      (size.height - glyphGrid * k) / 2,
-    );
+    canvas.translate((size.width - glyphGrid * k) / 2, (size.height - glyphGrid * k) / 2);
     canvas.scale(k);
     final stroke = Paint()
       ..style = PaintingStyle.stroke

@@ -14,8 +14,7 @@ import 'db_key.dart';
 class EncryptionUnavailable implements Exception {
   const EncryptionUnavailable();
   @override
-  String toString() =>
-      'The SQLite build in this app does not support encryption.';
+  String toString() => 'The SQLite build in this app does not support encryption.';
 }
 
 /// True when the loaded SQLite is SQLite3 Multiple Ciphers (or SQLCipher).
@@ -64,8 +63,7 @@ Future<PulseDatabase> openEncryptedDatabase({
   final dir = directory ?? await getApplicationSupportDirectory();
   await dir.create(recursive: true);
   final file = File(p.join(dir.path, fileName));
-  void setup(CommonDatabase db) =>
-      applyEncryptionKey(db, key, allowPlaintext: allowPlaintext);
+  void setup(CommonDatabase db) => applyEncryptionKey(db, key, allowPlaintext: allowPlaintext);
   final executor = background
       ? NativeDatabase.createInBackground(file, setup: setup)
       : NativeDatabase(file, setup: setup);

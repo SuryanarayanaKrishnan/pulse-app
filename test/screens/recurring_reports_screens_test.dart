@@ -33,8 +33,7 @@ import '../support/recurring_fixtures.dart';
 final _dir = Platform.environment['SCREENS_DIR'];
 
 Future<void> _loadFonts() async {
-  Future<ByteData> bytes(String path) async =>
-      ByteData.sublistView(await File(path).readAsBytes());
+  Future<ByteData> bytes(String path) async => ByteData.sublistView(await File(path).readAsBytes());
   const inter = '/usr/share/fonts/opentype/inter';
   final text = FontLoader('PulseInter');
   for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
@@ -42,52 +41,34 @@ Future<void> _loadFonts() async {
   }
   await text.load();
   final icons = FontLoader('MaterialIcons')
-    ..addFont(
-      bytes(
-        '${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
-      ),
-    );
+    ..addFont(bytes('${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf'));
   await icons.load();
 }
 
 void main() {
   for (final dark in [false, true]) {
     final mode = dark ? 'dark' : 'light';
-    testWidgets('recurring, reports and net worth screens ($mode)', (
-      tester,
-    ) async {
+    testWidgets('recurring, reports and net worth screens ($mode)', (tester) async {
       await tester.runAsync(_loadFonts);
       PulseTheme.useGoogleFonts = false;
       PulseTheme.testFontFamily = 'PulseInter';
       addTearDown(() => PulseTheme.testFontFamily = null);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
-      tester.platformDispatcher.platformBrightnessTestValue = dark
-          ? Brightness.dark
-          : Brightness.light;
+      tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final key = GlobalKey();
 
       Future<void> open(String location, {bool household = false}) async {
-        final store = household
-            ? await demoJoinedHousehold(
-                () async => [],
-                now: DateTime(2026, 11, 14),
-              )
-            : null;
+        final store = household ? await demoJoinedHousehold(() async => [], now: DateTime(2026, 11, 14)) : null;
         const today = CalDate(2026, 11, 24);
         final history = [
           for (var i = 364; i >= 0; i--)
             () {
               final t = 364 - i;
               final net = 640000 + t * 2300 + (t % 17) * 900 - (t % 5) * 400;
-              return NwPoint(
-                today.addDays(-i),
-                net + 410000,
-                410000 - t * 300,
-                estimated: i > 120,
-              );
+              return NwPoint(today.addDays(-i), net + 410000, 410000 - t * 300, estimated: i > 120);
             }(),
         ];
         await tester.pumpWidget(const SizedBox());
@@ -96,35 +77,16 @@ void main() {
             key: key,
             child: ProviderScope(
               overrides: [
-                repositoryProvider.overrideWithValue(
-                  MockPulseRepository(
-                    latency: Duration.zero,
-                    now: DateTime(2026, 11, 14),
-                  ),
-                ),
-                transactionsProvider.overrideWith(
-                  (ref) async => syntheticLedger(),
-                ),
-                recurringTodayProvider.overrideWithValue(
-                  location == '/wealth' ? today : fixtureToday,
-                ),
-                if (location == '/wealth')
-                  netWorthHistoryProvider.overrideWith((ref) async => history),
+                repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero, now: DateTime(2026, 11, 14))),
+                transactionsProvider.overrideWith((ref) async => syntheticLedger()),
+                recurringTodayProvider.overrideWithValue(location == '/wealth' ? today : fixtureToday),
+                if (location == '/wealth') netWorthHistoryProvider.overrideWith((ref) async => history),
                 analyticsProvider.overrideWithValue(NoopAnalytics()),
                 kvStoreProvider.overrideWithValue(MemoryKvStore()),
-                sessionProvider.overrideWith(
-                  (ref) => SessionController(
-                    onboarded: true,
-                    signedIn: true,
-                    connected: true,
-                  ),
-                ),
+                sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
                 if (store != null) ...[
                   householdStoreProvider.overrideWithValue(store),
-                  householdKeyStoreProvider.overrideWithValue(
-                    MemoryHouseholdKeyStore()
-                      ..key = Uint8List.fromList(List.filled(32, 7)),
-                  ),
+                  householdKeyStoreProvider.overrideWithValue(MemoryHouseholdKeyStore()..key = Uint8List.fromList(List.filled(32, 7))),
                 ],
               ],
               child: PulseApp(initialLocation: location),
@@ -139,8 +101,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
         await tester.pump(const Duration(milliseconds: 600));
         await tester.runAsync(() async {
-          final b =
-              key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
           final img = await b.toImage(pixelRatio: 1);
           final data = await img.toByteData(format: ui.ImageByteFormat.png);
           final f = File('$_dir/$name-$mode.png');
@@ -150,11 +111,7 @@ void main() {
       }
 
       Future<void> scrollTo(Finder f, {double alignment = 0.3}) async {
-        await tester.scrollUntilVisible(
-          f,
-          200,
-          scrollable: find.byType(Scrollable).first,
-        );
+        await tester.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
         await Scrollable.ensureVisible(tester.element(f), alignment: alignment);
         await tester.pump(const Duration(milliseconds: 500));
       }
@@ -167,10 +124,7 @@ void main() {
       await open('/recurring');
       await tester.tap(find.text('Calendar'));
       await tester.pump(const Duration(milliseconds: 600));
-      await scrollTo(
-        find.byKey(const Key('recurring_calendar')),
-        alignment: 0.1,
-      );
+      await scrollTo(find.byKey(const Key('recurring_calendar')), alignment: 0.1);
       await tester.tap(find.byKey(const Key('cal_day_22')));
       await tester.pump(const Duration(milliseconds: 500));
       await shot('recurring-calendar');
@@ -184,10 +138,7 @@ void main() {
       // Reports: category treemap, a selected tile, a longer range, members.
       await open('/reports');
       await shot('reports-treemap');
-      await tester.tapAt(
-        tester.getRect(find.byKey(const Key('treemap'))).topLeft +
-            const Offset(20, 20),
-      );
+      await tester.tapAt(tester.getRect(find.byKey(const Key('treemap'))).topLeft + const Offset(20, 20));
       await tester.pump(const Duration(milliseconds: 500));
       await shot('reports-treemap-selected');
       await tester.tap(find.text('6M'));
@@ -203,10 +154,7 @@ void main() {
       await tester.tap(find.text('1Y'));
       await tester.pump(const Duration(milliseconds: 600));
       await shot('wealth-networth-1y');
-      await scrollTo(
-        find.byKey(const Key('assets_vs_liabilities')),
-        alignment: 0.3,
-      );
+      await scrollTo(find.byKey(const Key('assets_vs_liabilities')), alignment: 0.3);
       await shot('wealth-assets-vs-liabilities');
     }, skip: _dir == null);
   }

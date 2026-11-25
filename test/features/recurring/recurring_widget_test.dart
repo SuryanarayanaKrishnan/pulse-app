@@ -22,54 +22,33 @@ class Rec extends NoopAnalytics {
 }
 
 List<Override> overrides(Rec rec, {List<Transaction>? ledger}) => [
-  repositoryProvider.overrideWithValue(
-    MockPulseRepository(latency: Duration.zero),
-  ),
+  repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
   transactionsProvider.overrideWith((ref) async => ledger ?? syntheticLedger()),
   myCardsProvider.overrideWith((ref) async => []),
   recurringTodayProvider.overrideWithValue(fixtureToday),
   analyticsProvider.overrideWithValue(rec),
   kvStoreProvider.overrideWithValue(MemoryKvStore()),
-  sessionProvider.overrideWith(
-    (ref) =>
-        SessionController(onboarded: true, signedIn: true, connected: true),
-  ),
+  sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
 ];
 
-Future<void> open(
-  WidgetTester tester,
-  Rec rec, {
-  String at = '/recurring',
-  List<Transaction>? ledger,
-}) async {
+Future<void> open(WidgetTester tester, Rec rec, {String at = '/recurring', List<Transaction>? ledger}) async {
   PulseTheme.useGoogleFonts = false;
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: overrides(rec, ledger: ledger),
-      child: PulseApp(initialLocation: at),
-    ),
-  );
+  await tester.pumpWidget(ProviderScope(overrides: overrides(rec, ledger: ledger), child: PulseApp(initialLocation: at)));
   await tester.pump(const Duration(milliseconds: 100));
   await tester.pump(const Duration(seconds: 3));
 }
 
 Future<void> reveal(WidgetTester tester, Finder f) async {
-  await tester.scrollUntilVisible(
-    f,
-    200,
-    scrollable: find.byType(Scrollable).first,
-  );
+  await tester.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
   await Scrollable.ensureVisible(tester.element(f), alignment: 0.4);
   await tester.pump(const Duration(milliseconds: 400));
 }
 
 void main() {
-  testWidgets('groups by status and shows what is committed this month', (
-    tester,
-  ) async {
+  testWidgets('groups by status and shows what is committed this month', (tester) async {
     await open(tester, Rec());
     expect(find.text('Recurring'), findsWidgets);
     expect(find.text('Committed this month'), findsOneWidget);
@@ -91,9 +70,7 @@ void main() {
     expect(find.textContaining('36 more a year'), findsOneWidget);
   });
 
-  testWidgets('the calendar shows a dot on due days and the day list below', (
-    tester,
-  ) async {
+  testWidgets('the calendar shows a dot on due days and the day list below', (tester) async {
     await open(tester, Rec());
     await tester.tap(find.text('Calendar'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -108,59 +85,46 @@ void main() {
     expect(find.text('Powergrid'), findsOneWidget);
   });
 
-  testWidgets(
-    'the detail sheet shows history and next date; confirming is remembered and counted',
-    (tester) async {
-      final rec = Rec();
-      await open(tester, rec);
-      await reveal(tester, find.text('Cloudbox Storage').last);
-      await tester.tap(find.text('Cloudbox Storage').last);
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.byKey(const Key('rec_next')), findsOneWidget);
-      expect(find.textContaining('Next expected 22 Nov'), findsOneWidget);
-      expect(find.byKey(const Key('rec_history')), findsOneWidget);
-      await tester.tap(find.text('Yes, this is recurring'));
-      await tester.pump(const Duration(milliseconds: 500));
-      expect(rec.events.map((e) => e.name), contains('recurring_confirmed'));
-      expect(
-        rec.events
-            .firstWhere((e) => e.name == 'recurring_confirmed')
-            .properties,
-        {'cadence': 'monthly'},
-      );
-      expect(find.textContaining('confirmed'), findsWidgets);
-    },
-  );
+  testWidgets('the detail sheet shows history and next date; confirming is remembered and counted', (tester) async {
+    final rec = Rec();
+    await open(tester, rec);
+    await reveal(tester, find.text('Cloudbox Storage').last);
+    await tester.tap(find.text('Cloudbox Storage').last);
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.byKey(const Key('rec_next')), findsOneWidget);
+    expect(find.textContaining('Next expected 22 Nov'), findsOneWidget);
+    expect(find.byKey(const Key('rec_history')), findsOneWidget);
+    await tester.tap(find.text('Yes, this is recurring'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(rec.events.map((e) => e.name), contains('recurring_confirmed'));
+    expect(rec.events.firstWhere((e) => e.name == 'recurring_confirmed').properties, {'cadence': 'monthly'});
+    expect(find.textContaining('confirmed'), findsWidgets);
+  });
 
-  testWidgets(
-    'not recurring hides the series and totals shrink; it can be shown again',
-    (tester) async {
-      await open(tester, Rec());
-      expect(find.text('Powergrid'), findsOneWidget);
-      await tester.tap(find.text('Powergrid'));
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.tap(find.text('Not recurring'));
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.text('Powergrid'), findsNothing);
-      expect(find.text('Overdue'), findsNothing);
-      await reveal(tester, find.byKey(const Key('rec_hidden')));
-      expect(find.text('1 hidden'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('rec_hidden')));
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.tap(find.text('Show'));
-      await tester.pump(const Duration(milliseconds: 600));
-      await tester.tapAt(const Offset(10, 10)); // close the sheet
-      await tester.pump(const Duration(milliseconds: 600));
-      expect(find.text('Powergrid'), findsOneWidget);
-    },
-  );
+  testWidgets('not recurring hides the series and totals shrink; it can be shown again', (tester) async {
+    await open(tester, Rec());
+    expect(find.text('Powergrid'), findsOneWidget);
+    await tester.tap(find.text('Powergrid'));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.text('Not recurring'));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Powergrid'), findsNothing);
+    expect(find.text('Overdue'), findsNothing);
+    await reveal(tester, find.byKey(const Key('rec_hidden')));
+    expect(find.text('1 hidden'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('rec_hidden')));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tap(find.text('Show'));
+    await tester.pump(const Duration(milliseconds: 600));
+    await tester.tapAt(const Offset(10, 10)); // close the sheet
+    await tester.pump(const Duration(milliseconds: 600));
+    expect(find.text('Powergrid'), findsOneWidget);
+  });
 
-  testWidgets('months can be browsed: the next month projects the same bills', (
-    tester,
-  ) async {
+  testWidgets('months can be browsed: the next month projects the same bills', (tester) async {
     await open(tester, Rec());
     await tester.tap(find.bySemanticsLabel('Next month'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -169,9 +133,7 @@ void main() {
     expect(find.text('Upcoming'), findsOneWidget);
   });
 
-  testWidgets('with no history it explains itself instead of showing nothing', (
-    tester,
-  ) async {
+  testWidgets('with no history it explains itself instead of showing nothing', (tester) async {
     await open(tester, Rec(), ledger: []);
     expect(find.text('Nothing recurring yet'), findsOneWidget);
   });

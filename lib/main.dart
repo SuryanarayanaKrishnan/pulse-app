@@ -1,6 +1,5 @@
 import 'core/learning/global_merchant_map_loader.dart';
 import 'core/learning/learning_controller.dart';
-
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -76,9 +75,7 @@ Future<void> main() async {
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
-        analyticsProvider.overrideWithValue(
-          LoggingAnalytics(analytics, BugLog.instance),
-        ),
+        analyticsProvider.overrideWithValue(LoggingAnalytics(analytics, BugLog.instance)),
         if (db != null)
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
       ],

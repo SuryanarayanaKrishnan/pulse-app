@@ -11,12 +11,7 @@ import '../goals/goal_widgets.dart' show aedMinor;
 
 /// A category the money can come from: what it has planned right now.
 class MoveSource {
-  const MoveSource(
-    this.category,
-    this.plannedMinor,
-    this.spentMinor, {
-    this.saved = false,
-  });
+  const MoveSource(this.category, this.plannedMinor, this.spentMinor, {this.saved = false});
   final SpendCategory category;
   final int plannedMinor;
   final int spentMinor;
@@ -94,30 +89,19 @@ class MoveMoneySheet extends ConsumerStatefulWidget {
 class _MoveState extends ConsumerState<MoveMoneySheet> {
   String? _from, _to;
   late final _amount = TextEditingController(
-    text: widget.suggestMinor == null || widget.suggestMinor! <= 0
-        ? ''
-        : _fmt(widget.suggestMinor!),
+    text: widget.suggestMinor == null || widget.suggestMinor! <= 0 ? '' : _fmt(widget.suggestMinor!),
   );
   String? _error;
 
-  static String _fmt(int minor) =>
-      minor % 100 == 0 ? '${minor ~/ 100}' : (minor / 100).toStringAsFixed(2);
+  static String _fmt(int minor) => minor % 100 == 0 ? '${minor ~/ 100}' : (minor / 100).toStringAsFixed(2);
 
   @override
   void initState() {
     super.initState();
     _to = widget.to;
     // The category with the most to spare is the natural source.
-    final spare =
-        [
-          ...widget.sources.where(
-            (s) => s.category.id != _to && s.spareMinor > 0,
-          ),
-        ]..sort(
-          (a, b) => a.saved != b.saved
-              ? (a.saved ? 1 : -1)
-              : b.spareMinor.compareTo(a.spareMinor),
-        );
+    final spare = [...widget.sources.where((s) => s.category.id != _to && s.spareMinor > 0)]
+      ..sort((a, b) => a.saved != b.saved ? (a.saved ? 1 : -1) : b.spareMinor.compareTo(a.spareMinor));
     _from = spare.isEmpty ? null : spare.first.category.id;
     _reveal();
   }
@@ -131,8 +115,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
     super.dispose();
   }
 
-  MoveSource? get _source =>
-      widget.sources.where((s) => s.category.id == _from).firstOrNull;
+  MoveSource? get _source => widget.sources.where((s) => s.category.id == _from).firstOrNull;
 
   int? get _minor {
     final v = double.tryParse(_amount.text.replaceAll(',', ''));
@@ -156,8 +139,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
     }
     setState(() {
       _error = switch (problem!) {
-        MoveProblem.exceedsSource =>
-          'That is more than ${_source?.category.label ?? 'it'} has planned.',
+        MoveProblem.exceedsSource => 'That is more than ${_source?.category.label ?? 'it'} has planned.',
         MoveProblem.sameCategory => 'Pick two different categories.',
         _ => 'Enter an amount above zero.',
       };
@@ -167,8 +149,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
   final _keys = <String, GlobalKey>{};
   final _rows = <String, ScrollController>{};
   Key _selKey(String label) => _keys.putIfAbsent(label, GlobalKey.new);
-  ScrollController _rowController(String label) =>
-      _rows.putIfAbsent(label, ScrollController.new);
+  ScrollController _rowController(String label) => _rows.putIfAbsent(label, ScrollController.new);
 
   /// The chosen pill can sit off the edge of its row: scroll that row (and
   /// only that row) so it shows.
@@ -176,32 +157,19 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
     for (final e in _keys.entries) {
       final box = e.value.currentContext?.findRenderObject() as RenderBox?;
       final row = _rows[e.key];
-      final viewport =
-          row?.position.context.notificationContext?.findRenderObject()
-              as RenderBox?;
-      if (box == null || row == null || viewport == null || !row.hasClients)
-        continue;
-      final dx =
-          box.localToGlobal(Offset.zero, ancestor: viewport).dx + row.offset;
+      final viewport = row?.position.context.notificationContext?.findRenderObject() as RenderBox?;
+      if (box == null || row == null || viewport == null || !row.hasClients) continue;
+      final dx = box.localToGlobal(Offset.zero, ancestor: viewport).dx + row.offset;
       row.jumpTo((dx - 12).clamp(0, row.position.maxScrollExtent).toDouble());
     }
   });
 
-  Widget _picker(
-    String label,
-    String? value,
-    ValueChanged<String> onPick,
-    Iterable<SpendCategory> options, {
-    String? hide,
-  }) {
+  Widget _picker(String label, String? value, ValueChanged<String> onPick, Iterable<SpendCategory> options, {String? hide}) {
     final c = context.pc;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
-        ),
+        Text(label, style: context.tt.labelMedium!.copyWith(color: c.textSecondary)),
         const SizedBox(height: Space.sm),
         // One scrolling row: twenty categories as a wrap would fill the sheet.
         SingleChildScrollView(
@@ -216,9 +184,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
                     padding: const EdgeInsets.only(right: Space.sm),
                     child: Pill(
                       cat.label,
-                      key: cat.id == value
-                          ? _selKey(label)
-                          : Key('${label.toLowerCase()}_${cat.id}'),
+                      key: cat.id == value ? _selKey(label) : Key('${label.toLowerCase()}_${cat.id}'),
                       leading: CategoryIcon(cat, size: 16),
                       selected: cat.id == value,
                       onTap: () => setState(() {
@@ -246,9 +212,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _picker('From', _from, (v) => _from = v, [
-            for (final s in widget.sources) s.category,
-          ], hide: _to),
+          _picker('From', _from, (v) => _from = v, [for (final s in widget.sources) s.category], hide: _to),
           const SizedBox(height: Space.lg),
           _picker('To', _to, (v) => _to = v, widget.targets, hide: _from),
           const SizedBox(height: Space.lg),
@@ -256,10 +220,7 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
             key: const Key('move_amount'),
             controller: _amount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Amount',
-              prefixText: 'AED  ',
-            ),
+            decoration: const InputDecoration(hintText: 'Amount', prefixText: 'AED  '),
             onChanged: (_) => setState(() => _error = null),
           ),
           if (src != null) ...[
@@ -271,18 +232,10 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
           ],
           if (_error != null) ...[
             const SizedBox(height: Space.sm),
-            Text(
-              _error!,
-              key: const Key('move_error'),
-              style: context.tt.bodySmall!.copyWith(color: c.negative),
-            ),
+            Text(_error!, key: const Key('move_error'), style: context.tt.bodySmall!.copyWith(color: c.negative)),
           ],
           const SizedBox(height: Space.xl),
-          PrimaryButton(
-            key: const Key('move_go'),
-            label: 'Move',
-            onPressed: ready ? _go : null,
-          ),
+          PrimaryButton(key: const Key('move_go'), label: 'Move', onPressed: ready ? _go : null),
         ],
       ),
     );

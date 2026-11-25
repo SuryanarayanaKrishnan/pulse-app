@@ -19,23 +19,14 @@ Future<void> pumpHome(WidgetTester t, {bool allReviewed = false}) async {
   t.view.devicePixelRatio = 3;
   addTearDown(t.view.reset);
   repo = MockPulseRepository(latency: Duration.zero);
-  if (allReviewed)
-    await repo.setReviewed([
-      for (final x in await repo.transactions()) x.id,
-    ], true);
+  if (allReviewed) await repo.setReviewed([for (final x in await repo.transactions()) x.id], true);
   await t.pumpWidget(
     ProviderScope(
       overrides: [
         repositoryProvider.overrideWithValue(repo),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         kvStoreProvider.overrideWithValue(MemoryKvStore()),
-        sessionProvider.overrideWith(
-          (ref) => SessionController(
-            onboarded: true,
-            signedIn: true,
-            connected: true,
-          ),
-        ),
+        sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
       ],
       child: const PulseApp(),
     ),
@@ -68,23 +59,12 @@ void main() {
     expect(find.textContaining('to review'), findsNothing);
   });
 
-  testWidgets(
-    'a sheet opened from a tab covers the tab bar, so its buttons are reachable',
-    (t) async {
-      await pumpHome(t);
-      expect(
-        find.text('Wealth').hitTestable(),
-        findsOneWidget,
-        reason: 'tab bar is usable before',
-      );
-      await t.tap(find.text('Which card should I use?'));
-      await t.pumpAndSettle();
-      expect(find.byType(SheetScaffold), findsOneWidget);
-      expect(
-        find.text('Wealth').hitTestable(),
-        findsNothing,
-        reason: 'the sheet and its barrier sit above the tab bar',
-      );
-    },
-  );
+  testWidgets('a sheet opened from a tab covers the tab bar, so its buttons are reachable', (t) async {
+    await pumpHome(t);
+    expect(find.text('Wealth').hitTestable(), findsOneWidget, reason: 'tab bar is usable before');
+    await t.tap(find.text('Which card should I use?'));
+    await t.pumpAndSettle();
+    expect(find.byType(SheetScaffold), findsOneWidget);
+    expect(find.text('Wealth').hitTestable(), findsNothing, reason: 'the sheet and its barrier sit above the tab bar');
+  });
 }

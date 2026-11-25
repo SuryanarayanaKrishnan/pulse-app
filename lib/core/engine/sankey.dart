@@ -68,8 +68,7 @@ class SankeyLayout {
   final List<SankeyLink> links;
   final double width, height;
   bool get isEmpty => nodes.isEmpty;
-  int get totalMinor =>
-      nodes.where((n) => n.column == 0).fold(0, (a, n) => a + n.valueMinor);
+  int get totalMinor => nodes.where((n) => n.column == 0).fold(0, (a, n) => a + n.valueMinor);
 
   SankeyNode node(String id) => nodes.firstWhere((n) => n.id == id);
 }
@@ -80,28 +79,20 @@ const sankeyDeficitId = '_deficit';
 
 /// Keeps the largest [max] - 1 items and folds the rest into one "Other".
 List<(FlowItem, List<String>)> _fold(List<FlowItem> items, int max) {
-  final sorted =
-      [
-        for (final i in items)
-          if (i.amountMinor > 0) i,
-      ]..sort((a, b) {
-        final c = b.amountMinor.compareTo(a.amountMinor);
-        return c != 0 ? c : a.label.compareTo(b.label);
-      });
-  if (sorted.length <= max)
-    return [
-      for (final i in sorted) (i, [i.id]),
-    ];
+  final sorted = [
+    for (final i in items)
+      if (i.amountMinor > 0) i,
+  ]..sort((a, b) {
+      final c = b.amountMinor.compareTo(a.amountMinor);
+      return c != 0 ? c : a.label.compareTo(b.label);
+    });
+  if (sorted.length <= max) return [for (final i in sorted) (i, [i.id])];
   final keep = sorted.take(max - 1).toList();
   final rest = sorted.skip(max - 1).toList();
   return [
     for (final i in keep) (i, [i.id]),
     (
-      FlowItem(
-        sankeyOtherId,
-        'Other',
-        rest.fold(0, (a, i) => a + i.amountMinor),
-      ),
+      FlowItem(sankeyOtherId, 'Other', rest.fold(0, (a, i) => a + i.amountMinor)),
       [for (final i in rest) i.id],
     ),
   ];
@@ -152,56 +143,26 @@ SankeyLayout sankeyLayout({
   final right = _fold(spends, maxPerColumn);
   final inTotal = left.fold(0, (a, e) => a + e.$1.amountMinor);
   final outTotal = right.fold(0, (a, e) => a + e.$1.amountMinor);
-  if (inTotal == 0 && outTotal == 0)
-    return SankeyLayout(const [], const [], width, height);
+  if (inTotal == 0 && outTotal == 0) return SankeyLayout(const [], const [], width, height);
 
   final lItems = <(String, String, SankeyKind, int, List<String>)>[
     for (final e in left)
-      (
-        e.$1.id,
-        e.$1.label,
-        e.$1.id == sankeyOtherId ? SankeyKind.other : SankeyKind.income,
-        e.$1.amountMinor,
-        e.$2,
-      ),
+      (e.$1.id, e.$1.label, e.$1.id == sankeyOtherId ? SankeyKind.other : SankeyKind.income, e.$1.amountMinor, e.$2),
   ];
   final rItems = <(String, String, SankeyKind, int, List<String>)>[
     for (final e in right)
-      (
-        e.$1.id,
-        e.$1.label,
-        e.$1.id == sankeyOtherId ? SankeyKind.other : SankeyKind.category,
-        e.$1.amountMinor,
-        e.$2,
-      ),
+      (e.$1.id, e.$1.label, e.$1.id == sankeyOtherId ? SankeyKind.other : SankeyKind.category, e.$1.amountMinor, e.$2),
   ];
   if (outTotal > inTotal) {
-    lItems.add((
-      sankeyDeficitId,
-      deficitLabel,
-      SankeyKind.deficit,
-      outTotal - inTotal,
-      [sankeyDeficitId],
-    ));
+    lItems.add((sankeyDeficitId, deficitLabel, SankeyKind.deficit, outTotal - inTotal, [sankeyDeficitId]));
   } else if (inTotal > outTotal) {
-    rItems.add((
-      sankeySavedId,
-      savedLabel,
-      SankeyKind.saved,
-      inTotal - outTotal,
-      [sankeySavedId],
-    ));
+    rItems.add((sankeySavedId, savedLabel, SankeyKind.saved, inTotal - outTotal, [sankeySavedId]));
   }
 
   // The "Other" ids of the two columns must differ.
-  String idOf(int col, String id) =>
-      id == sankeyOtherId ? '${sankeyOtherId}_$col' : id;
+  String idOf(int col, String id) => id == sankeyOtherId ? '${sankeyOtherId}_$col' : id;
 
-  List<SankeyNode> place(
-    List<(String, String, SankeyKind, int, List<String>)> items,
-    int col,
-    double x,
-  ) {
+  List<SankeyNode> place(List<(String, String, SankeyKind, int, List<String>)> items, int col, double x) {
     final heights = _heights(
       [for (final i in items) i.$4],
       height - gap * (items.length - 1),

@@ -31,10 +31,7 @@ final householdStoreProvider = Provider<HouseholdStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (Env.demoData || db == null) {
     return MemoryHouseholdStore(
-      loader: () => demoOwnRows(
-        ref.read(repositoryProvider),
-        ref.read(goalServiceProvider),
-      ),
+      loader: () => demoOwnRows(ref.read(repositoryProvider), ref.read(goalServiceProvider)),
     );
   }
   return LocalHouseholdStore(
@@ -70,22 +67,16 @@ final householdServiceProvider = Provider<HouseholdService>((ref) {
     keys: ref.watch(householdKeyStoreProvider),
     analytics: ref.watch(analyticsProvider),
     transportFor: real && Env.hasSupabase
-        ? (id) => SupabaseHouseholdTransport(
-            Supabase.instance.client,
-            householdId: id,
-          )
+        ? (id) => SupabaseHouseholdTransport(Supabase.instance.client, householdId: id)
         : null,
     stateStoreFor: real
-        ? (id) => FileSyncStateStore(
-            locate: () => _stateFile(id),
-            db: db,
-            settingKey: 'household_epoch',
-          )
+        ? (id) => FileSyncStateStore(locate: () => _stateFile(id), db: db, settingKey: 'household_epoch')
         : null,
   );
   ref.onDispose(svc.dispose);
   return svc;
 });
+
 
 /// Debounced sync after local writes and on resume. Null where the log
 /// cannot leave the phone (demo data, web, no server).
@@ -136,10 +127,9 @@ class HouseholdStatusNotifier extends Notifier<HouseholdStatus> {
   }
 }
 
-final householdStatusProvider =
-    NotifierProvider<HouseholdStatusNotifier, HouseholdStatus>(
-      HouseholdStatusNotifier.new,
-    );
+final householdStatusProvider = NotifierProvider<HouseholdStatusNotifier, HouseholdStatus>(
+  HouseholdStatusNotifier.new,
+);
 
 /// Refreshes everything after the household or an item's ownership changed.
 void invalidateHousehold(WidgetRef ref) {

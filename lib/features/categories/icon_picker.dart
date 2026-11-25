@@ -42,9 +42,7 @@ class CategoryIconPicker extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: g.key == selected
-                      ? c.accent.withValues(alpha: 0.12)
-                      : c.surfaceElevated,
+                  color: g.key == selected ? c.accent.withValues(alpha: 0.12) : c.surfaceElevated,
                   borderRadius: BorderRadius.circular(Radii.md),
                   border: Border.all(
                     color: g.key == selected ? c.accent : Colors.transparent,

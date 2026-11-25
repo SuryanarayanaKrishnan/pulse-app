@@ -72,13 +72,7 @@ class SyncState {
     return true;
   }
 
-  Change _local(
-    String table,
-    String row,
-    String field,
-    Object? value,
-    int now,
-  ) {
+  Change _local(String table, String row, String field, Object? value, int now) {
     final c = Change(table, row, field, value, clock.tick(now));
     apply(c);
     outbox.add(c);
@@ -146,10 +140,7 @@ class SyncState {
       if (prev == null || c.hlc > prev.hlc) latest[k] = c;
     }
     final take = order.take(max).toSet();
-    final changes = [
-      for (final k in order)
-        if (take.contains(k)) latest[k]!,
-    ];
+    final changes = [for (final k in order) if (take.contains(k)) latest[k]!];
     // Drop what was taken, plus superseded duplicates of it.
     outbox.removeWhere(
       (c) => take.contains('${c.table}\u0000${c.row}\u0000${c.field}'),
@@ -208,8 +199,13 @@ class SyncState {
     c.hlc.toString(),
   ];
 
-  Change _changeFrom(List<dynamic> j) =>
-      Change.fromJson([j[0], j[1], j[2], _dec(j[3]), j[4]]);
+  Change _changeFrom(List<dynamic> j) => Change.fromJson([
+    j[0],
+    j[1],
+    j[2],
+    _dec(j[3]),
+    j[4],
+  ]);
 
   String encode() => jsonEncode(toJson());
 
@@ -262,8 +258,7 @@ class MemorySyncStateStore implements SyncStateStore {
   String? json;
   int saves = 0;
   @override
-  Future<SyncState?> load() async =>
-      json == null ? null : SyncState.decode(json!);
+  Future<SyncState?> load() async => json == null ? null : SyncState.decode(json!);
   @override
   Future<void> save(SyncState state) async {
     json = state.encode();

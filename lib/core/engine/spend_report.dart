@@ -9,13 +9,7 @@ import 'types.dart';
 /// One payment, already filtered to what counts as spend by the caller's
 /// category rules (transfers and card payments are not spend).
 class SpendRow {
-  const SpendRow({
-    required this.date,
-    required this.amountMinor,
-    required this.categoryId,
-    this.owner,
-    this.merchant = '',
-  });
+  const SpendRow({required this.date, required this.amountMinor, required this.categoryId, this.owner, this.merchant = ''});
   final CalDate date;
 
   /// Positive; refunds are passed as negative.
@@ -51,8 +45,7 @@ class ReportRange {
 
   /// The same number of whole months immediately before this range.
   ReportRange get previous {
-    final months =
-        (end.year * 12 + end.month) - (start.year * 12 + start.month) + 1;
+    final months = (end.year * 12 + end.month) - (start.year * 12 + start.month) + 1;
     final idx = start.year * 12 + start.month - 1 - months;
     return ReportRange(CalDate(idx ~/ 12, idx % 12 + 1, 1), start.addDays(-1));
   }
@@ -96,12 +89,7 @@ List<SpendSlice> spendByOwner(Iterable<SpendRow> rows, ReportRange range) =>
 
 /// Small categories folded into one "Other" slice so a treemap stays
 /// readable: keep the top [keep] and any slice above [minShare] of the total.
-List<SpendSlice> foldSmall(
-  List<SpendSlice> slices, {
-  int keep = 8,
-  double minShare = 0.03,
-  String otherId = 'other',
-}) {
+List<SpendSlice> foldSmall(List<SpendSlice> slices, {int keep = 8, double minShare = 0.03, String otherId = 'other'}) {
   final total = slices.fold(0, (a, s) => a + s.totalMinor);
   if (total == 0) return slices;
   final kept = <SpendSlice>[];
@@ -117,11 +105,7 @@ List<SpendSlice> foldSmall(
   if (restTotal > 0) {
     final i = kept.indexWhere((s) => s.id == otherId);
     if (i >= 0) {
-      kept[i] = SpendSlice(
-        otherId,
-        kept[i].totalMinor + restTotal,
-        kept[i].count + restCount,
-      );
+      kept[i] = SpendSlice(otherId, kept[i].totalMinor + restTotal, kept[i].count + restCount);
     } else {
       kept.add(SpendSlice(otherId, restTotal, restCount));
     }
@@ -140,3 +124,4 @@ enum ReportSpan {
   final String label;
   final int months;
 }
+

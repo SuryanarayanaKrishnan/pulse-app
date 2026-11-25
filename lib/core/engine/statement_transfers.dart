@@ -29,10 +29,7 @@ Counterparty? transferCounterparty(String description, Direction direction) {
   }
   final ids = extractTransferIds(description);
   var name = description
-      .replaceAll(
-        RegExp(r'[A-Z]{2}\d{2}[A-Z0-9 ]{10,}', caseSensitive: false),
-        ' ',
-      )
+      .replaceAll(RegExp(r'[A-Z]{2}\d{2}[A-Z0-9 ]{10,}', caseSensitive: false), ' ')
       .replaceAll(RegExp(r'[\d+][\d ]{3,}'), ' ')
       .replaceAll(_noise, ' ')
       .replaceAll(RegExp(r'[^A-Za-z؀-ۿ ]'), ' ')

@@ -55,8 +55,7 @@ class CalDate implements Comparable<CalDate> {
       '${day.toString().padLeft(2, '0')}';
 
   @override
-  int compareTo(CalDate other) =>
-      toUtcMidnight().compareTo(other.toUtcMidnight());
+  int compareTo(CalDate other) => toUtcMidnight().compareTo(other.toUtcMidnight());
   bool operator <(CalDate o) => compareTo(o) < 0;
   bool operator >(CalDate o) => compareTo(o) > 0;
   bool operator <=(CalDate o) => compareTo(o) <= 0;
@@ -89,8 +88,7 @@ CalDate? parseDate(String value) {
   final s = value.trim();
   CalDate? mk(int y, int m, int d) => _valid(y, m, d) ? CalDate(y, m, d) : null;
   var m = _iso.firstMatch(s);
-  if (m != null)
-    return mk(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
+  if (m != null) return mk(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
   m = _numeric.firstMatch(s);
   if (m != null) return mk(_year(m[3]!), int.parse(m[2]!), int.parse(m[1]!));
   m = _named.firstMatch(s);

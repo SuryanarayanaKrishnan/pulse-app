@@ -23,18 +23,14 @@ String generateDatabaseKey([Random? random]) {
 }
 
 class SecureStorageKeyStore implements DatabaseKeyStore {
-  SecureStorageKeyStore({
-    FlutterSecureStorage? storage,
-    this.storageKey = 'pulse.db.key.v1',
-  }) : _storage =
-           storage ??
-           const FlutterSecureStorage(
-             // Readable after the first unlock so the background Apple Pay
-             // intent can reach the database; never synced to iCloud.
-             iOptions: IOSOptions(
-               accessibility: KeychainAccessibility.first_unlock_this_device,
-             ),
-           );
+  SecureStorageKeyStore({FlutterSecureStorage? storage, this.storageKey = 'pulse.db.key.v1'})
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            // Readable after the first unlock so the background Apple Pay
+            // intent can reach the database; never synced to iCloud.
+            iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
+          );
 
   final FlutterSecureStorage _storage;
   final String storageKey;
@@ -55,8 +51,7 @@ class SecureStorageKeyStore implements DatabaseKeyStore {
   Future<void> replace(String key) async {
     final old = await _storage.read(key: storageKey);
     // Keep the previous key so the pre-restore safety copy stays openable.
-    if (old != null && old.isNotEmpty)
-      await _storage.write(key: '$storageKey.prev', value: old);
+    if (old != null && old.isNotEmpty) await _storage.write(key: '$storageKey.prev', value: old);
     await _storage.write(key: storageKey, value: key);
     _pending = Future.value(key);
   }

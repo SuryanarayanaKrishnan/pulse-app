@@ -36,9 +36,7 @@ class SafeToSpendSheet extends ConsumerWidget {
                   key: const Key('sts_budget_left'),
                   dense: true,
                   title: flex ? 'Flexible left' : 'Left in budget',
-                  subtitle: flex
-                      ? 'The same number as on your Budget tab'
-                      : null,
+                  subtitle: flex ? 'The same number as on your Budget tab' : null,
                   trailing: num(v.budgetLeft),
                 ),
               ListRow(
@@ -55,9 +53,7 @@ class SafeToSpendSheet extends ConsumerWidget {
               ListRow(
                 dense: true,
                 title: 'Set aside for goals',
-                subtitle: v.goals > 0
-                    ? '${Money.aed(v.goals, decimals: false)} set aside for goals'
-                    : 'Nothing set aside right now',
+                subtitle: v.goals > 0 ? '${Money.aed(v.goals, decimals: false)} set aside for goals' : 'Nothing set aside right now',
                 trailing: num(v.goals, minus: true),
                 chevron: false,
               ),
@@ -74,11 +70,7 @@ class SafeToSpendSheet extends ConsumerWidget {
                     if (context.mounted) {
                       Navigator.of(context).pop();
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            '${g.name} is paused. Safe to spend is updated.',
-                          ),
-                        ),
+                        SnackBar(content: Text('${g.name} is paused. Safe to spend is updated.')),
                       );
                     }
                   },

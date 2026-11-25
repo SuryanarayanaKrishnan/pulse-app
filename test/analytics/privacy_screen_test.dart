@@ -25,9 +25,7 @@ Future<PrivacyController> _pump(WidgetTester tester, {bool on = false}) async {
 }
 
 void main() {
-  testWidgets('toggle is off by default and turns sharing on and off', (
-    tester,
-  ) async {
+  testWidgets('toggle is off by default and turns sharing on and off', (tester) async {
     final p = await _pump(tester);
     expect(find.text('Share anonymous usage'), findsOneWidget);
     expect(tester.widget<Switch>(find.byType(Switch).first).value, isFalse);
@@ -44,33 +42,18 @@ void main() {
     expect(p.installId, isNull);
   });
 
-  testWidgets('says what is never collected and where data lives', (
-    tester,
-  ) async {
+  testWidgets('says what is never collected and where data lives', (tester) async {
     await _pump(tester);
     final list = find.byType(Scrollable).first;
     for (final t in ['On this phone', 'Synced, encrypted']) {
       await tester.scrollUntilVisible(find.text(t), 300, scrollable: list);
       expect(find.text(t), findsOneWidget);
     }
-    await tester.scrollUntilVisible(
-      find.textContaining(
-        'Amounts, merchants, names, contacts or message text',
-      ),
-      -300,
-      scrollable: list,
-    );
-    expect(
-      find.textContaining(
-        'Amounts, merchants, names, contacts or message text',
-      ),
-      findsOneWidget,
-    );
+    await tester.scrollUntilVisible(find.textContaining('Amounts, merchants, names, contacts or message text'), -300, scrollable: list);
+    expect(find.textContaining('Amounts, merchants, names, contacts or message text'), findsOneWidget);
   });
 
-  testWidgets('lists every event in the schema, generated from it', (
-    tester,
-  ) async {
+  testWidgets('lists every event in the schema, generated from it', (tester) async {
     await _pump(tester);
     final list = find.byType(Scrollable).first;
     for (final e in AnalyticsSchema.events) {

@@ -19,8 +19,7 @@ void main() {
       final d = Hlc(6, 0, 'bbbbbbbbbbbbbbbb');
       final all = [a, b, c, d];
       expect([...all]..shuffle(Random(1)), isNot(equals(all)));
-      final byString = ([...all]..shuffle(Random(2)))
-        ..sort((x, y) => x.toString().compareTo(y.toString()));
+      final byString = ([...all]..shuffle(Random(2)))..sort((x, y) => x.toString().compareTo(y.toString()));
       expect(byString, all);
       for (final h in all) {
         expect(Hlc.parse(h.toString()), h);
@@ -55,10 +54,7 @@ void main() {
       final clock = HlcClock('a' * 16);
       clock.observe(Hlc(100 + 365 * 86400000, 0, 'b' * 16), 100);
       final next = clock.tick(100);
-      expect(
-        next.wall,
-        lessThanOrEqualTo(100 + const Duration(days: 1).inMilliseconds + 1),
-      );
+      expect(next.wall, lessThanOrEqualTo(100 + const Duration(days: 1).inMilliseconds + 1));
     });
   });
 
@@ -101,30 +97,18 @@ void main() {
 
     test('merge order never matters (commutative, associative, idempotent)', () {
       final rng = Random(42);
-      final changes =
-          [
-                for (var i = 0; i < 200; i++)
-                  Change(
-                    'transactions',
-                    'r${rng.nextInt(4)}',
-                    ['a', 'b', 'c', deletedField][rng.nextInt(4)],
-                    rng.nextInt(3),
-                    Hlc(
-                      rng.nextInt(30),
-                      rng.nextInt(3),
-                      'dev${rng.nextInt(3)}'.padRight(16, '0'),
-                    ),
-                  ),
-              ]
-              .map(
-                (c) => c.field == deletedField
-                    ? Change(c.table, c.row, c.field, c.value == 1, c.hlc)
-                    : c,
-              )
-              .toList();
+      final changes = [
+        for (var i = 0; i < 200; i++)
+          Change(
+            'transactions',
+            'r${rng.nextInt(4)}',
+            ['a', 'b', 'c', deletedField][rng.nextInt(4)],
+            rng.nextInt(3),
+            Hlc(rng.nextInt(30), rng.nextInt(3), 'dev${rng.nextInt(3)}'.padRight(16, '0')),
+          ),
+      ].map((c) => c.field == deletedField ? Change(c.table, c.row, c.field, c.value == 1, c.hlc) : c).toList();
       String render(SyncState s) => [
-        for (var r = 0; r < 4; r++)
-          '$r:${(s.materialize('transactions', 'r$r')?.entries.toList() ?? [])..sort((a, b) => a.key.compareTo(b.key))}',
+        for (var r = 0; r < 4; r++) '$r:${(s.materialize('transactions', 'r$r')?.entries.toList() ?? [])..sort((a, b) => a.key.compareTo(b.key))}',
       ].join('|');
       final reference = SyncState('x' * 16);
       changes.forEach(reference.apply);
@@ -141,9 +125,7 @@ void main() {
       s.apply(ch('blob', Uint8List.fromList([1, 2, 3]), 1));
       s.captureLocal({
         'transactions': {
-          'r1': {
-            'blob': Uint8List.fromList([1, 2, 3]),
-          },
+          'r1': {'blob': Uint8List.fromList([1, 2, 3])},
           'r9': {'note': 'n', 'amount': 3},
         },
       }, 100);
@@ -158,71 +140,23 @@ void main() {
   });
 
   group('captureLocal', () {
-    test(
-      'new rows, edits and deletes become writes; unchanged data does not',
-      () {
-        final s = SyncState('x' * 16);
-        LocalSnapshot snap(Map<String, Map<String, Object?>> rows) => {
-          'budgets': rows,
-        };
-        expect(
-          s.captureLocal(
-            snap({
-              'b1': {'name': 'Food', 'cap': 100},
-            }),
-            10,
-          ),
-          2,
-        );
-        expect(
-          s.captureLocal(
-            snap({
-              'b1': {'name': 'Food', 'cap': 100},
-            }),
-            20,
-          ),
-          0,
-        );
-        expect(
-          s.captureLocal(
-            snap({
-              'b1': {'name': 'Food', 'cap': 120},
-            }),
-            30,
-          ),
-          1,
-        );
-        expect(s.captureLocal(snap({}), 40), 1); // tombstone
-        expect(s.isDeleted('budgets', 'b1'), isTrue);
-        expect(s.captureLocal(snap({}), 50), 0); // not re-emitted
-        expect(
-          s.captureLocal(
-            snap({
-              'b1': {'name': 'Food', 'cap': 120},
-            }),
-            60,
-          ),
-          1,
-        ); // re-created
-        expect(s.isDeleted('budgets', 'b1'), isFalse);
-      },
-    );
+    test('new rows, edits and deletes become writes; unchanged data does not', () {
+      final s = SyncState('x' * 16);
+      LocalSnapshot snap(Map<String, Map<String, Object?>> rows) => {'budgets': rows};
+      expect(s.captureLocal(snap({'b1': {'name': 'Food', 'cap': 100}}), 10), 2);
+      expect(s.captureLocal(snap({'b1': {'name': 'Food', 'cap': 100}}), 20), 0);
+      expect(s.captureLocal(snap({'b1': {'name': 'Food', 'cap': 120}}), 30), 1);
+      expect(s.captureLocal(snap({}), 40), 1); // tombstone
+      expect(s.isDeleted('budgets', 'b1'), isTrue);
+      expect(s.captureLocal(snap({}), 50), 0); // not re-emitted
+      expect(s.captureLocal(snap({'b1': {'name': 'Food', 'cap': 120}}), 60), 1); // re-created
+      expect(s.isDeleted('budgets', 'b1'), isFalse);
+    });
 
     test('1 and 1.0 are the same value', () {
       final s = SyncState('x' * 16);
-      s.captureLocal({
-        't': {
-          'r': {'v': 1},
-        },
-      }, 1);
-      expect(
-        s.captureLocal({
-          't': {
-            'r': {'v': 1.0},
-          },
-        }, 2),
-        0,
-      );
+      s.captureLocal({'t': {'r': {'v': 1}}}, 1);
+      expect(s.captureLocal({'t': {'r': {'v': 1.0}}}, 2), 0);
     });
 
     test('rows that could not be written yet are not mistaken for deletes', () {
@@ -237,11 +171,7 @@ void main() {
     test('keeps only the newest write per field and respects the size cap', () {
       final s = SyncState('x' * 16);
       for (var i = 0; i < 4; i++) {
-        s.captureLocal({
-          't': {
-            'r': {'v': i, 'w': i},
-          },
-        }, 10 + i);
+        s.captureLocal({'t': {'r': {'v': i, 'w': i}}}, 10 + i);
       }
       final seg = s.nextSegment(10)!;
       expect(seg.changes.length, 2);
@@ -261,20 +191,8 @@ void main() {
       seq: 3,
       schemaVersion: 2,
       changes: [
-        Change(
-          'transactions',
-          'r1',
-          'merchant_raw',
-          'Carrefour Dubai Mall',
-          Hlc(5, 1, 'a' * 16),
-        ),
-        Change(
-          'transactions',
-          'r1',
-          'blob',
-          Uint8List.fromList([9, 8]),
-          Hlc(6, 0, 'a' * 16),
-        ),
+        Change('transactions', 'r1', 'merchant_raw', 'Carrefour Dubai Mall', Hlc(5, 1, 'a' * 16)),
+        Change('transactions', 'r1', 'blob', Uint8List.fromList([9, 8]), Hlc(6, 0, 'a' * 16)),
         Change('transactions', 'r1', 'x', null, Hlc(7, 0, 'a' * 16)),
       ],
     );
@@ -295,32 +213,17 @@ void main() {
       expect(back.changes[0].hlc, Hlc(5, 1, 'a' * 16));
     });
 
-    test(
-      'a different key, a flipped bit, truncation or another name all fail',
-      () async {
-        final codec = await SegmentCodec.forDataKey(testKey);
-        final bytes = await codec.encode(seg);
-        final other = await SegmentCodec.forDataKey(Uint8List(32));
-        expect(other.decode(name, bytes), throwsA(isA<BackupIntegrityError>()));
-        final flipped = Uint8List.fromList(bytes)..[20] ^= 1;
-        expect(
-          codec.decode(name, flipped),
-          throwsA(isA<BackupIntegrityError>()),
-        );
-        expect(
-          codec.decode(name, bytes.sublist(0, bytes.length - 3)),
-          throwsA(isA<BackupIntegrityError>()),
-        );
-        expect(
-          codec.decode(SegmentName.of('a' * 16, 4), bytes),
-          throwsA(isA<BackupIntegrityError>()),
-        );
-        expect(
-          codec.decode(SegmentName.of('b' * 16, 3), bytes),
-          throwsA(isA<BackupIntegrityError>()),
-        );
-      },
-    );
+    test('a different key, a flipped bit, truncation or another name all fail', () async {
+      final codec = await SegmentCodec.forDataKey(testKey);
+      final bytes = await codec.encode(seg);
+      final other = await SegmentCodec.forDataKey(Uint8List(32));
+      expect(other.decode(name, bytes), throwsA(isA<BackupIntegrityError>()));
+      final flipped = Uint8List.fromList(bytes)..[20] ^= 1;
+      expect(codec.decode(name, flipped), throwsA(isA<BackupIntegrityError>()));
+      expect(codec.decode(name, bytes.sublist(0, bytes.length - 3)), throwsA(isA<BackupIntegrityError>()));
+      expect(codec.decode(SegmentName.of('a' * 16, 4), bytes), throwsA(isA<BackupIntegrityError>()));
+      expect(codec.decode(SegmentName.of('b' * 16, 3), bytes), throwsA(isA<BackupIntegrityError>()));
+    });
 
     test('uses a sub-key, not the raw backup data key', () async {
       final codec = await SegmentCodec.forDataKey(testKey);
@@ -334,10 +237,7 @@ void main() {
     });
 
     test('names parse strictly', () {
-      expect(SegmentName.parse(SegmentName.of('0123456789abcdef', 12)), (
-        '0123456789abcdef',
-        12,
-      ));
+      expect(SegmentName.parse(SegmentName.of('0123456789abcdef', 12)), ('0123456789abcdef', 12));
       expect(SegmentName.parse('sync/../x/0000000001.seg'), isNull);
       expect(SegmentName.parse('sync/0123456789abcdef/1.seg'), isNull);
       expect(SegmentName.parse('manifests/x'), isNull);

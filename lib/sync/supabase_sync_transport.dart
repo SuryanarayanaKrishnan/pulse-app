@@ -17,8 +17,7 @@ class SupabaseSyncTransport implements SyncTransport {
 
   String get _uid {
     final id = _client.auth.currentUser?.id;
-    if (id == null)
-      throw const SyncUnavailable('Sign in to sync your devices.');
+    if (id == null) throw const SyncUnavailable('Sign in to sync your devices.');
     return id;
   }
 
@@ -46,8 +45,7 @@ class SupabaseSyncTransport implements SyncTransport {
   @override
   Future<List<String>> list(String prefix) async {
     // Layout is fixed: sync/<device>/<file>. Walk the two levels.
-    if (prefix != 'sync/')
-      throw ArgumentError('Only the sync/ prefix is listed');
+    if (prefix != 'sync/') throw ArgumentError('Only the sync/ prefix is listed');
     final names = <String>[];
     for (final d in await _page('$_uid/sync')) {
       if (d.id != null) continue; // a file at the device level: not ours
@@ -65,8 +63,7 @@ class SupabaseSyncTransport implements SyncTransport {
     } on StorageException catch (e) {
       if (e.statusCode == '404' ||
           e.statusCode == '400' &&
-              (e.message.contains('not found') ||
-                  e.message.contains('Object'))) {
+              (e.message.contains('not found') || e.message.contains('Object'))) {
         return null;
       }
       rethrow;

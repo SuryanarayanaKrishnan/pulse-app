@@ -120,8 +120,7 @@ HouseholdNetWorth householdNetWorth(
     }
     // Per-owner buckets are in AED only (others are reported as unconverted).
     if (l.currency == 'AED') {
-      perOwner[bucket] =
-          (perOwner[bucket] ?? 0) + (l.isLiability ? -value : value);
+      perOwner[bucket] = (perOwner[bucket] ?? 0) + (l.isLiability ? -value : value);
     }
   }
 
@@ -131,18 +130,11 @@ HouseholdNetWorth householdNetWorth(
         add(l, l.valueMinor, me);
       } else if (l.owner == Owner.shared) {
         // my equal share, split without losing a fils
-        final mine = splitMinor(l.valueMinor, {
-          for (final m in members) m: 1,
-        })[me]!;
+        final mine = splitMinor(l.valueMinor, {for (final m in members) m: 1})[me]!;
         add(l, mine, Owner.shared);
       }
     } else {
-      if (!visibleInJoint(
-        owner: l.owner,
-        isPrivate: l.isPrivate,
-        me: me,
-        shareMine: shareMine,
-      )) {
+      if (!visibleInJoint(owner: l.owner, isPrivate: l.isPrivate, me: me, shareMine: shareMine)) {
         continue;
       }
       add(l, l.valueMinor, l.owner);
@@ -150,10 +142,7 @@ HouseholdNetWorth householdNetWorth(
   }
   final r = computeNetWorth(assets, liabilities);
   final owners = perOwner.keys.toList()
-    ..sort(
-      (a, b) =>
-          a == Owner.shared ? -1 : (b == Owner.shared ? 1 : a.compareTo(b)),
-    );
+    ..sort((a, b) => a == Owner.shared ? -1 : (b == Owner.shared ? 1 : a.compareTo(b)));
   return HouseholdNetWorth(
     scope: scope,
     assetsMinor: r.totalAssetsMinor,
@@ -172,12 +161,7 @@ bool _counts(HTx t, DateTime from, DateTime to, String me, bool shareMine) =>
     t.currency == 'AED' &&
     !t.postedAt.isBefore(from) &&
     t.postedAt.isBefore(to) &&
-    visibleInJoint(
-      owner: t.owner,
-      isPrivate: t.isPrivate,
-      me: me,
-      shareMine: shareMine,
-    );
+    visibleInJoint(owner: t.owner, isPrivate: t.isPrivate, me: me, shareMine: shareMine);
 
 class MemberSpend {
   const MemberSpend(this.owner, this.spentMinor, this.count);
@@ -221,9 +205,7 @@ class JointBudgetLine {
   final Map<String, int> byOwner;
 
   int get remainingMinor => limit.limitMinor - spentMinor;
-  double get progress => limit.limitMinor <= 0
-      ? (spentMinor > 0 ? 2 : 0)
-      : spentMinor / limit.limitMinor;
+  double get progress => limit.limitMinor <= 0 ? (spentMinor > 0 ? 2 : 0) : spentMinor / limit.limitMinor;
 }
 
 class JointBudget {
@@ -251,8 +233,7 @@ JointBudget jointBudget(
     var spent = 0;
     final by = <String, int>{};
     for (final t in txs) {
-      if (t.categoryId != l.categoryId || !_counts(t, from, to, me, shareMine))
-        continue;
+      if (t.categoryId != l.categoryId || !_counts(t, from, to, me, shareMine)) continue;
       spent += t.amountMinor;
       by[t.owner] = (by[t.owner] ?? 0) + t.amountMinor;
     }
@@ -271,21 +252,13 @@ List<HGoal> jointGoals(
   required String me,
   bool shareMine = true,
 }) {
-  final out =
-      [
-        for (final g in goals)
-          if (visibleInJoint(
-            owner: g.owner,
-            isPrivate: g.isPrivate,
-            me: me,
-            shareMine: shareMine,
-          ))
-            g,
-      ]..sort((a, b) {
-        final sa = a.owner == Owner.shared ? 0 : 1,
-            sb = b.owner == Owner.shared ? 0 : 1;
-        return sa != sb ? sa.compareTo(sb) : a.name.compareTo(b.name);
-      });
+  final out = [
+    for (final g in goals)
+      if (visibleInJoint(owner: g.owner, isPrivate: g.isPrivate, me: me, shareMine: shareMine)) g,
+  ]..sort((a, b) {
+      final sa = a.owner == Owner.shared ? 0 : 1, sb = b.owner == Owner.shared ? 0 : 1;
+      return sa != sb ? sa.compareTo(sb) : a.name.compareTo(b.name);
+    });
   return out;
 }
 
@@ -296,9 +269,7 @@ Map<String, int> billShares(HBill b) => splitMinor(b.amountMinor, b.split);
 
 /// A split is valid when it has members and its weights are positive.
 bool validSplit(Map<String, int> split) =>
-    split.isNotEmpty &&
-    split.values.every((v) => v >= 0) &&
-    split.values.fold(0, (a, v) => a + v) > 0;
+    split.isNotEmpty && split.values.every((v) => v >= 0) && split.values.fold(0, (a, v) => a + v) > 0;
 
 /// The next due date on or after [today] (day clamps to short months).
 CalDate nextDue(HBill b, CalDate today) {
@@ -322,18 +293,13 @@ class BillDue {
 
 /// Bills ordered by next due date, with what I owe of each.
 List<BillDue> upcomingBills(Iterable<HBill> bills, CalDate today, String me) {
-  final out =
-      [
-        for (final b in bills)
-          () {
-            final d = nextDue(b, today);
-            return BillDue(b, d, d.daysSince(today), billShares(b)[me] ?? 0);
-          }(),
-      ]..sort(
-        (a, b) => a.daysAway != b.daysAway
-            ? a.daysAway.compareTo(b.daysAway)
-            : a.bill.name.compareTo(b.bill.name),
-      );
+  final out = [
+    for (final b in bills)
+      () {
+        final d = nextDue(b, today);
+        return BillDue(b, d, d.daysSince(today), billShares(b)[me] ?? 0);
+      }(),
+  ]..sort((a, b) => a.daysAway != b.daysAway ? a.daysAway.compareTo(b.daysAway) : a.bill.name.compareTo(b.bill.name));
   return out;
 }
 

@@ -23,9 +23,7 @@ import 'wealth_service.dart';
 typedef S = SpendCategory;
 
 /// In-memory repository with realistic UAE sample data.
-class MockPulseRepository
-    with LocalOnlyFeatures
-    implements PulseRepository, Recategoriser, NetWorthHistorySource {
+class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Recategoriser, NetWorthHistorySource {
   MockPulseRepository({
     this.latency = const Duration(milliseconds: 450),
     DateTime? now,
@@ -388,27 +386,9 @@ class MockPulseRepository
     // of the month), so Recurring has history to find. Netflix went up this
     // month. Nothing older: three months back stays empty.
     var hist = 0;
-    Transaction past(
-      String m,
-      double a,
-      SpendCategory c,
-      int daysAgo,
-      int monthsBack,
-      String card,
-      String acct,
-    ) {
-      final base = DateTime(
-        _now.year,
-        _now.month,
-        _now.day,
-      ).subtract(Duration(days: daysAgo));
-      final d = DateTime(
-        base.year,
-        base.month - monthsBack,
-        base.day.clamp(1, 28),
-        10,
-        5,
-      );
+    Transaction past(String m, double a, SpendCategory c, int daysAgo, int monthsBack, String card, String acct) {
+      final base = DateTime(_now.year, _now.month, _now.day).subtract(Duration(days: daysAgo));
+      final d = DateTime(base.year, base.month - monthsBack, base.day.clamp(1, 28), 10, 5);
       return Transaction(
         id: 'hist${hist++}',
         merchant: m,
@@ -425,15 +405,7 @@ class MockPulseRepository
       for (var k = 1; k <= 2; k++) ...[
         past('Netflix', 45, S.entertainment, 21, k, 'fab-cb', 'FAB Cashback'),
         past('Fitness First', 349, S.health, 20, k, 'fab-cb', 'FAB Cashback'),
-        past(
-          'DEWA',
-          const [540.0, 480.0][k - 1],
-          S.utilities,
-          2,
-          k,
-          'enbd-current',
-          'Emirates NBD Current',
-        ),
+        past('DEWA', const [540.0, 480.0][k - 1], S.utilities, 2, k, 'enbd-current', 'Emirates NBD Current'),
       ],
     ];
 
@@ -697,10 +669,7 @@ class MockPulseRepository
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {
     final ids = txIds.toSet();
-    _tx = [
-      for (final t in _tx)
-        ids.contains(t.id) ? t.copyWith(reviewed: reviewed) : t,
-    ];
+    _tx = [for (final t in _tx) ids.contains(t.id) ? t.copyWith(reviewed: reviewed) : t];
   }
 
   @override
@@ -753,29 +722,16 @@ class MockPulseRepository
     CategoryKind kind = CategoryKind.expense,
     String? iconKey,
   }) {
-    final c = SpendCategory.custom(
-      _id('custom_'),
-      name.trim(),
-      kind: kind,
-      iconKey: iconKey,
-    );
+    final c = SpendCategory.custom(_id('custom_'), name.trim(), kind: kind, iconKey: iconKey);
     _custom.add(c);
     return _d(c);
   }
 
   @override
-  Future<SpendCategory> setCategoryIcon(
-    SpendCategory category,
-    String iconKey,
-  ) {
+  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) {
     final i = _custom.indexWhere((c) => c.id == category.id);
     if (i < 0) return _d(category);
-    final c = SpendCategory.custom(
-      category.id,
-      category.label,
-      kind: category.kind,
-      iconKey: iconKey,
-    );
+    final c = SpendCategory.custom(category.id, category.label, kind: category.kind, iconKey: iconKey);
     _custom[i] = c;
     return _d(c);
   }
@@ -820,36 +776,23 @@ class MockPulseRepository
 
   // ---- scoped re-categorise (demo) -------------------------------------------------
 
-  String? _key(Transaction t) => recategoriseKey(
-    raw: t.rawDescription ?? t.merchant,
-    normalized: normalizeMerchant(t.merchant),
-  );
+  String? _key(Transaction t) =>
+      recategoriseKey(raw: t.rawDescription ?? t.merchant, normalized: normalizeMerchant(t.merchant));
 
-  SpendCategory _cat(String? id) => [
-    ...S.defaults,
-    ..._tx.map((t) => t.category),
-  ].firstWhere((c) => c.id == id, orElse: () => S.defaults.first);
+  SpendCategory _cat(String? id) =>
+      [...S.defaults, ..._tx.map((t) => t.category)].firstWhere((c) => c.id == id, orElse: () => S.defaults.first);
 
   @override
-  Future<RecatPreview?> previewRecategorise(
-    String txId,
-    SpendCategory to,
-  ) async {
+  Future<RecatPreview?> previewRecategorise(String txId, SpendCategory to) async {
     final t = _tx.firstWhere((e) => e.id == txId);
     final key = _key(t);
     if (key == null) return null;
-    final past = _tx.where(
-      (e) => e.id != txId && _key(e) == key && e.category != to,
-    );
+    final past = _tx.where((e) => e.id != txId && _key(e) == key && e.category != to);
     return RecatPreview(merchant: t.merchant, pastCount: past.length);
   }
 
   @override
-  Future<RecatUndo> recategoriseScoped(
-    String txId,
-    SpendCategory to,
-    RecategoriseScope scope,
-  ) async {
+  Future<RecatUndo> recategoriseScoped(String txId, SpendCategory to, RecategoriseScope scope) async {
     final i = _tx.indexWhere((e) => e.id == txId);
     final t = _tx[i];
     final key = _key(t);
@@ -869,20 +812,12 @@ class MockPulseRepository
         _tx[j] = e.copyWith(category: to);
       }
     }
-    return RecatUndo(
-      txId: txId,
-      txCategoryId: t.category.id,
-      createdRuleId: rule.id,
-      pastBefore: before,
-    );
+    return RecatUndo(txId: txId, txCategoryId: t.category.id, createdRuleId: rule.id, pastBefore: before);
   }
 
   @override
   Future<void> undoRecategorise(RecatUndo undo) async {
-    for (final e in {
-      undo.txId: (undo.txCategoryId, null),
-      ...undo.pastBefore,
-    }.entries) {
+    for (final e in {undo.txId: (undo.txCategoryId, null), ...undo.pastBefore}.entries) {
       final j = _tx.indexWhere((t) => t.id == e.key);
       if (j >= 0) _tx[j] = _tx[j].copyWith(category: _cat(e.value.$1));
     }
@@ -1064,17 +999,10 @@ class MockPulseRepository
     final out = <NwPoint>[];
     for (var i = 364; i >= 0; i--) {
       // 0.90 a year ago up to 1.0 today, with a gentle wobble.
-      final f =
-          0.90 + 0.10 * (364 - i) / 364 + 0.012 * math.sin((364 - i) / 9.0);
+      final f = 0.90 + 0.10 * (364 - i) / 364 + 0.012 * math.sin((364 - i) / 9.0);
       final debt = l * (1 + 0.25 * (1 - f) * 10);
       final net = (a - l) * f;
-      out.add(
-        NwPoint(
-          today.addDays(-i),
-          ((net + debt) * 100).round(),
-          (debt * 100).round(),
-        ),
-      );
+      out.add(NwPoint(today.addDays(-i), ((net + debt) * 100).round(), (debt * 100).round()));
     }
     out[out.length - 1] = NwPoint(today, (a * 100).round(), (l * 100).round());
     return out;
@@ -1646,9 +1574,7 @@ class MockPulseRepository
         CalDate(_now.year, _now.month, _now.day),
       );
       goalMinor = totalReserved(res);
-      lines = [
-        for (final g in res) GoalLine(g.goalId, g.name, g.amountMinor / 100),
-      ];
+      lines = [for (final g in res) GoalLine(g.goalId, g.name, g.amountMinor / 100)];
     }
     final dim = DateUtils.getDaysInMonth(_now.year, _now.month);
     final planned = _planned.values.fold(0.0, (a, b) => a + b);

@@ -106,8 +106,7 @@ class Categories extends Table {
   /// First month (`YYYY-MM-01`) the rollover counts from, and the balance it
   /// opens with. Null start: the category's earliest budget month.
   TextColumn get rolloverStart => text().nullable()();
-  IntColumn get rolloverStartMinor =>
-      integer().withDefault(const Constant(0))();
+  IntColumn get rolloverStartMinor => integer().withDefault(const Constant(0))();
 
   /// Non-monthly: the whole cost per cycle and the cycle length in months.
   /// The monthly amount is the cost spread over the cycle.
@@ -119,10 +118,7 @@ class Categories extends Table {
 }
 
 @TableIndex(name: 'ix_transactions_posted_at', columns: {#postedAt})
-@TableIndex(
-  name: 'ix_transactions_account_posted',
-  columns: {#accountId, #postedAt},
-)
+@TableIndex(name: 'ix_transactions_account_posted', columns: {#accountId, #postedAt})
 @TableIndex(name: 'ix_transactions_statement', columns: {#statementId})
 @DataClassName('TxRow')
 class Transactions extends Table {
@@ -148,8 +144,7 @@ class Transactions extends Table {
 
   /// Dedupe key of the message this came from; unique when present.
   TextColumn get externalHash => text().nullable().unique()();
-  BoolColumn get excludeFromBudget =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get excludeFromBudget => boolean().withDefault(const Constant(false))();
 
   /// JSON list of free-form labels.
   TextColumn get tags => text().withDefault(const Constant('[]'))();
@@ -158,8 +153,7 @@ class Transactions extends Table {
   TextColumn get sources => text().withDefault(const Constant('[]'))();
 
   /// A statement line confirmed it: amount/date are the bank's, final.
-  BoolColumn get statementLocked =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get statementLocked => boolean().withDefault(const Constant(false))();
   TextColumn get appliedRuleId => text().nullable()();
 
   /// The user has looked at this and it is right (swipe-to-review). Captured
@@ -226,8 +220,7 @@ class MerchantRules extends Table {
   TextColumn get categoryId => text().nullable().references(Categories, #id)();
   TextColumn get renameMerchant => text().nullable()();
   BoolColumn get markTransfer => boolean().withDefault(const Constant(false))();
-  BoolColumn get excludeFromBudget =>
-      boolean().withDefault(const Constant(false))();
+  BoolColumn get excludeFromBudget => boolean().withDefault(const Constant(false))();
   TextColumn get tags => text().withDefault(const Constant('[]'))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
@@ -245,8 +238,7 @@ class Statements extends Table {
   IntColumn get openingBalanceMinor => integer().nullable()();
   IntColumn get closingBalanceMinor => integer().nullable()();
   TextColumn get parseStatus => text().withDefault(const Constant('pending'))();
-  TextColumn get reconciliationStatus =>
-      text().withDefault(const Constant('pending'))();
+  TextColumn get reconciliationStatus => text().withDefault(const Constant('pending'))();
   IntColumn get diffMinor => integer().nullable()();
   TextColumn get institution => text().nullable()();
 
@@ -281,12 +273,10 @@ class StatementLines extends Table {
   IntColumn get foreignAmountMinor => integer().nullable()();
   TextColumn get foreignCurrency => text().nullable()();
   IntColumn get balanceMinor => integer().nullable()();
-  TextColumn get transactionId =>
-      text().nullable().references(Transactions, #id)();
+  TextColumn get transactionId => text().nullable().references(Transactions, #id)();
 
   /// created | linked | unmatched
-  TextColumn get matchStatus =>
-      text().withDefault(const Constant('unmatched'))();
+  TextColumn get matchStatus => text().withDefault(const Constant('unmatched'))();
   IntColumn get matchScore => integer().nullable()();
 
   @override
@@ -313,8 +303,7 @@ class Assets extends Table {
   IntColumn get manualValueMinor => integer().nullable()();
 
   /// manual | market | estimate
-  TextColumn get valuationSource =>
-      text().withDefault(const Constant('manual'))();
+  TextColumn get valuationSource => text().withDefault(const Constant('manual'))();
   DateTimeColumn get valuedAt => dateTime().nullable()();
   TextColumn get acquiredOn => text().nullable()();
 
@@ -379,8 +368,7 @@ class SalaryRecords extends Table {
 
   /// One record per detected credit; a dismissed record keeps the link so a
   /// re-scan does not resurrect it.
-  TextColumn get transactionId =>
-      text().nullable().unique().references(Transactions, #id)();
+  TextColumn get transactionId => text().nullable().unique().references(Transactions, #id)();
 
   /// wps | payroll | salary
   TextColumn get matchedBy => text().nullable()();
@@ -460,8 +448,7 @@ class RawIngests extends Table {
   TextColumn get parseStatus => text().withDefault(const Constant('pending'))();
   TextColumn get parseResult => text().nullable()();
   TextColumn get error => text().nullable()();
-  TextColumn get transactionId =>
-      text().nullable().references(Transactions, #id)();
+  TextColumn get transactionId => text().nullable().references(Transactions, #id)();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
 
   @override
@@ -646,6 +633,7 @@ class ValuationSnapshots extends Table {
   ];
 }
 
+
 // ---- Household (schema v6) ---------------------------------------------------
 //
 // None of these tables is on the sync allow-list: the household log is its
@@ -715,6 +703,7 @@ class HouseholdMirror extends Table {
   @override
   Set<Column> get primaryKey => {kind, rowId};
 }
+
 
 /// A move of planned amount from one category to another, inside one month.
 /// Undo soft-deletes it. `scope` is `me` or `shared` (the Joint view's

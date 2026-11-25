@@ -14,15 +14,13 @@ abstract class ReceiptSource {
 
 /// Test and demo source.
 class InMemoryReceiptSource implements ReceiptSource {
-  InMemoryReceiptSource([List<ReceiptMessage>? messages])
-    : messages = messages ?? [];
+  InMemoryReceiptSource([List<ReceiptMessage>? messages]) : messages = messages ?? [];
   final List<ReceiptMessage> messages;
   @override
   bool get isConfigured => true;
   @override
   Future<List<ReceiptMessage>> fetch({required DateTime since}) async => [
-    for (final m in messages)
-      if (!m.receivedAt.isBefore(since)) m,
+    for (final m in messages) if (!m.receivedAt.isBefore(since)) m,
   ];
 }
 
@@ -32,8 +30,7 @@ const gmailReadOnlyScope = 'https://www.googleapis.com/auth/gmail.readonly';
 /// Narrow search: known receipt senders, receipt-like subjects, recent only.
 /// Nothing else in the mailbox is listed or read.
 String gmailReceiptQuery(DateTime since) {
-  final d =
-      '${since.year}/${since.month.toString().padLeft(2, '0')}/${since.day.toString().padLeft(2, '0')}';
+  final d = '${since.year}/${since.month.toString().padLeft(2, '0')}/${since.day.toString().padLeft(2, '0')}';
   return '(from:noon.com OR from:talabat.com OR from:careem.com) '
       '(subject:order OR subject:receipt OR subject:shipment OR subject:invoice) '
       'after:$d -category:promotions';
@@ -48,15 +45,10 @@ class GmailReceiptSource implements ReceiptSource {
   /// Supplied at build time by the owner (`--dart-define`), never committed.
   final String? oauthClientId;
 
-  static const clientIdFromEnvironment = String.fromEnvironment(
-    'GMAIL_OAUTH_CLIENT_ID',
-  );
+  static const clientIdFromEnvironment = String.fromEnvironment('GMAIL_OAUTH_CLIENT_ID');
 
-  static GmailReceiptSource fromEnvironment() => GmailReceiptSource(
-    oauthClientId: clientIdFromEnvironment.isEmpty
-        ? null
-        : clientIdFromEnvironment,
-  );
+  static GmailReceiptSource fromEnvironment() =>
+      GmailReceiptSource(oauthClientId: clientIdFromEnvironment.isEmpty ? null : clientIdFromEnvironment);
 
   /// Even with a client id the sign-in and fetch calls are not written yet.
   @override
@@ -64,8 +56,6 @@ class GmailReceiptSource implements ReceiptSource {
 
   @override
   Future<List<ReceiptMessage>> fetch({required DateTime since}) async {
-    throw UnsupportedError(
-      'Gmail receipts are not configured. See docs/RECEIPTS.md.',
-    );
+    throw UnsupportedError('Gmail receipts are not configured. See docs/RECEIPTS.md.');
   }
 }

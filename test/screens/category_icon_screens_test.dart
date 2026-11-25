@@ -49,6 +49,7 @@ Future<void> _loadFonts() async {
   await icons.load();
 }
 
+
 class _Sheet extends StatelessWidget {
   const _Sheet(this.dark);
   final bool dark;
@@ -61,12 +62,7 @@ class _Sheet extends StatelessWidget {
         children: [
           icon,
           const SizedBox(height: 6),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: context.tt.labelSmall,
-            maxLines: 2,
-          ),
+          Text(label, textAlign: TextAlign.center, style: context.tt.labelSmall, maxLines: 2),
         ],
       ),
     );
@@ -81,28 +77,15 @@ class _Sheet extends StatelessWidget {
       ],
     );
     final defaults = [
-      for (final cat in [
-        ...SpendCategory.defaults,
-        const SpendCategory('subscriptions', 'Subscriptions'),
-        const SpendCategory('gifts', 'Gifts & Charity'),
-        const SpendCategory('transfer', 'Transfers'),
-        const SpendCategory('other_income', 'Other Income'),
-      ])
+      for (final cat in [...SpendCategory.defaults, const SpendCategory('subscriptions', 'Subscriptions'), const SpendCategory('gifts', 'Gifts & Charity'), const SpendCategory('transfer', 'Transfers'), const SpendCategory('other_income', 'Other Income')])
         cell(CategoryIcon.well(cat, size: 48), cat.label),
     ];
     final filled = [
-      for (final cat in SpendCategory.defaults.take(8))
-        cell(CategoryIcon.well(cat, size: 48, filled: true), cat.label),
+      for (final cat in SpendCategory.defaults.take(8)) cell(CategoryIcon.well(cat, size: 48, filled: true), cat.label),
     ];
     final custom = [
       for (final g in customGlyphs)
-        cell(
-          CategoryIcon.well(
-            SpendCategory.custom('c_${g.key}', g.label, iconKey: g.key),
-            size: 48,
-          ),
-          g.label,
-        ),
+        cell(CategoryIcon.well(SpendCategory.custom('c_${g.key}', g.label, iconKey: g.key), size: 48), g.label),
     ];
     final sizes = Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -121,21 +104,12 @@ class _Sheet extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Pulse category icons', style: context.tt.headlineMedium),
-            Text(
-              '24 unit grid, 1.75 stroke, round caps and joins',
-              style: context.tt.bodyMedium,
-            ),
+            Text('24 unit grid, 1.75 stroke, round caps and joins', style: context.tt.bodyMedium),
             section('Default categories', defaults),
             section('Filled style', filled),
             section('Custom category glyphs', [
               ...custom,
-              cell(
-                CategoryIcon.well(
-                  const SpendCategory.custom('c_none', 'Generic'),
-                  size: 48,
-                ),
-                'Fallback',
-              ),
+              cell(CategoryIcon.well(const SpendCategory.custom('c_none', 'Generic'), size: 48), 'Fallback'),
             ]),
             section('Sizes 16 to 48', [sizes]),
           ],
@@ -155,9 +129,7 @@ void main() {
       addTearDown(() => PulseTheme.testFontFamily = null);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
-      tester.platformDispatcher.platformBrightnessTestValue = dark
-          ? Brightness.dark
-          : Brightness.light;
+      tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final key = GlobalKey();
@@ -166,8 +138,7 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
         await tester.pump(const Duration(milliseconds: 600));
         await tester.runAsync(() async {
-          final b =
-              key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
           final img = await b.toImage(pixelRatio: 1);
           final data = await img.toByteData(format: ui.ImageByteFormat.png);
           final f = File('$_dir/$name-$mode.png');
@@ -191,8 +162,7 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 200));
       await tester.runAsync(() async {
-        final b =
-            key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+        final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
         final img = await b.toImage(pixelRatio: 2);
         final data = await img.toByteData(format: ui.ImageByteFormat.png);
         final f = File('$_dir/icon-sheet-$mode.png');
@@ -215,11 +185,7 @@ void main() {
               analyticsProvider.overrideWithValue(NoopAnalytics()),
               kvStoreProvider.overrideWithValue(MemoryKvStore()),
               sessionProvider.overrideWith(
-                (ref) => SessionController(
-                  onboarded: true,
-                  signedIn: true,
-                  connected: true,
-                ),
+                (ref) => SessionController(onboarded: true, signedIn: true, connected: true),
               ),
             ],
             child: const PulseApp(),

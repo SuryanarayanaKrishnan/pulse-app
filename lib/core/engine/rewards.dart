@@ -59,8 +59,7 @@ class CardSpec {
   bool get isCashback => unit == 'cashback';
 
   /// Value in fils of [units] (AED for cashback, points otherwise).
-  int valueMinor(double units) =>
-      roundHalfEven(_clean(units * pointValueAed * 100));
+  int valueMinor(double units) => roundHalfEven(_clean(units * pointValueAed * 100));
 }
 
 double _clean(double x) => (x * 1e9).round() / 1e9;
@@ -74,9 +73,7 @@ CardSpec parseStructure(Map<String, Object?> data) {
   final value = ((data['point_value_aed'] as num?) ?? 1).toDouble();
   final base = ((data['base_rate'] as num?) ?? 0).toDouble();
   if (value <= 0 || base < 0) {
-    throw const FormatException(
-      'point_value_aed must be positive and base_rate non-negative',
-    );
+    throw const FormatException('point_value_aed must be positive and base_rate non-negative');
   }
   final rules = <RuleSpec>[];
   for (final r in (data['rules'] as List? ?? const [])) {
@@ -85,9 +82,7 @@ CardSpec parseStructure(Map<String, Object?> data) {
     final cats = (m['categories'] as List? ?? const []).cast<String>();
     final merchants = (m['merchants'] as List? ?? const []).cast<String>();
     if (rate == null || rate < 0 || (cats.isEmpty && merchants.isEmpty)) {
-      throw FormatException(
-        'rule ${m['name']} needs a rate and categories or merchants',
-      );
+      throw FormatException('rule ${m['name']} needs a rate and categories or merchants');
     }
     rules.add(
       RuleSpec(
@@ -104,11 +99,8 @@ CardSpec parseStructure(Map<String, Object?> data) {
     pointValueAed: value,
     baseRate: base,
     rules: rules,
-    excludedCategories: ((data['excluded_categories'] as List?) ?? const [])
-        .cast<String>()
-        .toSet(),
-    minMonthlySpendMinor:
-        (data['min_monthly_spend_minor'] as num?)?.toInt() ?? 0,
+    excludedCategories: ((data['excluded_categories'] as List?) ?? const []).cast<String>().toSet(),
+    minMonthlySpendMinor: (data['min_monthly_spend_minor'] as num?)?.toInt() ?? 0,
     feeWaiverSpendMinor: (data['fee_waiver_spend_minor'] as num?)?.toInt(),
   );
 }
@@ -117,8 +109,7 @@ const baseRuleName = 'Base';
 
 /// The rule that earns for this spend; null when the category is excluded.
 RuleSpec? selectRule(CardSpec spec, String? category, String? merchantKey) {
-  if (category != null && spec.excludedCategories.contains(category))
-    return null;
+  if (category != null && spec.excludedCategories.contains(category)) return null;
   if (merchantKey != null && merchantKey.isNotEmpty) {
     for (final r in spec.rules) {
       if (r.merchants.any(merchantKey.contains)) return r;
@@ -164,18 +155,11 @@ class CycleResult {
 
 /// Units earned by one spend given what the cycle already used (mutates
 /// [usage]).
-(double, RuleSpec?) earn(
-  CardSpec spec,
-  Spend spend,
-  Map<String, CapUsage> usage,
-) {
+(double, RuleSpec?) earn(CardSpec spec, Spend spend, Map<String, CapUsage> usage) {
   final rule = selectRule(spec, spend.category, spend.merchantKey);
   if (rule == null || spend.amountMinor <= 0) return (0, rule);
   var units = spend.amountMinor / 100 * rule.rate;
-  final state = usage.putIfAbsent(
-    rule.name,
-    () => CapUsage(rule.name, rule.capUnits),
-  );
+  final state = usage.putIfAbsent(rule.name, () => CapUsage(rule.name, rule.capUnits));
   if (state.capUnits != null) {
     units = math.min(units, math.max(0, state.capUnits! - state.usedUnits));
   }
@@ -196,13 +180,7 @@ CycleResult computeCycle(CardSpec spec, List<Spend> spends) {
 }
 
 class Quote {
-  const Quote(
-    this.units,
-    this.valueMinor,
-    this.rule,
-    this.headroomUnits,
-    this.capped,
-  );
+  const Quote(this.units, this.valueMinor, this.rule, this.headroomUnits, this.capped);
   final double units;
   final int valueMinor;
   final String? rule;
@@ -217,8 +195,7 @@ class Quote {
 /// What a spend would earn on top of the cycle so far (state is not modified).
 Quote quote(CardSpec spec, CycleResult state, Spend spend) {
   final rule = selectRule(spec, spend.category, spend.merchantKey);
-  if (rule == null || spend.amountMinor <= 0)
-    return const Quote(0, 0, null, null, false);
+  if (rule == null || spend.amountMinor <= 0) return const Quote(0, 0, null, null, false);
   final used = state.usage[rule.name];
   double? headroom;
   if (rule.capUnits != null) {
@@ -226,13 +203,7 @@ Quote quote(CardSpec spec, CycleResult state, Spend spend) {
   }
   final full = spend.amountMinor / 100 * rule.rate;
   final units = headroom == null ? full : math.min(full, headroom);
-  return Quote(
-    units,
-    spec.valueMinor(units),
-    rule.name,
-    headroom,
-    units < full,
-  );
+  return Quote(units, spec.valueMinor(units), rule.name, headroom, units < full);
 }
 
 // ---------------------------------------------------------------------------
@@ -249,10 +220,7 @@ CalDate _clamp(int year, int month, int day) =>
 /// next one; without it, the calendar month.
 (CalDate, CalDate) cycleBounds(CalDate today, int? statementDay) {
   if (statementDay == null) {
-    return (
-      CalDate(today.year, today.month, 1),
-      _clamp(today.year, today.month, 31),
-    );
+    return (CalDate(today.year, today.month, 1), _clamp(today.year, today.month, 31));
   }
   final thisMonth = _clamp(today.year, today.month, statementDay);
   final last = thisMonth < today
@@ -263,11 +231,7 @@ CalDate _clamp(int year, int month, int day) =>
           statementDay,
         );
   final nxtMonth = last.month % 12 + 1;
-  final nxt = _clamp(
-    last.year + (last.month == 12 ? 1 : 0),
-    nxtMonth,
-    statementDay,
-  );
+  final nxt = _clamp(last.year + (last.month == 12 ? 1 : 0), nxtMonth, statementDay);
   return (last.addDays(1), nxt);
 }
 
@@ -277,13 +241,7 @@ CalDate _clamp(int year, int month, int day) =>
 
 /// One owned card with its cycle state, ready to be ranked.
 class RankableCard {
-  RankableCard({
-    required this.id,
-    required this.title,
-    required this.spec,
-    required this.state,
-    this.createdOrder = 0,
-  });
+  RankableCard({required this.id, required this.title, required this.spec, required this.state, this.createdOrder = 0});
   final String id;
   final String title;
   final CardSpec spec;
@@ -308,10 +266,7 @@ List<RankedCard> rankCards(
   final out = [
     for (final c in cards)
       if (c.id != excludeId)
-        RankedCard(
-          c,
-          quote(c.spec, c.state, Spend(amountMinor, category, merchantKey)),
-        ),
+        RankedCard(c, quote(c.spec, c.state, Spend(amountMinor, category, merchantKey))),
   ];
   out.sort((a, b) {
     final v = b.quote.valueMinor.compareTo(a.quote.valueMinor);
@@ -357,28 +312,14 @@ RewardNudge? nudgeFor({
   if (pct == null || pct < nearCapPct) return null;
   final level = pct >= 100 ? 'capped' : 'near_cap';
   final unit = card.spec.isCashback ? 'AED' : 'points';
-  final base =
-      '${card.title}: ${rule.name} ${level == 'capped' ? 'cap reached' : '${pct.toStringAsFixed(0)}% of the cap used'}';
-  final alts = rankCards(
-    all,
-    category: category,
-    merchantKey: merchantKey,
-    amountMinor: 10000,
-    excludeId: card.id,
-  );
-  final mine = quote(
-    card.spec,
-    card.state,
-    Spend(10000, category, merchantKey),
-  ).valueMinor;
-  final best = alts.isNotEmpty && alts.first.quote.valueMinor > mine
-      ? alts.first
-      : null;
+  final base = '${card.title}: ${rule.name} ${level == 'capped' ? 'cap reached' : '${pct.toStringAsFixed(0)}% of the cap used'}';
+  final alts = rankCards(all, category: category, merchantKey: merchantKey, amountMinor: 10000, excludeId: card.id);
+  final mine = quote(card.spec, card.state, Spend(10000, category, merchantKey)).valueMinor;
+  final best = alts.isNotEmpty && alts.first.quote.valueMinor > mine ? alts.first : null;
   if (best == null) {
     return RewardNudge(
       level: level,
-      message:
-          '$base (until ${cycleEnd.toIso()}); no other card of yours earns more for this.',
+      message: '$base (until ${cycleEnd.toIso()}); no other card of yours earns more for this.',
       cardId: card.id,
       capUnit: unit,
     );
@@ -397,13 +338,8 @@ RewardNudge? nudgeFor({
 
 /// Annual-fee waiver progress.
 class FeeWaiver {
-  const FeeWaiver(
-    this.annualFeeMinor,
-    this.thresholdMinor,
-    this.spendThisYearMinor,
-  );
+  const FeeWaiver(this.annualFeeMinor, this.thresholdMinor, this.spendThisYearMinor);
   final int annualFeeMinor, thresholdMinor, spendThisYearMinor;
-  double get progressPct =>
-      math.min(100, spendThisYearMinor / thresholdMinor * 100);
+  double get progressPct => math.min(100, spendThisYearMinor / thresholdMinor * 100);
   bool get waived => spendThisYearMinor >= thresholdMinor;
 }

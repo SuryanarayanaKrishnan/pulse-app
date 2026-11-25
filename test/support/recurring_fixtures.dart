@@ -7,14 +7,7 @@ import 'package:pulse/data/models.dart';
 /// "Today" for the fixtures: mid-November 2026.
 const fixtureToday = CalDate(2026, 11, 14);
 
-Transaction _tx(
-  String id,
-  String merchant,
-  double amount,
-  SpendCategory cat,
-  CalDate d, {
-  bool income = false,
-}) => Transaction(
+Transaction _tx(String id, String merchant, double amount, SpendCategory cat, CalDate d, {bool income = false}) => Transaction(
   id: id,
   merchant: merchant,
   amount: amount,
@@ -27,12 +20,7 @@ Transaction _tx(
 );
 
 /// Monthly charges: [n] of them, the last in (year, month), on [day].
-Iterable<CalDate> _monthly(
-  int n,
-  int day, {
-  int year = 2026,
-  int month = 10,
-}) sync* {
+Iterable<CalDate> _monthly(int n, int day, {int year = 2026, int month = 10}) sync* {
   for (var i = n - 1; i >= 0; i--) {
     final idx = year * 12 + month - 1 - i;
     yield addMonths(CalDate(idx ~/ 12, idx % 12 + 1, 1), 0, day);
@@ -73,71 +61,16 @@ List<Transaction> syntheticLedger() {
   for (final d in _monthly(6, 28)) {
     out.add(_tx(id(), 'FitBox Gym', 349, SpendCategory.health, d));
   }
-  out.add(
-    _tx(
-      id(),
-      'Annual Pass',
-      365,
-      SpendCategory.entertainment,
-      const CalDate(2024, 11, 26),
-    ),
-  );
-  out.add(
-    _tx(
-      id(),
-      'Annual Pass',
-      365,
-      SpendCategory.entertainment,
-      const CalDate(2025, 11, 26),
-    ),
-  );
+  out.add(_tx(id(), 'Annual Pass', 365, SpendCategory.entertainment, const CalDate(2024, 11, 26)));
+  out.add(_tx(id(), 'Annual Pass', 365, SpendCategory.entertainment, const CalDate(2025, 11, 26)));
   // Not recurring: irregular visits and one-offs.
-  const odd = [
-    CalDate(2026, 8, 4),
-    CalDate(2026, 8, 19),
-    CalDate(2026, 9, 30),
-    CalDate(2026, 10, 17),
-    CalDate(2026, 11, 8),
-  ];
+  const odd = [CalDate(2026, 8, 4), CalDate(2026, 8, 19), CalDate(2026, 9, 30), CalDate(2026, 10, 17), CalDate(2026, 11, 8)];
   for (final (i, d) in odd.indexed) {
     out.add(_tx(id(), 'Corner Cafe', 22.0 + i * 7, SpendCategory.dining, d));
-    out.add(
-      _tx(
-        id(),
-        'Market Hall',
-        180.0 + i * 31,
-        SpendCategory.groceries,
-        d.addDays(2),
-      ),
-    );
+    out.add(_tx(id(), 'Market Hall', 180.0 + i * 31, SpendCategory.groceries, d.addDays(2)));
   }
-  out.add(
-    _tx(
-      id(),
-      'Gadget Shop',
-      899,
-      SpendCategory.shopping,
-      const CalDate(2026, 11, 5),
-    ),
-  );
-  out.add(
-    _tx(
-      id(),
-      'Weekend Away',
-      1450,
-      SpendCategory.travel,
-      const CalDate(2026, 10, 12),
-    ),
-  );
-  out.add(
-    _tx(
-      id(),
-      'Employer',
-      28000,
-      SpendCategory.salary,
-      const CalDate(2026, 11, 1),
-      income: true,
-    ),
-  );
+  out.add(_tx(id(), 'Gadget Shop', 899, SpendCategory.shopping, const CalDate(2026, 11, 5)));
+  out.add(_tx(id(), 'Weekend Away', 1450, SpendCategory.travel, const CalDate(2026, 10, 12)));
+  out.add(_tx(id(), 'Employer', 28000, SpendCategory.salary, const CalDate(2026, 11, 1), income: true));
   return out;
 }

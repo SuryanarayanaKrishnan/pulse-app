@@ -16,8 +16,7 @@ import 'recurring_detail_sheet.dart';
 
 enum _View { list, calendar }
 
-String dayLabel(CalDate d) =>
-    DateFormat('d MMM').format(DateTime(d.year, d.month, d.day));
+String dayLabel(CalDate d) => DateFormat('d MMM').format(DateTime(d.year, d.month, d.day));
 
 String cadenceLabel(String c) => switch (c) {
   'weekly' => 'Weekly',
@@ -54,8 +53,7 @@ class _RecurringScreenState extends ConsumerState<RecurringScreen> {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go(Routes.budget),
+          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.budget),
         ),
       ),
       body: ListView(
@@ -102,18 +100,11 @@ class _MonthBar extends ConsumerWidget {
       enabled: on,
       label: label,
       child: Pressable(
-        onTap: on
-            ? () =>
-                  ref.read(recurringMonthSelectionProvider.notifier).set(at(to))
-            : null,
+        onTap: on ? () => ref.read(recurringMonthSelectionProvider.notifier).set(at(to)) : null,
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(
-            icon,
-            size: 22,
-            color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4),
-          ),
+          child: Icon(icon, size: 22, color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4)),
         ),
       ),
     );
@@ -122,12 +113,7 @@ class _MonthBar extends ConsumerWidget {
       child: Row(
         key: const Key('recurring_month_bar'),
         children: [
-          arrow(
-            Icons.chevron_left_rounded,
-            'Previous month',
-            idx > base - 12,
-            idx - 1,
-          ),
+          arrow(Icons.chevron_left_rounded, 'Previous month', idx > base - 12, idx - 1),
           Expanded(
             child: Text(
               DateFormat('MMMM y').format(DateTime(cur.year, cur.month)),
@@ -135,12 +121,7 @@ class _MonthBar extends ConsumerWidget {
               style: context.tt.titleSmall,
             ),
           ),
-          arrow(
-            Icons.chevron_right_rounded,
-            'Next month',
-            idx < base + 6,
-            idx + 1,
-          ),
+          arrow(Icons.chevron_right_rounded, 'Next month', idx < base + 6, idx + 1),
         ],
       ),
     );
@@ -156,9 +137,7 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final progress = m.committedMinor == 0
-        ? 0.0
-        : m.paidMinor / m.committedMinor;
+    final progress = m.committedMinor == 0 ? 0.0 : m.paidMinor / m.committedMinor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -166,24 +145,15 @@ class _Body extends ConsumerWidget {
         HeroNumber(
           label: 'Committed this month',
           value: m.committedMinor / 100,
-          caption:
-              '${Money.aed(m.paidMinor / 100, decimals: false)} paid · '
+          caption: '${Money.aed(m.paidMinor / 100, decimals: false)} paid · '
               '${Money.aed(m.leftMinor / 100, decimals: false)} still to come',
           footer: Padding(
             padding: const EdgeInsets.only(top: Space.sm),
-            child: Meter(
-              value: progress.clamp(0, 1).toDouble(),
-              color: c.accent,
-            ),
+            child: Meter(value: progress.clamp(0, 1).toDouble(), color: c.accent),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.xl,
-            Space.gutter,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
           child: Segmented<_View>(
             segments: const {_View.list: 'List', _View.calendar: 'Calendar'},
             value: view,
@@ -194,32 +164,18 @@ class _Body extends ConsumerWidget {
         if (view == _View.calendar)
           RecurringCalendar(m)
         else ...[
-          if (m.overdue.isNotEmpty)
-            _Section('Overdue', m.overdue, tint: c.warning),
+          if (m.overdue.isNotEmpty) _Section('Overdue', m.overdue, tint: c.warning),
           if (m.upcoming.isNotEmpty) _Section('Upcoming', m.upcoming),
           if (m.paid.isNotEmpty) _Section('Paid', m.paid),
           if (m.items.isEmpty)
             Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Space.gutter,
-                Space.xl,
-                Space.gutter,
-                0,
-              ),
-              child: Text(
-                'Nothing due in this month.',
-                style: context.tt.bodyMedium,
-              ),
+              padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
+              child: Text('Nothing due in this month.', style: context.tt.bodyMedium),
             ),
         ],
         const _HiddenRow(),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.lg,
-            Space.gutter,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
           child: Text(
             'Found on this phone from your payments. Tap one to confirm it or say it is not recurring.',
             style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
@@ -243,12 +199,7 @@ class _Hints extends StatelessWidget {
         const SectionHeader('Price rises'),
         for (final h in m.hints)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.xs,
-              Space.gutter,
-              0,
-            ),
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, 0),
             child: SurfaceCard(
               key: Key('price_hint_${h.series.key}'),
               padding: const EdgeInsets.all(Space.md),
@@ -344,9 +295,7 @@ class RecRow extends StatelessWidget {
           Text(
             '${s != null && s.amountKind == 'variable' && item.state != RecState.paid ? '~' : ''}'
             '${Money.aed(item.amountMinor / 100, decimals: false)}',
-            style: PulseTheme.amount(
-              item.state == RecState.paid ? c.textSecondary : c.textPrimary,
-            ),
+            style: PulseTheme.amount(item.state == RecState.paid ? c.textSecondary : c.textPrimary),
           ),
         ],
       ),

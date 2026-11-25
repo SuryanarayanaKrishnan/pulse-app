@@ -89,8 +89,7 @@ final _ws = RegExp(r'\s+');
 
 /// True for one-time-password style messages. These are never parsed, stored
 /// or queued anywhere.
-bool isOtpMessage(String text) =>
-    _otp.hasMatch(text) || _otpLoose.hasMatch(text);
+bool isOtpMessage(String text) => _otp.hasMatch(text) || _otpLoose.hasMatch(text);
 
 class Template {
   const Template(this.pattern, this.direction);
@@ -138,10 +137,7 @@ final List<Template> commonTemplates = [
     _cr,
   ),
   tpl(r'(?:salary|refund) (?:of )?{AMT}[^.]{0,40}?{L4}', _cr),
-  tpl(
-    r'payment of {AMT} (?:has been )?(?:received|credited)[^.]{0,40}?{L4}',
-    _cr,
-  ),
+  tpl(r'payment of {AMT} (?:has been )?(?:received|credited)[^.]{0,40}?{L4}', _cr),
 ];
 
 final _creditWords = RegExp(
@@ -415,9 +411,7 @@ final SmsParser adibParser = SmsParser(
   'adib',
   [
     tpl(r'cr\. card {L4} was used for {AMT} at {M}'),
-    tpl(
-      r'purchase transaction of {AMT} on card ending {L4} at {M} was successful',
-    ),
+    tpl(r'purchase transaction of {AMT} on card ending {L4} at {M} was successful'),
     tpl(r'{AMT} deposited (?:in|into) your account {L4}', _cr),
   ],
   nameHints: const ['ADIB', 'Abu Dhabi Islamic Bank'],

@@ -35,36 +35,23 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
       padding: EdgeInsets.zero,
       children: [
         ListRow(
-          leading: IconWell(
-            Icons.credit_card_outlined,
-            color: context.pc.accent,
-          ),
+          leading: IconWell(Icons.credit_card_outlined, color: context.pc.accent),
           title: 'Credit card',
           subtitle: 'Rewards and due dates, from the card catalog',
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(
-              context,
-              builder: (_) => const AddCardSheet(),
-              full: true,
-            );
+            showPulseSheet<void>(context, builder: (_) => const AddCardSheet(), full: true);
           },
         ),
         ListRow(
-          leading: IconWell(
-            Icons.account_balance_outlined,
-            color: context.pc.accent,
-          ),
+          leading: IconWell(Icons.account_balance_outlined, color: context.pc.accent),
           title: 'Bank account or wallet',
           subtitle: 'Balances move as alerts arrive',
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(
-              context,
-              builder: (_) => const AddAccountSheet(),
-            );
+            showPulseSheet<void>(context, builder: (_) => const AddAccountSheet());
           },
         ),
         ListRow(
@@ -74,10 +61,7 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(
-              context,
-              builder: (_) => const AddAssetSheet(),
-            );
+            showPulseSheet<void>(context, builder: (_) => const AddAssetSheet());
           },
         ),
       ],
@@ -120,16 +104,14 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     if (card == null || !_valid) return;
     setState(() => _busy = true);
     try {
-      await ref
-          .read(repositoryProvider)
-          .addCard(
-            catalogId: card.id,
-            last4: _last4.text.trim(),
-            limit: _parseAmount(_limit.text),
-            owed: _parseAmount(_owed.text) ?? 0,
-            statementDay: _parseDay(_statement.text),
-            dueDay: _parseDay(_due.text),
-          );
+      await ref.read(repositoryProvider).addCard(
+        catalogId: card.id,
+        last4: _last4.text.trim(),
+        limit: _parseAmount(_limit.text),
+        owed: _parseAmount(_owed.text) ?? 0,
+        statementDay: _parseDay(_statement.text),
+        dueDay: _parseDay(_due.text),
+      );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object catch (e) {
@@ -151,9 +133,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              decoration: const InputDecoration(
-                hintText: 'Search by bank or card',
-              ),
+              decoration: const InputDecoration(hintText: 'Search by bank or card'),
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
             const SizedBox(height: Space.md),
@@ -164,9 +144,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
               builder: (list) {
                 final shown = [
                   for (final k in list)
-                    if (_query.isEmpty ||
-                        '${k.issuer} ${k.name}'.toLowerCase().contains(_query))
-                      k,
+                    if (_query.isEmpty || '${k.issuer} ${k.name}'.toLowerCase().contains(_query)) k,
                 ];
                 if (shown.isEmpty) {
                   return const EmptyState(
@@ -181,10 +159,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                   children: [
                     for (final k in shown)
                       ListRow(
-                        leading: SizedBox(
-                          width: 56,
-                          child: CreditCardVisual(card: k, compact: true),
-                        ),
+                        leading: SizedBox(width: 56, child: CreditCardVisual(card: k, compact: true)),
                         title: '${k.issuer} ${k.name}',
                         subtitle: k.highlight,
                         chevron: true,
@@ -208,10 +183,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             controller: _last4,
             autofocus: true,
             keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(4),
-            ],
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
             decoration: const InputDecoration(hintText: 'Last 4 digits'),
             onChanged: (_) => setState(() {}),
           ),
@@ -219,19 +191,13 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
           TextField(
             controller: _limit,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Credit limit (optional)',
-              prefixText: 'AED  ',
-            ),
+            decoration: const InputDecoration(hintText: 'Credit limit (optional)', prefixText: 'AED  '),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _owed,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(
-              hintText: 'Owed today (optional)',
-              prefixText: 'AED  ',
-            ),
+            decoration: const InputDecoration(hintText: 'Owed today (optional)', prefixText: 'AED  '),
           ),
           const SizedBox(height: Space.md),
           Row(
@@ -254,17 +220,9 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             ],
           ),
           const SizedBox(height: Space.xl),
-          PrimaryButton(
-            label: 'Add card',
-            loading: _busy,
-            onPressed: _valid ? _save : null,
-          ),
+          PrimaryButton(label: 'Add card', loading: _busy, onPressed: _valid ? _save : null),
           const SizedBox(height: Space.sm),
-          PrimaryButton(
-            label: 'Choose another',
-            secondary: true,
-            onPressed: () => setState(() => _picked = null),
-          ),
+          PrimaryButton(label: 'Choose another', secondary: true, onPressed: () => setState(() => _picked = null)),
         ],
       ),
     );
@@ -300,16 +258,13 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
     if (bank.isEmpty) return;
     setState(() => _busy = true);
     try {
-      await ref
-          .read(repositoryProvider)
-          .addBankAccount(
-            bank: _isCash ? '' : bank,
-            name: _name.text.trim().isEmpty ? _kind.label : _name.text.trim(),
-            kind: _kind,
-            last4: _last4.text.trim().isEmpty ? null : _last4.text.trim(),
-            balance:
-                double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
-          );
+      await ref.read(repositoryProvider).addBankAccount(
+        bank: _isCash ? '' : bank,
+        name: _name.text.trim().isEmpty ? _kind.label : _name.text.trim(),
+        kind: _kind,
+        last4: _last4.text.trim().isEmpty ? null : _last4.text.trim(),
+        balance: double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
+      );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object catch (e) {
@@ -342,35 +297,22 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
             controller: _bank,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              hintText: 'Bank or provider, like Emirates NBD',
-            ),
+            decoration: const InputDecoration(hintText: 'Bank or provider, like Emirates NBD'),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _last4,
             keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(4),
-            ],
-            decoration: const InputDecoration(
-              hintText: 'Last 4 digits (optional, matches alerts)',
-            ),
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+            decoration: const InputDecoration(hintText: 'Last 4 digits (optional, matches alerts)'),
           ),
           const SizedBox(height: Space.md),
         ],
         TextField(
           controller: _balance,
-          keyboardType: const TextInputType.numberWithOptions(
-            decimal: true,
-            signed: true,
-          ),
-          decoration: const InputDecoration(
-            hintText: 'Balance today',
-            prefixText: 'AED  ',
-          ),
+          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
+          decoration: const InputDecoration(hintText: 'Balance today', prefixText: 'AED  '),
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(
@@ -407,9 +349,7 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     if (_name.text.trim().isEmpty || v == null) return;
     setState(() => _busy = true);
     try {
-      await ref
-          .read(repositoryProvider)
-          .addAsset(name: _name.text.trim(), kind: _kind, value: v);
+      await ref.read(repositoryProvider).addAsset(name: _name.text.trim(), kind: _kind, value: v);
       ref.invalidate(assetsProvider);
       ref.invalidate(netWorthProvider);
       if (mounted) Navigator.of(context).pop();
@@ -433,9 +373,7 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           children: [
             for (final k in AssetKind.values.where((k) => k != AssetKind.funds))
               ChoiceChip(
-                label: Text(
-                  k == AssetKind.liability ? 'Loan or debt' : k.label,
-                ),
+                label: Text(k == AssetKind.liability ? 'Loan or debt' : k.label),
                 selected: _kind == k,
                 onSelected: (_) => setState(() => _kind = k),
               ),
@@ -446,40 +384,25 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           controller: _name,
           autofocus: true,
           textCapitalization: TextCapitalization.sentences,
-          decoration: const InputDecoration(
-            hintText: 'Name, like "Marina apartment"',
-          ),
+          decoration: const InputDecoration(hintText: 'Name, like "Marina apartment"'),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.md),
         TextField(
           controller: _value,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(
-            hintText: _kind == AssetKind.liability
-                ? 'Amount owed'
-                : 'Value today',
-            prefixText: 'AED  ',
-          ),
+          decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixText: 'AED  '),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(
           label: 'Add',
           loading: _busy,
-          onPressed:
-              (_name.text.trim().isNotEmpty &&
-                  _parseAmount(_value.text) != null)
-              ? _save
-              : null,
+          onPressed: (_name.text.trim().isNotEmpty && _parseAmount(_value.text) != null) ? _save : null,
         ),
         if (_parseAmount(_value.text) != null) ...[
           const SizedBox(height: Space.sm),
-          Text(
-            Money.aed(_parseAmount(_value.text)!, decimals: false),
-            style: context.tt.bodySmall,
-            textAlign: TextAlign.center,
-          ),
+          Text(Money.aed(_parseAmount(_value.text)!, decimals: false), style: context.tt.bodySmall, textAlign: TextAlign.center),
         ],
       ],
     ),

@@ -45,10 +45,7 @@ Map<String, Object?> _json(String raw) {
 }
 
 /// Builds the report for every owned card as of [today].
-Future<CardValueReport> buildCardValueReport(
-  PulseDatabase db,
-  CalDate today,
-) async {
+Future<CardValueReport> buildCardValueReport(PulseDatabase db, CalDate today) async {
   final cards = await loadOwnedCards(db);
   if (cards.isEmpty) return const CardValueReport();
   final yearStart = today.addDays(-364);
@@ -58,38 +55,25 @@ Future<CardValueReport> buildCardValueReport(
   for (final (i, c) in cards.indexed) {
     final perks = _json(c.catalog.perks);
     final benefits = parseBenefits(perks);
-    final rows =
-        await (db.select(db.transactions)
-              ..where(
-                (t) =>
-                    t.accountId.equals(c.account.id) &
-                    t.deletedAt.isNull() &
-                    t.direction.equals('debit') &
-                    t.currency.equals('AED') &
-                    t.postedAt.isBiggerOrEqualValue(
-                      atDate(yearStart).subtract(const Duration(hours: 12)),
-                    ),
-              )
-              ..orderBy([
-                (t) => OrderingTerm.asc(t.postedAt),
-                (t) => OrderingTerm.asc(t.id),
-              ]))
-            .get();
+    final rows = await (db.select(db.transactions)
+          ..where(
+            (t) =>
+                t.accountId.equals(c.account.id) &
+                t.deletedAt.isNull() &
+                t.direction.equals('debit') &
+                t.currency.equals('AED') &
+                t.postedAt.isBiggerOrEqualValue(atDate(yearStart).subtract(const Duration(hours: 12))),
+          )
+          ..orderBy([(t) => OrderingTerm.asc(t.postedAt), (t) => OrderingTerm.asc(t.id)]))
+        .get();
     final dated = [
       for (final t in rows)
         DatedSpend(
           toDubaiDate(t.postedAt),
-          Spend(
-            t.amountMinor,
-            rewardSlug(t.categoryId),
-            merchantKey(t.merchantNormalized ?? t.merchantRaw),
-          ),
+          Spend(t.amountMinor, rewardSlug(t.categoryId), merchantKey(t.merchantNormalized ?? t.merchantRaw)),
         ),
     ];
-    final rankStart = cycleBounds(
-      today.addDays(-(rankWindowDays - 1)),
-      c.account.statementDay,
-    ).$1;
+    final rankStart = cycleBounds(today.addDays(-(rankWindowDays - 1)), c.account.statementDay).$1;
     final fee = c.catalog.annualFeeMinor;
     final unverified = c.catalog.verifiedOn == null;
     inputs.add(
@@ -101,10 +85,7 @@ Future<CardValueReport> buildCardValueReport(
         statementDay: c.account.statementDay,
         benefits: benefits,
         unverified: unverified,
-        spends: [
-          for (final d in dated)
-            if (d.date >= rankStart) d,
-        ],
+        spends: [for (final d in dated) if (d.date >= rankStart) d],
       ),
     );
     final yearSpend = dated.fold<int>(0, (s, d) => s + d.spend.amountMinor);
@@ -112,9 +93,7 @@ Future<CardValueReport> buildCardValueReport(
     MilestoneRing? welcome;
     if (bonus != null) {
       final opened = toDubaiDate(c.user.createdAt);
-      final since = dated
-          .where((d) => d.date >= opened)
-          .fold<int>(0, (s, d) => s + d.spend.amountMinor);
+      final since = dated.where((d) => d.date >= opened).fold<int>(0, (s, d) => s + d.spend.amountMinor);
       welcome = welcomeBonusRing(bonus, opened, today, since);
     }
     final self = rankables[i];
@@ -123,16 +102,9 @@ Future<CardValueReport> buildCardValueReport(
       feeWaiver: feeWaiverRing(c.spec, fee, yearSpend),
       welcome: welcome,
       benefits: benefits,
-      hints: cardHints(
-        card: self,
-        all: rankables,
-        cycleEnd: cycleBounds(today, c.account.statementDay).$2,
-      ),
+      hints: cardHints(card: self, all: rankables, cycleEnd: cycleBounds(today, c.account.statementDay).$2),
       estimated: unverified,
     );
   }
-  return CardValueReport(
-    ranking: rankByNetValue(inputs, today),
-    extras: extras,
-  );
+  return CardValueReport(ranking: rankByNetValue(inputs, today), extras: extras);
 }

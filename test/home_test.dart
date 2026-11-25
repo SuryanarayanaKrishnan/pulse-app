@@ -156,9 +156,6 @@ void main() {
     );
     await tester.tap(find.text('Family vault'));
     await tester.pumpAndSettle();
-    expect(
-      find.text('A calm place for the things your family would need to find.'),
-      findsOneWidget,
-    );
+    expect(find.text('A calm place for the things your family would need to find.'), findsOneWidget);
   });
 }

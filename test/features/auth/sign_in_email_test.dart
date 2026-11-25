@@ -7,9 +7,7 @@ import 'package:pulse/features/auth/session.dart';
 import 'package:pulse/features/auth/sign_in_screen.dart';
 
 void main() {
-  testWidgets('the email error clears as soon as the email is edited', (
-    tester,
-  ) async {
+  testWidgets('the email error clears as soon as the email is edited', (tester) async {
     PulseTheme.useGoogleFonts = false;
     tester.view.physicalSize = const Size(1170, 2532);
     tester.view.devicePixelRatio = 3;

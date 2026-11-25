@@ -13,11 +13,7 @@ abstract interface class RecurringStore {
   Future<Map<String, RecChoice>> choices();
 
   /// Records [choice] for [seriesKey]; null clears it.
-  Future<void> setChoice(
-    String seriesKey,
-    RecChoice? choice, {
-    String merchant = '',
-  });
+  Future<void> setChoice(String seriesKey, RecChoice? choice, {String merchant = ''});
 }
 
 class DriftRecurringStore implements RecurringStore {
@@ -27,41 +23,27 @@ class DriftRecurringStore implements RecurringStore {
   @override
   Future<Map<String, RecChoice>> choices() async => {
     for (final r in await db.select(db.recurringChoices).get())
-      if (RecChoice.tryParse(r.choice) != null)
-        r.seriesKey: RecChoice.tryParse(r.choice)!,
+      if (RecChoice.tryParse(r.choice) != null) r.seriesKey: RecChoice.tryParse(r.choice)!,
   };
 
   @override
-  Future<void> setChoice(
-    String seriesKey,
-    RecChoice? choice, {
-    String merchant = '',
-  }) async {
+  Future<void> setChoice(String seriesKey, RecChoice? choice, {String merchant = ''}) async {
     if (choice == null) {
-      await (db.delete(
-        db.recurringChoices,
-      )..where((t) => t.seriesKey.equals(seriesKey))).go();
+      await (db.delete(db.recurringChoices)..where((t) => t.seriesKey.equals(seriesKey))).go();
       return;
     }
     var name = merchant;
     if (name.isEmpty) {
-      name =
-          (await (db.select(
-                db.recurringChoices,
-              )..where((t) => t.seriesKey.equals(seriesKey))).getSingleOrNull())
-              ?.merchant ??
-          '';
+      name = (await (db.select(db.recurringChoices)..where((t) => t.seriesKey.equals(seriesKey))).getSingleOrNull())?.merchant ?? '';
     }
-    await db
-        .into(db.recurringChoices)
-        .insertOnConflictUpdate(
-          RecurringChoicesCompanion(
-            seriesKey: Value(seriesKey),
-            choice: Value(choice.name),
-            merchant: Value(name),
-            decidedAt: Value(DateTime.now().toUtc()),
-          ),
-        );
+    await db.into(db.recurringChoices).insertOnConflictUpdate(
+      RecurringChoicesCompanion(
+        seriesKey: Value(seriesKey),
+        choice: Value(choice.name),
+        merchant: Value(name),
+        decidedAt: Value(DateTime.now().toUtc()),
+      ),
+    );
   }
 }
 
@@ -73,11 +55,7 @@ class MemoryRecurringStore implements RecurringStore {
   Future<Map<String, RecChoice>> choices() async => Map.of(_m);
 
   @override
-  Future<void> setChoice(
-    String seriesKey,
-    RecChoice? choice, {
-    String merchant = '',
-  }) async {
+  Future<void> setChoice(String seriesKey, RecChoice? choice, {String merchant = ''}) async {
     if (choice == null) {
       _m.remove(seriesKey);
     } else {
@@ -92,23 +70,14 @@ List<Charge> chargesFrom(Iterable<Transaction> txs) => [
   for (final t in txs)
     if (!t.isIncome && !t.excluded && !t.category.isIncome)
       if (merchantKey(t.merchant) case final key?)
-        Charge(
-          toDubaiDate(t.date),
-          (t.amount * 100).round(),
-          t.merchant,
-          key,
-          t.category.id,
-        ),
+        Charge(toDubaiDate(t.date), (t.amount * 100).round(), t.merchant, key, t.category.id),
 ];
 
 /// Spend rows for the Reports page: expense-category debits that are not
 /// excluded (card payments and transfers are not spend).
 List<SpendRow> spendRowsFrom(Iterable<Transaction> txs) => [
   for (final t in txs)
-    if (!t.isIncome &&
-        !t.excluded &&
-        !t.category.isIncome &&
-        !t.category.isTransfer)
+    if (!t.isIncome && !t.excluded && !t.category.isIncome && !t.category.isTransfer)
       SpendRow(
         date: toDubaiDate(t.date),
         amountMinor: (t.amount * 100).round(),

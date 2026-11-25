@@ -30,7 +30,9 @@ class DriftSyncBridge implements SyncBridge {
 
   Future<_TableInfo?> _info(String table) async {
     if (!syncedTables.contains(table)) return null;
-    final rows = await db.customSelect('PRAGMA table_info(${_q(table)})').get();
+    final rows = await db
+        .customSelect('PRAGMA table_info(${_q(table)})')
+        .get();
     if (rows.isEmpty) return null;
     final cols = <String>{};
     final pk = <(int, String)>[];
@@ -53,7 +55,9 @@ class DriftSyncBridge implements SyncBridge {
       if (info == null) continue;
       final cols = info.columns.toList();
       final rows = await db
-          .customSelect('SELECT ${cols.map(_q).join(',')} FROM ${_q(t)}')
+          .customSelect(
+            'SELECT ${cols.map(_q).join(',')} FROM ${_q(t)}',
+          )
           .get();
       final map = <String, Map<String, Object?>>{};
       for (final r in rows) {

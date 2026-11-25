@@ -59,8 +59,7 @@ Future<void> simulateCardTap(BuildContext context, WidgetRef ref) async {
       await repo.simulateCapture();
     } on ApiException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.message)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.message)));
       }
     }
     return;

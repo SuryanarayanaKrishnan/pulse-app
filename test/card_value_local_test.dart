@@ -21,111 +21,53 @@ void main() {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
     db = PulseDatabase(NativeDatabase.memory());
     addTearDown(db.close);
-    final catalog = CatalogService(
-      db: db,
-      bundled: () async => File('assets/catalog/cards.json').readAsStringSync(),
-    );
+    final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
     await catalog.loadBundled();
     pipeline = IngestPipeline(db, clock: () => now);
     addTearDown(pipeline.dispose);
-    repo = LocalPulseRepository(
-      db: db,
-      catalog: catalog,
-      pipeline: pipeline,
-      clock: () => now,
-    );
+    repo = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, clock: () => now);
   });
 
-  Future<IngestOutcome> pay(
-    String last4,
-    int minor,
-    String merchant,
-    String id,
-  ) => pipeline.ingest(
+  Future<IngestOutcome> pay(String last4, int minor, String merchant, String id) => pipeline.ingest(
     IngestInput(
       channel: TxnSource.googleWallet,
       externalId: id,
       receivedAt: now,
       appName: 'Wallet',
-      fields: IngestFields(
-        amountMinor: minor,
-        merchant: merchant,
-        last4: last4,
-        postedAt: now,
-      ),
+      fields: IngestFields(amountMinor: minor, merchant: merchant, last4: last4, postedAt: now),
     ),
   );
 
-  test(
-    'wrong card on groceries is flagged with the AED missed; right card is not',
-    () async {
-      await repo.addCard(
-        catalogId: 'adcb-lulu-platinum',
-        last4: '1111',
-        limit: 20000,
-      );
-      await repo.addCard(
-        catalogId: 'emirates-nbd-go4it',
-        last4: '2222',
-        limit: 20000,
-      );
+  test('wrong card on groceries is flagged with the AED missed; right card is not', () async {
+    await repo.addCard(catalogId: 'adcb-lulu-platinum', last4: '1111', limit: 20000);
+    await repo.addCard(catalogId: 'emirates-nbd-go4it', last4: '2222', limit: 20000);
 
-      final wrong = (await pay(
-        '2222',
-        50000,
-        'Carrefour',
-        'w1',
-      )).reward!.check!;
-      expect(wrong.right, isFalse);
-      expect(wrong.bestTitle, contains('Lulu'));
-      expect(wrong.bestMinor, greaterThan(wrong.earnedMinor));
-      expect(
-        wrong.estimated,
-        isTrue,
-        reason: 'seeded catalog terms are unverified',
-      );
+    final wrong = (await pay('2222', 50000, 'Carrefour', 'w1')).reward!.check!;
+    expect(wrong.right, isFalse);
+    expect(wrong.bestTitle, contains('Lulu'));
+    expect(wrong.bestMinor, greaterThan(wrong.earnedMinor));
+    expect(wrong.estimated, isTrue, reason: 'seeded catalog terms are unverified');
 
-      final right = (await pay(
-        '1111',
-        50000,
-        'Carrefour',
-        'r1',
-      )).reward!.check!;
-      expect(right.right, isTrue);
-      expect(right.paidTitle, contains('Lulu'));
-    },
-  );
+    final right = (await pay('1111', 50000, 'Carrefour', 'r1')).reward!.check!;
+    expect(right.right, isTrue);
+    expect(right.paidTitle, contains('Lulu'));
+  });
 
   test('a single card has nothing to compare', () async {
-    await repo.addCard(
-      catalogId: 'emirates-nbd-go4it',
-      last4: '2222',
-      limit: 20000,
-    );
+    await repo.addCard(catalogId: 'emirates-nbd-go4it', last4: '2222', limit: 20000);
     expect((await pay('2222', 50000, 'Carrefour', 's1')).reward!.check, isNull);
   });
 
-  test(
-    'the value report ranks owned cards and is empty without cards',
-    () async {
-      expect((await repo.cardValueReport()).isEmpty, isTrue);
-      await repo.addCard(
-        catalogId: 'adcb-lulu-platinum',
-        last4: '1111',
-        limit: 20000,
-      );
-      await repo.addCard(
-        catalogId: 'emirates-nbd-go4it',
-        last4: '2222',
-        limit: 20000,
-      );
-      await pay('1111', 50000, 'Carrefour', 'a1');
-      final r = await repo.cardValueReport();
-      expect(r.ranking, hasLength(2));
-      expect(r.ranking.first.title, contains('Lulu'));
-      expect(r.ranking.first.windowRewardsMinor, greaterThan(0));
-      expect(r.extras.keys, hasLength(2));
-      expect(r.extras.values.every((e) => e.estimated), isTrue);
-    },
-  );
+  test('the value report ranks owned cards and is empty without cards', () async {
+    expect((await repo.cardValueReport()).isEmpty, isTrue);
+    await repo.addCard(catalogId: 'adcb-lulu-platinum', last4: '1111', limit: 20000);
+    await repo.addCard(catalogId: 'emirates-nbd-go4it', last4: '2222', limit: 20000);
+    await pay('1111', 50000, 'Carrefour', 'a1');
+    final r = await repo.cardValueReport();
+    expect(r.ranking, hasLength(2));
+    expect(r.ranking.first.title, contains('Lulu'));
+    expect(r.ranking.first.windowRewardsMinor, greaterThan(0));
+    expect(r.extras.keys, hasLength(2));
+    expect(r.extras.values.every((e) => e.estimated), isTrue);
+  });
 }

@@ -5,16 +5,9 @@ import 'package:pulse/core/engine/recurring_plan.dart';
 
 const _today = CalDate(2026, 11, 14);
 
-Charge c(CalDate d, int minor, String key) =>
-    Charge(d, minor, key.toUpperCase(), key, 'entertainment');
+Charge c(CalDate d, int minor, String key) => Charge(d, minor, key.toUpperCase(), key, 'entertainment');
 
-List<Charge> monthly(
-  String key,
-  int day,
-  int amount, {
-  int n = 5,
-  int lastMonth = 11,
-}) => [
+List<Charge> monthly(String key, int day, int amount, {int n = 5, int lastMonth = 11}) => [
   for (var i = n - 1; i >= 0; i--)
     () {
       final idx = 2026 * 12 + lastMonth - 1 - i;
@@ -65,10 +58,7 @@ void main() {
   });
 
   test('ignoring a series removes it everywhere; confirming marks it', () {
-    final m = plan(
-      ledger,
-      choices: {'later co': RecChoice.ignored, 'paid co': RecChoice.confirmed},
-    );
+    final m = plan(ledger, choices: {'later co': RecChoice.ignored, 'paid co': RecChoice.confirmed});
     expect(m.upcoming, isEmpty);
     expect(m.committedMinor, 8000);
     expect(m.paid.single.confirmed, isTrue);
@@ -81,20 +71,14 @@ void main() {
     expect(m.committedMinor, 20000);
   });
 
-  test(
-    'weekly series show every date left in the month, past ones as paid',
-    () {
-      final weekly = [
-        for (var i = 0; i < 8; i++)
-          c(const CalDate(2026, 9, 21).addDays(7 * i), 1500, 'weekly co'),
-      ];
-      // Charges: Sep 21 ... Nov 2, Nov 9; next Nov 16, 23, 30.
-      final m = plan(weekly);
-      expect(m.paid.map((i) => i.dueOn.day), [2, 9]);
-      expect(m.upcoming.map((i) => i.dueOn.day), [16, 23, 30]);
-      expect(m.committedMinor, 1500 * 5);
-    },
-  );
+  test('weekly series show every date left in the month, past ones as paid', () {
+    final weekly = [for (var i = 0; i < 8; i++) c(const CalDate(2026, 9, 21).addDays(7 * i), 1500, 'weekly co')];
+    // Charges: Sep 21 ... Nov 2, Nov 9; next Nov 16, 23, 30.
+    final m = plan(weekly);
+    expect(m.paid.map((i) => i.dueOn.day), [2, 9]);
+    expect(m.upcoming.map((i) => i.dueOn.day), [16, 23, 30]);
+    expect(m.committedMinor, 1500 * 5);
+  });
 
   test('the calendar maps days to items', () {
     final m = plan(ledger);
@@ -107,11 +91,7 @@ void main() {
     final m = plan(ledger, day: const CalDate(2026, 10, 1));
     expect(m.upcoming, isEmpty);
     expect(m.overdue, isEmpty);
-    expect(m.paid.map((i) => i.title).toSet(), {
-      'PAID CO',
-      'LATER CO',
-      'LATE CO',
-    });
+    expect(m.paid.map((i) => i.title).toSet(), {'PAID CO', 'LATER CO', 'LATE CO'});
   });
 
   test('a future month projects upcoming items', () {
@@ -123,14 +103,8 @@ void main() {
   test('card dues and household bills join the calendar; earlier bill days are not guessed', () {
     final m = plan(
       ledger,
-      cards: [
-        CardDueInput('c1', 'Gold card', const CalDate(2026, 11, 25), 80000),
-        CardDueInput('c2', 'Old card', const CalDate(2026, 11, 8), 12000),
-      ],
-      bills: const [
-        BillInput('b1', 'Internet', 28, 35000),
-        BillInput('b2', 'Cleaner', 2, 20000),
-      ],
+      cards: [CardDueInput('c1', 'Gold card', const CalDate(2026, 11, 25), 80000), CardDueInput('c2', 'Old card', const CalDate(2026, 11, 8), 12000)],
+      bills: const [BillInput('b1', 'Internet', 28, 35000), BillInput('b2', 'Cleaner', 2, 20000)],
     );
     final titles = {for (final i in m.items) i.title: i};
     expect(titles['Gold card']!.state, RecState.upcoming);
@@ -143,32 +117,17 @@ void main() {
   });
 
   test('a bill already detected from the ledger is shown once', () {
-    final m = plan(
-      ledger,
-      bills: const [BillInput('b1', 'Later Co', 20, 12000)],
-    );
-    expect(
-      m.items.where((i) => i.title.toLowerCase() == 'later co'),
-      hasLength(1),
-    );
+    final m = plan(ledger, bills: const [BillInput('b1', 'Later Co', 20, 12000)]);
+    expect(m.items.where((i) => i.title.toLowerCase() == 'later co'), hasLength(1));
   });
 
   test('price rises become hints, biggest yearly cost first, and ignored ones drop out', () {
-    final up = [
-      ...monthly('tv plus', 6, 4000, n: 4, lastMonth: 10),
-      c(const CalDate(2026, 11, 6), 5000, 'tv plus'),
-    ];
-    final up2 = [
-      ...monthly('big co', 8, 20000, n: 4, lastMonth: 10),
-      c(const CalDate(2026, 11, 8), 22000, 'big co'),
-    ];
+    final up = [...monthly('tv plus', 6, 4000, n: 4, lastMonth: 10), c(const CalDate(2026, 11, 6), 5000, 'tv plus')];
+    final up2 = [...monthly('big co', 8, 20000, n: 4, lastMonth: 10), c(const CalDate(2026, 11, 8), 22000, 'big co')];
     final m = plan([...up, ...up2]);
     expect(m.hints.map((h) => h.series.key), ['big co', 'tv plus']);
     expect(m.hints.first.yearlyExtraMinor, 2000 * 12);
-    final hidden = plan(
-      [...up, ...up2],
-      choices: {'big co': RecChoice.ignored},
-    );
+    final hidden = plan([...up, ...up2], choices: {'big co': RecChoice.ignored});
     expect(hidden.hints.map((h) => h.series.key), ['tv plus']);
   });
 

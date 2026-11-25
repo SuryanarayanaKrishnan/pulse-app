@@ -11,6 +11,4 @@ Future<PulseDatabase> openEncryptedDatabase({
   Directory? directory,
   bool background = true,
   bool allowPlaintext = false,
-}) => throw UnsupportedError(
-  'The on-device ledger needs the iOS or Android app. Use DEMO_DATA=true on the web.',
-);
+}) => throw UnsupportedError('The on-device ledger needs the iOS or Android app. Use DEMO_DATA=true on the web.');

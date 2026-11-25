@@ -48,10 +48,8 @@ String monthKeyFor(DateTime d) => monthKeyOf(d.year * 12 + d.month - 1);
 /// [total] split into [months] whole-minor-unit parts that add up to exactly
 /// [total]; the first `total % months` parts carry the extra unit.
 List<int> spreadMinor(int total, int months) {
-  if (months <= 0)
-    throw ArgumentError.value(months, 'months', 'must be positive');
-  if (total < 0)
-    throw ArgumentError.value(total, 'total', 'must not be negative');
+  if (months <= 0) throw ArgumentError.value(months, 'months', 'must be positive');
+  if (total < 0) throw ArgumentError.value(total, 'total', 'must not be negative');
   final base = total ~/ months, extra = total % months;
   return [for (var i = 0; i < months; i++) i < extra ? base + 1 : base];
 }
@@ -101,10 +99,7 @@ class RolloverMonth {
 /// Month-by-month balances: `closing = opening + planned - spent`, each
 /// month opening with the previous closing. [months] must be consecutive and
 /// ascending. [openingMinor] is the balance before the first month.
-List<RolloverMonth> rolloverChain(
-  List<MonthPlan> months, {
-  int openingMinor = 0,
-}) {
+List<RolloverMonth> rolloverChain(List<MonthPlan> months, {int openingMinor = 0}) {
   final out = <RolloverMonth>[];
   var carry = openingMinor;
   int? prev;
@@ -168,9 +163,7 @@ class FlexSummary {
 
   /// The one number: flexible left. Negative when the pool is overspent.
   int get remainingMinor => availableMinor - spentMinor;
-  double get progress => availableMinor <= 0
-      ? (spentMinor > 0 ? 1.5 : 0)
-      : spentMinor / availableMinor;
+  double get progress => availableMinor <= 0 ? (spentMinor > 0 ? 1.5 : 0) : spentMinor / availableMinor;
 }
 
 /// Pools the flexible categories into one remaining amount: a category
@@ -184,12 +177,7 @@ FlexSummary flexPool(Iterable<PlanLine> lines) {
     spent += l.spentMinor;
     if (l.remainingMinor < 0) over += -l.remainingMinor;
   }
-  return FlexSummary(
-    availableMinor: avail,
-    spentMinor: spent,
-    overspentMinor: over,
-    categories: n,
-  );
+  return FlexSummary(availableMinor: avail, spentMinor: spent, overspentMinor: over, categories: n);
 }
 
 enum BillStatus { upcoming, partial, paid, over }
@@ -203,8 +191,7 @@ class FixedBill {
   BillStatus get status {
     if (paidMinor > plannedMinor && plannedMinor > 0) return BillStatus.over;
     if (plannedMinor > 0 && paidMinor >= plannedMinor) return BillStatus.paid;
-    if (paidMinor > 0)
-      return plannedMinor == 0 ? BillStatus.over : BillStatus.partial;
+    if (paidMinor > 0) return plannedMinor == 0 ? BillStatus.over : BillStatus.partial;
     return BillStatus.upcoming;
   }
 
@@ -223,8 +210,7 @@ class FixedSummary {
 
 FixedSummary fixedBills(Iterable<PlanLine> lines) => FixedSummary([
   for (final l in lines)
-    if (l.group == BudgetGroup.fixed)
-      FixedBill(l.id, l.plannedMinor, l.spentMinor),
+    if (l.group == BudgetGroup.fixed) FixedBill(l.id, l.plannedMinor, l.spentMinor),
 ]);
 
 /// A non-monthly category's sinking fund this month.
@@ -252,20 +238,16 @@ class SinkingFund {
 
   /// Carries into next month; negative if the bill came before it was funded.
   int get closingMinor => availableMinor - spentMinor;
-  double get funded => costMinor <= 0
-      ? 0
-      : (closingMinor + spentMinor).clamp(0, costMinor) / costMinor;
+  double get funded => costMinor <= 0 ? 0 : (closingMinor + spentMinor).clamp(0, costMinor) / costMinor;
 }
 
 class NonMonthlySummary {
   const NonMonthlySummary(this.funds);
   final List<SinkingFund> funds;
   int get contributionMinor => funds.fold(0, (a, f) => a + f.contributionMinor);
-  int get balanceMinor =>
-      funds.fold(0, (a, f) => a + f.availableMinor - f.spentMinor);
+  int get balanceMinor => funds.fold(0, (a, f) => a + f.availableMinor - f.spentMinor);
 }
 
 /// A flexible or fixed category that rolls over shows its carry on the row:
 /// signed minor units, or null when there is none to show.
-int? rolloverBadge(PlanLine l) =>
-    l.rolloverInMinor == 0 ? null : l.rolloverInMinor;
+int? rolloverBadge(PlanLine l) => l.rolloverInMinor == 0 ? null : l.rolloverInMinor;

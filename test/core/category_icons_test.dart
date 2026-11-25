@@ -16,55 +16,30 @@ import 'package:pulse/features/categories/categories_screen.dart';
 
 void main() {
   group('the glyph family', () {
-    test(
-      'every default category resolves to its own glyph, not the fallback',
-      () {
-        for (final c in SpendCategory.defaults) {
-          expect(hasOwnGlyph(c), isTrue, reason: c.id);
-        }
-        // the seeded rows too (other_income, transfer have no SpendCategory const)
-        for (final d in defaultCategories) {
-          expect(
-            hasOwnGlyph(SpendCategory(d.slug, d.name)),
-            isTrue,
-            reason: d.slug,
-          );
-        }
-        for (final id in ['subscriptions', 'gifts', 'charity']) {
-          expect(hasOwnGlyph(SpendCategory(id, id)), isTrue, reason: id);
-        }
-      },
-    );
+    test('every default category resolves to its own glyph, not the fallback', () {
+      for (final c in SpendCategory.defaults) {
+        expect(hasOwnGlyph(c), isTrue, reason: c.id);
+      }
+      // the seeded rows too (other_income, transfer have no SpendCategory const)
+      for (final d in defaultCategories) {
+        expect(hasOwnGlyph(SpendCategory(d.slug, d.name)), isTrue, reason: d.slug);
+      }
+      for (final id in ['subscriptions', 'gifts', 'charity']) {
+        expect(hasOwnGlyph(SpendCategory(id, id)), isTrue, reason: id);
+      }
+    });
 
     test('unknown and unpicked categories fall back to the generic tag', () {
-      expect(
-        glyphFor(const SpendCategory.custom('c_1', 'Mine')),
-        same(genericGlyph),
-      );
-      expect(
-        glyphFor(const SpendCategory.custom('c_1', 'Mine', iconKey: 'nope')),
-        same(genericGlyph),
-      );
-      expect(
-        glyphFor(const SpendCategory.custom('c_1', 'Mine', iconKey: 'coffee'))
-            .key,
-        'coffee',
-      );
+      expect(glyphFor(const SpendCategory.custom('c_1', 'Mine')), same(genericGlyph));
+      expect(glyphFor(const SpendCategory.custom('c_1', 'Mine', iconKey: 'nope')), same(genericGlyph));
+      expect(glyphFor(const SpendCategory.custom('c_1', 'Mine', iconKey: 'coffee')).key, 'coffee');
       // a default ignores a stray key
-      expect(
-        glyphFor(
-          const SpendCategory('groceries', 'Groceries', iconKey: 'coffee'),
-        ).key,
-        'groceries',
-      );
+      expect(glyphFor(const SpendCategory('groceries', 'Groceries', iconKey: 'coffee')).key, 'groceries');
     });
 
     test('24 custom glyphs, unique keys, none of them the fallback', () {
       expect(customGlyphs, hasLength(24));
-      final keys = [
-        ...defaultGlyphs,
-        ...customGlyphs,
-      ].map((g) => g.key).toList();
+      final keys = [...defaultGlyphs, ...customGlyphs].map((g) => g.key).toList();
       expect(keys.toSet(), hasLength(keys.length));
       expect(customGlyphs.map((g) => g.key), isNot(contains('generic')));
     });
@@ -96,11 +71,8 @@ void main() {
           for (final filled in [false, true]) {
             final rec = ui.PictureRecorder();
             final canvas = ui.Canvas(rec);
-            CategoryGlyphPainter(
-              g,
-              const ui.Color(0xFF336699),
-              filled: filled,
-            ).paint(canvas, ui.Size.square(size));
+            CategoryGlyphPainter(g, const ui.Color(0xFF336699), filled: filled)
+                .paint(canvas, ui.Size.square(size));
             rec.endRecording().dispose();
           }
         }
@@ -109,9 +81,7 @@ void main() {
   });
 
   group('CategoryIcon', () {
-    testWidgets('renders every category in light and dark at several sizes', (
-      t,
-    ) async {
+    testWidgets('renders every category in light and dark at several sizes', (t) async {
       PulseTheme.useGoogleFonts = false;
       for (final theme in [PulseTheme.light, PulseTheme.dark]) {
         await t.pumpWidget(
@@ -121,23 +91,17 @@ void main() {
               body: Wrap(
                 children: [
                   for (final c in SpendCategory.defaults) ...[
-                    for (final s in [16.0, 24.0, 48.0])
-                      CategoryIcon(c, size: s),
+                    for (final s in [16.0, 24.0, 48.0]) CategoryIcon(c, size: s),
                     CategoryIcon.well(c, filled: true),
                   ],
-                  const CategoryIcon(
-                    SpendCategory.custom('c_x', 'X', iconKey: 'paw'),
-                  ),
+                  const CategoryIcon(SpendCategory.custom('c_x', 'X', iconKey: 'paw')),
                 ],
               ),
             ),
           ),
         );
         expect(tester(t), isNull);
-        expect(
-          find.byType(CategoryIcon),
-          findsNWidgets(SpendCategory.defaults.length * 4 + 1),
-        );
+        expect(find.byType(CategoryIcon), findsNWidgets(SpendCategory.defaults.length * 4 + 1));
       }
     });
   });
@@ -152,10 +116,7 @@ void main() {
       await t.pumpWidget(
         ProviderScope(
           overrides: [repositoryProvider.overrideWithValue(repo)],
-          child: MaterialApp(
-            theme: PulseTheme.light,
-            home: const Scaffold(body: NewCategorySheet()),
-          ),
+          child: MaterialApp(theme: PulseTheme.light, home: const Scaffold(body: NewCategorySheet())),
         ),
       );
       await t.enterText(find.byType(EditableText).first, 'Coffee runs');
@@ -163,17 +124,13 @@ void main() {
       await t.pump();
       await t.tap(find.text('Create'));
       await t.pumpAndSettle();
-      final made = (await repo.categories()).firstWhere(
-        (c) => c.label == 'Coffee runs',
-      );
+      final made = (await repo.categories()).firstWhere((c) => c.label == 'Coffee runs');
       expect(made.custom, isTrue);
       expect(made.iconKey, 'coffee');
       expect(glyphFor(made).key, 'coffee');
     });
 
-    testWidgets('changing the icon of an existing custom category persists', (
-      t,
-    ) async {
+    testWidgets('changing the icon of an existing custom category persists', (t) async {
       PulseTheme.useGoogleFonts = false;
       t.view.physicalSize = const ui.Size(390 * 3, 1200 * 3);
       t.view.devicePixelRatio = 3;
@@ -183,10 +140,7 @@ void main() {
       await t.pumpWidget(
         ProviderScope(
           overrides: [repositoryProvider.overrideWithValue(repo)],
-          child: MaterialApp(
-            theme: PulseTheme.dark,
-            home: Scaffold(body: BudgetSheet(category: cat)),
-          ),
+          child: MaterialApp(theme: PulseTheme.dark, home: Scaffold(body: BudgetSheet(category: cat))),
         ),
       );
       await t.tap(find.byKey(const ValueKey('icon_palette')));
@@ -201,12 +155,7 @@ void main() {
       await t.pumpWidget(
         ProviderScope(
           overrides: [repositoryProvider.overrideWithValue(repo)],
-          child: MaterialApp(
-            theme: PulseTheme.light,
-            home: const Scaffold(
-              body: BudgetSheet(category: SpendCategory.groceries),
-            ),
-          ),
+          child: MaterialApp(theme: PulseTheme.light, home: const Scaffold(body: BudgetSheet(category: SpendCategory.groceries))),
         ),
       );
       expect(find.byKey(const ValueKey('icon_coffee')), findsNothing);

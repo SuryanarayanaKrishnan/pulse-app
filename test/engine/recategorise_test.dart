@@ -61,9 +61,10 @@ void main() {
         targetCategoryId: _shopping,
         rows: rows,
       );
-      final out = evaluate([
-        plan.rule!,
-      ], const TxnFacts(merchantNormalized: 'Carrefour'));
+      final out = evaluate(
+        [plan.rule!],
+        const TxnFacts(merchantNormalized: 'Carrefour'),
+      );
       expect(out?.categoryId, _shopping);
       expect(
         evaluate([plan.rule!], const TxnFacts(merchantNormalized: 'Starbucks')),

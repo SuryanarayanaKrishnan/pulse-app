@@ -78,16 +78,13 @@ class GoalState {
   final bool done;
 }
 
-int netContributed(GoalInput g) =>
-    g.contributions.fold(0, (a, c) => a + c.amountMinor);
+int netContributed(GoalInput g) => g.contributions.fold(0, (a, c) => a + c.amountMinor);
 
 GoalState goalState(GoalInput g) {
   if (g.kind == GoalKind.save) {
     final current = g.linkedMinor ?? g.startMinor + netContributed(g);
     final remaining = math.max(0, g.targetMinor - current);
-    final p = g.targetMinor <= 0
-        ? 1.0
-        : (current / g.targetMinor).clamp(0.0, 1.0);
+    final p = g.targetMinor <= 0 ? 1.0 : (current / g.targetMinor).clamp(0.0, 1.0);
     return GoalState(
       currentMinor: current,
       remainingMinor: remaining,
@@ -98,15 +95,8 @@ GoalState goalState(GoalInput g) {
   final owed = g.linkedMinor ?? g.startMinor - netContributed(g);
   final remaining = math.max(0, owed - g.targetMinor);
   final span = g.startMinor - g.targetMinor;
-  final p = span <= 0
-      ? (remaining == 0 ? 1.0 : 0.0)
-      : ((g.startMinor - owed) / span).clamp(0.0, 1.0);
-  return GoalState(
-    currentMinor: owed,
-    remainingMinor: remaining,
-    progress: p,
-    done: remaining == 0,
-  );
+  final p = span <= 0 ? (remaining == 0 ? 1.0 : 0.0) : ((g.startMinor - owed) / span).clamp(0.0, 1.0);
+  return GoalState(currentMinor: owed, remainingMinor: remaining, progress: p, done: remaining == 0);
 }
 
 /// What the deadline asks for each month, or null with no deadline.
@@ -115,12 +105,8 @@ int? suggestedMonthly(GoalInput g, CalDate today) =>
 
 /// The monthly amount the goal plans: your own figure, else the suggestion,
 /// never more than what is left. Zero when done.
-int plannedMonthly(GoalInput g, CalDate today) => monthlyReserve(
-  goalState(g).remainingMinor,
-  g.plannedMonthlyMinor,
-  today,
-  g.targetDate,
-);
+int plannedMonthly(GoalInput g, CalDate today) =>
+    monthlyReserve(goalState(g).remainingMinor, g.plannedMonthlyMinor, today, g.targetDate);
 
 CalDate addMonths(CalDate d, int months) {
   final idx = d.year * 12 + d.month - 1 + months;
@@ -172,8 +158,7 @@ GoalPace goalPace(GoalInput g, CalDate today) {
   if (s.done) return GoalPace.done;
   if (g.paused) return GoalPace.paused;
   final pace = effectivePaceMinor(g, today);
-  if (g.targetDate == null)
-    return pace == null ? GoalPace.noPace : GoalPace.noDeadline;
+  if (g.targetDate == null) return pace == null ? GoalPace.noPace : GoalPace.noDeadline;
   if (pace == null || pace <= 0) return GoalPace.noPace;
   final left = goalMonthsLeft(today, g.targetDate) ?? 0;
   final need = (s.remainingMinor / pace).ceil();
@@ -208,5 +193,4 @@ List<GoalReservation> goalReservations(List<GoalInput> goals, CalDate today) {
   return out;
 }
 
-int totalReserved(List<GoalReservation> r) =>
-    r.fold(0, (a, e) => a + e.amountMinor);
+int totalReserved(List<GoalReservation> r) => r.fold(0, (a, e) => a + e.amountMinor);

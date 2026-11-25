@@ -51,9 +51,7 @@ class SyncScheduler {
 
   void onResume() {
     final last = _lastFinished;
-    if (failures == 0 &&
-        last != null &&
-        _clock().difference(last) < resumeCooldown) {
+    if (failures == 0 && last != null && _clock().difference(last) < resumeCooldown) {
       return;
     }
     _arm(resumeDelay, 'resume');

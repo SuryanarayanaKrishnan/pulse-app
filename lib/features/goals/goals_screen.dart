@@ -12,11 +12,7 @@ import 'goal_sheet.dart';
 import 'goal_widgets.dart';
 
 Future<void> newGoal(BuildContext context, {GoalKind kind = GoalKind.save}) =>
-    showPulseSheet<void>(
-      context,
-      full: true,
-      builder: (_) => GoalSheet(kind: kind),
-    );
+    showPulseSheet<void>(context, full: true, builder: (_) => GoalSheet(kind: kind));
 
 /// All goals: active first, finished last.
 class GoalsScreen extends ConsumerWidget {
@@ -31,8 +27,7 @@ class GoalsScreen extends ConsumerWidget {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () =>
-              context.canPop() ? context.pop() : context.go(Routes.wealth),
+          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.wealth),
         ),
       ),
       body: ListView(
@@ -41,13 +36,7 @@ class GoalsScreen extends ConsumerWidget {
           ScreenHeader(
             'Goals',
             subtitle: 'Save up or pay down',
-            trailing: [
-              RoundIconButton(
-                icon: Icons.add_rounded,
-                label: 'New goal',
-                onTap: () => newGoal(context),
-              ),
-            ],
+            trailing: [RoundIconButton(icon: Icons.add_rounded, label: 'New goal', onTap: () => newGoal(context))],
           ),
           AsyncView<List<GoalView>>(
             value: goals,
@@ -58,14 +47,9 @@ class GoalsScreen extends ConsumerWidget {
                 return EmptyState(
                   icon: Icons.flag_outlined,
                   title: 'No goals yet',
-                  message:
-                      'Save for a car or a trip, build an emergency fund, or pay a card down. '
+                  message: 'Save for a car or a trip, build an emergency fund, or pay a card down. '
                       'Each goal sets a little aside from Safe to spend, so you can see it working.',
-                  action: PrimaryButton(
-                    label: 'Set a goal',
-                    expand: false,
-                    onPressed: () => newGoal(context),
-                  ),
+                  action: PrimaryButton(label: 'Set a goal', expand: false, onPressed: () => newGoal(context)),
                 );
               }
               final reserved = list.fold<int>(0, (a, g) => a + g.reservedMinor);
@@ -75,30 +59,20 @@ class GoalsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: Space.gutter,
-                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
                     child: Text(
                       '${aedMinor(reserved)} set aside for goals this month',
                       key: const Key('goals_set_aside'),
-                      style: context.tt.bodyMedium!.copyWith(
-                        color: c.textSecondary,
-                      ),
+                      style: context.tt.bodyMedium!.copyWith(color: c.textSecondary),
                     ),
                   ),
                   if (active.isNotEmpty) ...[
                     const SectionHeader('Active', top: Space.lg),
-                    RowGroup(
-                      indent: ListRow.leadingInset,
-                      children: [for (final g in active) GoalRow(g)],
-                    ),
+                    RowGroup(indent: ListRow.leadingInset, children: [for (final g in active) GoalRow(g)]),
                   ],
                   if (done.isNotEmpty) ...[
                     const SectionHeader('Reached'),
-                    RowGroup(
-                      indent: ListRow.leadingInset,
-                      children: [for (final g in done) GoalRow(g)],
-                    ),
+                    RowGroup(indent: ListRow.leadingInset, children: [for (final g in done) GoalRow(g)]),
                   ],
                 ],
               );
@@ -124,8 +98,7 @@ class GoalsSection extends ConsumerWidget {
         SectionHeader(
           'Goals',
           action: list.isEmpty ? 'Set a goal' : 'See all',
-          onAction: () =>
-              list.isEmpty ? newGoal(context) : context.push(Routes.goals),
+          onAction: () => list.isEmpty ? newGoal(context) : context.push(Routes.goals),
         ),
         if (list.isEmpty)
           Padding(
@@ -136,13 +109,7 @@ class GoalsSection extends ConsumerWidget {
             ),
           )
         else
-          RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
-              for (final g in (active.isEmpty ? list : active).take(3))
-                GoalRow(g),
-            ],
-          ),
+          RowGroup(indent: ListRow.leadingInset, children: [for (final g in (active.isEmpty ? list : active).take(3)) GoalRow(g)]),
       ],
     );
   }

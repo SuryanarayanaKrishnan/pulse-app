@@ -102,11 +102,7 @@ Predicate compileCondition(Map<String, Object?> c) {
   final kind = c['field'];
   switch (kind) {
     case 'merchant' || 'description':
-      return _textPredicate(
-        kind! as String,
-        c['op']! as String,
-        c['value']! as String,
-      );
+      return _textPredicate(kind! as String, c['op']! as String, c['value']! as String);
     case 'amount':
       return _amountPredicate(c);
     case 'direction':
@@ -143,8 +139,7 @@ class CompiledRule {
   final List<String> tags;
 
   /// A rule without conditions never matches.
-  bool matches(TxnFacts f) =>
-      predicates.isNotEmpty && predicates.every((p) => p(f));
+  bool matches(TxnFacts f) => predicates.isNotEmpty && predicates.every((p) => p(f));
 }
 
 CompiledRule compileRule(
@@ -338,12 +333,7 @@ class CategoryResolver {
 /// Preview of applying a rule to history: how many match and which would
 /// change category. [rows] are (id, facts, currentCategoryId).
 class RulePreview {
-  const RulePreview(
-    this.matchedCount,
-    this.scannedCount,
-    this.matchedIds,
-    this.wouldChangeIds,
-  );
+  const RulePreview(this.matchedCount, this.scannedCount, this.matchedIds, this.wouldChangeIds);
   final int matchedCount;
   final int scannedCount;
   final List<String> matchedIds;

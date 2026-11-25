@@ -11,13 +11,7 @@ const notIncome = {'transfer', 'cc_payment'};
 const notSpend = {'transfer', 'cc_payment', 'savings'};
 
 class Flow {
-  const Flow(
-    this.day,
-    this.amountMinor, {
-    required this.isCredit,
-    this.slug,
-    this.excluded = false,
-  });
+  const Flow(this.day, this.amountMinor, {required this.isCredit, this.slug, this.excluded = false});
   final CalDate day;
   final int amountMinor;
   final bool isCredit;
@@ -32,8 +26,7 @@ class MonthFlow {
   final CalDate month;
   int incomeMinor = 0, spendMinor = 0, savedMinor = 0;
   int get netMinor => incomeMinor - spendMinor;
-  double? get savingsRate =>
-      incomeMinor > 0 ? roundTo(netMinor / incomeMinor, 4) : null;
+  double? get savingsRate => incomeMinor > 0 ? roundTo(netMinor / incomeMinor, 4) : null;
 }
 
 CalDate monthStart(CalDate d) => CalDate(d.year, d.month, 1);
@@ -42,15 +35,12 @@ CalDate monthStart(CalDate d) => CalDate(d.year, d.month, 1);
 List<CalDate> monthsBack(CalDate today, int n) {
   final idx = today.year * 12 + today.month - 1;
   return [
-    for (var i = n - 1; i >= 0; i--)
-      CalDate((idx - i) ~/ 12, (idx - i) % 12 + 1, 1),
+    for (var i = n - 1; i >= 0; i--) CalDate((idx - i) ~/ 12, (idx - i) % 12 + 1, 1),
   ];
 }
 
-bool isIncome(Flow f) =>
-    f.isCredit && !notIncome.contains(f.slug) && !f.excluded;
-bool isSpend(Flow f) =>
-    !f.isCredit && !notSpend.contains(f.slug) && !f.excluded;
+bool isIncome(Flow f) => f.isCredit && !notIncome.contains(f.slug) && !f.excluded;
+bool isSpend(Flow f) => !f.isCredit && !notSpend.contains(f.slug) && !f.excluded;
 
 List<MonthFlow> monthlyCashflow(List<Flow> flows, CalDate today, [int n = 12]) {
   final rows = {for (final m in monthsBack(today, n)) m: MonthFlow(m)};
@@ -159,13 +149,8 @@ SafeToSpendResult computeSafeToSpend(
   final total = byKind.values.fold<int>(0, (a, b) => a + b);
   if (liquidMinor == null) {
     return SafeToSpendResult(
-      liquidMinor: null,
-      committedMinor: total,
-      safeMinor: null,
-      perDayMinor: null,
-      daysLeft: daysLeft,
-      status: 'unknown',
-      byKind: byKind,
+      liquidMinor: null, committedMinor: total, safeMinor: null, perDayMinor: null,
+      daysLeft: daysLeft, status: 'unknown', byKind: byKind,
     );
   }
   final safe = liquidMinor - total;
@@ -199,14 +184,8 @@ int? requiredMonthly(int remainingMinor, CalDate today, CalDate? target) {
 
 /// Monthly amount to set aside: the plan if set, else what the deadline
 /// needs, capped at what is left.
-int monthlyReserve(
-  int remainingMinor,
-  int? planned,
-  CalDate today,
-  CalDate? target,
-) {
+int monthlyReserve(int remainingMinor, int? planned, CalDate today, CalDate? target) {
   if (remainingMinor <= 0) return 0;
-  final amount =
-      planned ?? (requiredMonthly(remainingMinor, today, target) ?? 0);
+  final amount = planned ?? (requiredMonthly(remainingMinor, today, target) ?? 0);
   return math.min(amount, remainingMinor);
 }

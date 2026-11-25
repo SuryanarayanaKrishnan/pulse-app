@@ -223,11 +223,7 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
     setState(() => _busy = true);
     final repo = ref.read(repositoryProvider);
     try {
-      final cat = await repo.createCategory(
-        name: name,
-        kind: _kind,
-        iconKey: _iconKey,
-      );
+      final cat = await repo.createCategory(name: name, kind: _kind, iconKey: _iconKey);
       final b = _parseAed(_budget.text);
       if (_kind == CategoryKind.expense && b != null && b > 0) {
         await repo.setBudget(cat, b);

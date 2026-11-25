@@ -44,18 +44,12 @@ class GoalDetailScreen extends ConsumerWidget {
             IconButton(
               tooltip: 'Edit',
               icon: const Icon(Icons.edit_outlined),
-              onPressed: () => showPulseSheet<void>(
-                context,
-                full: true,
-                builder: (_) => GoalSheet(initial: v.record),
-              ),
+              onPressed: () => showPulseSheet<void>(context, full: true, builder: (_) => GoalSheet(initial: v.record)),
             ),
         ],
       ),
       body: v == null
-          ? (goals.isLoading
-                ? const SkeletonList(rows: 3)
-                : const Center(child: Text('This goal is not here any more.')))
+          ? (goals.isLoading ? const SkeletonList(rows: 3) : const Center(child: Text('This goal is not here any more.')))
           : _Body(v, c),
     );
   }
@@ -71,18 +65,10 @@ class _Body extends ConsumerWidget {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete this goal?'),
-        content: const Text(
-          'Its history goes too. Money in your accounts is not touched.',
-        ),
+        content: const Text('Its history goes too. Money in your accounts is not touched.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Keep it'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Delete'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Keep it')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
         ],
       ),
     );
@@ -97,9 +83,7 @@ class _Body extends ConsumerWidget {
     final s = v.state;
     final rec = v.record;
     final big = aedMinor(s.currentMinor);
-    final of = v.isPaydown
-        ? 'left of ${aedMinor(rec.startMinor)}'
-        : 'of ${aedMinor(rec.targetMinor)}';
+    final of = v.isPaydown ? 'left of ${aedMinor(rec.startMinor)}' : 'of ${aedMinor(rec.targetMinor)}';
     final tt = context.tt;
     return ListView(
       padding: const EdgeInsets.only(bottom: 80),
@@ -118,11 +102,7 @@ class _Body extends ConsumerWidget {
                 children: [
                   GoalIcon(rec.iconKey, kind: rec.kind, size: 36),
                   const SizedBox(height: Space.sm),
-                  Text(
-                    big,
-                    key: const Key('goal_current'),
-                    style: PulseTheme.amount(c.textPrimary, size: 26),
-                  ),
+                  Text(big, key: const Key('goal_current'), style: PulseTheme.amount(c.textPrimary, size: 26)),
                   Text(of, style: tt.bodySmall),
                 ],
               ),
@@ -140,12 +120,7 @@ class _Body extends ConsumerWidget {
                 style: tt.titleMedium!.copyWith(color: paceColor(c, v.pace)),
               ),
               const SizedBox(height: Space.xs),
-              Text(
-                paceDetail(v),
-                key: const Key('goal_pace_detail'),
-                textAlign: TextAlign.center,
-                style: tt.bodyMedium,
-              ),
+              Text(paceDetail(v), key: const Key('goal_pace_detail'), textAlign: TextAlign.center, style: tt.bodyMedium),
             ],
           ),
         ),
@@ -159,10 +134,7 @@ class _Body extends ConsumerWidget {
                   child: PrimaryButton(
                     key: const Key('goal_add'),
                     label: v.isPaydown ? 'Log a payment' : 'Add money',
-                    onPressed: () => showPulseSheet<void>(
-                      context,
-                      builder: (_) => ContributionSheet(goal: v),
-                    ),
+                    onPressed: () => showPulseSheet<void>(context, builder: (_) => ContributionSheet(goal: v)),
                   ),
                 ),
                 if (!v.isPaydown) ...[
@@ -174,11 +146,7 @@ class _Body extends ConsumerWidget {
                       secondary: true,
                       onPressed: s.currentMinor <= 0
                           ? null
-                          : () => showPulseSheet<void>(
-                              context,
-                              builder: (_) =>
-                                  ContributionSheet(goal: v, withdraw: true),
-                            ),
+                          : () => showPulseSheet<void>(context, builder: (_) => ContributionSheet(goal: v, withdraw: true)),
                     ),
                   ),
                 ],
@@ -191,47 +159,22 @@ class _Body extends ConsumerWidget {
             ListRow(
               title: 'Each month',
               subtitle: rec.monthlyMinor == null
-                  ? (v.suggestedMinor == null
-                        ? 'No monthly amount yet'
-                        : 'Suggested from your date')
-                  : (v.suggestedMinor != null &&
-                            v.suggestedMinor != rec.monthlyMinor
+                  ? (v.suggestedMinor == null ? 'No monthly amount yet' : 'Suggested from your date')
+                  : (v.suggestedMinor != null && v.suggestedMinor != rec.monthlyMinor
                         ? 'Your figure. Your date suggests ${aedMinor(v.suggestedMinor!)}'
                         : 'Your figure'),
-              trailing: Text(
-                aedMinor(v.plannedMinor),
-                style: PulseTheme.amount(c.textPrimary, size: 15),
-              ),
+              trailing: Text(aedMinor(v.plannedMinor), style: PulseTheme.amount(c.textPrimary, size: 15)),
             ),
             if (rec.targetDate != null)
-              ListRow(
-                title: 'Target date',
-                trailing: Text(
-                  formatDate(rec.targetDate!),
-                  style: tt.bodyMedium,
-                ),
-              ),
+              ListRow(title: 'Target date', trailing: Text(formatDate(rec.targetDate!), style: tt.bodyMedium)),
             if (v.projected != null)
-              ListRow(
-                title: 'Projected finish',
-                trailing: Text(monthYear(v.projected!), style: tt.bodyMedium),
-              ),
+              ListRow(title: 'Projected finish', trailing: Text(monthYear(v.projected!), style: tt.bodyMedium)),
             ListRow(
               title: 'Set aside this month',
-              subtitle: v.record.paused
-                  ? 'Paused'
-                  : 'Held back from Safe to spend',
-              trailing: Text(
-                aedMinor(v.reservedMinor),
-                key: const Key('goal_reserved'),
-                style: PulseTheme.amount(c.textPrimary, size: 15),
-              ),
+              subtitle: v.record.paused ? 'Paused' : 'Held back from Safe to spend',
+              trailing: Text(aedMinor(v.reservedMinor), key: const Key('goal_reserved'), style: PulseTheme.amount(c.textPrimary, size: 15)),
             ),
-            if (v.linkedName != null)
-              ListRow(
-                title: 'Follows',
-                trailing: Text(v.linkedName!, style: tt.bodyMedium),
-              ),
+            if (v.linkedName != null) ListRow(title: 'Follows', trailing: Text(v.linkedName!, style: tt.bodyMedium)),
             OwnerRow(table: 'goals', id: v.id, title: rec.name, dense: false),
             if (!s.done)
               ListRow(
@@ -253,10 +196,7 @@ class _Body extends ConsumerWidget {
           if (v.contributions.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
-              child: Text(
-                'Nothing yet. Each deposit or payment you log shows up here.',
-                style: tt.bodySmall,
-              ),
+              child: Text('Nothing yet. Each deposit or payment you log shows up here.', style: tt.bodySmall),
             )
           else
             RowGroup(
@@ -264,30 +204,20 @@ class _Body extends ConsumerWidget {
                 for (final h in v.contributions)
                   ListRow(
                     key: ValueKey('hist_${h.id}'),
-                    title: h.amountMinor >= 0
-                        ? (v.isPaydown ? 'Payment' : 'Added')
-                        : 'Withdrawn',
-                    subtitle: [
-                      formatDate(h.date),
-                      if (h.note != null) h.note!,
-                    ].join(' · '),
+                    title: h.amountMinor >= 0 ? (v.isPaydown ? 'Payment' : 'Added') : 'Withdrawn',
+                    subtitle: [formatDate(h.date), if (h.note != null) h.note!].join(' · '),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '${h.amountMinor >= 0 ? '+' : '−'}${Money.aed(h.amountMinor.abs() / 100, decimals: false)}',
-                          style: PulseTheme.amount(
-                            h.amountMinor >= 0 ? c.positive : c.textSecondary,
-                            size: 15,
-                          ),
+                          style: PulseTheme.amount(h.amountMinor >= 0 ? c.positive : c.textSecondary, size: 15),
                         ),
                         IconButton(
                           tooltip: 'Remove',
                           icon: const Icon(Icons.close_rounded, size: 18),
                           onPressed: () async {
-                            await ref
-                                .read(goalServiceProvider)
-                                .removeContribution(h.id);
+                            await ref.read(goalServiceProvider).removeContribution(h.id);
                             invalidateGoals(ref);
                           },
                         ),
@@ -298,13 +228,7 @@ class _Body extends ConsumerWidget {
             ),
         ],
         const SizedBox(height: Space.xl),
-        Center(
-          child: TextAction(
-            'Delete goal',
-            color: c.negative,
-            onTap: () => _delete(context, ref),
-          ),
-        ),
+        Center(child: TextAction('Delete goal', color: c.negative, onTap: () => _delete(context, ref))),
       ],
     );
   }

@@ -18,37 +18,18 @@ const goalIconKeys = <String>[
   'coins', 'landmark', 'star', 'sun', 'leaf', 'fees',
 ];
 
-String defaultGoalIcon(GoalKind k) =>
-    k == GoalKind.paydown ? 'fees' : 'savings';
+String defaultGoalIcon(GoalKind k) => k == GoalKind.paydown ? 'fees' : 'savings';
 
 String aedMinor(int minor) => Money.aed(minor / 100, decimals: false);
 
 String monthYear(CalDate d) {
-  const m = [
-    'Jan',
-    'Feb',
-    'Mar',
-    'Apr',
-    'May',
-    'Jun',
-    'Jul',
-    'Aug',
-    'Sep',
-    'Oct',
-    'Nov',
-    'Dec',
-  ];
+  const m = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   return '${m[d.month - 1]} ${d.year}';
 }
 
 /// The glyph a goal wears, on a quiet tile.
 class GoalIcon extends StatelessWidget {
-  const GoalIcon(
-    this.iconKey, {
-    super.key,
-    this.kind = GoalKind.save,
-    this.size = 40,
-  });
+  const GoalIcon(this.iconKey, {super.key, this.kind = GoalKind.save, this.size = 40});
   final String? iconKey;
   final GoalKind kind;
   final double size;
@@ -56,10 +37,7 @@ class GoalIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final key = iconKey ?? defaultGoalIcon(kind);
-    return CategoryIcon.well(
-      SpendCategory.custom('goal_$key', 'Goal', iconKey: key),
-      size: size,
-    );
+    return CategoryIcon.well(SpendCategory.custom('goal_$key', 'Goal', iconKey: key), size: size);
   }
 }
 
@@ -84,23 +62,14 @@ String paceDetail(GoalView v) {
   final proj = v.projected;
   final when = proj == null ? null : monthYear(proj);
   return switch (v.pace) {
-    GoalPace.done =>
-      v.isPaydown
-          ? 'Paid off. That is a real weight off.'
-          : 'You got there. Nicely done.',
+    GoalPace.done => v.isPaydown ? 'Paid off. That is a real weight off.' : 'You got there. Nicely done.',
     GoalPace.paused => 'Nothing is set aside for this while it is paused. Your progress is kept.',
-    GoalPace.onTrack =>
-      when == null
-          ? 'You are keeping pace.'
-          : 'At this pace you finish around $when.',
+    GoalPace.onTrack => when == null ? 'You are keeping pace.' : 'At this pace you finish around $when.',
     GoalPace.behind =>
       '${when == null ? 'Progress has slowed.' : 'At this pace you finish around $when, a little after your date.'} '
-              '${v.suggestedMinor == null ? '' : 'About ${aedMinor(v.suggestedMinor!)} a month would close the gap.'}'
+          '${v.suggestedMinor == null ? '' : 'About ${aedMinor(v.suggestedMinor!)} a month would close the gap.'}'
           .trim(),
-    GoalPace.noDeadline =>
-      when == null
-          ? 'Add a date and Pulse will suggest a monthly amount.'
-          : 'At this pace you finish around $when.',
+    GoalPace.noDeadline => when == null ? 'Add a date and Pulse will suggest a monthly amount.' : 'At this pace you finish around $when.',
     GoalPace.noPace => 'Add a first contribution, or a monthly amount, to see when you could finish.',
   };
 }
@@ -144,12 +113,7 @@ class GlyphKeyIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final g = glyphsByKey[glyphKey] ?? genericGlyph;
-    return GlyphIcon(
-      g,
-      size: 26,
-      filled: selected,
-      color: selected ? c.accent : c.textSecondary,
-    );
+    return GlyphIcon(g, size: 26, filled: selected, color: selected ? c.accent : c.textSecondary);
   }
 }
 

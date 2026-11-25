@@ -47,9 +47,7 @@ class SyncStatus {
     enabled: enabled ?? this.enabled,
     running: running ?? this.running,
     lastSuccess: lastSuccess ?? this.lastSuccess,
-    lastError: identical(lastError, _keep)
-        ? this.lastError
-        : lastError as String?,
+    lastError: identical(lastError, _keep) ? this.lastError : lastError as String?,
     lastSent: lastSent ?? this.lastSent,
     lastReceived: lastReceived ?? this.lastReceived,
   );
@@ -62,42 +60,20 @@ class SyncStatus {
 ({String reason, String message}) classifySyncError(Object e) {
   if (e is SyncException) {
     return switch (e.reason) {
-      'signed_out' => (
-        reason: 'signed_out',
-        message: 'Sign in to sync your devices.',
-      ),
-      'too_new' => (
-        reason: 'too_new',
-        message: 'Another device runs a newer version of Pulse. Update this one to keep syncing.',
-      ),
-      'integrity' => (
-        reason: 'integrity',
-        message:
-            'Some synced data could not be verified, so it was not applied.',
-      ),
-      _ => (
-        reason: 'other',
-        message: "Couldn't sync just now. Your data is safe on this phone.",
-      ),
+      'signed_out' => (reason: 'signed_out', message: 'Sign in to sync your devices.'),
+      'too_new' => (reason: 'too_new', message: 'Another device runs a newer version of Pulse. Update this one to keep syncing.'),
+      'integrity' => (reason: 'integrity', message: 'Some synced data could not be verified, so it was not applied.'),
+      _ => (reason: 'other', message: "Couldn't sync just now. Your data is safe on this phone."),
     };
   }
   if (e is SyncUnavailable) {
     return (reason: 'signed_out', message: 'Sign in to sync your devices.');
   }
   final t = e.runtimeType.toString();
-  if (t.contains('Socket') ||
-      t.contains('Timeout') ||
-      t.contains('ClientException') ||
-      t.contains('Handshake')) {
-    return (
-      reason: 'offline',
-      message: "You're offline. Changes sync when you're back.",
-    );
+  if (t.contains('Socket') || t.contains('Timeout') || t.contains('ClientException') || t.contains('Handshake')) {
+    return (reason: 'offline', message: "You're offline. Changes sync when you're back.");
   }
-  return (
-    reason: 'other',
-    message: "Couldn't sync just now. Your data is safe on this phone.",
-  );
+  return (reason: 'other', message: "Couldn't sync just now. Your data is safe on this phone.");
 }
 
 String _bucket(int n) => n == 0 ? 'none' : (n <= 50 ? 'few' : 'many');
@@ -115,7 +91,9 @@ class SyncService {
     this.scheduler,
     DateTime Function()? clock,
   }) : _clock = clock ?? DateTime.now {
-    _scheduler = scheduler ?? SyncScheduler(run: _run);
+    _scheduler =
+        scheduler ??
+        SyncScheduler(run: _run);
   }
 
   final KvStore kv;
@@ -222,9 +200,7 @@ class SyncService {
       return true;
     } catch (e) {
       final c = classifySyncError(e);
-      final reason = e is SyncException && e.message == 'no key'
-          ? 'keys_missing'
-          : c.reason;
+      final reason = e is SyncException && e.message == 'no key' ? 'keys_missing' : c.reason;
       _set(
         _status.copyWith(
           running: false,
@@ -233,9 +209,7 @@ class SyncService {
               : c.message,
         ),
       );
-      analytics.track(
-        AnalyticsEvent.syncFailed(trigger: trigger, reason: reason),
-      );
+      analytics.track(AnalyticsEvent.syncFailed(trigger: trigger, reason: reason));
       return false;
     }
   }

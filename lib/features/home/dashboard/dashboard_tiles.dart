@@ -684,6 +684,7 @@ class _RecentTile extends ConsumerWidget {
   }
 }
 
+
 // ---- Goals ----
 
 /// Goals on Home. Quiet when there are none; otherwise what is set aside this

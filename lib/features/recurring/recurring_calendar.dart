@@ -27,8 +27,7 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
   int _initialDay(CalDate today) {
     final m = widget.month;
     final byDay = m.byDay;
-    if (today.year == m.month.year && today.month == m.month.month)
-      return today.day;
+    if (today.year == m.month.year && today.month == m.month.month) return today.day;
     return byDay.keys.isEmpty ? 1 : (byDay.keys.toList()..sort()).first;
   }
 
@@ -60,8 +59,7 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
         Semantics(
           button: true,
           selected: d == selected,
-          label:
-              '${DateFormat('d MMMM').format(DateTime(m.month.year, m.month.month, d))}'
+          label: '${DateFormat('d MMMM').format(DateTime(m.month.year, m.month.month, d))}'
               '${byDay[d] == null ? '' : ', ${byDay[d]!.length} due'}',
           child: Pressable(
             onTap: () => setState(() => _day = d),
@@ -71,9 +69,7 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
               decoration: BoxDecoration(
                 color: d == selected ? c.surfaceElevated : Colors.transparent,
                 borderRadius: BorderRadius.circular(Radii.md),
-                border: isToday && d == today.day
-                    ? Border.all(color: c.accent, width: 1.2)
-                    : null,
+                border: isToday && d == today.day ? Border.all(color: c.accent, width: 1.2) : null,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -82,9 +78,7 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
                     '$d',
                     style: context.tt.bodyMedium!.copyWith(
                       color: byDay[d] == null ? c.textSecondary : c.textPrimary,
-                      fontWeight: byDay[d] == null
-                          ? FontWeight.w400
-                          : FontWeight.w600,
+                      fontWeight: byDay[d] == null ? FontWeight.w400 : FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 3),
@@ -98,10 +92,7 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
                             key: const Key('cal_dot'),
                             width: 5,
                             height: 5,
-                            decoration: BoxDecoration(
-                              color: dotColor(s),
-                              shape: BoxShape.circle,
-                            ),
+                            decoration: BoxDecoration(color: dotColor(s), shape: BoxShape.circle),
                           ),
                           const SizedBox(width: 2),
                         ],
@@ -119,24 +110,12 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.xl,
-            Space.gutter,
-            Space.xs,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, Space.xs),
           child: Row(
             children: [
               for (final w in const ['M', 'T', 'W', 'T', 'F', 'S', 'S'])
                 Expanded(
-                  child: Center(
-                    child: Text(
-                      w,
-                      style: context.tt.bodySmall!.copyWith(
-                        color: c.textTertiary,
-                      ),
-                    ),
-                  ),
+                  child: Center(child: Text(w, style: context.tt.bodySmall!.copyWith(color: c.textTertiary))),
                 ),
             ],
           ),
@@ -152,19 +131,10 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
             children: cells,
           ),
         ),
-        SectionHeader(
-          DateFormat('EEEE d MMMM')
-              .format(DateTime(m.month.year, m.month.month, selected)),
-          top: Space.lg,
-        ),
+        SectionHeader(DateFormat('EEEE d MMMM').format(DateTime(m.month.year, m.month.month, selected)), top: Space.lg),
         if (items.isEmpty)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.xs,
-              Space.gutter,
-              0,
-            ),
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xs, Space.gutter, 0),
             child: Text('Nothing due.', style: context.tt.bodyMedium),
           )
         else
@@ -173,30 +143,18 @@ class _RecurringCalendarState extends ConsumerState<RecurringCalendar> {
             children: [for (final i in items) RecRow(i)],
           ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.md,
-            Space.gutter,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
           child: Row(
             children: [
               Expanded(
                 child: Wrap(
                   spacing: Space.md,
                   runSpacing: 4,
-                  children: [
-                    _Key(c.accent, 'Upcoming'),
-                    _Key(c.textTertiary, 'Paid'),
-                    _Key(c.warning, 'Overdue'),
-                  ],
+                  children: [_Key(c.accent, 'Upcoming'), _Key(c.textTertiary, 'Paid'), _Key(c.warning, 'Overdue')],
                 ),
               ),
               Text(
-                Money.aed(
-                  items.fold<int>(0, (a, i) => a + i.amountMinor) / 100,
-                  decimals: false,
-                ),
+                Money.aed(items.fold<int>(0, (a, i) => a + i.amountMinor) / 100, decimals: false),
                 style: PulseTheme.amount(c.textSecondary, size: 14),
               ),
             ],
@@ -223,11 +181,7 @@ class _Key extends StatelessWidget {
   Widget build(BuildContext context) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      Container(
-        width: 7,
-        height: 7,
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      ),
+      Container(width: 7, height: 7, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
       const SizedBox(width: 5),
       Text(label, style: context.tt.bodySmall),
     ],

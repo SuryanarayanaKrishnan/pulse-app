@@ -26,8 +26,7 @@ class SecureHouseholdKeyStore implements HouseholdKeyStore {
   }
 
   @override
-  Future<void> save(Uint8List key) =>
-      _storage.write(key: _key, value: base64.encode(key));
+  Future<void> save(Uint8List key) => _storage.write(key: _key, value: base64.encode(key));
 
   @override
   Future<void> clear() => _storage.delete(key: _key);

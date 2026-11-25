@@ -36,18 +36,12 @@ class PrivacyScreen extends ConsumerWidget {
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                Space.gutter,
-                Space.sm,
-                Space.gutter,
-                0,
+                Space.gutter, Space.sm, Space.gutter, 0,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Your money stays yours',
-                    style: context.tt.headlineSmall,
-                  ),
+                  Text('Your money stays yours', style: context.tt.headlineSmall),
                   const SizedBox(height: Space.sm),
                   Text(
                     'Pulse can share a few anonymous facts about how the app is used, '
@@ -89,10 +83,7 @@ class PrivacyScreen extends ConsumerWidget {
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                Space.gutter,
-                Space.md,
-                Space.gutter,
-                0,
+                Space.gutter, Space.md, Space.gutter, 0,
               ),
               child: Text(
                 'The id is made up at random. It is not linked to your account, '
@@ -147,14 +138,13 @@ class PrivacyScreen extends ConsumerWidget {
             ),
             for (final g in AnalyticsSchema.grouped.entries) ...[
               SectionHeader(g.key, top: Space.xl),
-              RowGroup(children: [for (final e in g.value) _EventRow(e)]),
+              RowGroup(
+                children: [for (final e in g.value) _EventRow(e)],
+              ),
             ],
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                Space.gutter,
-                Space.xl,
-                Space.gutter,
-                0,
+                Space.gutter, Space.xl, Space.gutter, 0,
               ),
               child: Text(
                 'We also note which main screens are opened (for example Home or Cards), '
@@ -182,8 +172,7 @@ class _EventRow extends StatelessWidget {
     final sub = context.tt.bodySmall!.copyWith(color: c.textSecondary);
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: Space.gutter,
-        vertical: Space.md,
+        horizontal: Space.gutter, vertical: Space.md,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,10 +191,7 @@ class _EventRow extends StatelessWidget {
             Text('Contains: nothing else.', style: sub)
           else
             for (final p in spec.props.entries)
-              Text(
-                '${p.key}: ${p.value.description}, ${p.value.shape}',
-                style: sub,
-              ),
+              Text('${p.key}: ${p.value.description}, ${p.value.shape}', style: sub),
         ],
       ),
     );
@@ -220,9 +206,7 @@ class _LearningSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final learning = ref.watch(learningControllerProvider);
-    final small = context.tt.bodySmall!.copyWith(
-      color: context.pc.textSecondary,
-    );
+    final small = context.tt.bodySmall!.copyWith(color: context.pc.textSecondary);
     return ListenableBuilder(
       listenable: learning,
       builder: (context, _) => Column(
@@ -234,9 +218,7 @@ class _LearningSection extends ConsumerWidget {
               ListRow(
                 leading: const IconWell(Icons.auto_awesome_outlined),
                 title: 'Help improve categories',
-                subtitle: learning.optIn
-                    ? 'On. Thank you.'
-                    : 'Off. Nothing is shared.',
+                subtitle: learning.optIn ? 'On. Thank you.' : 'Off. Nothing is shared.',
                 trailing: Switch(
                   value: learning.optIn,
                   onChanged: (v) async {
@@ -256,12 +238,7 @@ class _LearningSection extends ConsumerWidget {
             ],
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.md,
-              Space.gutter,
-              0,
-            ),
+            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
             child: Text(
               'When you fix a category and confirm it, Pulse can learn that '
               'this shop usually belongs in that category, and share it so '

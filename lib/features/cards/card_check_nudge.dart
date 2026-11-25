@@ -11,8 +11,7 @@ String _aed(int minor) => 'AED ${(minor / 100).toStringAsFixed(2)}';
 /// Calm one-line result of a card check. Always says it is an estimate.
 String cardCheckMessage(CardCheck c) {
   final tail = c.estimated ? '(estimate, unverified terms)' : '(estimate)';
-  if (c.right)
-    return 'Right card. ${c.paidTitle} earned about ${_aed(c.earnedMinor)} $tail';
+  if (c.right) return 'Right card. ${c.paidTitle} earned about ${_aed(c.earnedMinor)} $tail';
   return '${c.bestTitle} would have earned about ${_aed(c.bestMinor)} here, '
       'vs ${_aed(c.earnedMinor)} on ${c.paidTitle} $tail';
 }
@@ -22,27 +21,16 @@ String missedBucket(int missedMinor) =>
 
 /// Shows the check as a quiet floating note with a light haptic, and records
 /// `card_check_shown` (and `card_check_wrong` for a miss).
-void showCardCheckNudge(
-  BuildContext context,
-  Analytics analytics,
-  CardCheck check,
-) {
+void showCardCheckNudge(BuildContext context, Analytics analytics, CardCheck check) {
   final messenger = ScaffoldMessenger.maybeOf(context);
   if (messenger == null) return;
   final c = context.pc;
   Haptics.light();
   analytics.track(
-    AnalyticsEvent.cardCheckShown(
-      result: check.right ? 'right' : 'wrong',
-      estimated: check.estimated,
-    ),
+    AnalyticsEvent.cardCheckShown(result: check.right ? 'right' : 'wrong', estimated: check.estimated),
   );
   if (!check.right) {
-    analytics.track(
-      AnalyticsEvent.cardCheckWrong(
-        missedBucket: missedBucket(check.missedMinor),
-      ),
-    );
+    analytics.track(AnalyticsEvent.cardCheckWrong(missedBucket: missedBucket(check.missedMinor)));
   }
   messenger
     ..hideCurrentSnackBar()
@@ -54,9 +42,7 @@ void showCardCheckNudge(
         content: Row(
           children: [
             Icon(
-              check.right
-                  ? Icons.check_circle_outline_rounded
-                  : Icons.swap_horiz_rounded,
+              check.right ? Icons.check_circle_outline_rounded : Icons.swap_horiz_rounded,
               size: 20,
               color: check.right ? c.positive : c.warning,
             ),
@@ -82,6 +68,4 @@ class NoopCardCheckNotifier implements CardCheckNotifier {
   Future<void> notify(CardCheck check) async {}
 }
 
-final cardCheckNotifierProvider = Provider<CardCheckNotifier>(
-  (_) => const NoopCardCheckNotifier(),
-);
+final cardCheckNotifierProvider = Provider<CardCheckNotifier>((_) => const NoopCardCheckNotifier());

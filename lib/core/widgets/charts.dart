@@ -180,13 +180,7 @@ class TrendBars extends StatelessWidget {
 
 /// Allocation donut: slices as arcs with thin gaps, an optional centre.
 class DonutChart extends StatelessWidget {
-  const DonutChart({
-    super.key,
-    required this.slices,
-    this.size = 140,
-    this.thickness = 16,
-    this.center,
-  });
+  const DonutChart({super.key, required this.slices, this.size = 140, this.thickness = 16, this.center});
   final List<ChartSlice> slices;
   final double size, thickness;
   final Widget? center;
@@ -246,6 +240,5 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DonutPainter old) =>
-      old.slices != slices || old.thickness != thickness || old.track != track;
+  bool shouldRepaint(_DonutPainter old) => old.slices != slices || old.thickness != thickness || old.track != track;
 }

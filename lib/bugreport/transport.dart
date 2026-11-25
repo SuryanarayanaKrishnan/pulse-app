@@ -13,9 +13,7 @@ enum DeliveryMethod { local, issue }
 
 class SendOutcome {
   const SendOutcome.ok(this.method, {this.issueUrl}) : ok = true, error = null;
-  const SendOutcome.failed(this.method, this.error)
-    : ok = false,
-      issueUrl = null;
+  const SendOutcome.failed(this.method, this.error) : ok = false, issueUrl = null;
   final bool ok;
   final DeliveryMethod method;
   final String? issueUrl;
@@ -53,12 +51,10 @@ class LocalShareTransport implements BugReportTransport {
   Future<Directory> writeBundle(BugReport r) async {
     final parent = await _tempDir();
     final stamp = r.createdAt.toUtc().millisecondsSinceEpoch;
-    final dir = await Directory('${parent.path}/pulse-report-$stamp')
-        .create(recursive: true);
+    final dir = await Directory('${parent.path}/pulse-report-$stamp').create(recursive: true);
     await File('${dir.path}/report.md').writeAsString(r.toMarkdown());
     if (r.screenshotPng != null) {
-      await File('${dir.path}/${BugReport.screenshotFile}')
-          .writeAsBytes(r.screenshotPng!);
+      await File('${dir.path}/${BugReport.screenshotFile}').writeAsBytes(r.screenshotPng!);
     }
     return dir;
   }
@@ -70,10 +66,7 @@ class LocalShareTransport implements BugReportTransport {
       final files = [
         XFile('${dir.path}/report.md', mimeType: 'text/markdown'),
         if (r.screenshotPng != null)
-          XFile(
-            '${dir.path}/${BugReport.screenshotFile}',
-            mimeType: 'image/png',
-          ),
+          XFile('${dir.path}/${BugReport.screenshotFile}', mimeType: 'image/png'),
       ];
       await _share(ShareParams(files: files, subject: r.title, text: r.title));
       return const SendOutcome.ok(DeliveryMethod.local);
@@ -89,15 +82,7 @@ class LocalShareTransport implements BugReportTransport {
 class GithubIssueTransport implements BugReportTransport {
   GithubIssueTransport({String? url, Dio? dio})
     : url = url ?? Env.bugReportUrl,
-      _dio =
-          dio ??
-          Dio(
-            BaseOptions(
-              connectTimeout: const Duration(seconds: 10),
-              sendTimeout: const Duration(seconds: 20),
-              receiveTimeout: const Duration(seconds: 20),
-            ),
-          );
+      _dio = dio ?? Dio(BaseOptions(connectTimeout: const Duration(seconds: 10), sendTimeout: const Duration(seconds: 20), receiveTimeout: const Duration(seconds: 20)));
 
   final String url;
   final Dio _dio;
@@ -124,8 +109,7 @@ class GithubIssueTransport implements BugReportTransport {
 
   @override
   Future<SendOutcome> send(BugReport r) async {
-    if (!available)
-      return const SendOutcome.failed(DeliveryMethod.issue, 'not_configured');
+    if (!available) return const SendOutcome.failed(DeliveryMethod.issue, 'not_configured');
     try {
       final res = await _dio.post<Object?>(
         url,
@@ -134,24 +118,14 @@ class GithubIssueTransport implements BugReportTransport {
       );
       final data = res.data;
       final issue = data is Map ? data['issue_url'] : null;
-      return SendOutcome.ok(
-        DeliveryMethod.issue,
-        issueUrl: issue is String ? issue : null,
-      );
+      return SendOutcome.ok(DeliveryMethod.issue, issueUrl: issue is String ? issue : null);
     } on DioException catch (e) {
-      return SendOutcome.failed(
-        DeliveryMethod.issue,
-        'http_${e.response?.statusCode ?? 'network'}',
-      );
+      return SendOutcome.failed(DeliveryMethod.issue, 'http_${e.response?.statusCode ?? 'network'}');
     } on Object catch (e) {
       return SendOutcome.failed(DeliveryMethod.issue, e.runtimeType.toString());
     }
   }
 }
 
-final localShareTransportProvider = Provider<LocalShareTransport>(
-  (ref) => LocalShareTransport(),
-);
-final issueTransportProvider = Provider<GithubIssueTransport>(
-  (ref) => GithubIssueTransport(),
-);
+final localShareTransportProvider = Provider<LocalShareTransport>((ref) => LocalShareTransport());
+final issueTransportProvider = Provider<GithubIssueTransport>((ref) => GithubIssueTransport());

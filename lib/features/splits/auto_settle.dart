@@ -183,16 +183,15 @@ class AutoSettleService {
   }
 }
 
-final Provider<AutoSettleService> autoSettleServiceProvider =
-    Provider<AutoSettleService>((ref) {
-      return AutoSettleService(
-        repo: ref.watch(repositoryProvider),
-        analytics: ref.watch(analyticsProvider),
-        kv: ref.watch(autoSettleKvProvider),
-        messenger: () => AutoSettleHost.messengerKey.currentState,
-        onChanged: () => ref.invalidate(splitGroupsProvider),
-      );
-    });
+final Provider<AutoSettleService> autoSettleServiceProvider = Provider<AutoSettleService>((ref) {
+  return AutoSettleService(
+    repo: ref.watch(repositoryProvider),
+    analytics: ref.watch(analyticsProvider),
+    kv: ref.watch(autoSettleKvProvider),
+    messenger: () => AutoSettleHost.messengerKey.currentState,
+    onChanged: () => ref.invalidate(splitGroupsProvider),
+  );
+});
 
 /// Sits above the app: turns new captures into settle attempts.
 class AutoSettleHost extends ConsumerWidget {

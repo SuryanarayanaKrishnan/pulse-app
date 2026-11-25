@@ -37,8 +37,9 @@ class SegmentName {
 
   /// (device, seq), or null when [name] is not a segment name of [ns].
   static (String, int)? parse(String name, {String ns = 'sync'}) {
-    final m = RegExp('^${RegExp.escape(ns)}/([0-9a-f]{16})/(\\d{10})\\.seg\$')
-        .firstMatch(name);
+    final m = RegExp(
+      '^${RegExp.escape(ns)}/([0-9a-f]{16})/(\\d{10})\\.seg\$',
+    ).firstMatch(name);
     if (m == null) return null;
     return (m.group(1)!, int.parse(m.group(2)!));
   }
@@ -91,7 +92,11 @@ class SegmentCodec {
   /// made with another key or stored under another name, and
   /// [FormatException] when the content is not a segment.
   Future<Segment> decode(String name, Uint8List blob) async {
-    final plain = await BackupCrypto.open(_key, blob, aad: utf8.encode(name));
+    final plain = await BackupCrypto.open(
+      _key,
+      blob,
+      aad: utf8.encode(name),
+    );
     final j = jsonDecode(utf8.decode(plain)) as Map<String, dynamic>;
     if (j['v'] != 1) throw const FormatException('Unknown segment version');
     final seg = Segment(
@@ -100,7 +105,13 @@ class SegmentCodec {
       schemaVersion: j['sv'] as int,
       changes: [
         for (final c in (j['c'] as List))
-          Change.fromJson([(c as List)[0], c[1], c[2], _dec(c[3]), c[4]]),
+          Change.fromJson([
+            (c as List)[0],
+            c[1],
+            c[2],
+            _dec(c[3]),
+            c[4],
+          ]),
       ],
     );
     if (SegmentName.of(seg.device, seg.seq, ns: ns) != name) {
