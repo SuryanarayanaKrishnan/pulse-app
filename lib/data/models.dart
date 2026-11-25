@@ -313,6 +313,7 @@ class CreditCard {
     this.rulesVerifiedOn,
     this.catalogId,
     this.art,
+    this.hasDueDate = true,
   });
 
   final String id;
@@ -320,6 +321,10 @@ class CreditCard {
   final String name;
   final String last4;
   final CardNetwork network;
+
+  /// False when the card has no due day set: [dueDate] is then a placeholder
+  /// and must not be shown or counted in upcoming dues.
+  final bool hasDueDate;
 
   /// The catalog product this card is, when known; picks the card's art.
   final String? catalogId;
@@ -361,7 +366,7 @@ class CreditCard {
   double get utilisation => limit == 0 ? 0 : balance / limit;
   double get totalDue => statementBalance ?? balance;
 
-  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps}) =>
+  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate}) =>
       CreditCard(
         id: id,
         issuer: issuer,
@@ -387,6 +392,7 @@ class CreditCard {
         rulesVerifiedOn: rulesVerifiedOn,
         catalogId: catalogId,
         art: art,
+        hasDueDate: hasDueDate ?? this.hasDueDate,
       );
 }
 
@@ -488,10 +494,16 @@ class Asset {
     required this.kind,
     required this.value,
     this.note = '',
+    this.editable = false,
   });
   final String id;
   final String name;
   final AssetKind kind;
+
+  /// True for things the user typed in (a manual asset, loan or account
+  /// balance): they can be edited and deleted. Priced holdings, cards and
+  /// the like are managed elsewhere.
+  final bool editable;
 
   /// Positive number; liabilities are subtracted by [AssetKind.liability].
   final double value;

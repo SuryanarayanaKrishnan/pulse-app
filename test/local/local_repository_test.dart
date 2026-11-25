@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/core/engine/types.dart';
@@ -323,7 +323,65 @@ void main() {
       expect((tx.source, tx.accountLabel, tx.amount), (TxSource.manual, 'Cash', 25));
       final accounts = await r.repo.bankAccounts();
       expect(accounts.single.kind, BankAccountKind.cash);
-      expect(accounts.single.balance, -25);
+      // Cash spent with no float is spending, not an overdrawn account.
+      expect(accounts.single.balance, 0);
+      expect((await r.repo.assets()).where((a) => a.kind == AssetKind.cash), isEmpty);
+      expect((await r.repo.netWorth()).total, 0);
+    });
+
+    test('a cash pot that holds money counts as an asset and never goes negative', () async {
+      final r = await rig();
+      await r.repo.addBankAccount(bank: 'Cash', name: 'Wallet cash', kind: BankAccountKind.cash, balance: 100);
+      // The float was counted two days ago, so today's spending comes off it.
+      await r.db.update(r.db.accounts).write(AccountsCompanion(balanceAnchorAt: Value(_now.subtract(const Duration(days: 2)))));
+      await r.repo.addManualTransaction(merchant: 'Taxi', amount: 30, category: SpendCategory.transport);
+      expect((await r.repo.bankAccounts()).single.balance, 70);
+      await r.repo.addManualTransaction(merchant: 'Lunch', amount: 90, category: SpendCategory.dining);
+      expect((await r.repo.bankAccounts()).single.balance, 0);
+    });
+
+    test('edit and delete manual assets, loans and accounts', () async {
+      final r = await rig();
+      final asset = await r.repo.addAsset(name: 'Flat', kind: AssetKind.realEstate, value: 1000000);
+      final loan = await r.repo.addAsset(name: 'Car loan', kind: AssetKind.liability, value: 20000);
+      final acct = await r.repo.addBankAccount(bank: 'ENBD', name: 'Current', kind: BankAccountKind.current, balance: 500);
+
+      var list = await r.repo.assets();
+      expect(list.firstWhere((a) => a.id == asset.id).editable, isTrue);
+      expect(list.firstWhere((a) => a.id == loan.id).editable, isTrue);
+      final accountId = list.firstWhere((a) => a.id.startsWith('account:')).id;
+      expect(accountId, contains(acct.id));
+
+      await r.repo.updateAsset(asset.id, name: 'Marina flat', value: 1100000);
+      await r.repo.updateAsset(loan.id, name: 'Car loan', value: 15000);
+      await r.repo.updateAsset(accountId, name: 'Main account', value: 800);
+      list = await r.repo.assets();
+      expect(list.firstWhere((a) => a.id == asset.id).value, 1100000);
+      expect(list.firstWhere((a) => a.id == asset.id).name, 'Marina flat');
+      expect(list.firstWhere((a) => a.id == loan.id).value, 15000);
+      expect(list.firstWhere((a) => a.id == accountId).value, 800);
+
+      await r.repo.deleteAsset(asset.id);
+      await r.repo.deleteAsset(loan.id);
+      await r.repo.deleteAsset(accountId);
+      expect(await r.repo.assets(), isEmpty);
+    });
+
+    test('deleting an account keeps its transactions', () async {
+      final r = await rig();
+      await r.repo.addBankAccount(bank: 'Cash', name: 'Float', kind: BankAccountKind.cash, balance: 100);
+      await r.repo.addManualTransaction(merchant: 'Taxi', amount: 25, category: SpendCategory.transport);
+      final id = (await r.repo.assets()).singleWhere((a) => a.id.startsWith('account:')).id;
+      await r.repo.deleteAsset(id);
+      expect((await r.repo.transactionsPage(limit: 10)).items, hasLength(1));
+    });
+
+    test('a card with no due day has no due date to show', () async {
+      final r = await rig();
+      await r.repo.addCard(catalogId: _enbd, last4: '1234', limit: 20000);
+      expect((await r.repo.myCards()).single.hasDueDate, isFalse);
+      final withDay = await withCard();
+      expect((await withDay.repo.myCards()).single.hasDueDate, isTrue);
     });
 
     test('pagination walks the whole ledger newest first', () async {

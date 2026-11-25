@@ -148,9 +148,12 @@ class _CardsView extends ConsumerWidget {
         final used = list.fold<double>(0, (a, k) => a + k.balance);
         final u = limit == 0 ? 0.0 : used / limit;
         final earned = standings.fold<double>(0, (a, s) => a + s.rewards);
-        final dues = [for (final k in list) dueInfo(k)]
-          ..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
-        final next = dues.first;
+        // Cards with no due day set have nothing to count down to.
+        final dues = [
+          for (final k in list)
+            if (k.hasDueDate) dueInfo(k),
+        ]..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
+        final next = dues.isEmpty ? null : dues.first;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -158,9 +161,10 @@ class _CardsView extends ConsumerWidget {
             HeroNumber(
               label: 'Total due',
               value: due,
-              caption:
-                  'Next: ${next.card.issuer} on ${DateFormat('d MMM').format(next.card.dueDate)}',
-              captionColor: next.urgent ? c.warning : null,
+              caption: next == null
+                  ? 'Add a due day to a card to see when to pay'
+                  : 'Next: ${next.card.issuer} on ${DateFormat('d MMM').format(next.card.dueDate)}',
+              captionColor: next != null && next.urgent ? c.warning : null,
             ),
             FigureRow([
               ('Minimum', Money.aed(minDue, decimals: false), null),
@@ -194,18 +198,20 @@ class _CardsView extends ConsumerWidget {
                 openCardDetail(context, list, i);
               },
             ),
-            const SectionHeader('Upcoming dues'),
-            RowGroup(
-              indent: ListRow.leadingInset,
-              children: [
-                for (final d in dues)
-                  DueRow(
-                    d,
-                    onTap: () =>
-                        openCardDetail(context, list, list.indexOf(d.card)),
-                  ),
-              ],
-            ),
+            if (dues.isNotEmpty) ...[
+              const SectionHeader('Upcoming dues'),
+              RowGroup(
+                indent: ListRow.leadingInset,
+                children: [
+                  for (final d in dues)
+                    DueRow(
+                      d,
+                      onTap: () =>
+                          openCardDetail(context, list, list.indexOf(d.card)),
+                    ),
+                ],
+              ),
+            ],
             const SizedBox(height: Space.lg),
             RowGroup(
               indent: ListRow.leadingInset,
