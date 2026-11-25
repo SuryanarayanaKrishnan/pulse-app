@@ -142,16 +142,18 @@ class _FlexHero extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final f = plan.flex;
-    final over = f.remainingMinor < 0;
+    // Nothing set aside yet: spending is not "over" anything.
+    final noBudget = f.categories == 0 || f.availableMinor <= 0;
+    final over = !noBudget && f.remainingMinor < 0;
     return HeroNumber(
       key: const Key('flex_hero'),
-      label: over ? 'Flexible overspent' : 'Flexible left',
-      value: f.remainingMinor.abs() / 100,
+      label: noBudget ? 'Spent flexibly' : (over ? 'Flexible overspent' : 'Flexible left'),
+      value: noBudget ? f.spentMinor / 100 : f.remainingMinor.abs() / 100,
       color: over ? c.negative : null,
-      caption: f.categories == 0
-          ? 'Set amounts on the categories you spend flexibly'
+      caption: noBudget
+          ? 'No amounts set yet. Set one on a category to see how much is left.'
           : '${aedMinor(f.spentMinor)} spent of ${aedMinor(f.availableMinor)} across ${f.categories} categories',
-      footer: f.categories == 0
+      footer: noBudget
           ? null
           : Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
