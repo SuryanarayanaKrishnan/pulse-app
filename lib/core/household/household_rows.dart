@@ -14,12 +14,19 @@ String? _str(Object? v) => v is String ? v : null;
 Map<String, Object?> memberToRow(HMember m) => {
   'name': m.name,
   'joined_at': m.joinedAt?.toUtc().toIso8601String(),
+  'removed_by': m.removedBy,
 };
 
 HMember? memberFromRow(String id, Map<String, Object?> r) {
   final name = _str(r['name']);
   if (name == null || name.isEmpty) return null;
-  return HMember(id: id, name: name, joinedAt: DateTime.tryParse(_str(r['joined_at']) ?? ''));
+  final by = _str(r['removed_by']);
+  return HMember(
+    id: id,
+    name: name,
+    joinedAt: DateTime.tryParse(_str(r['joined_at']) ?? ''),
+    removedBy: by == null || by.isEmpty ? null : by,
+  );
 }
 
 Map<String, Object?> billToRow(HBill b) => {

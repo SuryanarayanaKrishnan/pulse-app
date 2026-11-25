@@ -114,6 +114,18 @@ final jointDataProvider = FutureProvider<JointData?>(
   (ref) => ref.watch(householdServiceProvider).joint(),
 );
 
+/// Whether another member re-keyed the household (a new code to adopt) or
+/// removed this phone. Refreshes with the joint data.
+final householdRotationProvider =
+    FutureProvider<({HMember? notice, bool removed})>((ref) async {
+      ref.watch(jointDataProvider);
+      final svc = ref.watch(householdServiceProvider);
+      return (
+        notice: await svc.rotationNotice(),
+        removed: await svc.iWasRemoved(),
+      );
+    });
+
 class HouseholdStatusNotifier extends Notifier<HouseholdStatus> {
   @override
   HouseholdStatus build() {
@@ -135,6 +147,7 @@ final householdStatusProvider = NotifierProvider<HouseholdStatusNotifier, Househ
 void invalidateHousehold(WidgetRef ref) {
   ref.invalidate(householdConfigProvider);
   ref.invalidate(jointDataProvider);
+  ref.invalidate(householdRotationProvider);
 }
 
 /// This item's owner and Private flag (for the detail sheets).

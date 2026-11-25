@@ -14,6 +14,7 @@ import '../../data/wealth_models.dart';
 import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
 import '../../core/vault/vault_models.dart';
+import '../household/ownership_widgets.dart';
 import '../vault/held_at.dart';
 import 'wealth_widgets.dart';
 
@@ -534,6 +535,7 @@ class _DetailBody extends ConsumerWidget {
         const SectionHeader('Details'),
         RowGroup(
           children: [
+            OwnerRow(table: 'lines', id: 'jewel:${i.id}', title: i.name),
             _kv(context, 'Weight', '${g(i.weightGrams)} g'),
             _kv(context, 'Purity', i.purityLabel),
             _kv(context, 'Pure gold', '${g(v.pureGrams)} g'),

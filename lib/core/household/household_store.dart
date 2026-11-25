@@ -42,6 +42,13 @@ abstract class HouseholdStore {
   Future<HRows> mirror();
   Future<void> putMirror(String table, String id, Map<String, Object?>? values);
 
+  /// Forgets every other member's mirrored rows (they come back from the
+  /// log of a new household).
+  Future<void> clearMirror();
+
+  /// Puts my items assigned to [from] (a member who is gone) on [to].
+  Future<void> reassignOwner(String from, String to);
+
   /// Leaving: forget the household, its shared rows and the mirror, and put
   /// everything of mine back to "mine".
   Future<void> clearAll();
@@ -181,6 +188,20 @@ class MemoryHouseholdStore implements HouseholdStore {
       _mirror[table]?.remove(id);
     } else {
       _mirror.putIfAbsent(table, () => {})[id] = Map.of(values);
+    }
+  }
+
+  @override
+  Future<void> clearMirror() async => _mirror.clear();
+
+  @override
+  Future<void> reassignOwner(String from, String to) async {
+    for (final r in await ownRows()) {
+      if (r.owner == from)
+        _ownership[_k(r.table, r.id)] = Ownership(
+          owner: to,
+          isPrivate: r.isPrivate,
+        );
     }
   }
 

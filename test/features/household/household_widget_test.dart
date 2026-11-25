@@ -21,6 +21,8 @@ import 'package:pulse/features/auth/session.dart';
 import 'package:pulse/data/models.dart';
 import 'package:pulse/features/transactions/tx_detail_sheet.dart';
 import 'package:pulse/features/household/ownership_widgets.dart';
+import 'package:pulse/core/household/household_invite.dart';
+import 'package:pulse/features/household/invite_scanner.dart';
 import 'package:pulse/household/household_providers.dart';
 
 class Rec extends NoopAnalytics {
@@ -191,6 +193,104 @@ void main() {
       expect([for (final e in rig.rec.events) e.name], ['household_member_joined']);
     });
 
+    testWidgets(
+      'remove a member: asks first, then shows a new code and drops them',
+      (tester) async {
+        final rig = Rig(joined: true);
+        await pumpApp(tester, rig, '/household');
+        final oldCfg = (await rig.store.config())!;
+        final remove = find.byKey(const Key('remove_Omar'));
+        await reveal(tester, remove);
+        await tester.tap(remove);
+        await settle(tester);
+        expect(find.text('Remove Omar?'), findsOneWidget);
+        await tester.tap(find.text('Cancel'));
+        await settle(tester);
+        expect(
+          (await rig.store.config())!.id,
+          oldCfg.id,
+          reason: 'cancel changes nothing',
+        );
+
+        await tester.tap(remove);
+        await settle(tester);
+        await tester.tap(find.byKey(const Key('remove_confirm')));
+        await settle(tester);
+        expect(find.text('New household code'), findsOneWidget);
+        final code = tester
+            .widget<SelectableText>(find.byKey(const Key('invite_code')))
+            .data!;
+        final invite = HouseholdInvite.decode(code);
+        expect(invite.householdId, isNot(oldCfg.id));
+        expect((await rig.store.config())!.id, invite.householdId);
+        expect([
+          for (final m in await rig.store.members()) m.name,
+        ], isNot(contains('Omar')));
+      },
+    );
+
+    testWidgets('change household code: confirm, then the new code is shown', (
+      tester,
+    ) async {
+      final rig = Rig(joined: true);
+      await pumpApp(tester, rig, '/household');
+      final oldId = (await rig.store.config())!.id;
+      final row = find.byKey(const Key('household_rotate'));
+      await reveal(tester, row);
+      await tester.tap(row);
+      await settle(tester);
+      await tester.tap(find.byKey(const Key('rotate_confirm')));
+      await settle(tester);
+      expect(find.byKey(const Key('invite_code')), findsOneWidget);
+      expect((await rig.store.config())!.id, isNot(oldId));
+    });
+
+    testWidgets(
+      'a re-keyed household shows a notice; entering the new code adopts it',
+      (tester) async {
+        final rig = Rig(joined: true);
+        await pumpApp(tester, rig, '/household');
+        final cfg = (await rig.store.config())!;
+        // Another member removed a third person and says a new code is coming.
+        await rig.store.saveMember(
+          const HMember(id: 'gone', name: 'Zed', removedBy: demoPartner),
+        );
+        final c = ProviderScope.containerOf(
+          tester.element(find.byType(Scaffold).first),
+        );
+        c.invalidate(jointDataProvider);
+        await settle(tester);
+        expect(find.byKey(const Key('rotation_notice')), findsOneWidget);
+        await tester.tap(find.byKey(const Key('adopt_open')));
+        await settle(tester);
+        expect(
+          tester
+              .widget<PrimaryButton>(find.byKey(const Key('adopt_go')))
+              .onPressed,
+          isNull,
+        );
+        final newCode = HouseholdInvite(
+          householdId: 'e' * 32,
+          key: Uint8List.fromList(List.filled(32, 9)),
+        ).encode();
+        await tester.enterText(
+          find.byKey(const Key('adopt_code')),
+          'PULSE-HH1-AAAAA',
+        );
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('adopt_go')));
+        await settle(tester);
+        expect(find.textContaining("doesn't look right"), findsOneWidget);
+        await tester.enterText(find.byKey(const Key('adopt_code')), newCode);
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('adopt_go')));
+        await settle(tester);
+        expect((await rig.store.config())!.id, 'e' * 32);
+        expect((await rig.store.config())!.myMemberId, cfg.myMemberId);
+        expect(find.byKey(const Key('rotation_notice')), findsNothing);
+      },
+    );
+
     testWidgets('leave asks first, then forgets the household', (tester) async {
       final rig = Rig(joined: true);
       await pumpApp(tester, rig, '/household');
@@ -212,19 +312,28 @@ void main() {
       expect(find.text('Start a household'), findsOneWidget);
     });
 
-    testWidgets('a shared bill can be added with a split and shows what each pays', (tester) async {
-      final rig = Rig(joined: true);
-      await pumpApp(tester, rig, '/household');
-      expect(find.byKey(const Key('bill_b_rent')), findsOneWidget);
-      expect(find.textContaining('your share AED 3,250'), findsOneWidget);
-      await tester.tap(find.byKey(const Key('bill_b_rent')));
-      await settle(tester);
-      await tester.enterText(find.byKey(const Key('bill_amount')), '700');
-      await tester.pump();
-      await tester.tap(find.byKey(const Key('bill_save')));
-      await settle(tester);
-      expect((await rig.store.bills()).firstWhere((b) => b.id == 'b_rent').amountMinor, 70000);
-    });
+    testWidgets(
+      'a shared bill can be added with a split and shows what each pays',
+      (tester) async {
+        final rig = Rig(joined: true);
+        await pumpApp(tester, rig, '/household');
+        expect(find.byKey(const Key('bill_b_rent')), findsOneWidget);
+        expect(find.textContaining('your share AED 3,250'), findsOneWidget);
+        await reveal(tester, find.byKey(const Key('bill_b_rent')));
+        await tester.tap(find.byKey(const Key('bill_b_rent')));
+        await settle(tester);
+        await tester.enterText(find.byKey(const Key('bill_amount')), '700');
+        await tester.pump();
+        await tester.tap(find.byKey(const Key('bill_save')));
+        await settle(tester);
+        expect(
+          (await rig.store.bills())
+              .firstWhere((b) => b.id == 'b_rent')
+              .amountMinor,
+          70000,
+        );
+      },
+    );
   });
 
   group('assign and private', () {
@@ -345,6 +454,20 @@ void main() {
       // my private line is in my own data but never in the joint list
       expect(find.text('Hidden savings'), findsNothing);
       expect(find.byKey(const Key('nw_by_owner')), findsOneWidget);
+    });
+  });
+
+  group('invite scanner', () {
+    test('only an intact household invite is accepted from a scan', () {
+      final good = HouseholdInvite(
+        householdId: 'a' * 32,
+        key: Uint8List(32),
+      ).encode();
+      expect(inviteFromScan(good), good);
+      expect(inviteFromScan('  $good\n'), good);
+      expect(inviteFromScan('https://example.com'), isNull);
+      expect(inviteFromScan('PULSE-HH1-AAAAA'), isNull);
+      expect(inviteFromScan(null), isNull);
     });
   });
 }
