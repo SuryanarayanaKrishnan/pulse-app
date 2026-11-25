@@ -13,6 +13,7 @@ import '../goals/goal_widgets.dart' show aedMinor;
 import '../wealth/wealth_widgets.dart' show FieldLabel;
 import 'entry_sheet.dart';
 import 'nominee_sheet.dart';
+import 'open_file_sheet.dart';
 import 'suggestions_sheet.dart';
 import 'vault_widgets.dart';
 
@@ -236,6 +237,25 @@ class VaultScreen extends ConsumerWidget {
                 context,
                 full: true,
                 builder: (_) => const NomineeSheet(),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
+            child: PrimaryButton(
+              key: const Key('vault_open_file'),
+              label: 'Open a file someone left me',
+              secondary: true,
+              icon: Icons.lock_open_outlined,
+              onPressed: () => showPulseSheet<void>(
+                context,
+                full: true,
+                builder: (_) => const OpenFileSheet(),
               ),
             ),
           ),

@@ -375,6 +375,7 @@ class VaultService {
       entries: await store.entries(),
       now: _clock(),
       random: random,
+      readPaper: storage.read,
     );
     await store.putSetting(_kShare(nominee.id), kit.ownerShare);
     await store.putSetting(

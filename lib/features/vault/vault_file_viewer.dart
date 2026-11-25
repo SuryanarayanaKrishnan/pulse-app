@@ -61,23 +61,51 @@ class _VaultFileViewerState extends ConsumerState<VaultFileViewer> {
               ),
             );
           }
-          if (_looksLikePdf(b)) {
-            return PdfViewer.data(b, sourceName: widget.path);
-          }
-          return InteractiveViewer(
-            child: Image.memory(
-              b,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Center(
-                child: Text(
-                  'This file cannot be shown here.',
-                  style: context.tt.bodyMedium,
-                ),
-              ),
-            ),
-          );
+          return PaperBytesView(b, name: widget.path);
         },
       ),
     ),
   );
+}
+
+/// Opens papers that were never stored on this phone, such as those inside
+/// an emergency file a nominee has just unsealed.
+Future<void> showVaultBytes(BuildContext context, Uint8List bytes) =>
+    showPulseSheet<void>(
+      context,
+      full: true,
+      builder: (_) => SheetScaffold(
+        title: 'Paper',
+        subtitle: 'Shown from the file you opened. Nothing is saved.',
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.65,
+          child: PaperBytesView(bytes, name: 'paper'),
+        ),
+      ),
+    );
+
+/// A photo or PDF, drawn from decrypted bytes.
+class PaperBytesView extends StatelessWidget {
+  const PaperBytesView(this.b, {super.key, required this.name});
+  final Uint8List b;
+  final String name;
+
+  @override
+  Widget build(BuildContext context) {
+    if (_looksLikePdf(b)) {
+      return PdfViewer.data(b, sourceName: name);
+    }
+    return InteractiveViewer(
+      child: Image.memory(
+        b,
+        fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => Center(
+          child: Text(
+            'This file cannot be shown here.',
+            style: context.tt.bodyMedium,
+          ),
+        ),
+      ),
+    );
+  }
 }

@@ -142,7 +142,8 @@ class VaultEntry {
     updatedAt: updatedAt ?? this.updatedAt,
   );
 
-  /// What goes into a sealed export. Photo paths never do.
+  /// What goes into a sealed export. Photo paths never do; the papers
+  /// themselves travel separately, inside the ciphertext.
   Map<String, Object?> toExportJson() => {
     'id': id,
     'type': type.key,
