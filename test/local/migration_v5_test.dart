@@ -37,7 +37,7 @@ void main() {
     expect(g.paused, isFalse);
     expect(g.linkedRef, isNull);
     expect(await LocalGoalStore(db).contributions(), isEmpty);
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 
   test('a fresh v5 database stores a pay down goal and its contributions', () async {

@@ -13644,6 +13644,21 @@ class $JewelleryItemsTable extends JewelleryItems
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _approximateMeta = const VerificationMeta(
+    'approximate',
+  );
+  @override
+  late final GeneratedColumn<bool> approximate = GeneratedColumn<bool>(
+    'approximate',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("approximate" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -13658,6 +13673,7 @@ class $JewelleryItemsTable extends JewelleryItems
     photoPaths,
     createdAt,
     deletedAt,
+    approximate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13763,6 +13779,15 @@ class $JewelleryItemsTable extends JewelleryItems
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('approximate')) {
+      context.handle(
+        _approximateMeta,
+        approximate.isAcceptableOrUnknown(
+          data['approximate']!,
+          _approximateMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -13820,6 +13845,10 @@ class $JewelleryItemsTable extends JewelleryItems
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      approximate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}approximate'],
+      )!,
     );
   }
 
@@ -13848,6 +13877,10 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
   final String photoPaths;
   final DateTime createdAt;
   final DateTime? deletedAt;
+
+  /// True when the weight, karat or price were estimated rather than read
+  /// off a bill (added in schema v11).
+  final bool approximate;
   const JewelleryRow({
     required this.id,
     required this.name,
@@ -13861,6 +13894,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     required this.photoPaths,
     required this.createdAt,
     this.deletedAt,
+    required this.approximate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13889,6 +13923,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['approximate'] = Variable<bool>(approximate);
     return map;
   }
 
@@ -13918,6 +13953,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      approximate: Value(approximate),
     );
   }
 
@@ -13939,6 +13975,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       photoPaths: serializer.fromJson<String>(json['photoPaths']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      approximate: serializer.fromJson<bool>(json['approximate']),
     );
   }
   @override
@@ -13957,6 +13994,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       'photoPaths': serializer.toJson<String>(photoPaths),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'approximate': serializer.toJson<bool>(approximate),
     };
   }
 
@@ -13973,6 +14011,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     String? photoPaths,
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    bool? approximate,
   }) => JewelleryRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -13992,6 +14031,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     photoPaths: photoPaths ?? this.photoPaths,
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    approximate: approximate ?? this.approximate,
   );
   JewelleryRow copyWithCompanion(JewelleryItemsCompanion data) {
     return JewelleryRow(
@@ -14019,6 +14059,9 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           : this.photoPaths,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      approximate: data.approximate.present
+          ? data.approximate.value
+          : this.approximate,
     );
   }
 
@@ -14036,7 +14079,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           ..write('notes: $notes, ')
           ..write('photoPaths: $photoPaths, ')
           ..write('createdAt: $createdAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('approximate: $approximate')
           ..write(')'))
         .toString();
   }
@@ -14055,6 +14099,7 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     photoPaths,
     createdAt,
     deletedAt,
+    approximate,
   );
   @override
   bool operator ==(Object other) =>
@@ -14071,7 +14116,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           other.notes == this.notes &&
           other.photoPaths == this.photoPaths &&
           other.createdAt == this.createdAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.approximate == this.approximate);
 }
 
 class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
@@ -14087,6 +14133,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
   final Value<String> photoPaths;
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
+  final Value<bool> approximate;
   final Value<int> rowid;
   const JewelleryItemsCompanion({
     this.id = const Value.absent(),
@@ -14101,6 +14148,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     this.photoPaths = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JewelleryItemsCompanion.insert({
@@ -14116,6 +14164,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     this.photoPaths = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.approximate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -14134,6 +14183,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     Expression<String>? photoPaths,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
+    Expression<bool>? approximate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14151,6 +14201,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
       if (photoPaths != null) 'photo_paths': photoPaths,
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (approximate != null) 'approximate': approximate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14168,6 +14219,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     Value<String>? photoPaths,
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
+    Value<bool>? approximate,
     Value<int>? rowid,
   }) {
     return JewelleryItemsCompanion(
@@ -14183,6 +14235,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
       photoPaths: photoPaths ?? this.photoPaths,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      approximate: approximate ?? this.approximate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14226,6 +14279,9 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (approximate.present) {
+      map['approximate'] = Variable<bool>(approximate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14247,6 +14303,7 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
           ..write('photoPaths: $photoPaths, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('approximate: $approximate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -20179,6 +20236,2086 @@ class VaultNomineesCompanion extends UpdateCompanion<VaultNomineeRow> {
   }
 }
 
+class $InvestmentHoldingsTable extends InvestmentHoldings
+    with TableInfo<$InvestmentHoldingsTable, InvestmentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvestmentHoldingsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _symbolMeta = const VerificationMeta('symbol');
+  @override
+  late final GeneratedColumn<String> symbol = GeneratedColumn<String>(
+    'symbol',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('USD'),
+  );
+  static const VerificationMeta _quantityMeta = const VerificationMeta(
+    'quantity',
+  );
+  @override
+  late final GeneratedColumn<double> quantity = GeneratedColumn<double>(
+    'quantity',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _avgCostMeta = const VerificationMeta(
+    'avgCost',
+  );
+  @override
+  late final GeneratedColumn<double> avgCost = GeneratedColumn<double>(
+    'avg_cost',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastPriceMeta = const VerificationMeta(
+    'lastPrice',
+  );
+  @override
+  late final GeneratedColumn<double> lastPrice = GeneratedColumn<double>(
+    'last_price',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _priceAtMeta = const VerificationMeta(
+    'priceAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> priceAt = GeneratedColumn<DateTime>(
+    'price_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _priceSourceMeta = const VerificationMeta(
+    'priceSource',
+  );
+  @override
+  late final GeneratedColumn<String> priceSource = GeneratedColumn<String>(
+    'price_source',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _purchaseDateMeta = const VerificationMeta(
+    'purchaseDate',
+  );
+  @override
+  late final GeneratedColumn<String> purchaseDate = GeneratedColumn<String>(
+    'purchase_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _approximateMeta = const VerificationMeta(
+    'approximate',
+  );
+  @override
+  late final GeneratedColumn<bool> approximate = GeneratedColumn<bool>(
+    'approximate',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("approximate" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('manual'),
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    symbol,
+    name,
+    currency,
+    quantity,
+    avgCost,
+    lastPrice,
+    priceAt,
+    priceSource,
+    purchaseDate,
+    approximate,
+    source,
+    note,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'investment_holdings';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InvestmentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('symbol')) {
+      context.handle(
+        _symbolMeta,
+        symbol.isAcceptableOrUnknown(data['symbol']!, _symbolMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symbolMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('quantity')) {
+      context.handle(
+        _quantityMeta,
+        quantity.isAcceptableOrUnknown(data['quantity']!, _quantityMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_quantityMeta);
+    }
+    if (data.containsKey('avg_cost')) {
+      context.handle(
+        _avgCostMeta,
+        avgCost.isAcceptableOrUnknown(data['avg_cost']!, _avgCostMeta),
+      );
+    }
+    if (data.containsKey('last_price')) {
+      context.handle(
+        _lastPriceMeta,
+        lastPrice.isAcceptableOrUnknown(data['last_price']!, _lastPriceMeta),
+      );
+    }
+    if (data.containsKey('price_at')) {
+      context.handle(
+        _priceAtMeta,
+        priceAt.isAcceptableOrUnknown(data['price_at']!, _priceAtMeta),
+      );
+    }
+    if (data.containsKey('price_source')) {
+      context.handle(
+        _priceSourceMeta,
+        priceSource.isAcceptableOrUnknown(
+          data['price_source']!,
+          _priceSourceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('purchase_date')) {
+      context.handle(
+        _purchaseDateMeta,
+        purchaseDate.isAcceptableOrUnknown(
+          data['purchase_date']!,
+          _purchaseDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('approximate')) {
+      context.handle(
+        _approximateMeta,
+        approximate.isAcceptableOrUnknown(
+          data['approximate']!,
+          _approximateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InvestmentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InvestmentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      symbol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symbol'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      quantity: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}quantity'],
+      )!,
+      avgCost: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}avg_cost'],
+      ),
+      lastPrice: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}last_price'],
+      ),
+      priceAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}price_at'],
+      ),
+      priceSource: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}price_source'],
+      ),
+      purchaseDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purchase_date'],
+      ),
+      approximate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}approximate'],
+      )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $InvestmentHoldingsTable createAlias(String alias) {
+    return $InvestmentHoldingsTable(attachedDatabase, alias);
+  }
+}
+
+class InvestmentRow extends DataClass implements Insertable<InvestmentRow> {
+  final String id;
+
+  /// Upper-case ticker, US listing (VOO, AAPL).
+  final String symbol;
+  final String? name;
+
+  /// Currency of the price and cost.
+  final String currency;
+  final double quantity;
+
+  /// Average cost per unit in [currency]; null when unknown.
+  final double? avgCost;
+  final double? lastPrice;
+  final DateTime? priceAt;
+  final String? priceSource;
+  final String? purchaseDate;
+  final bool approximate;
+
+  /// screenshot | typed | manual | rule
+  final String source;
+  final String? note;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const InvestmentRow({
+    required this.id,
+    required this.symbol,
+    this.name,
+    required this.currency,
+    required this.quantity,
+    this.avgCost,
+    this.lastPrice,
+    this.priceAt,
+    this.priceSource,
+    this.purchaseDate,
+    required this.approximate,
+    required this.source,
+    this.note,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['symbol'] = Variable<String>(symbol);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    map['currency'] = Variable<String>(currency);
+    map['quantity'] = Variable<double>(quantity);
+    if (!nullToAbsent || avgCost != null) {
+      map['avg_cost'] = Variable<double>(avgCost);
+    }
+    if (!nullToAbsent || lastPrice != null) {
+      map['last_price'] = Variable<double>(lastPrice);
+    }
+    if (!nullToAbsent || priceAt != null) {
+      map['price_at'] = Variable<DateTime>(priceAt);
+    }
+    if (!nullToAbsent || priceSource != null) {
+      map['price_source'] = Variable<String>(priceSource);
+    }
+    if (!nullToAbsent || purchaseDate != null) {
+      map['purchase_date'] = Variable<String>(purchaseDate);
+    }
+    map['approximate'] = Variable<bool>(approximate);
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || note != null) {
+      map['note'] = Variable<String>(note);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  InvestmentHoldingsCompanion toCompanion(bool nullToAbsent) {
+    return InvestmentHoldingsCompanion(
+      id: Value(id),
+      symbol: Value(symbol),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      currency: Value(currency),
+      quantity: Value(quantity),
+      avgCost: avgCost == null && nullToAbsent
+          ? const Value.absent()
+          : Value(avgCost),
+      lastPrice: lastPrice == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastPrice),
+      priceAt: priceAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceAt),
+      priceSource: priceSource == null && nullToAbsent
+          ? const Value.absent()
+          : Value(priceSource),
+      purchaseDate: purchaseDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(purchaseDate),
+      approximate: Value(approximate),
+      source: Value(source),
+      note: note == null && nullToAbsent ? const Value.absent() : Value(note),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory InvestmentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InvestmentRow(
+      id: serializer.fromJson<String>(json['id']),
+      symbol: serializer.fromJson<String>(json['symbol']),
+      name: serializer.fromJson<String?>(json['name']),
+      currency: serializer.fromJson<String>(json['currency']),
+      quantity: serializer.fromJson<double>(json['quantity']),
+      avgCost: serializer.fromJson<double?>(json['avgCost']),
+      lastPrice: serializer.fromJson<double?>(json['lastPrice']),
+      priceAt: serializer.fromJson<DateTime?>(json['priceAt']),
+      priceSource: serializer.fromJson<String?>(json['priceSource']),
+      purchaseDate: serializer.fromJson<String?>(json['purchaseDate']),
+      approximate: serializer.fromJson<bool>(json['approximate']),
+      source: serializer.fromJson<String>(json['source']),
+      note: serializer.fromJson<String?>(json['note']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'symbol': serializer.toJson<String>(symbol),
+      'name': serializer.toJson<String?>(name),
+      'currency': serializer.toJson<String>(currency),
+      'quantity': serializer.toJson<double>(quantity),
+      'avgCost': serializer.toJson<double?>(avgCost),
+      'lastPrice': serializer.toJson<double?>(lastPrice),
+      'priceAt': serializer.toJson<DateTime?>(priceAt),
+      'priceSource': serializer.toJson<String?>(priceSource),
+      'purchaseDate': serializer.toJson<String?>(purchaseDate),
+      'approximate': serializer.toJson<bool>(approximate),
+      'source': serializer.toJson<String>(source),
+      'note': serializer.toJson<String?>(note),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  InvestmentRow copyWith({
+    String? id,
+    String? symbol,
+    Value<String?> name = const Value.absent(),
+    String? currency,
+    double? quantity,
+    Value<double?> avgCost = const Value.absent(),
+    Value<double?> lastPrice = const Value.absent(),
+    Value<DateTime?> priceAt = const Value.absent(),
+    Value<String?> priceSource = const Value.absent(),
+    Value<String?> purchaseDate = const Value.absent(),
+    bool? approximate,
+    String? source,
+    Value<String?> note = const Value.absent(),
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => InvestmentRow(
+    id: id ?? this.id,
+    symbol: symbol ?? this.symbol,
+    name: name.present ? name.value : this.name,
+    currency: currency ?? this.currency,
+    quantity: quantity ?? this.quantity,
+    avgCost: avgCost.present ? avgCost.value : this.avgCost,
+    lastPrice: lastPrice.present ? lastPrice.value : this.lastPrice,
+    priceAt: priceAt.present ? priceAt.value : this.priceAt,
+    priceSource: priceSource.present ? priceSource.value : this.priceSource,
+    purchaseDate: purchaseDate.present ? purchaseDate.value : this.purchaseDate,
+    approximate: approximate ?? this.approximate,
+    source: source ?? this.source,
+    note: note.present ? note.value : this.note,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  InvestmentRow copyWithCompanion(InvestmentHoldingsCompanion data) {
+    return InvestmentRow(
+      id: data.id.present ? data.id.value : this.id,
+      symbol: data.symbol.present ? data.symbol.value : this.symbol,
+      name: data.name.present ? data.name.value : this.name,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      quantity: data.quantity.present ? data.quantity.value : this.quantity,
+      avgCost: data.avgCost.present ? data.avgCost.value : this.avgCost,
+      lastPrice: data.lastPrice.present ? data.lastPrice.value : this.lastPrice,
+      priceAt: data.priceAt.present ? data.priceAt.value : this.priceAt,
+      priceSource: data.priceSource.present
+          ? data.priceSource.value
+          : this.priceSource,
+      purchaseDate: data.purchaseDate.present
+          ? data.purchaseDate.value
+          : this.purchaseDate,
+      approximate: data.approximate.present
+          ? data.approximate.value
+          : this.approximate,
+      source: data.source.present ? data.source.value : this.source,
+      note: data.note.present ? data.note.value : this.note,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestmentRow(')
+          ..write('id: $id, ')
+          ..write('symbol: $symbol, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('quantity: $quantity, ')
+          ..write('avgCost: $avgCost, ')
+          ..write('lastPrice: $lastPrice, ')
+          ..write('priceAt: $priceAt, ')
+          ..write('priceSource: $priceSource, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('approximate: $approximate, ')
+          ..write('source: $source, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    symbol,
+    name,
+    currency,
+    quantity,
+    avgCost,
+    lastPrice,
+    priceAt,
+    priceSource,
+    purchaseDate,
+    approximate,
+    source,
+    note,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InvestmentRow &&
+          other.id == this.id &&
+          other.symbol == this.symbol &&
+          other.name == this.name &&
+          other.currency == this.currency &&
+          other.quantity == this.quantity &&
+          other.avgCost == this.avgCost &&
+          other.lastPrice == this.lastPrice &&
+          other.priceAt == this.priceAt &&
+          other.priceSource == this.priceSource &&
+          other.purchaseDate == this.purchaseDate &&
+          other.approximate == this.approximate &&
+          other.source == this.source &&
+          other.note == this.note &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class InvestmentHoldingsCompanion extends UpdateCompanion<InvestmentRow> {
+  final Value<String> id;
+  final Value<String> symbol;
+  final Value<String?> name;
+  final Value<String> currency;
+  final Value<double> quantity;
+  final Value<double?> avgCost;
+  final Value<double?> lastPrice;
+  final Value<DateTime?> priceAt;
+  final Value<String?> priceSource;
+  final Value<String?> purchaseDate;
+  final Value<bool> approximate;
+  final Value<String> source;
+  final Value<String?> note;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const InvestmentHoldingsCompanion({
+    this.id = const Value.absent(),
+    this.symbol = const Value.absent(),
+    this.name = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.quantity = const Value.absent(),
+    this.avgCost = const Value.absent(),
+    this.lastPrice = const Value.absent(),
+    this.priceAt = const Value.absent(),
+    this.priceSource = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.approximate = const Value.absent(),
+    this.source = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InvestmentHoldingsCompanion.insert({
+    required String id,
+    required String symbol,
+    this.name = const Value.absent(),
+    this.currency = const Value.absent(),
+    required double quantity,
+    this.avgCost = const Value.absent(),
+    this.lastPrice = const Value.absent(),
+    this.priceAt = const Value.absent(),
+    this.priceSource = const Value.absent(),
+    this.purchaseDate = const Value.absent(),
+    this.approximate = const Value.absent(),
+    this.source = const Value.absent(),
+    this.note = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       symbol = Value(symbol),
+       quantity = Value(quantity);
+  static Insertable<InvestmentRow> custom({
+    Expression<String>? id,
+    Expression<String>? symbol,
+    Expression<String>? name,
+    Expression<String>? currency,
+    Expression<double>? quantity,
+    Expression<double>? avgCost,
+    Expression<double>? lastPrice,
+    Expression<DateTime>? priceAt,
+    Expression<String>? priceSource,
+    Expression<String>? purchaseDate,
+    Expression<bool>? approximate,
+    Expression<String>? source,
+    Expression<String>? note,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (symbol != null) 'symbol': symbol,
+      if (name != null) 'name': name,
+      if (currency != null) 'currency': currency,
+      if (quantity != null) 'quantity': quantity,
+      if (avgCost != null) 'avg_cost': avgCost,
+      if (lastPrice != null) 'last_price': lastPrice,
+      if (priceAt != null) 'price_at': priceAt,
+      if (priceSource != null) 'price_source': priceSource,
+      if (purchaseDate != null) 'purchase_date': purchaseDate,
+      if (approximate != null) 'approximate': approximate,
+      if (source != null) 'source': source,
+      if (note != null) 'note': note,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InvestmentHoldingsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? symbol,
+    Value<String?>? name,
+    Value<String>? currency,
+    Value<double>? quantity,
+    Value<double?>? avgCost,
+    Value<double?>? lastPrice,
+    Value<DateTime?>? priceAt,
+    Value<String?>? priceSource,
+    Value<String?>? purchaseDate,
+    Value<bool>? approximate,
+    Value<String>? source,
+    Value<String?>? note,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return InvestmentHoldingsCompanion(
+      id: id ?? this.id,
+      symbol: symbol ?? this.symbol,
+      name: name ?? this.name,
+      currency: currency ?? this.currency,
+      quantity: quantity ?? this.quantity,
+      avgCost: avgCost ?? this.avgCost,
+      lastPrice: lastPrice ?? this.lastPrice,
+      priceAt: priceAt ?? this.priceAt,
+      priceSource: priceSource ?? this.priceSource,
+      purchaseDate: purchaseDate ?? this.purchaseDate,
+      approximate: approximate ?? this.approximate,
+      source: source ?? this.source,
+      note: note ?? this.note,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (symbol.present) {
+      map['symbol'] = Variable<String>(symbol.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (quantity.present) {
+      map['quantity'] = Variable<double>(quantity.value);
+    }
+    if (avgCost.present) {
+      map['avg_cost'] = Variable<double>(avgCost.value);
+    }
+    if (lastPrice.present) {
+      map['last_price'] = Variable<double>(lastPrice.value);
+    }
+    if (priceAt.present) {
+      map['price_at'] = Variable<DateTime>(priceAt.value);
+    }
+    if (priceSource.present) {
+      map['price_source'] = Variable<String>(priceSource.value);
+    }
+    if (purchaseDate.present) {
+      map['purchase_date'] = Variable<String>(purchaseDate.value);
+    }
+    if (approximate.present) {
+      map['approximate'] = Variable<bool>(approximate.value);
+    }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestmentHoldingsCompanion(')
+          ..write('id: $id, ')
+          ..write('symbol: $symbol, ')
+          ..write('name: $name, ')
+          ..write('currency: $currency, ')
+          ..write('quantity: $quantity, ')
+          ..write('avgCost: $avgCost, ')
+          ..write('lastPrice: $lastPrice, ')
+          ..write('priceAt: $priceAt, ')
+          ..write('priceSource: $priceSource, ')
+          ..write('purchaseDate: $purchaseDate, ')
+          ..write('approximate: $approximate, ')
+          ..write('source: $source, ')
+          ..write('note: $note, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InvestingRulesTable extends InvestingRules
+    with TableInfo<$InvestingRulesTable, InvestingRuleRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvestingRulesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _symbolMeta = const VerificationMeta('symbol');
+  @override
+  late final GeneratedColumn<String> symbol = GeneratedColumn<String>(
+    'symbol',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('USD'),
+  );
+  static const VerificationMeta _frequencyMeta = const VerificationMeta(
+    'frequency',
+  );
+  @override
+  late final GeneratedColumn<String> frequency = GeneratedColumn<String>(
+    'frequency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('monthly'),
+  );
+  static const VerificationMeta _dayMeta = const VerificationMeta('day');
+  @override
+  late final GeneratedColumn<int> day = GeneratedColumn<int>(
+    'day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _startDateMeta = const VerificationMeta(
+    'startDate',
+  );
+  @override
+  late final GeneratedColumn<String> startDate = GeneratedColumn<String>(
+    'start_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _endDateMeta = const VerificationMeta(
+    'endDate',
+  );
+  @override
+  late final GeneratedColumn<String> endDate = GeneratedColumn<String>(
+    'end_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _activeMeta = const VerificationMeta('active');
+  @override
+  late final GeneratedColumn<bool> active = GeneratedColumn<bool>(
+    'active',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("active" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  static const VerificationMeta _deletedAtMeta = const VerificationMeta(
+    'deletedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> deletedAt = GeneratedColumn<DateTime>(
+    'deleted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    symbol,
+    name,
+    amountMinor,
+    currency,
+    frequency,
+    day,
+    startDate,
+    endDate,
+    active,
+    createdAt,
+    deletedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'investing_rules';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InvestingRuleRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('symbol')) {
+      context.handle(
+        _symbolMeta,
+        symbol.isAcceptableOrUnknown(data['symbol']!, _symbolMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_symbolMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('frequency')) {
+      context.handle(
+        _frequencyMeta,
+        frequency.isAcceptableOrUnknown(data['frequency']!, _frequencyMeta),
+      );
+    }
+    if (data.containsKey('day')) {
+      context.handle(
+        _dayMeta,
+        day.isAcceptableOrUnknown(data['day']!, _dayMeta),
+      );
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(
+        _startDateMeta,
+        startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(
+        _endDateMeta,
+        endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta),
+      );
+    }
+    if (data.containsKey('active')) {
+      context.handle(
+        _activeMeta,
+        active.isAcceptableOrUnknown(data['active']!, _activeMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    }
+    if (data.containsKey('deleted_at')) {
+      context.handle(
+        _deletedAtMeta,
+        deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  InvestingRuleRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InvestingRuleRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      symbol: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}symbol'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      ),
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      frequency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}frequency'],
+      )!,
+      day: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}day'],
+      )!,
+      startDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}start_date'],
+      )!,
+      endDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}end_date'],
+      ),
+      active: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}active'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      deletedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}deleted_at'],
+      ),
+    );
+  }
+
+  @override
+  $InvestingRulesTable createAlias(String alias) {
+    return $InvestingRulesTable(attachedDatabase, alias);
+  }
+}
+
+class InvestingRuleRow extends DataClass
+    implements Insertable<InvestingRuleRow> {
+  final String id;
+  final String symbol;
+  final String? name;
+  final int amountMinor;
+  final String currency;
+
+  /// weekly | monthly
+  final String frequency;
+
+  /// Day of month (monthly) or weekday 1-7 (weekly).
+  final int day;
+  final String startDate;
+  final String? endDate;
+  final bool active;
+  final DateTime createdAt;
+  final DateTime? deletedAt;
+  const InvestingRuleRow({
+    required this.id,
+    required this.symbol,
+    this.name,
+    required this.amountMinor,
+    required this.currency,
+    required this.frequency,
+    required this.day,
+    required this.startDate,
+    this.endDate,
+    required this.active,
+    required this.createdAt,
+    this.deletedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['symbol'] = Variable<String>(symbol);
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['currency'] = Variable<String>(currency);
+    map['frequency'] = Variable<String>(frequency);
+    map['day'] = Variable<int>(day);
+    map['start_date'] = Variable<String>(startDate);
+    if (!nullToAbsent || endDate != null) {
+      map['end_date'] = Variable<String>(endDate);
+    }
+    map['active'] = Variable<bool>(active);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || deletedAt != null) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt);
+    }
+    return map;
+  }
+
+  InvestingRulesCompanion toCompanion(bool nullToAbsent) {
+    return InvestingRulesCompanion(
+      id: Value(id),
+      symbol: Value(symbol),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+      amountMinor: Value(amountMinor),
+      currency: Value(currency),
+      frequency: Value(frequency),
+      day: Value(day),
+      startDate: Value(startDate),
+      endDate: endDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(endDate),
+      active: Value(active),
+      createdAt: Value(createdAt),
+      deletedAt: deletedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deletedAt),
+    );
+  }
+
+  factory InvestingRuleRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InvestingRuleRow(
+      id: serializer.fromJson<String>(json['id']),
+      symbol: serializer.fromJson<String>(json['symbol']),
+      name: serializer.fromJson<String?>(json['name']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      currency: serializer.fromJson<String>(json['currency']),
+      frequency: serializer.fromJson<String>(json['frequency']),
+      day: serializer.fromJson<int>(json['day']),
+      startDate: serializer.fromJson<String>(json['startDate']),
+      endDate: serializer.fromJson<String?>(json['endDate']),
+      active: serializer.fromJson<bool>(json['active']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'symbol': serializer.toJson<String>(symbol),
+      'name': serializer.toJson<String?>(name),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'currency': serializer.toJson<String>(currency),
+      'frequency': serializer.toJson<String>(frequency),
+      'day': serializer.toJson<int>(day),
+      'startDate': serializer.toJson<String>(startDate),
+      'endDate': serializer.toJson<String?>(endDate),
+      'active': serializer.toJson<bool>(active),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+    };
+  }
+
+  InvestingRuleRow copyWith({
+    String? id,
+    String? symbol,
+    Value<String?> name = const Value.absent(),
+    int? amountMinor,
+    String? currency,
+    String? frequency,
+    int? day,
+    String? startDate,
+    Value<String?> endDate = const Value.absent(),
+    bool? active,
+    DateTime? createdAt,
+    Value<DateTime?> deletedAt = const Value.absent(),
+  }) => InvestingRuleRow(
+    id: id ?? this.id,
+    symbol: symbol ?? this.symbol,
+    name: name.present ? name.value : this.name,
+    amountMinor: amountMinor ?? this.amountMinor,
+    currency: currency ?? this.currency,
+    frequency: frequency ?? this.frequency,
+    day: day ?? this.day,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate.present ? endDate.value : this.endDate,
+    active: active ?? this.active,
+    createdAt: createdAt ?? this.createdAt,
+    deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+  );
+  InvestingRuleRow copyWithCompanion(InvestingRulesCompanion data) {
+    return InvestingRuleRow(
+      id: data.id.present ? data.id.value : this.id,
+      symbol: data.symbol.present ? data.symbol.value : this.symbol,
+      name: data.name.present ? data.name.value : this.name,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      frequency: data.frequency.present ? data.frequency.value : this.frequency,
+      day: data.day.present ? data.day.value : this.day,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      active: data.active.present ? data.active.value : this.active,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestingRuleRow(')
+          ..write('id: $id, ')
+          ..write('symbol: $symbol, ')
+          ..write('name: $name, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('frequency: $frequency, ')
+          ..write('day: $day, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    symbol,
+    name,
+    amountMinor,
+    currency,
+    frequency,
+    day,
+    startDate,
+    endDate,
+    active,
+    createdAt,
+    deletedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InvestingRuleRow &&
+          other.id == this.id &&
+          other.symbol == this.symbol &&
+          other.name == this.name &&
+          other.amountMinor == this.amountMinor &&
+          other.currency == this.currency &&
+          other.frequency == this.frequency &&
+          other.day == this.day &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.active == this.active &&
+          other.createdAt == this.createdAt &&
+          other.deletedAt == this.deletedAt);
+}
+
+class InvestingRulesCompanion extends UpdateCompanion<InvestingRuleRow> {
+  final Value<String> id;
+  final Value<String> symbol;
+  final Value<String?> name;
+  final Value<int> amountMinor;
+  final Value<String> currency;
+  final Value<String> frequency;
+  final Value<int> day;
+  final Value<String> startDate;
+  final Value<String?> endDate;
+  final Value<bool> active;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> deletedAt;
+  final Value<int> rowid;
+  const InvestingRulesCompanion({
+    this.id = const Value.absent(),
+    this.symbol = const Value.absent(),
+    this.name = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.day = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InvestingRulesCompanion.insert({
+    required String id,
+    required String symbol,
+    this.name = const Value.absent(),
+    required int amountMinor,
+    this.currency = const Value.absent(),
+    this.frequency = const Value.absent(),
+    this.day = const Value.absent(),
+    required String startDate,
+    this.endDate = const Value.absent(),
+    this.active = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.deletedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       symbol = Value(symbol),
+       amountMinor = Value(amountMinor),
+       startDate = Value(startDate);
+  static Insertable<InvestingRuleRow> custom({
+    Expression<String>? id,
+    Expression<String>? symbol,
+    Expression<String>? name,
+    Expression<int>? amountMinor,
+    Expression<String>? currency,
+    Expression<String>? frequency,
+    Expression<int>? day,
+    Expression<String>? startDate,
+    Expression<String>? endDate,
+    Expression<bool>? active,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? deletedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (symbol != null) 'symbol': symbol,
+      if (name != null) 'name': name,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (currency != null) 'currency': currency,
+      if (frequency != null) 'frequency': frequency,
+      if (day != null) 'day': day,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (active != null) 'active': active,
+      if (createdAt != null) 'created_at': createdAt,
+      if (deletedAt != null) 'deleted_at': deletedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InvestingRulesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? symbol,
+    Value<String?>? name,
+    Value<int>? amountMinor,
+    Value<String>? currency,
+    Value<String>? frequency,
+    Value<int>? day,
+    Value<String>? startDate,
+    Value<String?>? endDate,
+    Value<bool>? active,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? deletedAt,
+    Value<int>? rowid,
+  }) {
+    return InvestingRulesCompanion(
+      id: id ?? this.id,
+      symbol: symbol ?? this.symbol,
+      name: name ?? this.name,
+      amountMinor: amountMinor ?? this.amountMinor,
+      currency: currency ?? this.currency,
+      frequency: frequency ?? this.frequency,
+      day: day ?? this.day,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      active: active ?? this.active,
+      createdAt: createdAt ?? this.createdAt,
+      deletedAt: deletedAt ?? this.deletedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (symbol.present) {
+      map['symbol'] = Variable<String>(symbol.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (frequency.present) {
+      map['frequency'] = Variable<String>(frequency.value);
+    }
+    if (day.present) {
+      map['day'] = Variable<int>(day.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<String>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<String>(endDate.value);
+    }
+    if (active.present) {
+      map['active'] = Variable<bool>(active.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (deletedAt.present) {
+      map['deleted_at'] = Variable<DateTime>(deletedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestingRulesCompanion(')
+          ..write('id: $id, ')
+          ..write('symbol: $symbol, ')
+          ..write('name: $name, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('currency: $currency, ')
+          ..write('frequency: $frequency, ')
+          ..write('day: $day, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('active: $active, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $InvestingOccurrencesTable extends InvestingOccurrences
+    with TableInfo<$InvestingOccurrencesTable, InvestingOccurrenceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $InvestingOccurrencesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _ruleIdMeta = const VerificationMeta('ruleId');
+  @override
+  late final GeneratedColumn<String> ruleId = GeneratedColumn<String>(
+    'rule_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dueDateMeta = const VerificationMeta(
+    'dueDate',
+  );
+  @override
+  late final GeneratedColumn<String> dueDate = GeneratedColumn<String>(
+    'due_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMinorMeta = const VerificationMeta(
+    'amountMinor',
+  );
+  @override
+  late final GeneratedColumn<int> amountMinor = GeneratedColumn<int>(
+    'amount_minor',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _priceMeta = const VerificationMeta('price');
+  @override
+  late final GeneratedColumn<double> price = GeneratedColumn<double>(
+    'price',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _unitsMeta = const VerificationMeta('units');
+  @override
+  late final GeneratedColumn<double> units = GeneratedColumn<double>(
+    'units',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _decidedOnMeta = const VerificationMeta(
+    'decidedOn',
+  );
+  @override
+  late final GeneratedColumn<String> decidedOn = GeneratedColumn<String>(
+    'decided_on',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    ruleId,
+    dueDate,
+    amountMinor,
+    status,
+    price,
+    units,
+    decidedOn,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'investing_occurrences';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<InvestingOccurrenceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('rule_id')) {
+      context.handle(
+        _ruleIdMeta,
+        ruleId.isAcceptableOrUnknown(data['rule_id']!, _ruleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_ruleIdMeta);
+    }
+    if (data.containsKey('due_date')) {
+      context.handle(
+        _dueDateMeta,
+        dueDate.isAcceptableOrUnknown(data['due_date']!, _dueDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dueDateMeta);
+    }
+    if (data.containsKey('amount_minor')) {
+      context.handle(
+        _amountMinorMeta,
+        amountMinor.isAcceptableOrUnknown(
+          data['amount_minor']!,
+          _amountMinorMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMinorMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('price')) {
+      context.handle(
+        _priceMeta,
+        price.isAcceptableOrUnknown(data['price']!, _priceMeta),
+      );
+    }
+    if (data.containsKey('units')) {
+      context.handle(
+        _unitsMeta,
+        units.isAcceptableOrUnknown(data['units']!, _unitsMeta),
+      );
+    }
+    if (data.containsKey('decided_on')) {
+      context.handle(
+        _decidedOnMeta,
+        decidedOn.isAcceptableOrUnknown(data['decided_on']!, _decidedOnMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {ruleId, dueDate},
+  ];
+  @override
+  InvestingOccurrenceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return InvestingOccurrenceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      ruleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rule_id'],
+      )!,
+      dueDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_date'],
+      )!,
+      amountMinor: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount_minor'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      price: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}price'],
+      ),
+      units: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}units'],
+      ),
+      decidedOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}decided_on'],
+      ),
+    );
+  }
+
+  @override
+  $InvestingOccurrencesTable createAlias(String alias) {
+    return $InvestingOccurrencesTable(attachedDatabase, alias);
+  }
+}
+
+class InvestingOccurrenceRow extends DataClass
+    implements Insertable<InvestingOccurrenceRow> {
+  final String id;
+  final String ruleId;
+  final String dueDate;
+  final int amountMinor;
+
+  /// pending | confirmed | skipped
+  final String status;
+  final double? price;
+  final double? units;
+  final String? decidedOn;
+  const InvestingOccurrenceRow({
+    required this.id,
+    required this.ruleId,
+    required this.dueDate,
+    required this.amountMinor,
+    required this.status,
+    this.price,
+    this.units,
+    this.decidedOn,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['rule_id'] = Variable<String>(ruleId);
+    map['due_date'] = Variable<String>(dueDate);
+    map['amount_minor'] = Variable<int>(amountMinor);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || price != null) {
+      map['price'] = Variable<double>(price);
+    }
+    if (!nullToAbsent || units != null) {
+      map['units'] = Variable<double>(units);
+    }
+    if (!nullToAbsent || decidedOn != null) {
+      map['decided_on'] = Variable<String>(decidedOn);
+    }
+    return map;
+  }
+
+  InvestingOccurrencesCompanion toCompanion(bool nullToAbsent) {
+    return InvestingOccurrencesCompanion(
+      id: Value(id),
+      ruleId: Value(ruleId),
+      dueDate: Value(dueDate),
+      amountMinor: Value(amountMinor),
+      status: Value(status),
+      price: price == null && nullToAbsent
+          ? const Value.absent()
+          : Value(price),
+      units: units == null && nullToAbsent
+          ? const Value.absent()
+          : Value(units),
+      decidedOn: decidedOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(decidedOn),
+    );
+  }
+
+  factory InvestingOccurrenceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return InvestingOccurrenceRow(
+      id: serializer.fromJson<String>(json['id']),
+      ruleId: serializer.fromJson<String>(json['ruleId']),
+      dueDate: serializer.fromJson<String>(json['dueDate']),
+      amountMinor: serializer.fromJson<int>(json['amountMinor']),
+      status: serializer.fromJson<String>(json['status']),
+      price: serializer.fromJson<double?>(json['price']),
+      units: serializer.fromJson<double?>(json['units']),
+      decidedOn: serializer.fromJson<String?>(json['decidedOn']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'ruleId': serializer.toJson<String>(ruleId),
+      'dueDate': serializer.toJson<String>(dueDate),
+      'amountMinor': serializer.toJson<int>(amountMinor),
+      'status': serializer.toJson<String>(status),
+      'price': serializer.toJson<double?>(price),
+      'units': serializer.toJson<double?>(units),
+      'decidedOn': serializer.toJson<String?>(decidedOn),
+    };
+  }
+
+  InvestingOccurrenceRow copyWith({
+    String? id,
+    String? ruleId,
+    String? dueDate,
+    int? amountMinor,
+    String? status,
+    Value<double?> price = const Value.absent(),
+    Value<double?> units = const Value.absent(),
+    Value<String?> decidedOn = const Value.absent(),
+  }) => InvestingOccurrenceRow(
+    id: id ?? this.id,
+    ruleId: ruleId ?? this.ruleId,
+    dueDate: dueDate ?? this.dueDate,
+    amountMinor: amountMinor ?? this.amountMinor,
+    status: status ?? this.status,
+    price: price.present ? price.value : this.price,
+    units: units.present ? units.value : this.units,
+    decidedOn: decidedOn.present ? decidedOn.value : this.decidedOn,
+  );
+  InvestingOccurrenceRow copyWithCompanion(InvestingOccurrencesCompanion data) {
+    return InvestingOccurrenceRow(
+      id: data.id.present ? data.id.value : this.id,
+      ruleId: data.ruleId.present ? data.ruleId.value : this.ruleId,
+      dueDate: data.dueDate.present ? data.dueDate.value : this.dueDate,
+      amountMinor: data.amountMinor.present
+          ? data.amountMinor.value
+          : this.amountMinor,
+      status: data.status.present ? data.status.value : this.status,
+      price: data.price.present ? data.price.value : this.price,
+      units: data.units.present ? data.units.value : this.units,
+      decidedOn: data.decidedOn.present ? data.decidedOn.value : this.decidedOn,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestingOccurrenceRow(')
+          ..write('id: $id, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('status: $status, ')
+          ..write('price: $price, ')
+          ..write('units: $units, ')
+          ..write('decidedOn: $decidedOn')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    ruleId,
+    dueDate,
+    amountMinor,
+    status,
+    price,
+    units,
+    decidedOn,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is InvestingOccurrenceRow &&
+          other.id == this.id &&
+          other.ruleId == this.ruleId &&
+          other.dueDate == this.dueDate &&
+          other.amountMinor == this.amountMinor &&
+          other.status == this.status &&
+          other.price == this.price &&
+          other.units == this.units &&
+          other.decidedOn == this.decidedOn);
+}
+
+class InvestingOccurrencesCompanion
+    extends UpdateCompanion<InvestingOccurrenceRow> {
+  final Value<String> id;
+  final Value<String> ruleId;
+  final Value<String> dueDate;
+  final Value<int> amountMinor;
+  final Value<String> status;
+  final Value<double?> price;
+  final Value<double?> units;
+  final Value<String?> decidedOn;
+  final Value<int> rowid;
+  const InvestingOccurrencesCompanion({
+    this.id = const Value.absent(),
+    this.ruleId = const Value.absent(),
+    this.dueDate = const Value.absent(),
+    this.amountMinor = const Value.absent(),
+    this.status = const Value.absent(),
+    this.price = const Value.absent(),
+    this.units = const Value.absent(),
+    this.decidedOn = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  InvestingOccurrencesCompanion.insert({
+    required String id,
+    required String ruleId,
+    required String dueDate,
+    required int amountMinor,
+    this.status = const Value.absent(),
+    this.price = const Value.absent(),
+    this.units = const Value.absent(),
+    this.decidedOn = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       ruleId = Value(ruleId),
+       dueDate = Value(dueDate),
+       amountMinor = Value(amountMinor);
+  static Insertable<InvestingOccurrenceRow> custom({
+    Expression<String>? id,
+    Expression<String>? ruleId,
+    Expression<String>? dueDate,
+    Expression<int>? amountMinor,
+    Expression<String>? status,
+    Expression<double>? price,
+    Expression<double>? units,
+    Expression<String>? decidedOn,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (ruleId != null) 'rule_id': ruleId,
+      if (dueDate != null) 'due_date': dueDate,
+      if (amountMinor != null) 'amount_minor': amountMinor,
+      if (status != null) 'status': status,
+      if (price != null) 'price': price,
+      if (units != null) 'units': units,
+      if (decidedOn != null) 'decided_on': decidedOn,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  InvestingOccurrencesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? ruleId,
+    Value<String>? dueDate,
+    Value<int>? amountMinor,
+    Value<String>? status,
+    Value<double?>? price,
+    Value<double?>? units,
+    Value<String?>? decidedOn,
+    Value<int>? rowid,
+  }) {
+    return InvestingOccurrencesCompanion(
+      id: id ?? this.id,
+      ruleId: ruleId ?? this.ruleId,
+      dueDate: dueDate ?? this.dueDate,
+      amountMinor: amountMinor ?? this.amountMinor,
+      status: status ?? this.status,
+      price: price ?? this.price,
+      units: units ?? this.units,
+      decidedOn: decidedOn ?? this.decidedOn,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (ruleId.present) {
+      map['rule_id'] = Variable<String>(ruleId.value);
+    }
+    if (dueDate.present) {
+      map['due_date'] = Variable<String>(dueDate.value);
+    }
+    if (amountMinor.present) {
+      map['amount_minor'] = Variable<int>(amountMinor.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (price.present) {
+      map['price'] = Variable<double>(price.value);
+    }
+    if (units.present) {
+      map['units'] = Variable<double>(units.value);
+    }
+    if (decidedOn.present) {
+      map['decided_on'] = Variable<String>(decidedOn.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('InvestingOccurrencesCompanion(')
+          ..write('id: $id, ')
+          ..write('ruleId: $ruleId, ')
+          ..write('dueDate: $dueDate, ')
+          ..write('amountMinor: $amountMinor, ')
+          ..write('status: $status, ')
+          ..write('price: $price, ')
+          ..write('units: $units, ')
+          ..write('decidedOn: $decidedOn, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$PulseDatabase extends GeneratedDatabase {
   _$PulseDatabase(QueryExecutor e) : super(e);
   $PulseDatabaseManager get managers => $PulseDatabaseManager(this);
@@ -20231,6 +22368,11 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
   );
   late final $VaultEntriesTable vaultEntries = $VaultEntriesTable(this);
   late final $VaultNomineesTable vaultNominees = $VaultNomineesTable(this);
+  late final $InvestmentHoldingsTable investmentHoldings =
+      $InvestmentHoldingsTable(this);
+  late final $InvestingRulesTable investingRules = $InvestingRulesTable(this);
+  late final $InvestingOccurrencesTable investingOccurrences =
+      $InvestingOccurrencesTable(this);
   late final Index ixTransactionsPostedAt = Index(
     'ix_transactions_posted_at',
     'CREATE INDEX ix_transactions_posted_at ON transactions (posted_at)',
@@ -20281,6 +22423,9 @@ abstract class _$PulseDatabase extends GeneratedDatabase {
     recurringChoices,
     vaultEntries,
     vaultNominees,
+    investmentHoldings,
+    investingRules,
+    investingOccurrences,
     ixTransactionsPostedAt,
     ixTransactionsAccountPosted,
     ixTransactionsStatement,
@@ -29354,6 +31499,7 @@ typedef $$JewelleryItemsTableCreateCompanionBuilder =
       Value<String> photoPaths,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 typedef $$JewelleryItemsTableUpdateCompanionBuilder =
@@ -29370,6 +31516,7 @@ typedef $$JewelleryItemsTableUpdateCompanionBuilder =
       Value<String> photoPaths,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
+      Value<bool> approximate,
       Value<int> rowid,
     });
 
@@ -29439,6 +31586,11 @@ class $$JewelleryItemsTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -29511,6 +31663,11 @@ class $$JewelleryItemsTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$JewelleryItemsTableAnnotationComposer
@@ -29569,6 +31726,11 @@ class $$JewelleryItemsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => column,
+  );
 }
 
 class $$JewelleryItemsTableTableManager
@@ -29616,6 +31778,7 @@ class $$JewelleryItemsTableTableManager
                 Value<String> photoPaths = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JewelleryItemsCompanion(
                 id: id,
@@ -29630,6 +31793,7 @@ class $$JewelleryItemsTableTableManager
                 photoPaths: photoPaths,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
+                approximate: approximate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -29646,6 +31810,7 @@ class $$JewelleryItemsTableTableManager
                 Value<String> photoPaths = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JewelleryItemsCompanion.insert(
                 id: id,
@@ -29660,6 +31825,7 @@ class $$JewelleryItemsTableTableManager
                 photoPaths: photoPaths,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
+                approximate: approximate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -32974,6 +35140,1061 @@ typedef $$VaultNomineesTableProcessedTableManager =
       VaultNomineeRow,
       PrefetchHooks Function()
     >;
+typedef $$InvestmentHoldingsTableCreateCompanionBuilder =
+    InvestmentHoldingsCompanion Function({
+      required String id,
+      required String symbol,
+      Value<String?> name,
+      Value<String> currency,
+      required double quantity,
+      Value<double?> avgCost,
+      Value<double?> lastPrice,
+      Value<DateTime?> priceAt,
+      Value<String?> priceSource,
+      Value<String?> purchaseDate,
+      Value<bool> approximate,
+      Value<String> source,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$InvestmentHoldingsTableUpdateCompanionBuilder =
+    InvestmentHoldingsCompanion Function({
+      Value<String> id,
+      Value<String> symbol,
+      Value<String?> name,
+      Value<String> currency,
+      Value<double> quantity,
+      Value<double?> avgCost,
+      Value<double?> lastPrice,
+      Value<DateTime?> priceAt,
+      Value<String?> priceSource,
+      Value<String?> purchaseDate,
+      Value<bool> approximate,
+      Value<String> source,
+      Value<String?> note,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$InvestmentHoldingsTableFilterComposer
+    extends Composer<_$PulseDatabase, $InvestmentHoldingsTable> {
+  $$InvestmentHoldingsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get avgCost => $composableBuilder(
+    column: $table.avgCost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get lastPrice => $composableBuilder(
+    column: $table.lastPrice,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get priceAt => $composableBuilder(
+    column: $table.priceAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get priceSource => $composableBuilder(
+    column: $table.priceSource,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InvestmentHoldingsTableOrderingComposer
+    extends Composer<_$PulseDatabase, $InvestmentHoldingsTable> {
+  $$InvestmentHoldingsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get quantity => $composableBuilder(
+    column: $table.quantity,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get avgCost => $composableBuilder(
+    column: $table.avgCost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get lastPrice => $composableBuilder(
+    column: $table.lastPrice,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get priceAt => $composableBuilder(
+    column: $table.priceAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get priceSource => $composableBuilder(
+    column: $table.priceSource,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InvestmentHoldingsTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $InvestmentHoldingsTable> {
+  $$InvestmentHoldingsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get symbol =>
+      $composableBuilder(column: $table.symbol, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<double> get quantity =>
+      $composableBuilder(column: $table.quantity, builder: (column) => column);
+
+  GeneratedColumn<double> get avgCost =>
+      $composableBuilder(column: $table.avgCost, builder: (column) => column);
+
+  GeneratedColumn<double> get lastPrice =>
+      $composableBuilder(column: $table.lastPrice, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get priceAt =>
+      $composableBuilder(column: $table.priceAt, builder: (column) => column);
+
+  GeneratedColumn<String> get priceSource => $composableBuilder(
+    column: $table.priceSource,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get purchaseDate => $composableBuilder(
+    column: $table.purchaseDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get approximate => $composableBuilder(
+    column: $table.approximate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$InvestmentHoldingsTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $InvestmentHoldingsTable,
+          InvestmentRow,
+          $$InvestmentHoldingsTableFilterComposer,
+          $$InvestmentHoldingsTableOrderingComposer,
+          $$InvestmentHoldingsTableAnnotationComposer,
+          $$InvestmentHoldingsTableCreateCompanionBuilder,
+          $$InvestmentHoldingsTableUpdateCompanionBuilder,
+          (
+            InvestmentRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $InvestmentHoldingsTable,
+              InvestmentRow
+            >,
+          ),
+          InvestmentRow,
+          PrefetchHooks Function()
+        > {
+  $$InvestmentHoldingsTableTableManager(
+    _$PulseDatabase db,
+    $InvestmentHoldingsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InvestmentHoldingsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InvestmentHoldingsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InvestmentHoldingsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> symbol = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<double> quantity = const Value.absent(),
+                Value<double?> avgCost = const Value.absent(),
+                Value<double?> lastPrice = const Value.absent(),
+                Value<DateTime?> priceAt = const Value.absent(),
+                Value<String?> priceSource = const Value.absent(),
+                Value<String?> purchaseDate = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestmentHoldingsCompanion(
+                id: id,
+                symbol: symbol,
+                name: name,
+                currency: currency,
+                quantity: quantity,
+                avgCost: avgCost,
+                lastPrice: lastPrice,
+                priceAt: priceAt,
+                priceSource: priceSource,
+                purchaseDate: purchaseDate,
+                approximate: approximate,
+                source: source,
+                note: note,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String symbol,
+                Value<String?> name = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                required double quantity,
+                Value<double?> avgCost = const Value.absent(),
+                Value<double?> lastPrice = const Value.absent(),
+                Value<DateTime?> priceAt = const Value.absent(),
+                Value<String?> priceSource = const Value.absent(),
+                Value<String?> purchaseDate = const Value.absent(),
+                Value<bool> approximate = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> note = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestmentHoldingsCompanion.insert(
+                id: id,
+                symbol: symbol,
+                name: name,
+                currency: currency,
+                quantity: quantity,
+                avgCost: avgCost,
+                lastPrice: lastPrice,
+                priceAt: priceAt,
+                priceSource: priceSource,
+                purchaseDate: purchaseDate,
+                approximate: approximate,
+                source: source,
+                note: note,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$InvestmentHoldingsTable, InvestmentRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $InvestmentHoldingsTable,
+                    InvestmentRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InvestmentHoldingsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $InvestmentHoldingsTable,
+      InvestmentRow,
+      $$InvestmentHoldingsTableFilterComposer,
+      $$InvestmentHoldingsTableOrderingComposer,
+      $$InvestmentHoldingsTableAnnotationComposer,
+      $$InvestmentHoldingsTableCreateCompanionBuilder,
+      $$InvestmentHoldingsTableUpdateCompanionBuilder,
+      (
+        InvestmentRow,
+        BaseReferences<
+          _$PulseDatabase,
+          $InvestmentHoldingsTable,
+          InvestmentRow
+        >,
+      ),
+      InvestmentRow,
+      PrefetchHooks Function()
+    >;
+typedef $$InvestingRulesTableCreateCompanionBuilder =
+    InvestingRulesCompanion Function({
+      required String id,
+      required String symbol,
+      Value<String?> name,
+      required int amountMinor,
+      Value<String> currency,
+      Value<String> frequency,
+      Value<int> day,
+      required String startDate,
+      Value<String?> endDate,
+      Value<bool> active,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+typedef $$InvestingRulesTableUpdateCompanionBuilder =
+    InvestingRulesCompanion Function({
+      Value<String> id,
+      Value<String> symbol,
+      Value<String?> name,
+      Value<int> amountMinor,
+      Value<String> currency,
+      Value<String> frequency,
+      Value<int> day,
+      Value<String> startDate,
+      Value<String?> endDate,
+      Value<bool> active,
+      Value<DateTime> createdAt,
+      Value<DateTime?> deletedAt,
+      Value<int> rowid,
+    });
+
+class $$InvestingRulesTableFilterComposer
+    extends Composer<_$PulseDatabase, $InvestingRulesTable> {
+  $$InvestingRulesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get frequency => $composableBuilder(
+    column: $table.frequency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InvestingRulesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $InvestingRulesTable> {
+  $$InvestingRulesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get symbol => $composableBuilder(
+    column: $table.symbol,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get frequency => $composableBuilder(
+    column: $table.frequency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get day => $composableBuilder(
+    column: $table.day,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get startDate => $composableBuilder(
+    column: $table.startDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get endDate => $composableBuilder(
+    column: $table.endDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get active => $composableBuilder(
+    column: $table.active,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get deletedAt => $composableBuilder(
+    column: $table.deletedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InvestingRulesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $InvestingRulesTable> {
+  $$InvestingRulesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get symbol =>
+      $composableBuilder(column: $table.symbol, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get frequency =>
+      $composableBuilder(column: $table.frequency, builder: (column) => column);
+
+  GeneratedColumn<int> get day =>
+      $composableBuilder(column: $table.day, builder: (column) => column);
+
+  GeneratedColumn<String> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<String> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<bool> get active =>
+      $composableBuilder(column: $table.active, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get deletedAt =>
+      $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+}
+
+class $$InvestingRulesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $InvestingRulesTable,
+          InvestingRuleRow,
+          $$InvestingRulesTableFilterComposer,
+          $$InvestingRulesTableOrderingComposer,
+          $$InvestingRulesTableAnnotationComposer,
+          $$InvestingRulesTableCreateCompanionBuilder,
+          $$InvestingRulesTableUpdateCompanionBuilder,
+          (
+            InvestingRuleRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $InvestingRulesTable,
+              InvestingRuleRow
+            >,
+          ),
+          InvestingRuleRow,
+          PrefetchHooks Function()
+        > {
+  $$InvestingRulesTableTableManager(
+    _$PulseDatabase db,
+    $InvestingRulesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InvestingRulesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InvestingRulesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$InvestingRulesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> symbol = const Value.absent(),
+                Value<String?> name = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String> frequency = const Value.absent(),
+                Value<int> day = const Value.absent(),
+                Value<String> startDate = const Value.absent(),
+                Value<String?> endDate = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestingRulesCompanion(
+                id: id,
+                symbol: symbol,
+                name: name,
+                amountMinor: amountMinor,
+                currency: currency,
+                frequency: frequency,
+                day: day,
+                startDate: startDate,
+                endDate: endDate,
+                active: active,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String symbol,
+                Value<String?> name = const Value.absent(),
+                required int amountMinor,
+                Value<String> currency = const Value.absent(),
+                Value<String> frequency = const Value.absent(),
+                Value<int> day = const Value.absent(),
+                required String startDate,
+                Value<String?> endDate = const Value.absent(),
+                Value<bool> active = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> deletedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestingRulesCompanion.insert(
+                id: id,
+                symbol: symbol,
+                name: name,
+                amountMinor: amountMinor,
+                currency: currency,
+                frequency: frequency,
+                day: day,
+                startDate: startDate,
+                endDate: endDate,
+                active: active,
+                createdAt: createdAt,
+                deletedAt: deletedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$InvestingRulesTable, InvestingRuleRow>(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $InvestingRulesTable,
+                    InvestingRuleRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InvestingRulesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $InvestingRulesTable,
+      InvestingRuleRow,
+      $$InvestingRulesTableFilterComposer,
+      $$InvestingRulesTableOrderingComposer,
+      $$InvestingRulesTableAnnotationComposer,
+      $$InvestingRulesTableCreateCompanionBuilder,
+      $$InvestingRulesTableUpdateCompanionBuilder,
+      (
+        InvestingRuleRow,
+        BaseReferences<_$PulseDatabase, $InvestingRulesTable, InvestingRuleRow>,
+      ),
+      InvestingRuleRow,
+      PrefetchHooks Function()
+    >;
+typedef $$InvestingOccurrencesTableCreateCompanionBuilder =
+    InvestingOccurrencesCompanion Function({
+      required String id,
+      required String ruleId,
+      required String dueDate,
+      required int amountMinor,
+      Value<String> status,
+      Value<double?> price,
+      Value<double?> units,
+      Value<String?> decidedOn,
+      Value<int> rowid,
+    });
+typedef $$InvestingOccurrencesTableUpdateCompanionBuilder =
+    InvestingOccurrencesCompanion Function({
+      Value<String> id,
+      Value<String> ruleId,
+      Value<String> dueDate,
+      Value<int> amountMinor,
+      Value<String> status,
+      Value<double?> price,
+      Value<double?> units,
+      Value<String?> decidedOn,
+      Value<int> rowid,
+    });
+
+class $$InvestingOccurrencesTableFilterComposer
+    extends Composer<_$PulseDatabase, $InvestingOccurrencesTable> {
+  $$InvestingOccurrencesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get decidedOn => $composableBuilder(
+    column: $table.decidedOn,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$InvestingOccurrencesTableOrderingComposer
+    extends Composer<_$PulseDatabase, $InvestingOccurrencesTable> {
+  $$InvestingOccurrencesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get ruleId => $composableBuilder(
+    column: $table.ruleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueDate => $composableBuilder(
+    column: $table.dueDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get price => $composableBuilder(
+    column: $table.price,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get units => $composableBuilder(
+    column: $table.units,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get decidedOn => $composableBuilder(
+    column: $table.decidedOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$InvestingOccurrencesTableAnnotationComposer
+    extends Composer<_$PulseDatabase, $InvestingOccurrencesTable> {
+  $$InvestingOccurrencesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get ruleId =>
+      $composableBuilder(column: $table.ruleId, builder: (column) => column);
+
+  GeneratedColumn<String> get dueDate =>
+      $composableBuilder(column: $table.dueDate, builder: (column) => column);
+
+  GeneratedColumn<int> get amountMinor => $composableBuilder(
+    column: $table.amountMinor,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<double> get price =>
+      $composableBuilder(column: $table.price, builder: (column) => column);
+
+  GeneratedColumn<double> get units =>
+      $composableBuilder(column: $table.units, builder: (column) => column);
+
+  GeneratedColumn<String> get decidedOn =>
+      $composableBuilder(column: $table.decidedOn, builder: (column) => column);
+}
+
+class $$InvestingOccurrencesTableTableManager
+    extends
+        RootTableManager<
+          _$PulseDatabase,
+          $InvestingOccurrencesTable,
+          InvestingOccurrenceRow,
+          $$InvestingOccurrencesTableFilterComposer,
+          $$InvestingOccurrencesTableOrderingComposer,
+          $$InvestingOccurrencesTableAnnotationComposer,
+          $$InvestingOccurrencesTableCreateCompanionBuilder,
+          $$InvestingOccurrencesTableUpdateCompanionBuilder,
+          (
+            InvestingOccurrenceRow,
+            BaseReferences<
+              _$PulseDatabase,
+              $InvestingOccurrencesTable,
+              InvestingOccurrenceRow
+            >,
+          ),
+          InvestingOccurrenceRow,
+          PrefetchHooks Function()
+        > {
+  $$InvestingOccurrencesTableTableManager(
+    _$PulseDatabase db,
+    $InvestingOccurrencesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$InvestingOccurrencesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$InvestingOccurrencesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$InvestingOccurrencesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> ruleId = const Value.absent(),
+                Value<String> dueDate = const Value.absent(),
+                Value<int> amountMinor = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<double?> price = const Value.absent(),
+                Value<double?> units = const Value.absent(),
+                Value<String?> decidedOn = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestingOccurrencesCompanion(
+                id: id,
+                ruleId: ruleId,
+                dueDate: dueDate,
+                amountMinor: amountMinor,
+                status: status,
+                price: price,
+                units: units,
+                decidedOn: decidedOn,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String ruleId,
+                required String dueDate,
+                required int amountMinor,
+                Value<String> status = const Value.absent(),
+                Value<double?> price = const Value.absent(),
+                Value<double?> units = const Value.absent(),
+                Value<String?> decidedOn = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => InvestingOccurrencesCompanion.insert(
+                id: id,
+                ruleId: ruleId,
+                dueDate: dueDate,
+                amountMinor: amountMinor,
+                status: status,
+                price: price,
+                units: units,
+                decidedOn: decidedOn,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $InvestingOccurrencesTable,
+                    InvestingOccurrenceRow
+                  >(table),
+                  BaseReferences<
+                    _$PulseDatabase,
+                    $InvestingOccurrencesTable,
+                    InvestingOccurrenceRow
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$InvestingOccurrencesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$PulseDatabase,
+      $InvestingOccurrencesTable,
+      InvestingOccurrenceRow,
+      $$InvestingOccurrencesTableFilterComposer,
+      $$InvestingOccurrencesTableOrderingComposer,
+      $$InvestingOccurrencesTableAnnotationComposer,
+      $$InvestingOccurrencesTableCreateCompanionBuilder,
+      $$InvestingOccurrencesTableUpdateCompanionBuilder,
+      (
+        InvestingOccurrenceRow,
+        BaseReferences<
+          _$PulseDatabase,
+          $InvestingOccurrencesTable,
+          InvestingOccurrenceRow
+        >,
+      ),
+      InvestingOccurrenceRow,
+      PrefetchHooks Function()
+    >;
 
 class $PulseDatabaseManager {
   final _$PulseDatabase _db;
@@ -33044,4 +36265,10 @@ class $PulseDatabaseManager {
       $$VaultEntriesTableTableManager(_db, _db.vaultEntries);
   $$VaultNomineesTableTableManager get vaultNominees =>
       $$VaultNomineesTableTableManager(_db, _db.vaultNominees);
+  $$InvestmentHoldingsTableTableManager get investmentHoldings =>
+      $$InvestmentHoldingsTableTableManager(_db, _db.investmentHoldings);
+  $$InvestingRulesTableTableManager get investingRules =>
+      $$InvestingRulesTableTableManager(_db, _db.investingRules);
+  $$InvestingOccurrencesTableTableManager get investingOccurrences =>
+      $$InvestingOccurrencesTableTableManager(_db, _db.investingOccurrences);
 }

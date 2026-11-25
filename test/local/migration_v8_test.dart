@@ -33,7 +33,7 @@ void main() {
     expect((await db.customSelect('SELECT mode FROM budget_prefs').getSingle()).read<String>('mode'), 'category');
     expect((await db.customSelect("SELECT name FROM categories WHERE id = 'dining'").getSingle()).read<String>('name'), 'Dining');
     expect((await db.customSelect('SELECT COUNT(*) AS n FROM recurring_reviews').getSingle()).read<int>('n'), 2);
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 
   test('a fresh v8 database stores and clears a choice', () async {

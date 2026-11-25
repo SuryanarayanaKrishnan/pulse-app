@@ -14,6 +14,7 @@ import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
 import 'document_screens.dart';
 import 'fund_screens.dart';
+import 'investing_screens.dart';
 import 'jewellery_screens.dart';
 import 'wealth_widgets.dart';
 
@@ -36,6 +37,30 @@ Future<void> showWealthAddMenu(
       child: RowGroup(
         padding: EdgeInsets.zero,
         children: [
+          ListRow(
+            leading: IconWell(Icons.document_scanner_outlined, color: c.accent),
+            title: 'Scan a bill or portfolio',
+            subtitle: 'Gold bill, stock or fund screenshot. Or just describe it',
+            chevron: true,
+            onTap: () {
+              Navigator.of(sheet).pop();
+              openScan(context);
+            },
+          ),
+          ListRow(
+            leading: IconWell(Icons.show_chart_rounded, color: c.accent),
+            title: 'Stock or ETF',
+            subtitle: 'Live price and profit, in AED',
+            chevron: true,
+            onTap: () => open((_) => const AddHoldingSheet()),
+          ),
+          ListRow(
+            leading: IconWell(Icons.autorenew_rounded, color: c.accent),
+            title: 'Investing rule',
+            subtitle: 'Like "buy \$200 of VOO monthly"',
+            chevron: true,
+            onTap: () => open((_) => const AddRuleSheet()),
+          ),
           ListRow(
             leading: IconWell(Icons.diamond_outlined, color: c.accent),
             title: 'Gold or jewellery',
@@ -63,7 +88,7 @@ Future<void> showWealthAddMenu(
               color: c.accent,
             ),
             title: 'Other asset or loan',
-            subtitle: 'Property, deposits, stocks, debts',
+            subtitle: 'Property, deposits, debts',
             chevron: true,
             onTap: () => open(assetSheet, full: false),
           ),
@@ -260,7 +285,7 @@ class JewellerySection extends ConsumerWidget {
                 ),
                 title: v.item.name,
                 subtitle:
-                    '${v.item.weightGrams.toStringAsFixed(v.item.weightGrams == v.item.weightGrams.roundToDouble() ? 0 : 1)} g · ${v.item.purityLabel}',
+                    '${v.item.approximate ? '~' : ''}${v.item.weightGrams.toStringAsFixed(v.item.weightGrams == v.item.weightGrams.roundToDouble() ? 0 : 1)} g · ${v.item.purityLabel}${v.item.approximate ? ' · approximate' : ''}',
                 chevron: true,
                 onTap: () => context.push('${Routes.jewellery}/${v.item.id}'),
                 trailing: Column(
@@ -268,7 +293,7 @@ class JewellerySection extends ConsumerWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      Money.aed(v.value.valueMinor / 100, decimals: false),
+                      '${v.item.approximate ? '~' : ''}${Money.aed(v.value.valueMinor / 100, decimals: false)}',
                       style: PulseTheme.amount(c.textPrimary, size: 15),
                     ),
                     if (v.value.gainPct != null)

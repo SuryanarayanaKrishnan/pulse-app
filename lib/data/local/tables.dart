@@ -539,6 +539,10 @@ class JewelleryItems extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// True when the weight, karat or price were estimated rather than read
+  /// off a bill (added in schema v11).
+  BoolColumn get approximate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -810,4 +814,88 @@ class VaultNominees extends Table {
 
   @override
   Set<Column> get primaryKey => {id};
+}
+
+
+// ---- Investing (schema v11) ---------------------------------------------------
+
+/// A stock or ETF position, entered by hand or read from a portfolio
+/// screenshot. Valued locally: units x last close (from the price service),
+/// converted at the cached FX rate. `approximate` marks quantities or costs
+/// the user estimated.
+@DataClassName('InvestmentRow')
+class InvestmentHoldings extends Table {
+  TextColumn get id => text()();
+
+  /// Upper-case ticker, US listing (VOO, AAPL).
+  TextColumn get symbol => text()();
+  TextColumn get name => text().nullable()();
+
+  /// Currency of the price and cost.
+  TextColumn get currency => text().withDefault(const Constant('USD'))();
+  RealColumn get quantity => real()();
+
+  /// Average cost per unit in [currency]; null when unknown.
+  RealColumn get avgCost => real().nullable()();
+  RealColumn get lastPrice => real().nullable()();
+  DateTimeColumn get priceAt => dateTime().nullable()();
+  TextColumn get priceSource => text().nullable()();
+  TextColumn get purchaseDate => text().nullable()();
+  BoolColumn get approximate => boolean().withDefault(const Constant(false))();
+
+  /// screenshot | typed | manual | rule
+  TextColumn get source => text().withDefault(const Constant('manual'))();
+  TextColumn get note => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// "Buy 200 USD of VOO every month on the 5th."
+@DataClassName('InvestingRuleRow')
+class InvestingRules extends Table {
+  TextColumn get id => text()();
+  TextColumn get symbol => text()();
+  TextColumn get name => text().nullable()();
+  IntColumn get amountMinor => integer()();
+  TextColumn get currency => text().withDefault(const Constant('USD'))();
+
+  /// weekly | monthly
+  TextColumn get frequency => text().withDefault(const Constant('monthly'))();
+
+  /// Day of month (monthly) or weekday 1-7 (weekly).
+  IntColumn get day => integer().withDefault(const Constant(1))();
+  TextColumn get startDate => text()();
+  TextColumn get endDate => text().nullable()();
+  BoolColumn get active => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// One planned buy of a rule: pending until the user confirms or skips it.
+@DataClassName('InvestingOccurrenceRow')
+class InvestingOccurrences extends Table {
+  TextColumn get id => text()();
+  TextColumn get ruleId => text()();
+  TextColumn get dueDate => text()();
+  IntColumn get amountMinor => integer()();
+
+  /// pending | confirmed | skipped
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  RealColumn get price => real().nullable()();
+  RealColumn get units => real().nullable()();
+  TextColumn get decidedOn => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+
+  @override
+  List<Set<Column>> get uniqueKeys => [
+    {ruleId, dueDate},
+  ];
 }
