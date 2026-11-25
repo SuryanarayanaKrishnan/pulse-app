@@ -64,3 +64,12 @@ The vault helps a family *find* things. It does not transfer anything, appoint a
 ## Limits
 
 Not verified on a real device or with a real relay; no local notification for reminders; no per-entry encryption on the phone beyond the database key; each new emergency file means new codes; the sheet is unlocalised English.
+
+
+## Automatic release (wired in the app, relay on the backend)
+
+With `API_BASE_URL` set the app uses `HttpInactivityRelay` against the backend's `/v1/vault/relay` (see the backend repo): sealing a file arms the relay with the ciphertext and a hash of the claim code; every app open sends a heartbeat. A nominee with no account taps Family vault > Open a file someone left me > "Ask Pulse for the file" and types the release code. After the owner's silence interval a claim starts a 3 day waiting period (the owner can stop it by opening the app); after that the file is handed over and the nominee still needs two key codes to read it. Without `API_BASE_URL`, or if the server cannot be reached while sealing, the owner is told automatic release is off and hands the file over herself.
+
+Owner warnings today are **local notifications** on the owner's phone (14 days before and the day before the release date, moved out by every app open). They cannot tell the owner that a nominee has *claimed*; that needs push from the server. Later step: Firebase Cloud Messaging (free) behind `PushSender` in the backend, with a device-token table. Not set up.
+
+Not verified on a real device or against a deployed server.
