@@ -174,6 +174,9 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
   }
 
   @override
+  Future<int> importTransactions(List<ImportedTransaction> txs) async => 0;
+
+  @override
   Future<Transaction> addManualTransaction({
     required String merchant,
     required double amount,

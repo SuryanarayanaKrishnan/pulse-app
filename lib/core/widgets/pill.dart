@@ -4,7 +4,7 @@ import '../theme/tokens.dart';
 import 'haptics.dart';
 import 'pressable.dart';
 
-/// Chip, optionally selectable. Selected chips invert; no tints.
+/// Chip, optionally selectable. Selected chips fill with the tab's accent.
 class Pill extends StatelessWidget {
   const Pill(
     this.label, {
@@ -25,14 +25,15 @@ class Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final fg = selected ? c.bg : c.textPrimary;
+    final tab = context.tabAccent;
+    final fg = selected ? c.onAccent : c.textPrimary;
     final pill = AnimatedContainer(
       duration: Motion.fast,
       curve: Motion.curve,
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: Space.md + 2),
       decoration: BoxDecoration(
-        color: selected ? c.textPrimary : c.surfaceElevated,
+        color: selected ? tab : c.surfaceElevated,
         borderRadius: BorderRadius.circular(Radii.pill),
       ),
       child: Row(
@@ -131,7 +132,9 @@ class Segmented<T> extends StatelessWidget {
                             child: Text(
                               segments[k]!,
                               style: context.tt.labelMedium!.copyWith(
-                                color: c.textPrimary,
+                                color: k == value
+                                    ? context.tabInk()
+                                    : c.textSecondary,
                                 fontWeight: k == value
                                     ? FontWeight.w600
                                     : FontWeight.w500,

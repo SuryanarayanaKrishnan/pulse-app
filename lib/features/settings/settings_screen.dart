@@ -13,6 +13,7 @@ import '../../household/household_providers.dart';
 import '../../sync/sync_providers.dart';
 import '../sync/sync_screen.dart';
 import '../../core/analytics/privacy_controller.dart';
+import '../../core/entitlement/entitlement.dart';
 import '../../core/env/env.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme_mode.dart';
@@ -20,6 +21,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
+import '../cards/digit_widgets.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
@@ -70,6 +72,39 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          const SectionHeader('Plan'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: IconWell(Icons.workspace_premium_outlined, color: context.pc.accent),
+                title: 'Pulse Plus',
+                subtitle: ref.watch(entitlementProvider).isPlus
+                    ? 'On (test billing)'
+                    : 'Niche card intel and AI summaries',
+                chevron: true,
+                onTap: () => context.push(Routes.plus),
+              ),
+            ],
+          ),
+          if (ref.watch(dismissedDigitsProvider).isNotEmpty) ...[
+            const SectionHeader('Card digits you skipped'),
+            RowGroup(
+              indent: ListRow.leadingInset,
+              children: [
+                for (final d in ref.watch(dismissedDigitsProvider).toList()..sort())
+                  ListRow(
+                    leading: const IconWell(Icons.undo_rounded),
+                    title: 'Ask again about ••$d',
+                    subtitle: 'You said these alerts are not yours',
+                    onTap: () {
+                      ref.read(dismissedDigitsProvider.notifier).restore(d);
+                      ref.invalidate(digitSuggestionsProvider);
+                    },
+                  ),
+              ],
+            ),
+          ],
           const SectionHeader('Money'),
           RowGroup(
             indent: ListRow.leadingInset,

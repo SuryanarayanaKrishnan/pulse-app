@@ -1,5 +1,6 @@
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
+import 'digit_suggestion.dart';
 import 'local/receipt_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
@@ -53,6 +54,7 @@ import '../core/vault/vault_models.dart';
 import 'local/vault_store.dart';
 import 'vault_service.dart';
 import 'repository.dart';
+import 'budget_import_service.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
 final dioProvider = Provider<Dio>((ref) => buildApiClient());
@@ -298,6 +300,10 @@ final transactionsProvider = FutureProvider<List<Transaction>>(
 final budgetProvider = FutureProvider<BudgetOverview>(
   (ref) => ref.watch(repositoryProvider).budgetOverview(),
 );
+/// "Is ••1234 your card?" questions from alerts waiting on card digits.
+final digitSuggestionsProvider = FutureProvider<List<DigitSuggestion>>(
+  (ref) => ref.watch(repositoryProvider).digitSuggestions(),
+);
 final myCardsProvider = FutureProvider<List<CreditCard>>(
   (ref) => ref.watch(repositoryProvider).myCards(),
 );
@@ -392,6 +398,7 @@ final householdProvider = FutureProvider<Household>(
 
 final List<ProviderOrFamily> _ledgerProviders = [
   transactionsProvider,
+  digitSuggestionsProvider,
   budgetProvider,
   currentFlexPlanProvider,
   cashflowProvider,
@@ -419,6 +426,7 @@ void invalidateLedgerIn(ProviderContainer container) {
 /// or an asset was added or removed).
 void invalidateWallet(WidgetRef ref) {
   ref.invalidate(myCardsProvider);
+  ref.invalidate(digitSuggestionsProvider);
   ref.invalidate(cardValueProvider);
   ref.invalidate(catalogProvider);
   invalidateLedger(ref);
@@ -534,3 +542,12 @@ void invalidateVault(WidgetRef ref) {
   ref.invalidate(vaultSuggestionsProvider);
   ref.read(vaultCheckInTickProvider.notifier).bump();
 }
+
+// ---- Budget setup: suggestion and import -------------------------------------
+
+final budgetImportServiceProvider = Provider<BudgetImportService>(
+  (ref) => BudgetImportService(
+    repo: ref.watch(repositoryProvider),
+    plan: ref.watch(budgetPlanServiceProvider),
+  ),
+);

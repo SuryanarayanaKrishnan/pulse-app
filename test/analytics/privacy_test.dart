@@ -98,6 +98,8 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.budgetModeChanged('flex'),
   AnalyticsEvent.budgetModeChanged('category'),
   AnalyticsEvent.moneyMoved,
+  AnalyticsEvent.budgetSuggested(history: true),
+  AnalyticsEvent.budgetImported(source: 'link', history: false, items: 'few'),
   AnalyticsEvent.receiptMatched('noon'),
   AnalyticsEvent.receiptMatched('talabat'),
   AnalyticsEvent.receiptMatched('careem'),

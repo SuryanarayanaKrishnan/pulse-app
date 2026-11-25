@@ -1,9 +1,12 @@
+import '../theme/tokens.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/session.dart';
 import '../../features/backup/backup_screen.dart';
 import '../../features/privacy/learning_preview_screen.dart';
+import '../../features/plus/plus_screens.dart';
 import '../../features/privacy/privacy_screen.dart';
 import '../../features/sync/sync_screen.dart';
 import '../../features/backup/backup_setup_screen.dart';
@@ -13,6 +16,8 @@ import '../../features/capture/apple_pay_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
+import '../../features/budgets/budget_import_screen.dart';
+import '../../features/budgets/budget_setup_screen.dart';
 import '../../features/categories/categories_screen.dart';
 import '../../features/recurring/recurring_screen.dart';
 import '../../features/reports/reports_screen.dart';
@@ -55,6 +60,8 @@ abstract class Routes {
   static const applePaySetup = '/apple-pay-setup';
   static const appleIngest = '/apple-ingest';
   static const categories = '/categories';
+  static const budgetSetup = '/budget-setup';
+  static const budgetImport = '/budget-import';
   static const automations = '/automations';
   static const statements = '/statements';
   static const family = '/family';
@@ -63,6 +70,8 @@ abstract class Routes {
   static const backup = '/backup';
   static const backupSetup = '/backup/setup';
   static const sync = '/sync';
+  static const plus = '/plus';
+  static const plusBilling = '/plus/billing';
   static const privacy = '/privacy';
   static const learningPreview = '/privacy/learning';
   static const review = '/review';
@@ -156,6 +165,14 @@ GoRouter buildRouter({
         pageBuilder: (c, s) => fade(s, const BackupScreen()),
       ),
       GoRoute(
+        path: Routes.plus,
+        pageBuilder: (c, s) => fade(s, PlusPaywallScreen(feature: s.uri.queryParameters['feature'])),
+      ),
+      GoRoute(
+        path: Routes.plusBilling,
+        pageBuilder: (c, s) => fade(s, MockBillingScreen(offerId: s.uri.queryParameters['offer'])),
+      ),
+      GoRoute(
         path: Routes.sync,
         pageBuilder: (c, s) => fade(s, const SyncScreen()),
       ),
@@ -236,6 +253,16 @@ GoRouter buildRouter({
         builder: (c, s) => TourScreen(onFinished: (_) => c.pop()),
       ),
       GoRoute(
+        path: Routes.budgetSetup,
+        name: 'budget-setup',
+        builder: (c, s) => const BudgetSetupScreen(),
+      ),
+      GoRoute(
+        path: Routes.budgetImport,
+        name: 'budget-import',
+        builder: (c, s) => const BudgetImportScreen(),
+      ),
+      GoRoute(
         path: Routes.categories,
         name: 'categories',
         builder: (c, s) => const CategoriesScreen(),
@@ -299,7 +326,8 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.home,
                 name: 'home',
-                builder: (c, s) => const HomeScreen(),
+                builder: (c, s) =>
+                    const TabBackdrop(tab: PulseTab.home, child: HomeScreen()),
               ),
             ],
           ),
@@ -308,7 +336,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.budget,
                 name: 'budget',
-                builder: (c, s) => const BudgetScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.budget,
+                  child: BudgetScreen(),
+                ),
               ),
             ],
           ),
@@ -317,7 +348,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.cards,
                 name: 'cards',
-                builder: (c, s) => const CardsScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.cards,
+                  child: CardsScreen(),
+                ),
               ),
             ],
           ),
@@ -326,7 +360,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.splits,
                 name: 'splits',
-                builder: (c, s) => const SplitsScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.splits,
+                  child: SplitsScreen(),
+                ),
               ),
             ],
           ),
@@ -335,7 +372,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.wealth,
                 name: 'wealth',
-                builder: (c, s) => const WealthScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.wealth,
+                  child: WealthScreen(),
+                ),
               ),
             ],
           ),
