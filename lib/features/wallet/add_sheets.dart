@@ -130,7 +130,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
       final catalog = ref.watch(catalogProvider);
       return SheetScaffold(
         title: 'Which card?',
-        subtitle: 'Rewards come from the built-in card catalog. Figures are not yet checked against the issuers.',
+        subtitle: 'Pulse works out rewards from its card list, which is not yet checked against the issuers.',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
