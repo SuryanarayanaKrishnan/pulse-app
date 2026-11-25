@@ -1,3 +1,5 @@
+import '../capture/kv_store.dart';
+import '../core/remote_config/remote_config.dart';
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
 import 'digit_suggestion.dart';
@@ -60,6 +62,15 @@ import 'repository.dart';
 import 'budget_import_service.dart';
 
 /// Shared dio client (Supabase JWT interceptor). Overridden in tests.
+/// Feature flags and params from the backend (bundled fallback, offline-safe).
+/// `main` overrides this with the loaded instance.
+final remoteConfigProvider = Provider<RemoteConfigService>((ref) {
+  return RemoteConfigService(kv: SharedPrefsKvStore(), publicKeyB64: Env.configPublicKey);
+});
+
+/// True when [flag] is on for this phone.
+final featureFlagProvider = Provider.family<bool, String>((ref, flag) => ref.watch(remoteConfigProvider).isOn(flag));
+
 final dioProvider = Provider<Dio>((ref) => buildApiClient());
 
 /// The encrypted on-device database. Opened in `main`; null in widget tests

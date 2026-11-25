@@ -20,6 +20,10 @@ class Env {
     defaultValue: 'https://eu.i.posthog.com',
   );
 
+  /// Base64 Ed25519 public key that verifies `/v1/config`. Empty means
+  /// unsigned configs are accepted (dev only; release builds need a key).
+  static const configPublicKey = String.fromEnvironment('CONFIG_PUBLIC_KEY');
+
   /// Dev convenience: skip onboarding, sign-in and connect steps.
   static const devSkipOnboarding = bool.fromEnvironment('DEV_SKIP_ONBOARDING');
 

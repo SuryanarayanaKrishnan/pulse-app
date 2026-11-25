@@ -1,0 +1,16 @@
+{
+  "version": 20261125,
+  "min_supported_build": 1,
+  "flags": {
+    "nicheIntel": {"enabled": true, "rollout_pct": 100, "plan": "plus"},
+    "aiSummaries": {"enabled": false, "rollout_pct": 0, "plan": "plus"},
+    "serverDrivenHome": {"enabled": false, "rollout_pct": 0},
+    "contentPacks": {"enabled": true, "rollout_pct": 100}
+  },
+  "params": {
+    "free_cards_limit": 3,
+    "content_refresh_hours": 12,
+    "bug_report_enabled": true
+  },
+  "kill_switches": []
+}
