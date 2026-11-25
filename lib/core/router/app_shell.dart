@@ -43,49 +43,57 @@ class _AppShellState extends ConsumerState<AppShell> {
       final o = next.value;
       if (o != null) onCaptured(context, ref, o);
     });
-    return Scaffold(
-      extendBody: true,
-      body: TipDock(
-        current: TipTab.values[shell.currentIndex],
-        bottomInset: 56 + MediaQuery.viewPaddingOf(context).bottom,
-        child: shell,
-      ),
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: c.bg.withValues(alpha: 0.82),
-              border: Border(top: BorderSide(color: c.border, width: 0.5)),
-            ),
-            child: SafeArea(
-              top: false,
-              child: SizedBox(
-                height: 56,
-                child: Row(
-                  children: [
-                    for (var i = 0; i < _items.length; i++)
-                      Expanded(
-                        child: _NavItem(
-                          index: i,
-                          icon: shell.currentIndex == i
-                              ? _items[i].$1
-                              : _items[i].$2,
-                          label: _items[i].$3,
-                          selected: shell.currentIndex == i,
-                          onTap: () {
-                            if (i != shell.currentIndex) {
-                              Haptics.tap();
-                              ref.read(analyticsProvider).screen(_names[i]);
-                            }
-                            shell.goBranch(
-                              i,
-                              initialLocation: i == shell.currentIndex,
-                            );
-                          },
+    // Back from Budget, Cards, Splits or Wealth goes to Home first; only Home
+    // lets the system close the app.
+    return PopScope(
+      canPop: shell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) shell.goBranch(0);
+      },
+      child: Scaffold(
+        extendBody: true,
+        body: TipDock(
+          current: TipTab.values[shell.currentIndex],
+          bottomInset: 56 + MediaQuery.viewPaddingOf(context).bottom,
+          child: shell,
+        ),
+        bottomNavigationBar: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.bg.withValues(alpha: 0.82),
+                border: Border(top: BorderSide(color: c.border, width: 0.5)),
+              ),
+              child: SafeArea(
+                top: false,
+                child: SizedBox(
+                  height: 56,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < _items.length; i++)
+                        Expanded(
+                          child: _NavItem(
+                            index: i,
+                            icon: shell.currentIndex == i
+                                ? _items[i].$1
+                                : _items[i].$2,
+                            label: _items[i].$3,
+                            selected: shell.currentIndex == i,
+                            onTap: () {
+                              if (i != shell.currentIndex) {
+                                Haptics.tap();
+                                ref.read(analyticsProvider).screen(_names[i]);
+                              }
+                              shell.goBranch(
+                                i,
+                                initialLocation: i == shell.currentIndex,
+                              );
+                            },
+                          ),
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -197,6 +197,12 @@ class _Body extends ConsumerWidget {
             .toList()
           ..sort((a, b) => sum(b).compareTo(sum(a)));
     final totalAssets = kinds.fold(0.0, (a, k) => a + sum(k));
+    // Zero-value kinds (a new account with no balance yet) stay in the lists
+    // below but get no allocation row or slice.
+    final allocated = [
+      for (final k in kinds)
+        if (sum(k) > 0) k,
+    ];
     final liabilities = sum(AssetKind.liability);
     TextStyle num([Color? col]) => PulseTheme.amount(col ?? c.textPrimary);
     return Column(
@@ -219,11 +225,11 @@ class _Body extends ConsumerWidget {
                 size: 176,
                 thickness: 20,
                 slices: [
-                  for (var i = 0; i < kinds.length; i++)
+                  for (var i = 0; i < allocated.length; i++)
                     ChartSlice(
-                      kinds[i].label,
-                      sum(kinds[i]),
-                      _shade(c, i, kinds.length),
+                      allocated[i].label,
+                      sum(allocated[i]),
+                      _shade(c, i, allocated.length),
                     ),
                 ],
                 center: Column(
@@ -240,25 +246,35 @@ class _Body extends ConsumerWidget {
             ),
           ),
         ),
-        RowGroup(
+        if (allocated.isEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.lg),
+            child: Text(
+              'Add an asset or an account balance to see how your money is split.',
+              style: context.tt.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          )
+        else
+          RowGroup(
           children: [
-            for (var i = 0; i < kinds.length; i++)
+            for (var i = 0; i < allocated.length; i++)
               ListRow(
                 dense: true,
-                leading: Dot(_shade(c, i, kinds.length), size: 10),
-                title: kinds[i].label,
+                leading: Dot(_shade(c, i, allocated.length), size: 10),
+                title: allocated[i].label,
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      totalAssets > 0 ? '${(sum(kinds[i]) / totalAssets * 100).round()}%' : '0%',
+                      '${(sum(allocated[i]) / totalAssets * 100).round()}%',
                       style: num(c.textSecondary),
                     ),
                     const SizedBox(width: Space.lg),
                     SizedBox(
                       width: 104,
                       child: Text(
-                        Money.aedCompact(sum(kinds[i])),
+                        Money.aedCompact(sum(allocated[i])),
                         style: num(),
                         textAlign: TextAlign.right,
                       ),
