@@ -120,6 +120,7 @@ class RemoteConfigService {
   final String Function()? randomId;
 
   static const _cacheKey = 'remote_config.cached';
+  static const _pinKey = 'remote_config.pinned_key';
   static const _idKey = 'remote_config.install_id';
 
   RemoteConfig _config = const RemoteConfig(version: 0);
@@ -163,10 +164,18 @@ class RemoteConfigService {
       if (data is! Map) return false;
       final payload = Map<String, Object?>.from(data['payload'] as Map);
       final sig = data['signature'] as String?;
-      if (publicKeyB64.isNotEmpty) {
-        if (sig == null || !await verifyConfigSignature(payload: payload, signatureB64: sig, publicKeyB64: publicKeyB64)) {
+      // Key order: one baked into the build, else the one pinned on first
+      // contact (trust on first use), else - first fetch only - the key the
+      // server sent, which is then pinned if the signature matches it.
+      final pinned = await kv.read(_pinKey);
+      final key = publicKeyB64.isNotEmpty ? publicKeyB64 : (pinned ?? '');
+      final offered = data['public_key'] as String?;
+      final candidate = key.isNotEmpty ? key : (offered ?? '');
+      if (candidate.isNotEmpty) {
+        if (sig == null || !await verifyConfigSignature(payload: payload, signatureB64: sig, publicKeyB64: candidate)) {
           return false;
         }
+        if (key.isEmpty) await kv.write(_pinKey, candidate);
       }
       final next = RemoteConfig.fromJson(payload);
       if (next.version <= _config.version) return false;
