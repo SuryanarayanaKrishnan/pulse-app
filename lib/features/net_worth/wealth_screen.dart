@@ -298,12 +298,17 @@ class _Body extends ConsumerWidget {
                         style: num(c.textSecondary),
                       ),
                       const SizedBox(width: Space.lg),
-                      SizedBox(
-                        width: 104,
-                        child: Text(
-                          Money.aedCompact(sum(allocated[i])),
-                          style: num(),
-                          textAlign: TextAlign.right,
+                      ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 104),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            Money.aedCompact(sum(allocated[i])),
+                            style: num(),
+                            maxLines: 1,
+                            textAlign: TextAlign.right,
+                          ),
                         ),
                       ),
                     ],
