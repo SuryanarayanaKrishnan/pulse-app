@@ -36,6 +36,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
+import '../digit_suggestion.dart';
 import 'statement_service.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -858,6 +859,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     await pipeline.reprocessPending();
     return (await myCards()).firstWhere((c) => c.id == accountId);
   }
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) async {
+    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(AccountsCompanion(last4: Value(last4)));
+    await pipeline.reprocessPending();
+  }
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() => pipeline.digitSuggestions();
 
   @override
   Future<void> removeCard(String id) async {

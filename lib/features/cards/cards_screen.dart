@@ -18,6 +18,7 @@ import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
 import 'combo_widgets.dart';
+import 'digit_widgets.dart';
 import 'quick_pick_sheet.dart';
 import 'suggestion_widgets.dart';
 import '../tour/tab_tip.dart';
@@ -140,6 +141,7 @@ class _CardsView extends ConsumerWidget {
           );
         }
         final standings = cardStandings(list, txs);
+        // (the digit question sits above the totals, see below)
         final due = list.fold<double>(0, (a, k) => a + k.totalDue);
         final minDue = list.fold<double>(0, (a, k) => a + k.minDue);
         final limit = list.fold<double>(0, (a, k) => a + k.limit);
@@ -152,6 +154,7 @@ class _CardsView extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const DigitSuggestionBanner(),
             HeroNumber(
               label: 'Total due',
               value: due,

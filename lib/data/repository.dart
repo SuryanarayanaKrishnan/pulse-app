@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../core/engine/nw_history.dart';
 import 'api/api_exception.dart';
+import 'digit_suggestion.dart';
 import 'insights.dart';
 import 'models.dart';
 import 'rules.dart';
@@ -78,6 +79,12 @@ abstract class PulseRepository {
 
   /// Removes a card from the wallet (its transactions stay).
   Future<void> removeCard(String id);
+
+  /// Sets the last four digits of a card and replays alerts that were waiting for it.
+  Future<void> setCardLast4(String accountId, String last4);
+
+  /// Alerts waiting on card digits that a digit-less card could own.
+  Future<List<DigitSuggestion>> digitSuggestions();
 
   /// Adds a bank account, wallet or cash pot with an opening balance.
   Future<BankAccount> addBankAccount({
@@ -217,6 +224,12 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<void> removeCard(String id) => _unsupported('Removing cards');
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) => _unsupported('Editing cards');
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() async => const [];
 
   @override
   Future<BankAccount> addBankAccount({
