@@ -8,6 +8,8 @@ import '../../core/widgets/widgets.dart';
 import '../../data/api/api_exception.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../../data/vault_service.dart' show vaultTypeForAsset;
+import '../vault/held_at.dart';
 
 double? _parseAmount(String s) {
   final v = double.tryParse(s.trim().replaceAll(',', ''));
@@ -351,12 +353,14 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
   AssetKind _kind = AssetKind.realEstate;
   final _name = TextEditingController();
   final _value = TextEditingController();
+  final _heldAt = TextEditingController();
   bool _busy = false;
 
   @override
   void dispose() {
     _name.dispose();
     _value.dispose();
+    _heldAt.dispose();
     super.dispose();
   }
 
@@ -368,7 +372,17 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     if (v == null) return;
     setState(() => _busy = true);
     try {
-      await ref.read(repositoryProvider).addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
+      final a = await ref.read(repositoryProvider).addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
+      final problem = await saveHeldAt(
+        ref,
+        sourceRef: '${_kind == AssetKind.liability ? 'liability' : 'asset'}:${a.id}',
+        type: vaultTypeForAsset(_kind),
+        where: _heldAt.text,
+        title: a.name,
+      );
+      if (problem != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+      }
       ref.invalidate(assetsProvider);
       ref.invalidate(netWorthProvider);
       if (mounted) Navigator.of(context).pop();
@@ -413,6 +427,16 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixText: 'AED  '),
           onChanged: (_) => setState(() {}),
+        ),
+        const SizedBox(height: Space.md),
+        HeldAtField(
+          controller: _heldAt,
+          hint: switch (_kind) {
+            AssetKind.realEstate => 'Papers at, e.g. title deed in locker, agent, DLD',
+            AssetKind.liability => 'Owed to, e.g. bank or person',
+            AssetKind.gold => 'Kept at, e.g. bank locker, home safe',
+            _ => 'Held at, e.g. bank or platform',
+          },
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(

@@ -727,6 +727,11 @@ CaptureResult parseApproximate(String text, {CalDate? today}) {
     );
   }
 
+  if (_looksLikeIndianFundText(t)) {
+    final f = parseApproximateFund(t);
+    if (f != null) return CaptureResult(CaptureKind.mutualFunds, funds: [f]);
+  }
+
   // "50 shares of VOO bought 2022 avg 400"  /  "VOO 12.5 units"
   final qm = RegExp(
     r'(\d+(?:[.,]\d+)?)\s*(?:shares?|units?|x)?\s*(?:of\s+)?(\$?[A-Za-z]{1,5}(?:[.\-][A-Za-z])?)\b',
@@ -916,5 +921,112 @@ FundDraft? _fundFromBlock(String name, String body) {
     note: derived
         ? 'NAV worked out from current value'
         : (units == null ? 'units not read' : null),
+  );
+}
+
+// ---- typed fund entries: "about 1 lakh in Parag Parikh Flexi Cap" ---------------------
+
+final _indianFundText = RegExp(
+  r'₹|\brs\.?\s?\d|\binr\b|\blakhs?\b|\bcrores?\b|\bsip\b|\bmutual fund\b|\bflexi\b|\belss\b|\bnifty\b|\bdirect (?:plan|growth)\b|\bamc\b',
+  caseSensitive: false,
+);
+
+bool _looksLikeIndianFundText(String t) =>
+    _indianFundText.hasMatch(t) &&
+    // An exchange-qualified stock ("10 shares of RELIANCE.NS") is a stock.
+    !_exchangeTickerRe.hasMatch(t) &&
+    !RegExp(r'\bshares?\b', caseSensitive: false).hasMatch(t);
+
+final _moneyWordsRe = RegExp(
+  r'(?:₹|rs\.?|inr)?\s*(\d[\d,]*(?:\.\d+)?)\s*(lakhs?|lacs?|crores?|cr|k)?\b',
+  caseSensitive: false,
+);
+
+/// 1 lakh, 2.5 lakh, 1 crore, 50k, 50,000.
+double? _rupees(RegExpMatch m) {
+  final base = parseLooseNumber(m[1]!);
+  if (base == null) return null;
+  final w = (m[2] ?? '').toLowerCase();
+  if (w.startsWith('lakh') || w.startsWith('lac')) return base * 100000;
+  if (w.startsWith('crore') || w == 'cr') return base * 10000000;
+  if (w == 'k') return base * 1000;
+  return base;
+}
+
+/// "about 1 lakh in Parag Parikh Flexi Cap", "invested 50k in HDFC Index Fund
+/// Nifty 50 since 2021", "500 units of Mirae Asset Large Cap". Everything is
+/// approximate: the amount becomes today's value (or, with "invested" /
+/// "bought", what was put in) and units are worked out from the scheme's NAV
+/// when it is saved. Null when no fund name is left.
+FundDraft? parseApproximateFund(String text) {
+  final t = text.trim();
+  if (t.isEmpty) return null;
+  final lower = t.toLowerCase();
+
+  double? units;
+  final um = RegExp(
+    r'(\d[\d,]*(?:\.\d+)?)\s*units?\b',
+    caseSensitive: false,
+  ).firstMatch(t);
+  if (um != null) units = parseLooseNumber(um[1]!);
+
+  // Strip the units phrase, years and "sip 5000"-like phrases before looking
+  // for the main amount.
+  var rest = t;
+  if (um != null) rest = rest.replaceFirst(um[0]!, ' ');
+
+  int? sip;
+  final sm = RegExp(
+    r'\bsip\b\s*(?:of\s*)?(?:₹|rs\.?|inr)?\s*(\d[\d,]*(?:\.\d+)?)\s*(lakhs?|k)?',
+    caseSensitive: false,
+  ).firstMatch(rest);
+  if (sm != null) {
+    final v = _rupees(_moneyWordsRe.firstMatch(sm[0]!.replaceFirst(RegExp(r'sip\s*(?:of)?', caseSensitive: false), ''))!);
+    if (v != null && v >= 100) sip = (v * 100).round();
+    rest = rest.replaceFirst(sm[0]!, ' ');
+  }
+
+  // Years come out only after the SIP, so "SIP 2000" is not read as a year.
+  rest = rest.replaceAll(RegExp(r'\b(?:19|20)\d{2}\b'), ' ');
+
+  double? amount;
+  RegExpMatch? am;
+  for (final m in _moneyWordsRe.allMatches(rest)) {
+    final v = _rupees(m);
+    if (v != null && v >= 500) {
+      amount = v;
+      am = m;
+      break;
+    }
+  }
+  if (am != null) rest = rest.replaceFirst(am[0]!, ' ');
+
+  final putIn = RegExp(r'\b(?:invested|bought|put|worth of|paid)\b').hasMatch(lower);
+  var name = rest
+      .replaceAll(
+        RegExp(
+          r"\b(?:about|around|approx(?:imately)?|roughly|invested|investment|bought|put|paid|worth|of|in|into|since|from|currently|now|my|i|have|hold|is|are|rupees?|units?|a|an|the|mutual fund|sip|monthly|every month|per month|each month|on|day)\b",
+          caseSensitive: false,
+        ),
+        ' ',
+      )
+      .replaceAll(RegExp(r'[^A-Za-z0-9&\- ]'), ' ')
+      .replaceAll(RegExp(r'\s+'), ' ')
+      .trim();
+  if (name.length < 3) return null;
+  if (units == null && amount == null) return null;
+  final notes = [
+    if (units == null) 'units worked out from today\'s NAV',
+    if (putIn && amount != null) 'amount treated as invested',
+    if (sip != null) 'SIP day not given',
+  ];
+  return FundDraft(
+    name: name,
+    units: units,
+    invested: putIn ? amount : null,
+    current: putIn ? null : amount,
+    sipAmountMinor: sip,
+    approximate: true,
+    note: notes.isEmpty ? 'approximate' : notes.join(' · '),
   );
 }

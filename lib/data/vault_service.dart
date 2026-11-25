@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
 
 import '../core/analytics/analytics.dart';
 import '../core/engine/investing.dart';
@@ -52,6 +53,17 @@ class VaultSourceData {
   final List<InvestRule> rules;
 }
 
+VaultType vaultTypeForAsset(AssetKind k) => switch (k) {
+  AssetKind.liability => VaultType.loan,
+  AssetKind.realEstate => VaultType.property,
+  AssetKind.fixedDeposit ||
+  AssetKind.stocks ||
+  AssetKind.funds ||
+  AssetKind.gold => VaultType.investment,
+  AssetKind.cash => VaultType.bank,
+  AssetKind.other => VaultType.documents,
+};
+
 /// Maps the app's own data to vault sources. Pure, so it is tested directly.
 List<VaultSource> sourcesFrom(VaultSourceData d) {
   final out = <VaultSource>[];
@@ -79,16 +91,7 @@ List<VaultSource> sourcesFrom(VaultSourceData d) {
     );
   }
   for (final a in d.assets) {
-    final type = switch (a.kind) {
-      AssetKind.liability => VaultType.loan,
-      AssetKind.realEstate => VaultType.property,
-      AssetKind.fixedDeposit ||
-      AssetKind.stocks ||
-      AssetKind.funds ||
-      AssetKind.gold => VaultType.investment,
-      AssetKind.cash => VaultType.bank,
-      AssetKind.other => VaultType.documents,
-    };
+    final type = vaultTypeForAsset(a.kind);
     out.add(
       VaultSource(
         ref: '${a.isLiability ? 'liability' : 'asset'}:${a.id}',
@@ -261,6 +264,9 @@ class VaultService {
   Future<String> addPhoto(String sourcePath) => storage.import(sourcePath);
 
   Future<void> removePhotos(Iterable<String> paths) => storage.delete(paths);
+
+  /// A paper's content (decrypted), or null when the file is gone.
+  Future<Uint8List?> readFile(String path) => storage.read(path);
 
   // ---- suggestions & score -----------------------------------------------
 

@@ -44,6 +44,10 @@ class NoPhotoPicker implements PhotoPicker {
 abstract class AttachmentStorage {
   Future<String> import(String sourcePath);
   Future<void> delete(Iterable<String> paths);
+
+  /// The file's content as the user put it in (decrypted when the storage
+  /// encrypts), or null when it is gone or this storage keeps nothing.
+  Future<Uint8List?> read(String path);
 }
 
 class PrivateAttachmentStorage implements AttachmentStorage {
@@ -63,6 +67,13 @@ class PrivateAttachmentStorage implements AttachmentStorage {
     final dest = p.join(dir.path, '${newId()}${ext.isEmpty ? '.jpg' : ext}');
     await File(sourcePath).copy(dest);
     return dest;
+  }
+
+  @override
+  Future<Uint8List?> read(String path) async {
+    if (path.startsWith('demo:')) return null;
+    final f = File(path);
+    return await f.exists() ? f.readAsBytes() : null;
   }
 
   @override
@@ -86,4 +97,6 @@ class MemoryAttachmentStorage implements AttachmentStorage {
   Future<String> import(String sourcePath) async => sourcePath;
   @override
   Future<void> delete(Iterable<String> paths) async {}
+  @override
+  Future<Uint8List?> read(String path) async => null;
 }

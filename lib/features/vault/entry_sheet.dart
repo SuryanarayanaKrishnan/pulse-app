@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -9,6 +10,7 @@ import '../../data/local/attachments.dart';
 import '../../data/providers.dart';
 import '../../data/vault_service.dart';
 import '../wealth/wealth_widgets.dart' show FieldLabel, parseMinor;
+import 'vault_file_viewer.dart';
 import 'vault_widgets.dart';
 
 /// Add or edit one vault item: where it is, never the secret.
@@ -77,15 +79,35 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
   bool get _blocked => _issues.any((i) => i.blocking);
   bool get _valid => _institution.text.trim().isNotEmpty && !_blocked;
 
-  Future<void> _addPhoto(PhotoSource source) async {
-    final path = await ref.read(photoPickerProvider).pick(source);
+  Future<void> _addStored(String? path) async {
     if (path == null) return;
-    final stored = await ref.read(vaultServiceProvider).addPhoto(path);
-    if (mounted)
-      setState(() {
-        _photos = [..._photos, stored];
-        _added.add(stored);
-      });
+    try {
+      final stored = await ref.read(vaultServiceProvider).addPhoto(path);
+      if (mounted) {
+        setState(() {
+          _photos = [..._photos, stored];
+          _added.add(stored);
+          _error = null;
+        });
+      }
+    } on Object catch (e) {
+      if (mounted) setState(() => _error = e.toString());
+    }
+  }
+
+  Future<void> _addPhoto(PhotoSource source) async =>
+      _addStored(await ref.read(photoPickerProvider).pick(source));
+
+  Future<void> _addPdf() async {
+    try {
+      final files = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['pdf', 'jpg', 'jpeg', 'png', 'heic'],
+      );
+      await _addStored(files.firstOrNull?.path);
+    } on Object {
+      if (mounted) setState(() => _error = 'Could not open that file.');
+    }
   }
 
   Future<void> _save() async {
@@ -231,10 +253,10 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
             ),
           ),
           GuardNote(_issues),
-          const FieldLabel('Photos of the papers (optional)'),
+          const FieldLabel('Photos and PDFs of the papers (optional)'),
           if (_photos.isEmpty && !canPhoto)
             Text(
-              'Photos can be added on your phone.',
+              'Papers can be added on your phone.',
               style: context.tt.bodySmall,
             )
           else ...[
@@ -245,8 +267,9 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
                 for (var i = 0; i < _photos.length; i++)
                   InputChip(
                     key: ValueKey('vault_photo_$i'),
-                    avatar: const Icon(Icons.image_outlined, size: 16),
-                    label: Text('Photo ${i + 1}'),
+                    avatar: const Icon(Icons.attach_file_rounded, size: 16),
+                    label: Text('Paper ${i + 1}'),
+                    onPressed: () => showVaultFile(context, _photos[i]),
                     onDeleted: () => setState(() {
                       final p = _photos[i];
                       _photos = [..._photos]..removeAt(i);
@@ -268,13 +291,18 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
                     icon: Icons.photo_library_outlined,
                     onTap: () => _addPhoto(PhotoSource.gallery),
                   ),
+                  Pill(
+                    'Add a PDF',
+                    icon: Icons.picture_as_pdf_outlined,
+                    onTap: _addPdf,
+                  ),
                 ],
               ],
             ),
             Padding(
               padding: const EdgeInsets.only(top: Space.sm),
               child: Text(
-                'Kept in this app on your phone, and in your encrypted backup. Never in a shared sheet.',
+                'Encrypted on your phone and in your encrypted backup. Never in a shared sheet. Tap a paper to open it.',
                 style: context.tt.bodySmall,
               ),
             ),

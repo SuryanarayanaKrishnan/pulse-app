@@ -335,8 +335,11 @@ class InvestingService {
     var added = 0, updated = 0, skipped = 0, sips = 0, unmatched = 0;
     final existing = (await wealth.fundViews()).map((v) => v.holding).toList();
     for (final d in drafts) {
-      final units = d.unitsHeld;
-      if (units == null || units <= 0) {
+      // A typed "about 1 lakh in ..." has no units yet: they come from the
+      // amount and the scheme's NAV below.
+      var units = d.unitsHeld;
+      final typedAmount = d.current ?? d.invested;
+      if ((units == null || units <= 0) && (typedAmount == null || typedAmount <= 0)) {
         skipped++;
         continue;
       }
@@ -364,6 +367,7 @@ class InvestingService {
         skipped++;
         continue;
       }
+      if (units == null || units <= 0) units = typedAmount! / nav;
       final match = existing
           .where(
             (f) => scheme != null

@@ -81,7 +81,7 @@ void main() {
     final spy = await _open(tester, const AddAssetSheet());
     await tester.tap(find.text('Gold'));
     await tester.pump();
-    await tester.enterText(find.byType(TextField).last, '5,000');
+    await tester.enterText(find.widgetWithText(TextField, 'Value today'), '5,000');
     await tester.pump();
     await tester.tap(find.text('Add'));
     await tester.pump(const Duration(milliseconds: 300));

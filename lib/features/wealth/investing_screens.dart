@@ -13,11 +13,11 @@ import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../core/vault/vault_models.dart';
 import '../../data/investing_service.dart';
-import '../../data/vault_service.dart' show VaultGuardException;
 import '../../data/local/wealth_store.dart' show newWealthId;
 import '../../data/providers.dart';
 import '../../data/wealth_models.dart';
 import '../net_worth/wealth_screen.dart' show ago;
+import '../vault/held_at.dart';
 import 'scan_screens.dart';
 import 'wealth_widgets.dart';
 
@@ -560,37 +560,6 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
   bool get _editing => widget.initial != null;
   double? get _q => parseNumber(_qty.text);
 
-  /// Writes (or updates) the vault entry that says where this is held.
-  Future<void> _saveHeldAt(StockHolding h) async {
-    final where = _platform.text.trim();
-    final vault = ref.read(vaultServiceProvider);
-    if (where.isEmpty) return;
-    final now = DateTime.now().toUtc();
-    final e = _vaultEntry;
-    try {
-      await vault.saveEntry(
-        e != null
-            ? e.copyWith(institution: where)
-            : VaultEntry(
-                id: vault.blank(VaultType.investment).id,
-                type: VaultType.investment,
-                institution: where,
-                title: h.title,
-                sourceRef: 'asset:stock:${h.id}',
-                createdAt: now,
-                updatedAt: now,
-              ),
-      );
-      ref.invalidate(vaultEntriesProvider);
-    } on VaultGuardException catch (ex) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ex.message)),
-        );
-      }
-    }
-  }
-
   Listing get _listing {
     final l = listingOf(_symbol.text);
     // Typing "RELIANCE" with India picked means RELIANCE.NS.
@@ -598,6 +567,21 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
         ? Listing(l.base, _market)
         : l;
   }
+
+  Future<void> _saveHeldAt(StockHolding h) async {
+    final problem = await saveHeldAt(
+      ref,
+      sourceRef: 'asset:stock:${h.id}',
+      type: VaultType.investment,
+      where: _platform.text,
+      title: h.title,
+      existing: _vaultEntry,
+    );
+    if (problem != null && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+    }
+  }
+
   bool get _valid => _symbol.text.trim().isNotEmpty && (_q ?? 0) > 0;
 
   @override
@@ -740,19 +724,9 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
               ),
             ),
           const SizedBox(height: Space.md),
-          TextField(
+          HeldAtField(
             controller: _platform,
-            textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              hintText: 'Held at, e.g. Mashreq Securities or Zerodha',
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(top: Space.xs),
-            child: Text(
-              'Added to your family vault so a nominee knows where to look. No logins, ever.',
-              style: context.tt.bodySmall,
-            ),
+            hint: 'Held at, e.g. Mashreq Securities or Zerodha',
           ),
           const SizedBox(height: Space.md),
           Row(
