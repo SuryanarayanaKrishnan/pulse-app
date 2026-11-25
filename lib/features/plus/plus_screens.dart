@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/entitlement/entitlement.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
+import '../coach/coach.dart';
 
 PlusFeature? _featureFrom(String? name) =>
     PlusFeature.values.where((f) => f.name == name).firstOrNull;
@@ -40,7 +41,9 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
     final c = context.pc;
     final e = ref.watch(entitlementProvider);
     final from = _featureFrom(widget.feature);
-    return Scaffold(
+    return CoachHost(
+      screen: CoachScreen.plus,
+      child: Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.close_rounded),
@@ -77,7 +80,9 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
             style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
           ),
           const SizedBox(height: Space.xl),
-          RowGroup(
+          CoachTarget(
+            id: 'perks',
+            child: RowGroup(
             indent: ListRow.leadingInset,
             children: [
               for (final p in _perks)
@@ -87,7 +92,7 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
                   subtitle: p.$3,
                 ),
             ],
-          ),
+          )),
           if (!e.isPlus) ...[
             const SizedBox(height: Space.xl),
             for (final o in plusOffers) ...[
@@ -127,7 +132,7 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
           ),
         ),
       ),
-    );
+    ));
   }
 }
 

@@ -99,6 +99,20 @@ void main() {
     }
 
     Future<void> tapText(String text) async {
+      // A first-visit walkthrough may be waiting; a real person skips it.
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 800));
+        final skip = find.byKey(const Key('coach_skip'));
+        final next = find.byKey(const Key('coach_next'));
+        if (skip.evaluate().isNotEmpty) {
+          await tester.tap(skip);
+        } else if (next.evaluate().isNotEmpty) {
+          await tester.tap(next);
+        } else {
+          break;
+        }
+        await tester.pump(const Duration(milliseconds: 400));
+      }
       final f = find.text(text);
       final vertical = find.byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.vertical);
       for (final delta in [300.0, -300.0, -300.0]) {

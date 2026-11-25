@@ -23,6 +23,7 @@ import 'quick_pick_sheet.dart';
 import 'suggestion_widgets.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
+import '../coach/coach.dart';
 
 enum _Wallet { cards, accounts }
 
@@ -40,64 +41,76 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: c.accent,
-          backgroundColor: c.surface,
-          onRefresh: () async {
-            ref.invalidate(myCardsProvider);
-            ref.invalidate(bankAccountsProvider);
-            invalidateLedger(ref);
-          },
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 120),
-            children: [
-              ScreenHeader(
-                'Cards',
-                subtitle: 'Your wallet',
-                trailing: [
-                  RoundIconButton(
-                    icon: Icons.add_rounded,
-                    label: 'Add a card or account',
-                    onTap: () => showAddMenu(context),
+    return CoachHost(
+      screen: CoachScreen.cards,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
+            color: c.accent,
+            backgroundColor: c.surface,
+            onRefresh: () async {
+              ref.invalidate(myCardsProvider);
+              ref.invalidate(bankAccountsProvider);
+              invalidateLedger(ref);
+            },
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 120),
+              children: [
+                ScreenHeader(
+                  'Cards',
+                  subtitle: 'Your wallet',
+                  trailing: [
+                    CoachTarget(
+                      id: 'add',
+                      child: RoundIconButton(
+                        icon: Icons.add_rounded,
+                        label: 'Add a card or account',
+                        onTap: () => showAddMenu(context),
+                      ),
+                    ),
+                    CoachTarget(
+                      id: 'which',
+                      child: TabTip(
+                        tab: TipTab.cards,
+                        child: RoundIconButton(
+                          icon: Icons.bolt_rounded,
+                          label: 'Which card should I use?',
+                          onTap: () => showWhichCard(context, ref),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.gutter,
+                    0,
+                    Space.gutter,
+                    Space.lg,
                   ),
-                  TabTip(
-                    tab: TipTab.cards,
-                    child: RoundIconButton(
-                      icon: Icons.bolt_rounded,
-                      label: 'Which card should I use?',
-                      onTap: () => showWhichCard(context, ref),
+                  child: CoachTarget(
+                    id: 'switch',
+                    child: Segmented<_Wallet>(
+                      segments: const {
+                        _Wallet.cards: 'Cards',
+                        _Wallet.accounts: 'Accounts',
+                      },
+                      value: _tab,
+                      onChanged: (v) => setState(() => _tab = v),
                     ),
                   ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.gutter,
-                  0,
-                  Space.gutter,
-                  Space.lg,
                 ),
-                child: Segmented<_Wallet>(
-                  segments: const {
-                    _Wallet.cards: 'Cards',
-                    _Wallet.accounts: 'Accounts',
-                  },
-                  value: _tab,
-                  onChanged: (v) => setState(() => _tab = v),
+                AnimatedSwitcher(
+                  duration: MediaQuery.disableAnimationsOf(context)
+                      ? Duration.zero
+                      : Motion.base,
+                  child: _tab == _Wallet.cards
+                      ? const _CardsView(key: ValueKey('cards'))
+                      : const _AccountsView(key: ValueKey('accounts')),
                 ),
-              ),
-              AnimatedSwitcher(
-                duration: MediaQuery.disableAnimationsOf(context)
-                    ? Duration.zero
-                    : Motion.base,
-                child: _tab == _Wallet.cards
-                    ? const _CardsView(key: ValueKey('cards'))
-                    : const _AccountsView(key: ValueKey('accounts')),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

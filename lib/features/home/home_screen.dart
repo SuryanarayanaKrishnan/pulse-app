@@ -15,6 +15,7 @@ import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_editor.dart';
 import 'dashboard/dashboard_tiles.dart';
 import 'health_sheet.dart';
+import '../coach/coach.dart';
 
 /// Home answers one question: how much can I safely spend today?
 class HomeScreen extends ConsumerWidget {
@@ -42,71 +43,88 @@ class HomeScreen extends ConsumerWidget {
     final greeting = now.hour < 12
         ? 'Good morning'
         : (now.hour < 18 ? 'Good afternoon' : 'Good evening');
-    return Scaffold(
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: c.accent,
-          backgroundColor: c.surface,
-          onRefresh: () async {
-            ref.invalidate(netWorthProvider);
-            ref.invalidate(myCardsProvider);
-            ref.invalidate(statementsProvider);
-            ref.invalidate(splitGroupsProvider);
-            invalidateLedger(ref);
-          },
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 120),
-            children: [
-              ScreenHeader(
-                greeting,
-                subtitle: DateFormat('EEEE d MMMM').format(now),
-                trailing: editing
-                    ? [
-                        TextAction(
-                          'Done',
-                          onTap: () {
-                            Haptics.tap();
-                            dash.setEditing(false);
-                          },
-                        ),
-                        const SizedBox(width: Space.md),
-                      ]
-                    : [
-                        if (!empty)
-                          RoundIconButton(
-                            icon: Icons.tune_rounded,
-                            label: 'Customise',
+    return CoachHost(
+      screen: CoachScreen.home,
+      child: Scaffold(
+        body: SafeArea(
+          bottom: false,
+          child: RefreshIndicator(
+            color: c.accent,
+            backgroundColor: c.surface,
+            onRefresh: () async {
+              ref.invalidate(netWorthProvider);
+              ref.invalidate(myCardsProvider);
+              ref.invalidate(statementsProvider);
+              ref.invalidate(splitGroupsProvider);
+              invalidateLedger(ref);
+            },
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 120),
+              children: [
+                ScreenHeader(
+                  greeting,
+                  subtitle: DateFormat('EEEE d MMMM').format(now),
+                  trailing: editing
+                      ? [
+                          TextAction(
+                            'Done',
                             onTap: () {
                               Haptics.tap();
-                              dash.setEditing(true);
+                              dash.setEditing(false);
                             },
                           ),
-                        RoundIconButton(
-                          icon: Icons.account_circle_outlined,
-                          label: 'Settings',
-                          onTap: () => context.push(Routes.settings),
-                        ),
-                      ],
-              ),
-              if (empty)
-                const _GetStarted()
-              else ...[
-                const DashboardChips(),
-                if (editing)
-                  const DashboardEditor()
+                          const SizedBox(width: Space.md),
+                        ]
+                      : [
+                          if (!empty)
+                            CoachTarget(
+                              id: 'customise',
+                              child: RoundIconButton(
+                                icon: Icons.tune_rounded,
+                                label: 'Customise',
+                                onTap: () {
+                                  Haptics.tap();
+                                  dash.setEditing(true);
+                                },
+                              ),
+                            ),
+                          CoachTarget(
+                            id: 'settings',
+                            child: RoundIconButton(
+                              icon: Icons.account_circle_outlined,
+                              label: 'Settings',
+                              onTap: () => context.push(Routes.settings),
+                            ),
+                          ),
+                        ],
+                ),
+                if (empty)
+                  const _GetStarted()
                 else ...[
-                  for (var i = 0; i < widgets.length; i++) ...[
-                    DashTile(widgets[i], key: ValueKey(widgets[i].kind)),
-                    // Which card and health sit right under the lead widget, wherever
-                    // the user has put it.
-                    if (i == 0) ...[const _WhichCard(), const _ReviewCard(), const _Health()],
+                  const DashboardChips(),
+                  if (editing)
+                    const DashboardEditor()
+                  else ...[
+                    for (var i = 0; i < widgets.length; i++) ...[
+                      DashTile(widgets[i], key: ValueKey(widgets[i].kind)),
+                      // Which card and health sit right under the lead widget, wherever
+                      // the user has put it.
+                      if (i == 0) ...[
+                        const _WhichCard(),
+                        const _ReviewCard(),
+                        const _Health(),
+                      ],
+                    ],
+                    if (widgets.isEmpty) ...[
+                      const _WhichCard(),
+                      const _ReviewCard(),
+                      const _Health(),
+                    ],
+                    const _Overview(),
                   ],
-                  if (widgets.isEmpty) ...[const _WhichCard(), const _ReviewCard(), const _Health()],
-                  const _Overview(),
                 ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -193,10 +211,18 @@ class _ReviewCard extends ConsumerWidget {
     if (n == null) return const SizedBox.shrink();
     final streak = streakLabel(ref.watch(reviewStreakProvider));
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
+      padding: const EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.md,
+        Space.gutter,
+        0,
+      ),
       child: SurfaceCard(
         key: const ValueKey('review-card-home'),
-        padding: const EdgeInsets.symmetric(horizontal: Space.lg, vertical: Space.md + 2),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.lg,
+          vertical: Space.md + 2,
+        ),
         onTap: () => context.push(Routes.review),
         child: Row(
           children: [
@@ -209,9 +235,14 @@ class _ReviewCard extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(n > 0 ? '$n to review' : 'Inbox zero', style: context.tt.titleSmall),
                   Text(
-                    n > 0 ? 'Swipe through, one at a time' : (streak ?? 'All caught up'),
+                    n > 0 ? '$n to review' : 'Inbox zero',
+                    style: context.tt.titleSmall,
+                  ),
+                  Text(
+                    n > 0
+                        ? 'Swipe through, one at a time'
+                        : (streak ?? 'All caught up'),
                     style: context.tt.bodySmall,
                   ),
                 ],

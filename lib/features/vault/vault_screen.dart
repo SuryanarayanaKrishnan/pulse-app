@@ -16,6 +16,7 @@ import 'nominee_sheet.dart';
 import 'open_file_sheet.dart';
 import 'suggestions_sheet.dart';
 import 'vault_widgets.dart';
+import '../coach/coach.dart';
 
 /// Settings > Family vault: a calm list of where things are, for the people
 /// who would need to find them. No passwords, ever.
@@ -42,7 +43,9 @@ class VaultScreen extends ConsumerWidget {
           builder: (_) => EntrySheet(type: type),
         );
 
-    return Scaffold(
+    return CoachHost(
+      screen: CoachScreen.vault,
+      child: Scaffold(
       appBar: AppBar(
         title: const Text('Family vault'),
         leading: IconButton(
@@ -143,11 +146,13 @@ class VaultScreen extends ConsumerWidget {
               ],
             ),
           ),
-          SectionHeader(
+          CoachTarget(
+            id: 'add',
+            child: SectionHeader(
             'What your family would need',
             action: 'Add',
             onAction: addEntry,
-          ),
+          )),
           if (entries.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -188,7 +193,10 @@ class VaultScreen extends ConsumerWidget {
                   ],
                 ),
               ],
-          const SectionHeader('People you trust', top: Space.xl),
+          const CoachTarget(
+            id: 'nominee',
+            child: SectionHeader('People you trust', top: Space.xl),
+          ),
           if (nominees.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Space.gutter),
@@ -340,7 +348,7 @@ class VaultScreen extends ConsumerWidget {
           ),
         ],
       ),
-    );
+    ));
   }
 
   static String _nextIdeas(Completeness s) {
