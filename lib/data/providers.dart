@@ -1,4 +1,5 @@
 import '../capture/kv_store.dart';
+import '../core/packs/content_packs.dart';
 import '../core/remote_config/remote_config.dart';
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
@@ -66,6 +67,12 @@ import 'budget_import_service.dart';
 /// `main` overrides this with the loaded instance.
 final remoteConfigProvider = Provider<RemoteConfigService>((ref) {
   return RemoteConfigService(kv: SharedPrefsKvStore(), publicKeyB64: Env.configPublicKey);
+});
+
+/// Server-delivered content packs (tips, walkthrough text, parser rules).
+/// `main` overrides this with the loaded instance.
+final contentPacksProvider = Provider<ContentPackService>((ref) {
+  return ContentPackService(kv: SharedPrefsKvStore(), config: ref.watch(remoteConfigProvider));
 });
 
 /// True when [flag] is on for this phone.
