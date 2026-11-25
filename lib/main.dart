@@ -14,6 +14,7 @@ import 'core/analytics/gated_analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
+import 'core/remote_config/remote_config.dart';
 import 'data/local/catalog_service.dart';
 import 'backup/background.dart';
 import 'data/local/database.dart';
@@ -47,6 +48,15 @@ Future<void> main() async {
     debugPrint('Analytics init failed: $e');
   }
 
+  // Feature flags: bundled/cached first, a signed refresh in the background.
+  final remoteConfig = RemoteConfigService(
+    kv: SharedPrefsKvStore(),
+    dio: Env.useApi ? buildApiClient() : null,
+    publicKeyB64: Env.configPublicKey,
+  );
+  await remoteConfig.load();
+  unawaited(remoteConfig.refresh());
+
   // The ledger lives in an encrypted database on this phone. Without it the
   // app must not pretend to work, so a failure stops here.
   PulseDatabase? db;
@@ -72,6 +82,7 @@ Future<void> main() async {
   runApp(
     ProviderScope(
       overrides: [
+        remoteConfigProvider.overrideWithValue(remoteConfig),
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
