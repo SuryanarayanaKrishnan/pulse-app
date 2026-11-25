@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../data/api/dto.dart';
 import '../data/api/ingest_api.dart';
 import 'apple_shortcut.dart';
+import 'capture_source.dart';
 import 'ingest_queue.dart';
 
 /// A raw SMS or notification handed over by the Android layer.
@@ -32,6 +33,20 @@ class CapturedEvent {
 
   /// Set for [kind] `apple_shortcut`.
   final ShortcutTransaction? shortcut;
+
+  /// Which guided iPhone capture path produced this event, or null for
+  /// Android notifications.
+  CaptureSource? get source {
+    final tx = shortcut;
+    if (tx != null) {
+      return tx.viaNudge
+          ? CaptureSource.nudge
+          : (tx.viaScreenshot
+                ? CaptureSource.screenshot
+                : CaptureSource.wallet);
+    }
+    return kind == 'sms' ? CaptureSource.bankSms : null;
+  }
 
   /// Stable id computed natively (hash of sender/app + text + day) so the live
   /// receiver and the inbox backfill produce the same id for the same message.

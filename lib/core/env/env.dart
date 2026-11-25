@@ -35,11 +35,21 @@ class Env {
   /// [devAuth], but never in a release build.
   static bool get devAuthEnabled => devAuth && !kReleaseMode && useApi;
 
-  /// Placeholder public iCloud link of the shared "Transaction" Shortcut.
-  /// Replace once the Shortcut is published.
-  static const appleShortcutUrl = String.fromEnvironment(
-    'APPLE_SHORTCUT_URL',
-    defaultValue: 'https://www.icloud.com/shortcuts/REPLACE_WITH_SHORTCUT_ID',
+  /// Public iCloud share links of the four prebuilt Shortcuts (Shortcuts >
+  /// share > Copy iCloud Link). Empty until built: the setup screen then shows
+  /// the shortest in-app instruction instead. See docs/SHORTCUT_LINKS.md.
+  /// Pass with `--dart-define=SHORTCUT_LINK_WALLET=https://www.icloud.com/shortcuts/...`.
+  static const shortcutLinkWallet = String.fromEnvironment(
+    'SHORTCUT_LINK_WALLET',
+  );
+  static const shortcutLinkBankSms = String.fromEnvironment(
+    'SHORTCUT_LINK_BANK_SMS',
+  );
+  static const shortcutLinkCapture = String.fromEnvironment(
+    'SHORTCUT_LINK_CAPTURE',
+  );
+  static const shortcutLinkAskCapture = String.fromEnvironment(
+    'SHORTCUT_LINK_ASK_CAPTURE',
   );
 
   /// URL scheme registered in `ios/Runner/Info.plist` (`pulse://ingest?...`).
@@ -51,7 +61,10 @@ class Env {
 
   /// Beta builds enable shake-to-report by default. Pass
   /// `--dart-define=BETA_BUILD=false` for a store build.
-  static const betaBuild = bool.fromEnvironment('BETA_BUILD', defaultValue: true);
+  static const betaBuild = bool.fromEnvironment(
+    'BETA_BUILD',
+    defaultValue: true,
+  );
 
   /// Optional bug-report endpoint (docs/BUG_REPORTS.md). Empty: reports go
   /// through the system share sheet only. Never put a token here.

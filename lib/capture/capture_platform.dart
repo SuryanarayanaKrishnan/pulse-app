@@ -186,7 +186,7 @@ class MethodChannelCapturePlatform implements CapturePlatform {
       _methods.invokeMethod<void>('ackPending', {'ids': ids});
 }
 
-/// iOS: reads what the "Record Payment" App Intent (a Shortcuts Transaction
+/// iOS: reads what the "Record Payment" App Intent (a Shortcuts Wallet
 /// automation) left in the app's native inbox, see `ios/Runner/ShortcutCapture.swift`.
 ///
 /// iOS cannot read SMS or notifications, so there are no permissions to ask
@@ -218,6 +218,7 @@ class AppleInboxCapturePlatform extends UnsupportedCapturePlatform {
           now: DateTime.fromMillisecondsSinceEpoch(
             ((m['ts'] as num?) ?? 0).toInt() * 1000,
           ),
+          nudge: m['src'] == 'nudge',
         );
         if (tx == null) {
           garbage.add(id);
