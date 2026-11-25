@@ -18,7 +18,10 @@ const minSalaryMinor = 50000;
 final _markers = <(String, RegExp)>[
   ('wps', RegExp(r'\bWPS\b|WAGE\s+PROTECTION')),
   ('payroll', RegExp(r'\bPAY\s?ROLL\b')),
-  ('salary', RegExp(r'\bSALAR(?:Y|IES)\b|\bSAL\.?\s?(?:CR\b|CREDIT)|\bSALARY\b')),
+  (
+    'salary',
+    RegExp(r'\bSALAR(?:Y|IES)\b|\bSAL\.?\s?(?:CR\b|CREDIT)|\bSALARY\b'),
+  ),
 ];
 final _notSalary = RegExp(
   r'\b(?:ADVANCE|LOAN|REVERS(?:AL|ED)|REFUND|FEE|CHARGE|CERTIFICATE|RETURN(?:ED)?|REJECT(?:ED)?)\b',
@@ -35,7 +38,21 @@ final _afterFrom = RegExp(r'\b(?:FROM|FRM|BY)\b\s*(.+)$');
 final _stop = RegExp(
   r'\b(?:ON|AT|REF|DATED|VALUE|AVL|AVAILABLE|BAL(?:ANCE)?|TO|YOUR|ACCOUNT)\b|[.,;]\s|\.$',
 );
-const _acronyms = {'LLC', 'FZE', 'FZ', 'FZCO', 'FZ-LLC', 'PJSC', 'LTD', 'PLC', 'UAE', 'DMCC', 'WLL', 'LLP', 'INC'};
+const _acronyms = {
+  'LLC',
+  'FZE',
+  'FZ',
+  'FZCO',
+  'FZ-LLC',
+  'PJSC',
+  'LTD',
+  'PLC',
+  'UAE',
+  'DMCC',
+  'WLL',
+  'LLP',
+  'INC',
+};
 final _ws = RegExp(r'\s+');
 
 class SalaryMatch {
@@ -57,7 +74,9 @@ String? _employer(String text, {required bool allowBare}) {
   }
   candidate = candidate.replaceAll(_month, ' ');
   candidate = candidate.replaceAll(
-    RegExp(r'\b(?:19|20)\d{2}\b|\b\d{2}[/.\-]\d{2}[/.\-]\d{2,4}\b|[#*]?\b\d{4,}\b'),
+    RegExp(
+      r'\b(?:19|20)\d{2}\b|\b\d{2}[/.\-]\d{2}[/.\-]\d{2,4}\b|[#*]?\b\d{4,}\b',
+    ),
     ' ',
   );
   candidate = candidate.replaceAll(_noise, ' ');
@@ -95,7 +114,12 @@ SalaryMatch? detectSalary(
 ]) {
   if (direction != Direction.credit) return null;
   if (amountMinor != null && amountMinor < minSalaryMinor) return null;
-  final text = [description, smsText].whereType<String>().where((s) => s.isNotEmpty).join(' ').toUpperCase().replaceAll(_ws, ' ');
+  final text = [description, smsText]
+      .whereType<String>()
+      .where((s) => s.isNotEmpty)
+      .join(' ')
+      .toUpperCase()
+      .replaceAll(_ws, ' ');
   if (text.isEmpty || _notSalary.hasMatch(text)) return null;
   for (final (name, pattern) in _markers) {
     if (pattern.hasMatch(text)) {
@@ -104,7 +128,10 @@ SalaryMatch? detectSalary(
           : null;
       return SalaryMatch(
         name,
-        employer ?? (smsText != null && smsText.isNotEmpty ? _employer(smsText, allowBare: false) : null),
+        employer ??
+            (smsText != null && smsText.isNotEmpty
+                ? _employer(smsText, allowBare: false)
+                : null),
       );
     }
   }
@@ -112,7 +139,12 @@ SalaryMatch? detectSalary(
 }
 
 class SalaryPayment {
-  const SalaryPayment(this.receivedOn, this.amountMinor, this.employer, this.currency);
+  const SalaryPayment(
+    this.receivedOn,
+    this.amountMinor,
+    this.employer,
+    this.currency,
+  );
   final CalDate receivedOn;
   final int amountMinor;
   final String? employer;
@@ -151,11 +183,23 @@ CalDate _clampDay(int year, int month, int day) =>
 
 /// Recurring-salary summary over the payments of the user's dominant
 /// currency.
-SalarySummary summariseSalary(List<SalaryPayment> payments, CalDate today, {int averageOver = 3}) {
+SalarySummary summariseSalary(
+  List<SalaryPayment> payments,
+  CalDate today, {
+  int averageOver = 3,
+}) {
   if (payments.isEmpty) {
     return const SalarySummary(
-      currency: null, monthsObserved: 0, isRecurring: false, averageMonthlyMinor: null, typicalDay: null,
-      nextExpectedOn: null, latestMonthMinor: null, previousMonthMinor: null, monthly: [], employers: [],
+      currency: null,
+      monthsObserved: 0,
+      isRecurring: false,
+      averageMonthlyMinor: null,
+      typicalDay: null,
+      nextExpectedOn: null,
+      latestMonthMinor: null,
+      previousMonthMinor: null,
+      monthly: [],
+      employers: [],
     );
   }
   final counts = <String, int>{};
@@ -175,7 +219,10 @@ SalarySummary summariseSalary(List<SalaryPayment> payments, CalDate today, {int 
     final m = CalDate(p.receivedOn.year, p.receivedOn.month, 1);
     totals[m] = (totals[m] ?? 0) + p.amountMinor;
   }
-  final monthly = stableSorted(totals.entries, (a, b) => b.key.compareTo(a.key));
+  final monthly = stableSorted(
+    totals.entries,
+    (a, b) => b.key.compareTo(a.key),
+  );
   final recent = [for (final e in monthly.take(averageOver)) e.value];
   final byEmployer = <String?, List<SalaryPayment>>{};
   for (final p in pays) {
@@ -185,11 +232,13 @@ SalarySummary summariseSalary(List<SalaryPayment> payments, CalDate today, {int 
   for (final ps in byEmployer.values) {
     if (main == null ||
         ps.length > main.length ||
-        (ps.length == main.length && ps.first.receivedOn > main.first.receivedOn)) {
+        (ps.length == main.length &&
+            ps.first.receivedOn > main.first.receivedOn)) {
       main = ps;
     }
   }
-  final typicalDay = median([for (final p in main!.take(6)) p.receivedOn.day]).truncate();
+  final typicalDay = median([for (final p in main!.take(6)) p.receivedOn.day])
+      .truncate();
   final latest = monthly.first.key;
   final candidate = _clampDay(
     latest.year + (latest.month == 12 ? 1 : 0),
@@ -197,7 +246,9 @@ SalarySummary summariseSalary(List<SalaryPayment> payments, CalDate today, {int 
     typicalDay,
   );
   final recurring = monthly.length >= 2;
-  final nextExpected = recurring && candidate >= today.addDays(-10) ? candidate : null;
+  final nextExpected = recurring && candidate >= today.addDays(-10)
+      ? candidate
+      : null;
   final employers = stableSorted(
     byEmployer.entries,
     (a, b) => b.value.first.receivedOn.compareTo(a.value.first.receivedOn),
@@ -206,12 +257,17 @@ SalarySummary summariseSalary(List<SalaryPayment> payments, CalDate today, {int 
     currency: currency,
     monthsObserved: monthly.length,
     isRecurring: recurring,
-    averageMonthlyMinor: roundHalfEven(recent.fold<int>(0, (a, b) => a + b) / recent.length),
+    averageMonthlyMinor: roundHalfEven(
+      recent.fold<int>(0, (a, b) => a + b) / recent.length,
+    ),
     typicalDay: typicalDay,
     nextExpectedOn: nextExpected,
     latestMonthMinor: monthly.first.value,
     previousMonthMinor: monthly.length > 1 ? monthly[1].value : null,
     monthly: [for (final e in monthly) (e.key, e.value)],
-    employers: [for (final e in employers) (e.key, e.value.length, e.value.first.amountMinor)],
+    employers: [
+      for (final e in employers)
+        (e.key, e.value.length, e.value.first.amountMinor),
+    ],
   );
 }

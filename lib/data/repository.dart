@@ -25,6 +25,7 @@ abstract class PulseRepository {
     SpendCategory category, {
     bool remember = false,
   });
+
   /// Marks transactions reviewed (or not). Repositories without a ledger of
   /// their own ignore it.
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed);
@@ -200,7 +201,10 @@ abstract interface class NetWorthHistorySource {
 /// Defaults for repositories without an on-device ledger (demo data, API).
 mixin LocalOnlyFeatures implements PulseRepository {
   @override
-  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async => category;
+  Future<SpendCategory> setCategoryIcon(
+    SpendCategory category,
+    String iconKey,
+  ) async => category;
 
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}

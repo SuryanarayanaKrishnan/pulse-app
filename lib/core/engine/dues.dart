@@ -130,7 +130,9 @@ CardDue cardDue(CardInput c, CalDate today) {
   }
   double? util;
   int? avail;
-  if (c.creditLimitMinor != null && c.creditLimitMinor != 0 && c.owedNowMinor != null) {
+  if (c.creditLimitMinor != null &&
+      c.creditLimitMinor != 0 &&
+      c.owedNowMinor != null) {
     util = roundTo(math.max(0, c.owedNowMinor!) / c.creditLimitMinor! * 100, 1);
     avail = c.creditLimitMinor! - c.owedNowMinor!;
   }
@@ -166,22 +168,42 @@ List<Nudge> nudges(CardDue d) {
     final mn = aed(d.remainingMinimumDueMinor ?? 0);
     final total = aed(d.remainingTotalDueMinor!);
     if (d.status == 'overdue') {
-      out.add(Nudge('urgent', '$label was due ${d.dueDate!.toIso()}: pay at least $mn now ($total clears the statement).'));
+      out.add(
+        Nudge(
+          'urgent',
+          '$label was due ${d.dueDate!.toIso()}: pay at least $mn now ($total clears the statement).',
+        ),
+      );
     } else {
       final left = d.daysLeft ?? 0;
       final level = left <= 2 ? 'urgent' : 'warn';
       final when = left == 0 ? 'today' : 'in $left day${left != 1 ? 's' : ''}';
-      out.add(Nudge(level, '$label is due $when (${d.dueDate!.toIso()}): minimum $mn, full statement $total.'));
+      out.add(
+        Nudge(
+          level,
+          '$label is due $when (${d.dueDate!.toIso()}): minimum $mn, full statement $total.',
+        ),
+      );
     }
   } else if (d.status == 'due_soon' && d.dueDate != null) {
-    out.add(Nudge('warn', '$label is due ${d.dueDate!.toIso()}; add the statement for exact amounts.'));
+    out.add(
+      Nudge(
+        'warn',
+        '$label is due ${d.dueDate!.toIso()}; add the statement for exact amounts.',
+      ),
+    );
   }
   final u = d.utilisationPct;
   if (u != null) {
     if (u >= utilisationWarnPct) {
       out.add(Nudge('warn', '$label is ${fmtFixed(u, 0)}% of its limit used.'));
     } else if (u >= utilisationInfoPct) {
-      out.add(Nudge('info', '$label is ${fmtFixed(u, 0)}% used; keeping cards under ${fmtFixed(utilisationInfoPct, 0)}% of the limit is commonly advised.'));
+      out.add(
+        Nudge(
+          'info',
+          '$label is ${fmtFixed(u, 0)}% used; keeping cards under ${fmtFixed(utilisationInfoPct, 0)}% of the limit is commonly advised.',
+        ),
+      );
     }
   }
   return out;

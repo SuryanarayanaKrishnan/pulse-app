@@ -14,7 +14,9 @@ Glyph glyphFor(SpendCategory category) {
     final g = key == null ? null : glyphsByKey[key];
     if (g != null) return g;
   }
-  return glyphsByKey[category.iconKey] ?? glyphsByKey[defaultGlyphKeys[category.id]] ?? genericGlyph;
+  return glyphsByKey[category.iconKey] ??
+      glyphsByKey[defaultGlyphKeys[category.id]] ??
+      genericGlyph;
 }
 
 /// True when [category] resolves to a real glyph rather than the fallback.
@@ -57,7 +59,8 @@ class CategoryIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dark = context.pc.isDark;
-    final tint = color ?? categoryTint(categoryTokenFor(category.id), dark: dark);
+    final tint =
+        color ?? categoryTint(categoryTokenFor(category.id), dark: dark);
     final glyph = glyphFor(category);
     final paint = Semantics(
       label: category.label,
@@ -85,7 +88,13 @@ class CategoryIcon extends StatelessWidget {
 
 /// A glyph by key, for the picker (no category yet).
 class GlyphIcon extends StatelessWidget {
-  const GlyphIcon(this.glyph, {super.key, this.size = 24, this.color, this.filled = false});
+  const GlyphIcon(
+    this.glyph, {
+    super.key,
+    this.size = 24,
+    this.color,
+    this.filled = false,
+  });
   final Glyph glyph;
   final double size;
   final Color? color;
@@ -93,6 +102,12 @@ class GlyphIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
-    child: CustomPaint(painter: CategoryGlyphPainter(glyph, color ?? context.pc.textSecondary, filled: filled)),
+    child: CustomPaint(
+      painter: CategoryGlyphPainter(
+        glyph,
+        color ?? context.pc.textSecondary,
+        filled: filled,
+      ),
+    ),
   );
 }

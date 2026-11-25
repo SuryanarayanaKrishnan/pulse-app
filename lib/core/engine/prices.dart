@@ -90,7 +90,8 @@ double? _num(Object? v) => switch (v) {
   _ => null,
 };
 
-DateTime? _time(Object? v) => v is String ? DateTime.tryParse(v)?.toUtc() : null;
+DateTime? _time(Object? v) =>
+    v is String ? DateTime.tryParse(v)?.toUtc() : null;
 
 /// Parses the backend snapshot into quotes. Tolerant: anything missing or
 /// malformed is skipped, so a partial payload still updates what it can.
@@ -104,7 +105,9 @@ List<PriceQuote> parseSnapshot(Object? json, {required DateTime fetchedAt}) {
     final perGram = gold['per_gram'];
     if (status != 'unavailable' && perGram is Map) {
       for (final k in PriceBook.goldKarats) {
-        final aed = perGram['${k}k'] is Map ? _num((perGram['${k}k'] as Map)['aed']) : null;
+        final aed = perGram['${k}k'] is Map
+            ? _num((perGram['${k}k'] as Map)['aed'])
+            : null;
         if (aed != null && aed > 0) {
           out.add(
             PriceQuote(
@@ -127,7 +130,10 @@ List<PriceQuote> parseSnapshot(Object? json, {required DateTime fetchedAt}) {
       final ccy = e['currency'];
       final rate = _num(e['aed_per_unit']);
       final status = e['status'] is String ? e['status'] as String : 'live';
-      if (ccy is String && rate != null && rate > 0 && status != 'unavailable') {
+      if (ccy is String &&
+          rate != null &&
+          rate > 0 &&
+          status != 'unavailable') {
         out.add(
           PriceQuote(
             symbol: 'FX_${ccy.toUpperCase()}_AED',
@@ -159,15 +165,49 @@ PriceBook bundledPriceBook() => PriceBook([
       quotedAt: bundledPricesAsOf,
       fetchedAt: bundledPricesAsOf,
     ),
-  PriceQuote(symbol: 'FX_USD_AED', price: 3.6725, source: 'bundled demo value', status: 'stale', quotedAt: bundledPricesAsOf, fetchedAt: bundledPricesAsOf),
-  PriceQuote(symbol: 'FX_INR_AED', price: 0.0425, source: 'bundled demo value', status: 'stale', quotedAt: bundledPricesAsOf, fetchedAt: bundledPricesAsOf),
-  PriceQuote(symbol: 'FX_EUR_AED', price: 4.28, source: 'bundled demo value', status: 'stale', quotedAt: bundledPricesAsOf, fetchedAt: bundledPricesAsOf),
-  PriceQuote(symbol: 'FX_GBP_AED', price: 4.9, source: 'bundled demo value', status: 'stale', quotedAt: bundledPricesAsOf, fetchedAt: bundledPricesAsOf),
+  PriceQuote(
+    symbol: 'FX_USD_AED',
+    price: 3.6725,
+    source: 'bundled demo value',
+    status: 'stale',
+    quotedAt: bundledPricesAsOf,
+    fetchedAt: bundledPricesAsOf,
+  ),
+  PriceQuote(
+    symbol: 'FX_INR_AED',
+    price: 0.0425,
+    source: 'bundled demo value',
+    status: 'stale',
+    quotedAt: bundledPricesAsOf,
+    fetchedAt: bundledPricesAsOf,
+  ),
+  PriceQuote(
+    symbol: 'FX_EUR_AED',
+    price: 4.28,
+    source: 'bundled demo value',
+    status: 'stale',
+    quotedAt: bundledPricesAsOf,
+    fetchedAt: bundledPricesAsOf,
+  ),
+  PriceQuote(
+    symbol: 'FX_GBP_AED',
+    price: 4.9,
+    source: 'bundled demo value',
+    status: 'stale',
+    quotedAt: bundledPricesAsOf,
+    fetchedAt: bundledPricesAsOf,
+  ),
 ], origin: PriceOrigin.bundled);
 
 /// Merges [primary] over [fallback] per symbol, so a partial cache is filled
 /// from the bundled values. Origin follows [primary] when it has gold.
 PriceBook mergeBooks(PriceBook primary, PriceBook fallback) {
-  final merged = {for (final q in fallback.quotes) q.symbol: q, for (final q in primary.quotes) q.symbol: q};
-  return PriceBook(merged.values, origin: primary.gold24 != null ? primary.origin : PriceOrigin.bundled);
+  final merged = {
+    for (final q in fallback.quotes) q.symbol: q,
+    for (final q in primary.quotes) q.symbol: q,
+  };
+  return PriceBook(
+    merged.values,
+    origin: primary.gold24 != null ? primary.origin : PriceOrigin.bundled,
+  );
 }

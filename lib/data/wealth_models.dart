@@ -55,10 +55,16 @@ class JewelleryItem {
     name: name ?? this.name,
     weightGrams: weightGrams ?? this.weightGrams,
     karat: karat ?? this.karat,
-    purityOverride: clearPurity ? null : (purityOverride ?? this.purityOverride),
-    purchasePriceMinor: clearPurchase ? null : (purchasePriceMinor ?? this.purchasePriceMinor),
+    purityOverride: clearPurity
+        ? null
+        : (purityOverride ?? this.purityOverride),
+    purchasePriceMinor: clearPurchase
+        ? null
+        : (purchasePriceMinor ?? this.purchasePriceMinor),
     purchaseDate: clearPurchase ? null : (purchaseDate ?? this.purchaseDate),
-    makingChargesMinor: clearMaking ? null : (makingChargesMinor ?? this.makingChargesMinor),
+    makingChargesMinor: clearMaking
+        ? null
+        : (makingChargesMinor ?? this.makingChargesMinor),
     notes: notes ?? this.notes,
     photoPaths: photoPaths ?? this.photoPaths,
     createdAt: createdAt,
@@ -147,7 +153,8 @@ class FundHolding {
   final DateTime createdAt;
 
   bool get isIndian => kind == 'india_mf';
-  bool get hasSip => sipAmountMinor != null && sipAmountMinor! > 0 && sipDay != null;
+  bool get hasSip =>
+      sipAmountMinor != null && sipAmountMinor! > 0 && sipDay != null;
 
   FundHolding copyWith({
     String? name,
@@ -194,7 +201,12 @@ class FundScheme {
 }
 
 class FundNav {
-  const FundNav({required this.code, this.name, required this.navDate, required this.nav});
+  const FundNav({
+    required this.code,
+    this.name,
+    required this.navDate,
+    required this.nav,
+  });
   final String code;
   final String? name;
   final String navDate;

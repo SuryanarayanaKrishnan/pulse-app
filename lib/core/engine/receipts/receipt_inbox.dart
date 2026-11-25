@@ -12,14 +12,19 @@ import 'receipt_models.dart';
 const holdDays = 5;
 
 class HeldReceipt {
-  const HeldReceipt(this.receipt, this.firstSeen, {this.ambiguousWith = const []});
+  const HeldReceipt(
+    this.receipt,
+    this.firstSeen, {
+    this.ambiguousWith = const [],
+  });
   final ParsedReceipt receipt;
   final DateTime firstSeen;
 
   /// Charge ids it fit equally well (user picks).
   final List<String> ambiguousWith;
 
-  bool dueForReview(DateTime now) => now.difference(firstSeen).inDays >= holdDays;
+  bool dueForReview(DateTime now) =>
+      now.difference(firstSeen).inDays >= holdDays;
 
   Map<String, Object?> toJson() => {
     'r': receipt.toJson(),
@@ -49,7 +54,10 @@ class ReceiptInbox {
         ..sort((a, b) => a.firstSeen.compareTo(b.firstSeen));
 
   /// Still waiting (not yet due).
-  List<HeldReceipt> waiting(DateTime now) => [for (final h in held) if (!h.dueForReview(now)) h];
+  List<HeldReceipt> waiting(DateTime now) => [
+    for (final h in held)
+      if (!h.dueForReview(now)) h,
+  ];
 
   bool seen(ParsedReceipt r) =>
       done.contains('m:${r.messageId}') ||
@@ -62,7 +70,11 @@ class ReceiptInbox {
     held.removeWhere((h) => h.receipt.messageId == r.messageId);
   }
 
-  void hold(ParsedReceipt r, DateTime now, {List<String> ambiguousWith = const []}) {
+  void hold(
+    ParsedReceipt r,
+    DateTime now, {
+    List<String> ambiguousWith = const [],
+  }) {
     held.removeWhere((h) => h.receipt.messageId == r.messageId);
     held.add(HeldReceipt(r, now, ambiguousWith: ambiguousWith));
   }
@@ -75,14 +87,20 @@ class ReceiptInbox {
     held.removeWhere((h) => h.receipt.messageId == messageId);
   }
 
-  String encode() => jsonEncode({'held': [for (final h in held) h.toJson()], 'done': done.toList()});
+  String encode() => jsonEncode({
+    'held': [for (final h in held) h.toJson()],
+    'done': done.toList(),
+  });
 
   static ReceiptInbox decode(String? raw) {
     if (raw == null || raw.isEmpty) return ReceiptInbox();
     try {
       final j = Map<String, Object?>.from(jsonDecode(raw) as Map);
       return ReceiptInbox(
-        held: [for (final h in (j['held'] as List? ?? const [])) HeldReceipt.fromJson(Map<String, Object?>.from(h as Map))],
+        held: [
+          for (final h in (j['held'] as List? ?? const []))
+            HeldReceipt.fromJson(Map<String, Object?>.from(h as Map)),
+        ],
         done: {for (final d in (j['done'] as List? ?? const [])) '$d'},
       );
     } catch (_) {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/learning/learning_controller.dart';
 import '../../data/learning_hooks.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -47,7 +48,11 @@ class _RecategoriseSheetState extends State<RecategoriseSheet> {
     final m = widget.merchant;
     final options = <(RecategoriseScope, String, String?)>[
       (RecategoriseScope.once, 'Just this one', null),
-      (RecategoriseScope.future, 'All future from $m', 'Creates a rule you can remove in Automations'),
+      (
+        RecategoriseScope.future,
+        'All future from $m',
+        'Creates a rule you can remove in Automations',
+      ),
       (RecategoriseScope.all, 'All past and future from $m', _pastNote),
     ];
     return SheetScaffold(
@@ -70,7 +75,9 @@ class _RecategoriseSheetState extends State<RecategoriseSheet> {
                         ? Icons.radio_button_checked_rounded
                         : Icons.radio_button_off_rounded,
                     size: 22,
-                    color: _scope == scope ? context.pc.accent : context.pc.textSecondary,
+                    color: _scope == scope
+                        ? context.pc.accent
+                        : context.pc.textSecondary,
                   ),
                   onTap: () => setState(() => _scope = scope),
                 ),
@@ -106,7 +113,8 @@ Future<bool> recategoriseWithScope(
   final messenger = ScaffoldMessenger.maybeOf(context);
 
   // Dismissing the sheet keeps the change to this one transaction.
-  final scope = await showPulseSheet<RecategoriseScope>(
+  final scope =
+      await showPulseSheet<RecategoriseScope>(
         context,
         builder: (_) => RecategoriseSheet(
           merchant: preview.merchant,
@@ -120,10 +128,19 @@ Future<bool> recategoriseWithScope(
   analytics.track(AnalyticsEvent.recategoriseScope(scope.analyticsValue));
   // "Just this payment" is an exception, not a statement about the merchant.
   if (scope != RecategoriseScope.once) {
-    unawaited(recordConfirmedCategory(container.read(learningControllerProvider), tx, to));
+    unawaited(
+      recordConfirmedCategory(
+        container.read(learningControllerProvider),
+        tx,
+        to,
+      ),
+    );
   }
   analytics.track(
-    AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: to.name),
+    AnalyticsEvent.transactionRecategorized(
+      from: tx.category.name,
+      to: to.name,
+    ),
   );
   invalidateLedgerIn(container);
   container.invalidate(rulesProvider);

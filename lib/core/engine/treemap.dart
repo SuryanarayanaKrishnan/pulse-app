@@ -12,7 +12,14 @@ class TreemapInput {
 }
 
 class TreemapTile {
-  const TreemapTile(this.id, this.value, this.left, this.top, this.width, this.height);
+  const TreemapTile(
+    this.id,
+    this.value,
+    this.left,
+    this.top,
+    this.width,
+    this.height,
+  );
   final String id;
   final double value, left, top, width, height;
   double get right => left + width;
@@ -22,8 +29,15 @@ class TreemapTile {
 
 /// Lays [items] out in a [width] x [height] box, largest first. Items with a
 /// value of zero or less are left out.
-List<TreemapTile> layoutTreemap(List<TreemapInput> items, double width, double height) {
-  final list = [for (final i in items) if (i.value > 0) i]..sort((a, b) => b.value.compareTo(a.value));
+List<TreemapTile> layoutTreemap(
+  List<TreemapInput> items,
+  double width,
+  double height,
+) {
+  final list = [
+    for (final i in items)
+      if (i.value > 0) i,
+  ]..sort((a, b) => b.value.compareTo(a.value));
   if (list.isEmpty || width <= 0 || height <= 0) return const [];
   final total = list.fold(0.0, (a, i) => a + i.value);
   final scale = width * height / total;

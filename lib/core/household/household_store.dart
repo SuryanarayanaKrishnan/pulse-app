@@ -37,7 +37,12 @@ abstract class HouseholdStore {
   /// [table]: `transactions`, `lines` (id as the Wealth list names it) or
   /// `goals`. Changing a line's owner changes the account, asset or
   /// liability behind it.
-  Future<void> setOwnership(String table, String id, {String? owner, bool? isPrivate});
+  Future<void> setOwnership(
+    String table,
+    String id, {
+    String? owner,
+    bool? isPrivate,
+  });
 
   Future<HRows> mirror();
   Future<void> putMirror(String table, String id, Map<String, Object?>? values);
@@ -59,24 +64,34 @@ class StoreHouseholdSource implements HouseholdSource {
   final HouseholdConfig config;
 
   @override
-  Future<List<HRow>> ownRows() async => withdrawAll ? const [] : store.ownRows();
+  Future<List<HRow>> ownRows() async =>
+      withdrawAll ? const [] : store.ownRows();
 
   @override
   Future<HRows> mirrorRows() => store.mirror();
 
   @override
   Future<HRows> sharedRows() async => {
-    HTable.members: {for (final m in await store.members()) m.id: memberToRow(m)},
+    HTable.members: {
+      for (final m in await store.members()) m.id: memberToRow(m),
+    },
     HTable.bills: {for (final b in await store.bills()) b.id: billToRow(b)},
     HTable.limits: {for (final l in await store.limits()) l.id: limitToRow(l)},
   };
 
   @override
-  Future<void> applyMirror(String table, String id, Map<String, Object?>? values) =>
-      store.putMirror(table, id, values);
+  Future<void> applyMirror(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  ) => store.putMirror(table, id, values);
 
   @override
-  Future<void> applyShared(String table, String id, Map<String, Object?>? values) async {
+  Future<void> applyShared(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  ) async {
     switch (table) {
       case HTable.members:
         if (values == null) {
@@ -151,7 +166,13 @@ class MemoryHouseholdStore implements HouseholdStore {
     return [
       for (final r in base)
         if (_ownership[_k(r.table, r.id)] case final o?)
-          HRow(table: r.table, id: r.id, owner: o.owner, isPrivate: o.isPrivate, values: r.values)
+          HRow(
+            table: r.table,
+            id: r.id,
+            owner: o.owner,
+            isPrivate: o.isPrivate,
+            values: r.values,
+          )
         else
           r,
     ];
@@ -159,14 +180,26 @@ class MemoryHouseholdStore implements HouseholdStore {
 
   @override
   Future<Ownership> ownership(String table, String id) async {
-    final r = (await ownRows()).where((r) => r.table == table && r.id == id).firstOrNull;
-    return r == null ? const Ownership() : Ownership(owner: r.owner, isPrivate: r.isPrivate);
+    final r = (await ownRows())
+        .where((r) => r.table == table && r.id == id)
+        .firstOrNull;
+    return r == null
+        ? const Ownership()
+        : Ownership(owner: r.owner, isPrivate: r.isPrivate);
   }
 
   @override
-  Future<void> setOwnership(String table, String id, {String? owner, bool? isPrivate}) async {
+  Future<void> setOwnership(
+    String table,
+    String id, {
+    String? owner,
+    bool? isPrivate,
+  }) async {
     final cur = await ownership(table, id);
-    _ownership[_k(table, id)] = Ownership(owner: owner ?? cur.owner, isPrivate: isPrivate ?? cur.isPrivate);
+    _ownership[_k(table, id)] = Ownership(
+      owner: owner ?? cur.owner,
+      isPrivate: isPrivate ?? cur.isPrivate,
+    );
   }
 
   @override
@@ -176,7 +209,11 @@ class MemoryHouseholdStore implements HouseholdStore {
   };
 
   @override
-  Future<void> putMirror(String table, String id, Map<String, Object?>? values) async {
+  Future<void> putMirror(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  ) async {
     if (values == null) {
       _mirror[table]?.remove(id);
     } else {

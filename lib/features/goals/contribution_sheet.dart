@@ -10,7 +10,11 @@ import 'goal_widgets.dart';
 
 /// Put money into a goal, take some back, or log a payment on a pay down goal.
 class ContributionSheet extends ConsumerStatefulWidget {
-  const ContributionSheet({super.key, required this.goal, this.withdraw = false});
+  const ContributionSheet({
+    super.key,
+    required this.goal,
+    this.withdraw = false,
+  });
   final GoalView goal;
   final bool withdraw;
 
@@ -42,11 +46,13 @@ class _ContributionSheetState extends ConsumerState<ContributionSheet> {
   Future<void> _go() async {
     if (!_valid || _busy) return;
     setState(() => _busy = true);
-    await ref.read(goalServiceProvider).contribute(
-      widget.goal.id,
-      widget.withdraw ? -_v! : _v!,
-      note: _note.text,
-    );
+    await ref
+        .read(goalServiceProvider)
+        .contribute(
+          widget.goal.id,
+          widget.withdraw ? -_v! : _v!,
+          note: _note.text,
+        );
     invalidateGoals(ref);
     if (mounted) Navigator.of(context).pop(true);
   }
@@ -54,7 +60,9 @@ class _ContributionSheetState extends ConsumerState<ContributionSheet> {
   @override
   Widget build(BuildContext context) {
     final g = widget.goal;
-    final title = widget.withdraw ? 'Withdraw' : (g.isPaydown ? 'Log a payment' : 'Add money');
+    final title = widget.withdraw
+        ? 'Withdraw'
+        : (g.isPaydown ? 'Log a payment' : 'Add money');
     final tooMuch = widget.withdraw && (_v ?? 0) > g.state.currentMinor;
     return SheetScaffold(
       title: title,
@@ -67,7 +75,10 @@ class _ContributionSheetState extends ConsumerState<ContributionSheet> {
             controller: _amount,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixText: 'AED  ',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           if (tooMuch)
@@ -75,7 +86,9 @@ class _ContributionSheetState extends ConsumerState<ContributionSheet> {
               padding: const EdgeInsets.only(top: Space.sm),
               child: Text(
                 'This goal holds ${aedMinor(g.state.currentMinor)}, so that is the most you can take back.',
-                style: context.tt.bodySmall!.copyWith(color: context.pc.warning),
+                style: context.tt.bodySmall!.copyWith(
+                  color: context.pc.warning,
+                ),
               ),
             ),
           const SizedBox(height: Space.md),

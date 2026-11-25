@@ -27,19 +27,28 @@ String rewardSlug(String? categoryId) =>
 
 /// Every non-deleted user card with a usable catalog entry, oldest first.
 Future<List<OwnedCard>> loadOwnedCards(PulseDatabase db) async {
-  final users = await (db.select(db.userCards)
-        ..where((u) => u.deletedAt.isNull() & u.accountId.isNotNull())
-        ..orderBy([(u) => OrderingTerm.asc(u.createdAt), (u) => OrderingTerm.asc(u.id)]))
-      .get();
+  final users =
+      await (db.select(db.userCards)
+            ..where((u) => u.deletedAt.isNull() & u.accountId.isNotNull())
+            ..orderBy([
+              (u) => OrderingTerm.asc(u.createdAt),
+              (u) => OrderingTerm.asc(u.id),
+            ]))
+          .get();
   final out = <OwnedCard>[];
   for (final u in users) {
-    final acct = await (db.select(db.accounts)
-          ..where((a) => a.id.equals(u.accountId!) & a.deletedAt.isNull()))
-        .getSingleOrNull();
-    final cat = await (db.select(db.catalogCards)..where((c) => c.id.equals(u.catalogCardId))).getSingleOrNull();
+    final acct =
+        await (db.select(db.accounts)
+              ..where((a) => a.id.equals(u.accountId!) & a.deletedAt.isNull()))
+            .getSingleOrNull();
+    final cat = await (db.select(
+      db.catalogCards,
+    )..where((c) => c.id.equals(u.catalogCardId))).getSingleOrNull();
     if (acct == null || cat == null) continue;
     try {
-      final spec = parseStructure(Map<String, Object?>.from(jsonDecode(cat.rewardStructure) as Map));
+      final spec = parseStructure(
+        Map<String, Object?>.from(jsonDecode(cat.rewardStructure) as Map),
+      );
       out.add(OwnedCard(u, acct, cat, spec, out.length));
     } on Object {
       continue;
@@ -59,22 +68,30 @@ Future<CycleResult> cycleState(
   final (from, to) = cycleBounds(today, card.account.statementDay);
   final start = atDate(from).subtract(const Duration(hours: 12));
   final end = atDate(to).add(const Duration(hours: 12));
-  final rows = await (db.select(db.transactions)
-        ..where(
-          (t) =>
-              t.accountId.equals(card.account.id) &
-              t.deletedAt.isNull() &
-              t.direction.equals('debit') &
-              t.currency.equals('AED') &
-              t.postedAt.isBiggerOrEqualValue(start) &
-              t.postedAt.isSmallerThanValue(end),
-        )
-        ..orderBy([(t) => OrderingTerm.asc(t.postedAt), (t) => OrderingTerm.asc(t.id)]))
-      .get();
+  final rows =
+      await (db.select(db.transactions)
+            ..where(
+              (t) =>
+                  t.accountId.equals(card.account.id) &
+                  t.deletedAt.isNull() &
+                  t.direction.equals('debit') &
+                  t.currency.equals('AED') &
+                  t.postedAt.isBiggerOrEqualValue(start) &
+                  t.postedAt.isSmallerThanValue(end),
+            )
+            ..orderBy([
+              (t) => OrderingTerm.asc(t.postedAt),
+              (t) => OrderingTerm.asc(t.id),
+            ]))
+          .get();
   return computeCycle(card.spec, [
     for (final t in rows)
       if (t.id != excludeTxId)
-        Spend(t.amountMinor, rewardSlug(t.categoryId), merchantKey(t.merchantNormalized ?? t.merchantRaw)),
+        Spend(
+          t.amountMinor,
+          rewardSlug(t.categoryId),
+          merchantKey(t.merchantNormalized ?? t.merchantRaw),
+        ),
   ]);
 }
 
@@ -96,5 +113,8 @@ Future<List<RankableCard>> rankablesFor(
     ),
 ];
 
-Future<List<RankableCard>> rankables(PulseDatabase db, List<OwnedCard> cards, CalDate today) =>
-    rankablesFor(db, cards, today);
+Future<List<RankableCard>> rankables(
+  PulseDatabase db,
+  List<OwnedCard> cards,
+  CalDate today,
+) => rankablesFor(db, cards, today);

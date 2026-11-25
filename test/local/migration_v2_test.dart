@@ -31,8 +31,16 @@ void main() {
     final assets = await db.select(db.assets).get();
     expect(assets.single.name, 'Old gold bar');
     expect(await db.setting('keep'), 'me');
-    for (final t in ['price_cache', 'jewellery_items', 'document_attachments', 'fund_holdings', 'valuation_snapshots']) {
-      final rows = await db.customSelect('SELECT count(*) AS n FROM $t').getSingle();
+    for (final t in [
+      'price_cache',
+      'jewellery_items',
+      'document_attachments',
+      'fund_holdings',
+      'valuation_snapshots',
+    ]) {
+      final rows = await db
+          .customSelect('SELECT count(*) AS n FROM $t')
+          .getSingle();
       expect(rows.read<int>('n'), 0, reason: t);
     }
   });
@@ -55,7 +63,12 @@ void main() {
       ),
       throwsA(anything),
     );
-    final r = await db.customSelect('SELECT value_minor FROM valuation_snapshots WHERE id = ?', variables: [Variable('v1')]).getSingle();
+    final r = await db
+        .customSelect(
+          'SELECT value_minor FROM valuation_snapshots WHERE id = ?',
+          variables: [Variable('v1')],
+        )
+        .getSingle();
     expect(r.read<int>('value_minor'), 100);
   });
 }

@@ -163,7 +163,10 @@ class LocalStatementService {
   /// Offers each transfer line to auto-settle exactly once: lines already
   /// offered (re-reads, overlapping statements) and lines a live capture
   /// (SMS, notification) already saw are skipped.
-  Future<void> _settleTransfers(String statementId, ParsedStatement parsed) async {
+  Future<void> _settleTransfers(
+    String statementId,
+    ParsedStatement parsed,
+  ) async {
     final cb = onTransfer;
     if (cb == null) return;
     Set<String> handled;
@@ -174,9 +177,11 @@ class LocalStatementService {
     } catch (_) {
       handled = {};
     }
-    final captured = await (db.select(db.transactions)
-          ..where((t) => t.deletedAt.isNull() & t.source.equals('statement').not()))
-        .get();
+    final captured =
+        await (db.select(db.transactions)..where(
+              (t) => t.deletedAt.isNull() & t.source.equals('statement').not(),
+            ))
+            .get();
     var changed = false;
     for (final l in parsed.lines) {
       final c = transferCounterparty(l.description, l.direction);
@@ -208,10 +213,7 @@ class LocalStatementService {
       ...saved.where((s) => s.institution == institution),
       ...saved.where((s) => s.institution != institution),
     ];
-    return [
-      for (final s in ordered)
-        ?await passwords.read(s.institution),
-    ];
+    return [for (final s in ordered) ?await passwords.read(s.institution)];
   }
 
   Future<StatementUpload> upload({

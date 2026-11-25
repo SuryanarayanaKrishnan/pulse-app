@@ -31,7 +31,11 @@ Future<void> _pump(WidgetTester tester, String location) async {
         repositoryProvider.overrideWithValue(_EmptyLedger()),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         sessionProvider.overrideWith(
-          (ref) => SessionController(onboarded: true, signedIn: true, connected: true),
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
         ),
       ],
       child: PulseApp(initialLocation: location),
@@ -42,7 +46,9 @@ Future<void> _pump(WidgetTester tester, String location) async {
 }
 
 void main() {
-  testWidgets('an empty ledger shows a first-run prompt, not zeros', (tester) async {
+  testWidgets('an empty ledger shows a first-run prompt, not zeros', (
+    tester,
+  ) async {
     await _pump(tester, '/home');
     expect(find.text('Let us set up your money'), findsOneWidget);
     expect(find.text('Safe to spend today'), findsNothing);

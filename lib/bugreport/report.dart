@@ -138,7 +138,9 @@ class BugReport {
     b
       ..writeln()
       ..writeln('## Activity log (last ${lines.length} lines)')
-      ..writeln('Route changes, event names and errors only. Numbers, amounts, names and contacts are removed.')
+      ..writeln(
+        'Route changes, event names and errors only. Numbers, amounts, names and contacts are removed.',
+      )
       ..writeln()
       ..writeln('```');
     for (final l in lines) {

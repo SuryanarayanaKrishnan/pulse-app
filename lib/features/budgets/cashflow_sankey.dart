@@ -25,16 +25,23 @@ class MonthFlows {
   final List<FlowItem> spends;
   final Map<String, List<Transaction>> byCategory;
 
-  static MonthFlows of(Iterable<Transaction> txs, DateTime month, List<SpendCategory> cats) {
+  static MonthFlows of(
+    Iterable<Transaction> txs,
+    DateTime month,
+    List<SpendCategory> cats,
+  ) {
     final key = monthKeyFor(month);
     final inc = <String, int>{}, out = <String, int>{};
     final by = <String, List<Transaction>>{};
-    String label(String id) => cats.where((c) => c.id == id).firstOrNull?.label ?? id;
+    String label(String id) =>
+        cats.where((c) => c.id == id).firstOrNull?.label ?? id;
     for (final t in txs) {
-      if (t.excluded || t.category.isTransfer || monthKeyFor(t.date) != key) continue;
+      if (t.excluded || t.category.isTransfer || monthKeyFor(t.date) != key)
+        continue;
       final minor = (t.amount * 100).round();
       final id = t.category.id;
-      (t.isIncome ? inc : out)[id] = ((t.isIncome ? inc : out)[id] ?? 0) + minor;
+      (t.isIncome ? inc : out)[id] =
+          ((t.isIncome ? inc : out)[id] ?? 0) + minor;
       by.putIfAbsent('${t.isIncome ? 'in' : 'out'}:$id', () => []).add(t);
     }
     for (final l in by.values) {
@@ -82,7 +89,8 @@ class _SankeySectionState extends ConsumerState<CashflowSankeySection> {
             flows: MonthFlows.of(txs, month, cats),
             month: month,
             selected: _selected,
-            onSelect: (id) => setState(() => _selected = id == _selected ? null : id),
+            onSelect: (id) =>
+                setState(() => _selected = id == _selected ? null : id),
           ),
       ],
     );
@@ -90,7 +98,13 @@ class _SankeySectionState extends ConsumerState<CashflowSankeySection> {
 }
 
 class SankeyCard extends StatelessWidget {
-  const SankeyCard({super.key, required this.flows, required this.month, required this.selected, required this.onSelect});
+  const SankeyCard({
+    super.key,
+    required this.flows,
+    required this.month,
+    required this.selected,
+    required this.onSelect,
+  });
   final MonthFlows flows;
   final DateTime month;
   final String? selected;
@@ -113,7 +127,12 @@ class SankeyCard extends StatelessWidget {
         );
         if (layout.isEmpty) {
           return Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.lg, Space.gutter, 0),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.lg,
+              Space.gutter,
+              0,
+            ),
             child: Text(
               'No income or spending in ${DateFormat('MMMM').format(month)} yet.',
               key: const Key('sankey_empty'),
@@ -129,8 +148,12 @@ class SankeyCard extends StatelessWidget {
           _ => categoryTint(categoryTokenFor(n.id), dark: dark),
         };
         final colors = {for (final n in layout.nodes) n.id: tint(n)};
-        final spent = layout.nodes.where((n) => n.column == 1 && n.kind != SankeyKind.saved).fold(0, (a, n) => a + n.valueMinor);
-        final saved = layout.nodes.where((n) => n.kind == SankeyKind.saved).fold(0, (a, n) => a + n.valueMinor);
+        final spent = layout.nodes
+            .where((n) => n.column == 1 && n.kind != SankeyKind.saved)
+            .fold(0, (a, n) => a + n.valueMinor);
+        final saved = layout.nodes
+            .where((n) => n.kind == SankeyKind.saved)
+            .fold(0, (a, n) => a + n.valueMinor);
         final painter = _SankeyPainter(
           layout: layout,
           colors: colors,
@@ -145,7 +168,12 @@ class SankeyCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
+              padding: const EdgeInsets.fromLTRB(
+                Space.gutter,
+                Space.sm,
+                Space.gutter,
+                0,
+              ),
               child: Semantics(
                 label:
                     'Cash flow for ${DateFormat('MMMM').format(month)}: ${aedMinor(layout.totalMinor)} in, ${aedMinor(spent)} spent, ${aedMinor(saved)} saved. Tap a flow to see its payments.',
@@ -157,7 +185,13 @@ class SankeyCard extends StatelessWidget {
                 ),
               ),
             ),
-            if (selected != null) _FlowDetail(layout: layout, flows: flows, selected: selected!, colors: colors),
+            if (selected != null)
+              _FlowDetail(
+                layout: layout,
+                flows: flows,
+                selected: selected!,
+                colors: colors,
+              ),
           ],
         );
       },
@@ -194,7 +228,14 @@ class _SankeyPainter extends CustomPainter {
       ..moveTo(x0, k.sourceY)
       ..cubicTo(mx, k.sourceY, mx, k.targetY, x1, k.targetY)
       ..lineTo(x1, k.targetY + k.targetHeight)
-      ..cubicTo(mx, k.targetY + k.targetHeight, mx, k.sourceY + k.sourceHeight, x0, k.sourceY + k.sourceHeight)
+      ..cubicTo(
+        mx,
+        k.targetY + k.targetHeight,
+        mx,
+        k.sourceY + k.sourceHeight,
+        x0,
+        k.sourceY + k.sourceHeight,
+      )
       ..close();
   }
 
@@ -203,7 +244,13 @@ class _SankeyPainter extends CustomPainter {
     final q = p - Offset(leftGutter, _top);
     // The bar and a small margin; labels sit outside and do not count.
     for (final n in layout.nodes) {
-      if (Rect.fromLTWH(n.x - 12, n.y - 3, n.width + 24, n.height + 6).contains(q)) return n.id;
+      if (Rect.fromLTWH(
+        n.x - 12,
+        n.y - 3,
+        n.width + 24,
+        n.height + 6,
+      ).contains(q))
+        return n.id;
     }
     for (final k in layout.links) {
       if (_ribbon(k).contains(q)) return k.id;
@@ -213,8 +260,14 @@ class _SankeyPainter extends CustomPainter {
 
   bool _on(String id, SankeyLink? k) {
     if (selected == null) return true;
-    if (k != null) return selected == k.id || selected == k.sourceId || selected == k.targetId;
-    return selected == id || layout.links.any((l) => l.id == selected && (l.sourceId == id || l.targetId == id));
+    if (k != null)
+      return selected == k.id ||
+          selected == k.sourceId ||
+          selected == k.targetId;
+    return selected == id ||
+        layout.links.any(
+          (l) => l.id == selected && (l.sourceId == id || l.targetId == id),
+        );
   }
 
   @override
@@ -227,17 +280,29 @@ class _SankeyPainter extends CustomPainter {
       final base = dark ? 0.34 : 0.26;
       canvas.drawPath(
         _ribbon(k),
-        Paint()..color = tint.withValues(alpha: selected == null ? base : (active ? base + 0.26 : 0.07)),
+        Paint()
+          ..color = tint.withValues(
+            alpha: selected == null ? base : (active ? base + 0.26 : 0.07),
+          ),
       );
     }
     final bar = Paint();
     for (final n in layout.nodes) {
-      bar.color = (colors[n.id] ?? mutedColor).withValues(alpha: _on(n.id, null) ? 1 : 0.3);
-      canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(n.x, n.y, n.width, n.height), const Radius.circular(3)), bar);
+      bar.color = (colors[n.id] ?? mutedColor).withValues(
+        alpha: _on(n.id, null) ? 1 : 0.3,
+      );
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(n.x, n.y, n.width, n.height),
+          const Radius.circular(3),
+        ),
+        bar,
+      );
     }
     // Labels outside the bars; nudged apart so they never sit on each other.
     for (final col in [0, 1]) {
-      final ns = layout.nodes.where((n) => n.column == col).toList()..sort((a, b) => a.y.compareTo(b.y));
+      final ns = layout.nodes.where((n) => n.column == col).toList()
+        ..sort((a, b) => a.y.compareTo(b.y));
       var minY = -_top;
       for (final n in ns) {
         var y = n.y + n.height / 2 - 14;
@@ -245,13 +310,26 @@ class _SankeyPainter extends CustomPainter {
         minY = y + 30;
         final active = _on(n.id, null);
         final name = TextPainter(
-          text: TextSpan(text: n.label, style: style.copyWith(color: textColor.withValues(alpha: active ? 1 : 0.45), fontWeight: FontWeight.w500, fontSize: 12)),
+          text: TextSpan(
+            text: n.label,
+            style: style.copyWith(
+              color: textColor.withValues(alpha: active ? 1 : 0.45),
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
+          ),
           textDirection: ui.TextDirection.ltr,
           maxLines: 1,
           ellipsis: '…',
         )..layout(maxWidth: col == 0 ? leftGutter - 14 : 104 - 14);
         final amt = TextPainter(
-          text: TextSpan(text: aedMinor(n.valueMinor), style: style.copyWith(color: mutedColor.withValues(alpha: active ? 1 : 0.45), fontSize: 11)),
+          text: TextSpan(
+            text: aedMinor(n.valueMinor),
+            style: style.copyWith(
+              color: mutedColor.withValues(alpha: active ? 1 : 0.45),
+              fontSize: 11,
+            ),
+          ),
           textDirection: ui.TextDirection.ltr,
           maxLines: 1,
           ellipsis: '…',
@@ -267,12 +345,20 @@ class _SankeyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SankeyPainter o) =>
-      o.layout != layout || o.selected != selected || o.dark != dark || o.textColor != textColor;
+      o.layout != layout ||
+      o.selected != selected ||
+      o.dark != dark ||
+      o.textColor != textColor;
 }
 
 /// What is behind a tapped flow: the payments of that category.
 class _FlowDetail extends StatelessWidget {
-  const _FlowDetail({required this.layout, required this.flows, required this.selected, required this.colors});
+  const _FlowDetail({
+    required this.layout,
+    required this.flows,
+    required this.selected,
+    required this.colors,
+  });
   final SankeyLayout layout;
   final MonthFlows flows;
   final String selected;
@@ -282,16 +368,20 @@ class _FlowDetail extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final link = layout.links.where((l) => l.id == selected).firstOrNull;
-    final node = layout.nodes.where((n) => n.id == (link?.targetId ?? selected)).firstOrNull;
-    final src = link == null ? null : layout.nodes.where((n) => n.id == link.sourceId).firstOrNull;
+    final node = layout.nodes
+        .where((n) => n.id == (link?.targetId ?? selected))
+        .firstOrNull;
+    final src = link == null
+        ? null
+        : layout.nodes.where((n) => n.id == link.sourceId).firstOrNull;
     if (node == null) return const SizedBox.shrink();
     final isIncomeNode = node.column == 0;
     final dir = isIncomeNode ? 'in' : 'out';
     final txs = [
-      for (final id in node.members)
-        ...?flows.byCategory['$dir:$id'],
+      for (final id in node.members) ...?flows.byCategory['$dir:$id'],
     ]..sort((a, b) => b.date.compareTo(a.date));
-    final virtual = node.kind == SankeyKind.saved || node.kind == SankeyKind.deficit;
+    final virtual =
+        node.kind == SankeyKind.saved || node.kind == SankeyKind.deficit;
     final title = link != null && src != null && !virtual
         ? '${src.label} to ${node.label}'
         : node.label;
@@ -309,7 +399,10 @@ class _FlowDetail extends StatelessWidget {
                 Dot(colors[node.id] ?? c.textTertiary),
                 const SizedBox(width: Space.sm),
                 Expanded(child: Text(title, style: context.tt.titleSmall)),
-                Text(aedMinor(amount), style: PulseTheme.amount(c.textPrimary, size: 15)),
+                Text(
+                  aedMinor(amount),
+                  style: PulseTheme.amount(c.textPrimary, size: 15),
+                ),
               ],
             ),
           ),
@@ -338,14 +431,19 @@ class _FlowDetail extends StatelessWidget {
                     dense: true,
                     title: t.merchant,
                     subtitle: DateFormat('d MMM').format(t.date),
-                    trailing: Text(aedMinor((t.amount * 100).round()), style: PulseTheme.amount(c.textPrimary, size: 15)),
+                    trailing: Text(
+                      aedMinor((t.amount * 100).round()),
+                      style: PulseTheme.amount(c.textPrimary, size: 15),
+                    ),
                   ),
                 if (txs.length > 6 && node.members.length == 1)
                   ListRow(
                     dense: true,
                     title: 'All ${txs.length} payments',
                     chevron: true,
-                    onTap: () => context.push('${Routes.activity}?category=${node.members.first}'),
+                    onTap: () => context.push(
+                      '${Routes.activity}?category=${node.members.first}',
+                    ),
                   ),
               ],
             ),

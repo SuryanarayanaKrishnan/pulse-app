@@ -50,7 +50,12 @@ class SyncScreen extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: Space.xxxl),
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -69,18 +74,21 @@ class SyncScreen extends ConsumerWidget {
                   const Callout(
                     icon: Icons.lock_outline_rounded,
                     title: 'Backup comes first',
-                    text:
-                        'Sync uses your backup recovery key. Turn on encrypted backup (signed in), then come back.',
+                    text: 'Sync uses your backup recovery key. Turn on encrypted backup (signed in), then come back.',
                   )
                 else ...[
                   Text(
-                    s.running ? 'Syncing...' : syncedAgo(s.lastSuccess, now ?? DateTime.now()),
+                    s.running
+                        ? 'Syncing...'
+                        : syncedAgo(s.lastSuccess, now ?? DateTime.now()),
                     style: context.tt.titleLarge,
                   ),
                   if (s.lastSuccess != null && !failing && !s.running)
                     Text(
                       'Sent ${s.lastSent}, received ${s.lastReceived} change${s.lastReceived == 1 ? '' : 's'} last time',
-                      style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
+                      style: context.tt.bodySmall!.copyWith(
+                        color: c.textSecondary,
+                      ),
                     ),
                   if (failing) ...[
                     const SizedBox(height: Space.md),
@@ -120,7 +128,12 @@ class SyncScreen extends ConsumerWidget {
             ),
           ],
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.xl,
+              Space.gutter,
+              0,
+            ),
             child: Text(
               'Not synced: photos and document files (they stay on the phone that added them), '
               'raw messages, and caches. If two devices change the same field, the later change wins.',

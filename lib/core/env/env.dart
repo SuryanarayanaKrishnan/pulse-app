@@ -47,7 +47,10 @@ class Env {
 
   /// Beta builds enable shake-to-report by default. Pass
   /// `--dart-define=BETA_BUILD=false` for a store build.
-  static const betaBuild = bool.fromEnvironment('BETA_BUILD', defaultValue: true);
+  static const betaBuild = bool.fromEnvironment(
+    'BETA_BUILD',
+    defaultValue: true,
+  );
 
   /// Optional bug-report endpoint (docs/BUG_REPORTS.md). Empty: reports go
   /// through the system share sheet only. Never put a token here.

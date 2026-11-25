@@ -341,14 +341,20 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
   Future<SpendCategory> createCategory({
     required String name,
     CategoryKind kind = CategoryKind.expense,
-    String? iconKey, // the hosted API has no icon field yet; kept on device only
+    String?
+    iconKey, // the hosted API has no icon field yet; kept on device only
   }) async {
     final json = await _send('POST', '/v1/categories', {
       'name': name.trim(),
       'kind': kind.name,
     });
     final dto = CategoryDto.fromJson(json);
-    return SpendCategory.custom(dto.id, dto.name, kind: dto.categoryKind, iconKey: iconKey);
+    return SpendCategory.custom(
+      dto.id,
+      dto.name,
+      kind: dto.categoryKind,
+      iconKey: iconKey,
+    );
   }
 
   @override

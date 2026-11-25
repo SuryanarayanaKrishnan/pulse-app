@@ -67,6 +67,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                     for (var i = 0; i < _items.length; i++)
                       Expanded(
                         child: _NavItem(
+                          index: i,
                           icon: shell.currentIndex == i
                               ? _items[i].$1
                               : _items[i].$2,
@@ -108,11 +109,13 @@ class AppShellItems {
 
 class _NavItem extends StatelessWidget {
   const _NavItem({
+    required this.index,
     required this.icon,
     required this.label,
     required this.selected,
     required this.onTap,
   });
+  final int index;
   final IconData icon;
   final String label;
   final bool selected;
@@ -121,7 +124,9 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final color = selected ? c.accent : c.textTertiary;
+    final color = selected
+        ? c.tabAccent(PulseTab.values[index])
+        : c.textTertiary;
     return Semantics(
       button: true,
       selected: selected,

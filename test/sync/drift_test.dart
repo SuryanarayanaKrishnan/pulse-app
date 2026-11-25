@@ -17,8 +17,13 @@ import 'support.dart';
 
 /// A real (in-memory SQLite) phone.
 class Phone {
-  Phone(this.server, this.dir, this.name, {int startMs = 1000000}) : db = memoryDb(), nowMs = startMs {
-    store = FileSyncStateStore(locate: () async => File('${dir.path}/$name.json'), db: db);
+  Phone(this.server, this.dir, this.name, {int startMs = 1000000})
+    : db = memoryDb(),
+      nowMs = startMs {
+    store = FileSyncStateStore(
+      locate: () async => File('${dir.path}/$name.json'),
+      db: db,
+    );
     engine = _build();
   }
   final MemorySyncTransport server;
@@ -46,32 +51,46 @@ class Phone {
 
   Future<void> addTx(String id, String merchant, int amount) async {
     nowMs += 1000;
-    await db.into(db.transactions).insert(
-      TransactionsCompanion.insert(
-        id: id,
-        accountId: 'a1',
-        amountMinor: amount,
-        direction: 'debit',
-        postedAt: DateTime.utc(2026, 1, 1),
-        source: 'manual',
-        merchantRaw: Value(merchant),
-      ),
-    );
+    await db
+        .into(db.transactions)
+        .insert(
+          TransactionsCompanion.insert(
+            id: id,
+            accountId: 'a1',
+            amountMinor: amount,
+            direction: 'debit',
+            postedAt: DateTime.utc(2026, 1, 1),
+            source: 'manual',
+            merchantRaw: Value(merchant),
+          ),
+        );
   }
 
-  Future<void> addCustomCategory(String id, String name, String? iconKey) async {
+  Future<void> addCustomCategory(
+    String id,
+    String name,
+    String? iconKey,
+  ) async {
     nowMs += 1000;
-    await db.into(db.categories).insert(
-      CategoriesCompanion.insert(id: id, name: name, isCustom: const Value(true), iconKey: Value(iconKey)),
-    );
+    await db
+        .into(db.categories)
+        .insert(
+          CategoriesCompanion.insert(
+            id: id,
+            name: name,
+            isCustom: const Value(true),
+            iconKey: Value(iconKey),
+          ),
+        );
   }
 
-  Future<void> addAccount() => db.into(db.accounts).insert(
-    AccountsCompanion.insert(id: 'a1', type: 'bank', name: 'Salary'),
-  );
+  Future<void> addAccount() => db
+      .into(db.accounts)
+      .insert(AccountsCompanion.insert(id: 'a1', type: 'bank', name: 'Salary'));
 
-  Future<List<Map<String, Object?>>> rows(String sql) async =>
-      [for (final r in await db.customSelect(sql).get()) r.data];
+  Future<List<Map<String, Object?>>> rows(String sql) async => [
+    for (final r in await db.customSelect(sql).get()) r.data,
+  ];
 }
 
 void main() {
@@ -111,28 +130,39 @@ void main() {
     expect(row['reviewed'], 0);
   });
 
-  test('a review on one phone reaches the other, and both stay idle after', () async {
-    await p1.addAccount();
-    await p1.addTx('t1', 'Carrefour', 1200);
-    await p1.addTx('t2', 'Noon', 5000);
-    await p1.sync();
-    await p2.sync();
-    expect(await p2.rows('SELECT id, reviewed FROM transactions ORDER BY id'), [
-      {'id': 't1', 'reviewed': 0},
-      {'id': 't2', 'reviewed': 0},
-    ]);
+  test(
+    'a review on one phone reaches the other, and both stay idle after',
+    () async {
+      await p1.addAccount();
+      await p1.addTx('t1', 'Carrefour', 1200);
+      await p1.addTx('t2', 'Noon', 5000);
+      await p1.sync();
+      await p2.sync();
+      expect(
+        await p2.rows('SELECT id, reviewed FROM transactions ORDER BY id'),
+        [
+          {'id': 't1', 'reviewed': 0},
+          {'id': 't2', 'reviewed': 0},
+        ],
+      );
 
-    p2.nowMs += 1000;
-    await p2.db.customStatement("UPDATE transactions SET reviewed = 1 WHERE id = 't1'");
-    await p2.sync();
-    await p1.sync();
-    expect(await p1.rows('SELECT id, reviewed FROM transactions ORDER BY id'), [
-      {'id': 't1', 'reviewed': 1},
-      {'id': 't2', 'reviewed': 0},
-    ]);
-    expect((await p1.sync()).idle, isTrue);
-    expect((await p2.sync()).idle, isTrue);
-  });
+      p2.nowMs += 1000;
+      await p2.db.customStatement(
+        "UPDATE transactions SET reviewed = 1 WHERE id = 't1'",
+      );
+      await p2.sync();
+      await p1.sync();
+      expect(
+        await p1.rows('SELECT id, reviewed FROM transactions ORDER BY id'),
+        [
+          {'id': 't1', 'reviewed': 1},
+          {'id': 't2', 'reviewed': 0},
+        ],
+      );
+      expect((await p1.sync()).idle, isTrue);
+      expect((await p2.sync()).idle, isTrue);
+    },
+  );
 
   test('categories.icon_key is a synced column', () async {
     expect(isSyncedColumn('categories', 'icon_key'), isTrue);
@@ -145,28 +175,43 @@ void main() {
     await p1.addCustomCategory('c_1', 'Coffee runs', 'coffee');
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows("SELECT id, icon_key FROM categories WHERE id = 'c_1'"), [
-      {'id': 'c_1', 'icon_key': 'coffee'},
-    ]);
+    expect(
+      await p2.rows("SELECT id, icon_key FROM categories WHERE id = 'c_1'"),
+      [
+        {'id': 'c_1', 'icon_key': 'coffee'},
+      ],
+    );
 
     // change it on the second phone; the first follows
     p2.nowMs += 1000;
-    await p2.db.customStatement("UPDATE categories SET icon_key = 'paw' WHERE id = 'c_1'");
+    await p2.db.customStatement(
+      "UPDATE categories SET icon_key = 'paw' WHERE id = 'c_1'",
+    );
     await p2.sync();
     await p1.sync();
     expect(await p1.rows("SELECT icon_key FROM categories WHERE id = 'c_1'"), [
       {'icon_key': 'paw'},
     ]);
     // the seeded defaults never carry one
-    expect(await p1.rows("SELECT icon_key FROM categories WHERE id = 'groceries'"), [
-      {'icon_key': null},
-    ]);
+    expect(
+      await p1.rows("SELECT icon_key FROM categories WHERE id = 'groceries'"),
+      [
+        {'icon_key': null},
+      ],
+    );
     expect((await p1.sync()).idle, isTrue);
     expect((await p2.sync()).idle, isTrue);
   });
 
   test('goal columns and contributions are synced, not device-local', () async {
-    for (final col in ['kind', 'icon_key', 'linked_ref', 'paused', 'completed_at', 'saved_minor']) {
+    for (final col in [
+      'kind',
+      'icon_key',
+      'linked_ref',
+      'paused',
+      'completed_at',
+      'saved_minor',
+    ]) {
       expect(isSyncedColumn('savings_goals', col), isTrue, reason: col);
     }
     expect(syncedTables, contains('goal_contributions'));
@@ -184,16 +229,40 @@ void main() {
     );
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows("SELECT id, name, kind, icon_key, saved_minor, paused FROM savings_goals"), [
-      {'id': 'g1', 'name': 'Trip to Japan', 'kind': 'save', 'icon_key': 'travel', 'saved_minor': 300000, 'paused': 0},
-    ]);
-    expect(await p2.rows('SELECT goal_id, amount_minor, on_date, note FROM goal_contributions'), [
-      {'goal_id': 'g1', 'amount_minor': 150000, 'on_date': '2026-11-02', 'note': 'Bonus'},
-    ]);
+    expect(
+      await p2.rows(
+        "SELECT id, name, kind, icon_key, saved_minor, paused FROM savings_goals",
+      ),
+      [
+        {
+          'id': 'g1',
+          'name': 'Trip to Japan',
+          'kind': 'save',
+          'icon_key': 'travel',
+          'saved_minor': 300000,
+          'paused': 0,
+        },
+      ],
+    );
+    expect(
+      await p2.rows(
+        'SELECT goal_id, amount_minor, on_date, note FROM goal_contributions',
+      ),
+      [
+        {
+          'goal_id': 'g1',
+          'amount_minor': 150000,
+          'on_date': '2026-11-02',
+          'note': 'Bonus',
+        },
+      ],
+    );
 
     // pause on the second phone; the first follows
     p2.nowMs += 1000;
-    await p2.db.customStatement("UPDATE savings_goals SET paused = 1 WHERE id = 'g1'");
+    await p2.db.customStatement(
+      "UPDATE savings_goals SET paused = 1 WHERE id = 'g1'",
+    );
     await p2.sync();
     await p1.sync();
     expect(await p1.rows("SELECT paused FROM savings_goals WHERE id = 'g1'"), [
@@ -204,11 +273,23 @@ void main() {
   });
 
   test('household: ownership columns sync to my own devices; the household tables never do', () async {
-    for (final t in ['transactions', 'accounts', 'assets', 'liabilities', 'savings_goals']) {
+    for (final t in [
+      'transactions',
+      'accounts',
+      'assets',
+      'liabilities',
+      'savings_goals',
+    ]) {
       expect(isSyncedColumn(t, 'owner'), isTrue, reason: t);
       expect(isSyncedColumn(t, 'is_private'), isTrue, reason: t);
     }
-    for (final t in ['household_configs', 'household_members', 'household_bills', 'household_limits', 'household_mirror']) {
+    for (final t in [
+      'household_configs',
+      'household_members',
+      'household_bills',
+      'household_limits',
+      'household_mirror',
+    ]) {
       expect(syncedTables, isNot(contains(t)), reason: t);
     }
   });
@@ -218,23 +299,50 @@ void main() {
     await p1.addTx('t1', 'Spinneys', 4100);
     await p1.addTx('t2', 'Gift', 9000);
     p1.nowMs += 1000;
-    await p1.db.customStatement("UPDATE transactions SET owner = 'shared' WHERE id = 't1'");
-    await p1.db.customStatement("UPDATE transactions SET is_private = 1 WHERE id = 't2'");
+    await p1.db.customStatement(
+      "UPDATE transactions SET owner = 'shared' WHERE id = 't1'",
+    );
+    await p1.db.customStatement(
+      "UPDATE transactions SET is_private = 1 WHERE id = 't2'",
+    );
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows("SELECT id, owner, is_private FROM transactions ORDER BY id"), [
-      {'id': 't1', 'owner': 'shared', 'is_private': 0},
-      {'id': 't2', 'owner': 'me', 'is_private': 1},
-    ]);
+    expect(
+      await p2.rows(
+        "SELECT id, owner, is_private FROM transactions ORDER BY id",
+      ),
+      [
+        {'id': 't1', 'owner': 'shared', 'is_private': 0},
+        {'id': 't2', 'owner': 'me', 'is_private': 1},
+      ],
+    );
     expect((await p2.sync()).idle, isTrue);
   });
 
   test('flex budget: moves and mode are allow-listed, the group and rollover columns travel with the category', () async {
-    expect(syncedTables, containsAll(['budget_moves', 'budget_prefs', 'budgets', 'categories']));
-    for (final c in ['budget_group', 'rollover', 'rollover_start', 'rollover_start_minor', 'cycle_cost_minor', 'cycle_months']) {
+    expect(
+      syncedTables,
+      containsAll(['budget_moves', 'budget_prefs', 'budgets', 'categories']),
+    );
+    for (final c in [
+      'budget_group',
+      'rollover',
+      'rollover_start',
+      'rollover_start_minor',
+      'cycle_cost_minor',
+      'cycle_months',
+    ]) {
       expect(isSyncedColumn('categories', c), isTrue, reason: c);
     }
-    for (final c in ['id', 'scope', 'month', 'from_category_id', 'to_category_id', 'amount_minor', 'deleted_at']) {
+    for (final c in [
+      'id',
+      'scope',
+      'month',
+      'from_category_id',
+      'to_category_id',
+      'amount_minor',
+      'deleted_at',
+    ]) {
       expect(isSyncedColumn('budget_moves', c), isTrue, reason: c);
     }
   });
@@ -244,7 +352,9 @@ void main() {
       "INSERT INTO categories (id, name, kind, budget_group, rollover, cycle_cost_minor, cycle_months) "
       "VALUES ('fee', 'Card fee', 'expense', 'nonmonthly', 1, 36500, 12)",
     );
-    await p1.db.customStatement("INSERT INTO budget_prefs (id, mode) VALUES ('main', 'category')");
+    await p1.db.customStatement(
+      "INSERT INTO budget_prefs (id, mode) VALUES ('main', 'category')",
+    );
     await p1.db.customStatement(
       "INSERT INTO budget_moves (id, scope, month, from_category_id, to_category_id, amount_minor) "
       "VALUES ('m1', 'me', '2026-11-01', 'dining', 'fee', 12345)",
@@ -256,25 +366,45 @@ void main() {
     p1.nowMs += 1000;
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows("SELECT budget_group, rollover, cycle_cost_minor, cycle_months FROM categories WHERE id = 'fee'"), [
-      {'budget_group': 'nonmonthly', 'rollover': 1, 'cycle_cost_minor': 36500, 'cycle_months': 12},
-    ]);
+    expect(
+      await p2.rows(
+        "SELECT budget_group, rollover, cycle_cost_minor, cycle_months FROM categories WHERE id = 'fee'",
+      ),
+      [
+        {
+          'budget_group': 'nonmonthly',
+          'rollover': 1,
+          'cycle_cost_minor': 36500,
+          'cycle_months': 12,
+        },
+      ],
+    );
     expect(await p2.rows('SELECT mode FROM budget_prefs'), [
       {'mode': 'category'},
     ]);
-    expect(await p2.rows('SELECT id, scope, amount_minor FROM budget_moves ORDER BY id'), [
-      {'id': 'm1', 'scope': 'me', 'amount_minor': 12345},
-      {'id': 'm2', 'scope': 'shared', 'amount_minor': 700},
-    ]);
+    expect(
+      await p2.rows(
+        'SELECT id, scope, amount_minor FROM budget_moves ORDER BY id',
+      ),
+      [
+        {'id': 'm1', 'scope': 'me', 'amount_minor': 12345},
+        {'id': 'm2', 'scope': 'shared', 'amount_minor': 700},
+      ],
+    );
 
     // Undo on the first phone (soft delete) reaches the second.
     p1.nowMs += 1000;
-    await p1.db.customStatement("UPDATE budget_moves SET deleted_at = 1790000000 WHERE id = 'm1'");
+    await p1.db.customStatement(
+      "UPDATE budget_moves SET deleted_at = 1790000000 WHERE id = 'm1'",
+    );
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows("SELECT deleted_at FROM budget_moves WHERE id = 'm1'"), [
-      {'deleted_at': 1790000000},
-    ]);
+    expect(
+      await p2.rows("SELECT deleted_at FROM budget_moves WHERE id = 'm1'"),
+      [
+        {'deleted_at': 1790000000},
+      ],
+    );
     expect((await p2.sync()).idle, isTrue);
   });
 
@@ -283,19 +413,36 @@ void main() {
     for (final c in ['series_key', 'choice', 'merchant', 'decided_at']) {
       expect(isSyncedColumn('recurring_choices', c), isTrue, reason: c);
     }
-    await p1.db.customStatement("INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('acme tv', 'confirmed', 'ACME TV')");
-    await p1.db.customStatement("INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('bill co#20', 'ignored', 'Bill Co')");
+    await p1.db.customStatement(
+      "INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('acme tv', 'confirmed', 'ACME TV')",
+    );
+    await p1.db.customStatement(
+      "INSERT INTO recurring_choices (series_key, choice, merchant) VALUES ('bill co#20', 'ignored', 'Bill Co')",
+    );
     p1.nowMs += 1000;
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows('SELECT series_key, choice, merchant FROM recurring_choices ORDER BY series_key'), [
-      {'series_key': 'acme tv', 'choice': 'confirmed', 'merchant': 'ACME TV'},
-      {'series_key': 'bill co#20', 'choice': 'ignored', 'merchant': 'Bill Co'},
-    ]);
+    expect(
+      await p2.rows(
+        'SELECT series_key, choice, merchant FROM recurring_choices ORDER BY series_key',
+      ),
+      [
+        {'series_key': 'acme tv', 'choice': 'confirmed', 'merchant': 'ACME TV'},
+        {
+          'series_key': 'bill co#20',
+          'choice': 'ignored',
+          'merchant': 'Bill Co',
+        },
+      ],
+    );
     // Changing a mind and clearing a choice both travel.
     p2.nowMs += 5000;
-    await p2.db.customStatement("UPDATE recurring_choices SET choice = 'ignored' WHERE series_key = 'acme tv'");
-    await p2.db.customStatement("DELETE FROM recurring_choices WHERE series_key = 'bill co#20'");
+    await p2.db.customStatement(
+      "UPDATE recurring_choices SET choice = 'ignored' WHERE series_key = 'acme tv'",
+    );
+    await p2.db.customStatement(
+      "DELETE FROM recurring_choices WHERE series_key = 'bill co#20'",
+    );
     await p2.sync();
     await p1.sync();
     expect(await p1.rows('SELECT series_key, choice FROM recurring_choices'), [
@@ -319,17 +466,26 @@ void main() {
     await p1.addTx('t2', 'Noon', 5000);
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows('SELECT id, merchant_raw, amount_minor FROM transactions ORDER BY id'), [
-      {'id': 't1', 'merchant_raw': 'Carrefour', 'amount_minor': 1200},
-      {'id': 't2', 'merchant_raw': 'Noon', 'amount_minor': 5000},
-    ]);
+    expect(
+      await p2.rows(
+        'SELECT id, merchant_raw, amount_minor FROM transactions ORDER BY id',
+      ),
+      [
+        {'id': 't1', 'merchant_raw': 'Carrefour', 'amount_minor': 1200},
+        {'id': 't2', 'merchant_raw': 'Noon', 'amount_minor': 5000},
+      ],
+    );
     // Dates survive as the same stored value.
     expect(
-      (await p1.rows("SELECT posted_at FROM transactions WHERE id = 't1'")).single,
-      (await p2.rows("SELECT posted_at FROM transactions WHERE id = 't1'")).single,
+      (await p1.rows("SELECT posted_at FROM transactions WHERE id = 't1'"))
+          .single,
+      (await p2.rows("SELECT posted_at FROM transactions WHERE id = 't1'"))
+          .single,
     );
 
-    await p2.db.customStatement("UPDATE transactions SET merchant_raw = 'Carrefour Express' WHERE id = 't1'");
+    await p2.db.customStatement(
+      "UPDATE transactions SET merchant_raw = 'Carrefour Express' WHERE id = 't1'",
+    );
     await p2.db.customStatement("DELETE FROM transactions WHERE id = 't2'");
     await p2.sync();
     await p1.sync();
@@ -342,19 +498,24 @@ void main() {
 
   test('raw ingests and settings never leave the phone', () async {
     await p1.addAccount();
-    await p1.db.into(p1.db.rawIngests).insert(
-      RawIngestsCompanion.insert(
-        id: 'r1',
-        channel: 'sms',
-        externalHash: 'h1',
-        payload: 'AED 12 spent at SECRETSHOP. Do not share.',
-      ),
-    );
+    await p1.db
+        .into(p1.db.rawIngests)
+        .insert(
+          RawIngestsCompanion.insert(
+            id: 'r1',
+            channel: 'sms',
+            externalHash: 'h1',
+            payload: 'AED 12 spent at SECRETSHOP. Do not share.',
+          ),
+        );
     await p1.db.putSetting('theme', 'dark');
     await p1.sync();
     await p2.sync();
     expect(await p2.rows('SELECT * FROM raw_ingests'), isEmpty);
-    expect(await p2.rows("SELECT * FROM app_settings WHERE key = 'theme'"), isEmpty);
+    expect(
+      await p2.rows("SELECT * FROM app_settings WHERE key = 'theme'"),
+      isEmpty,
+    );
     // And nothing about them is in the encrypted log either.
     final codec = await SegmentCodec.forDataKey(testKey);
     for (final e in server.objects.entries) {
@@ -367,29 +528,41 @@ void main() {
     }
   });
 
-  test('device-local columns are not sent, and the receiving row keeps its own', () async {
-    await p1.addAccount();
-    await p1.db.into(p1.db.documentAttachments).insert(
-      DocumentAttachmentsCompanion.insert(
-        id: 'd1',
-        title: 'Title deed',
-        category: 'title_deed',
-        filePaths: const Value('["/data/user/0/app/scan.jpg"]'),
-        notificationId: const Value(77),
-      ),
-    );
-    await p1.sync();
-    await p2.sync();
-    final row = (await p2.rows('SELECT title, file_paths, notification_id FROM document_attachments')).single;
-    expect(row['title'], 'Title deed');
-    expect(row['file_paths'], '[]');
-    expect(row['notification_id'], isNull);
-    final codec = await SegmentCodec.forDataKey(testKey);
-    for (final e in server.objects.entries) {
-      final seg = await codec.decode(e.key, e.value);
-      expect(seg.changes.any((c) => c.field == 'file_paths' || c.field == 'notification_id'), isFalse);
-    }
-  });
+  test(
+    'device-local columns are not sent, and the receiving row keeps its own',
+    () async {
+      await p1.addAccount();
+      await p1.db
+          .into(p1.db.documentAttachments)
+          .insert(
+            DocumentAttachmentsCompanion.insert(
+              id: 'd1',
+              title: 'Title deed',
+              category: 'title_deed',
+              filePaths: const Value('["/data/user/0/app/scan.jpg"]'),
+              notificationId: const Value(77),
+            ),
+          );
+      await p1.sync();
+      await p2.sync();
+      final row = (await p2.rows(
+        'SELECT title, file_paths, notification_id FROM document_attachments',
+      )).single;
+      expect(row['title'], 'Title deed');
+      expect(row['file_paths'], '[]');
+      expect(row['notification_id'], isNull);
+      final codec = await SegmentCodec.forDataKey(testKey);
+      for (final e in server.objects.entries) {
+        final seg = await codec.decode(e.key, e.value);
+        expect(
+          seg.changes.any(
+            (c) => c.field == 'file_paths' || c.field == 'notification_id',
+          ),
+          isFalse,
+        );
+      }
+    },
+  );
 
   test('a row the database cannot take yet (missing parent data) is retried, not lost or deleted', () async {
     await p1.addAccount();
@@ -399,22 +572,37 @@ void main() {
     // with a NOT NULL column absent fails: simulate a partial remote row.
     final bridge = DriftSyncBridge(p2.db);
     final failed = await bridge.write([
-      const RowWrite('transactions', 'tx-partial', {'note': 'no account, no amount'}),
+      const RowWrite('transactions', 'tx-partial', {
+        'note': 'no account, no amount',
+      }),
     ]);
     expect(failed, {const RowKey('transactions', 'tx-partial')});
   });
 
-  test('hostile table or column names from a segment are never run as SQL', () async {
-    final bridge = DriftSyncBridge(p1.db);
-    final failed = await bridge.write([
-      const RowWrite('accounts"; DROP TABLE transactions; --', 'x', {'id': 'x'}),
-      const RowWrite('raw_ingests', 'x', {'id': 'x', 'payload': 'p'}),
-      const RowWrite('accounts', 'x', {'id': 'x', 'name") VALUES (1); DROP TABLE accounts; --': 1}),
-    ]);
-    expect(failed.length, lessThanOrEqualTo(1));
-    expect(await p1.rows("SELECT name FROM sqlite_master WHERE name IN ('transactions','accounts','raw_ingests')"), hasLength(3));
-    expect(await p1.rows('SELECT * FROM raw_ingests'), isEmpty);
-  });
+  test(
+    'hostile table or column names from a segment are never run as SQL',
+    () async {
+      final bridge = DriftSyncBridge(p1.db);
+      final failed = await bridge.write([
+        const RowWrite('accounts"; DROP TABLE transactions; --', 'x', {
+          'id': 'x',
+        }),
+        const RowWrite('raw_ingests', 'x', {'id': 'x', 'payload': 'p'}),
+        const RowWrite('accounts', 'x', {
+          'id': 'x',
+          'name") VALUES (1); DROP TABLE accounts; --': 1,
+        }),
+      ]);
+      expect(failed.length, lessThanOrEqualTo(1));
+      expect(
+        await p1.rows(
+          "SELECT name FROM sqlite_master WHERE name IN ('transactions','accounts','raw_ingests')",
+        ),
+        hasLength(3),
+      );
+      expect(await p1.rows('SELECT * FROM raw_ingests'), isEmpty);
+    },
+  );
 
   test('state belongs to this exact database: after a restore it starts over, no mass delete', () async {
     await p1.addAccount();
@@ -448,31 +636,50 @@ void main() {
     await p1.addAccount();
     await p1.addTx('t1', 'NOON.COM', 16250);
     p1.nowMs += 1000;
-    await p1.db.customStatement("UPDATE transactions SET receipt_ref = 'msg-1', receipt_notes = 'Coupon: -AED 15.00' WHERE id = 't1'");
+    await p1.db.customStatement(
+      "UPDATE transactions SET receipt_ref = 'msg-1', receipt_notes = 'Coupon: -AED 15.00' WHERE id = 't1'",
+    );
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows('SELECT receipt_ref, receipt_notes FROM transactions'), [
-      {'receipt_ref': 'msg-1', 'receipt_notes': 'Coupon: -AED 15.00'},
-    ]);
+    expect(
+      await p2.rows('SELECT receipt_ref, receipt_notes FROM transactions'),
+      [
+        {'receipt_ref': 'msg-1', 'receipt_notes': 'Coupon: -AED 15.00'},
+      ],
+    );
     final cols = <String>{
       for (final t in syncedTables)
         for (final r in await p1.rows('PRAGMA table_info($t)')) '${r['name']}',
     };
-    for (final bad in ['body', 'html', 'raw_email', 'email', 'raw_body', 'snippet']) {
-      expect(cols.contains(bad), isFalse, reason: 'no synced column named $bad');
+    for (final bad in [
+      'body',
+      'html',
+      'raw_email',
+      'email',
+      'raw_body',
+      'snippet',
+    ]) {
+      expect(
+        cols.contains(bad),
+        isFalse,
+        reason: 'no synced column named $bad',
+      );
     }
   });
 
-  test('the state file is replaced atomically and survives a restart', () async {
-    await p1.addAccount();
-    await p1.sync();
-    final id = p1.engine.deviceId;
-    p1.restart();
-    await p1.sync();
-    expect(p1.engine.deviceId, id);
-    expect(File('${dir.path}/p1.json').existsSync(), isTrue);
-    expect(File('${dir.path}/p1.json.tmp').existsSync(), isFalse);
-  });
+  test(
+    'the state file is replaced atomically and survives a restart',
+    () async {
+      await p1.addAccount();
+      await p1.sync();
+      final id = p1.engine.deviceId;
+      p1.restart();
+      await p1.sync();
+      expect(p1.engine.deviceId, id);
+      expect(File('${dir.path}/p1.json').existsSync(), isTrue);
+      expect(File('${dir.path}/p1.json.tmp').existsSync(), isFalse);
+    },
+  );
   test('family vault: entries and people sync to my other phone; photo paths and key shares never do', () async {
     expect(syncedTables, containsAll(['vault_entries', 'vault_nominees']));
     expect(isSyncedColumn('vault_entries', 'where_to_find'), isTrue);
@@ -489,30 +696,67 @@ void main() {
     await p1.db.putSetting('vault.last_checkin', '2026-11-01T00:00:00Z');
     await p1.sync();
     await p2.sync();
-    expect(await p2.rows('SELECT id, institution, where_to_find, nominee_name, estimated_value_minor, photo_paths FROM vault_entries'), [
-      {'id': 'v1', 'institution': 'Mashreq', 'where_to_find': 'Statements in the grey folder', 'nominee_name': 'Sara', 'estimated_value_minor': 1250000, 'photo_paths': '[]'},
-    ]);
-    expect(await p2.rows('SELECT name, relationship, entry_ids FROM vault_nominees'), [
-      {'name': 'Sara', 'relationship': 'Wife', 'entry_ids': '["v1"]'},
-    ]);
+    expect(
+      await p2.rows(
+        'SELECT id, institution, where_to_find, nominee_name, estimated_value_minor, photo_paths FROM vault_entries',
+      ),
+      [
+        {
+          'id': 'v1',
+          'institution': 'Mashreq',
+          'where_to_find': 'Statements in the grey folder',
+          'nominee_name': 'Sara',
+          'estimated_value_minor': 1250000,
+          'photo_paths': '[]',
+        },
+      ],
+    );
+    expect(
+      await p2.rows('SELECT name, relationship, entry_ids FROM vault_nominees'),
+      [
+        {'name': 'Sara', 'relationship': 'Wife', 'entry_ids': '["v1"]'},
+      ],
+    );
     expect(await p2.db.setting('vault.share1.n1'), isNull);
     expect(await p2.db.setting('vault.last_checkin'), isNull);
 
     // an edit on the second phone returns; a soft delete too
     p2.nowMs += 1000;
-    await p2.db.customStatement("UPDATE vault_entries SET where_to_find = 'App, face unlock' WHERE id = 'v1'");
-    await p2.db.customStatement("UPDATE vault_nominees SET deleted_at = 1790000000 WHERE id = 'n1'");
+    await p2.db.customStatement(
+      "UPDATE vault_entries SET where_to_find = 'App, face unlock' WHERE id = 'v1'",
+    );
+    await p2.db.customStatement(
+      "UPDATE vault_nominees SET deleted_at = 1790000000 WHERE id = 'n1'",
+    );
     await p2.sync();
     await p1.sync();
-    expect(await p1.rows("SELECT where_to_find FROM vault_entries WHERE id = 'v1'"), [
-      {'where_to_find': 'App, face unlock'},
-    ]);
-    expect((await p1.rows("SELECT deleted_at FROM vault_nominees WHERE id = 'n1'")).single['deleted_at'], isNotNull);
+    expect(
+      await p1.rows("SELECT where_to_find FROM vault_entries WHERE id = 'v1'"),
+      [
+        {'where_to_find': 'App, face unlock'},
+      ],
+    );
+    expect(
+      (await p1.rows("SELECT deleted_at FROM vault_nominees WHERE id = 'n1'"))
+          .single['deleted_at'],
+      isNotNull,
+    );
     expect((await p1.sync()).idle, isTrue);
     expect((await p2.sync()).idle, isTrue);
     // no synced column could carry a secret by name
-    final cols = <String>{for (final t in ['vault_entries', 'vault_nominees']) for (final r in await p1.rows('PRAGMA table_info($t)')) '${r['name']}'};
-    for (final bad in ['password', 'pin', 'secret', 'share', 'iban', 'card_number', 'claim_code']) {
+    final cols = <String>{
+      for (final t in ['vault_entries', 'vault_nominees'])
+        for (final r in await p1.rows('PRAGMA table_info($t)')) '${r['name']}',
+    };
+    for (final bad in [
+      'password',
+      'pin',
+      'secret',
+      'share',
+      'iban',
+      'card_number',
+      'claim_code',
+    ]) {
       expect(cols.any((c) => c.contains(bad)), isFalse, reason: bad);
     }
   });

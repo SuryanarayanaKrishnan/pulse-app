@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'bugreport/shake_host.dart';
 import 'core/learning/learning_controller.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,7 +49,10 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // No-op off Android. Drains buffered SMS/notifications into the offline
     // queue and uploads them.
     ref.read(captureServiceProvider).start();
-    _confirmSub = ref.read(captureConfirmerProvider).replies.listen(_onCaptureReply);
+    _confirmSub = ref
+        .read(captureConfirmerProvider)
+        .replies
+        .listen(_onCaptureReply);
     _refreshWealth();
     _noteOpen();
     _vaultCheckIn();
@@ -77,7 +81,12 @@ class _PulseAppState extends ConsumerState<PulseApp>
   /// restarts). Never blocks and never throws.
   void _vaultCheckIn() {
     try {
-      unawaited(ref.read(vaultServiceProvider).checkIn().catchError((Object e) => debugPrint('Vault check-in skipped: $e')));
+      unawaited(
+        ref
+            .read(vaultServiceProvider)
+            .checkIn()
+            .catchError((Object e) => debugPrint('Vault check-in skipped: $e')),
+      );
     } on Object catch (e) {
       debugPrint('Vault check-in skipped: $e');
     }
@@ -86,7 +95,8 @@ class _PulseAppState extends ConsumerState<PulseApp>
   /// Day-1 / day-7 return buckets (only while sharing is on).
   void _noteOpen() {
     final b = ref.read(privacyControllerProvider).returnBucket();
-    if (b != null) ref.read(analyticsProvider).track(AnalyticsEvent.appReturned(b));
+    if (b != null)
+      ref.read(analyticsProvider).track(AnalyticsEvent.appReturned(b));
   }
 
   /// In the background on open and resume: re-register reminders, fetch fresh

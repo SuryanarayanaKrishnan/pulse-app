@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/learning/learning_controller.dart';
 import '../../data/learning_hooks.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -48,7 +49,13 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       return;
     }
     await ref.read(repositoryProvider).recategorise(widget.tx.id, picked);
-    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), widget.tx, picked));
+    unawaited(
+      recordConfirmedCategory(
+        ref.read(learningControllerProvider),
+        widget.tx,
+        picked,
+      ),
+    );
     ref
         .read(analyticsProvider)
         .track(
@@ -155,14 +162,27 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.receipt_long_outlined, size: 18, color: c.textSecondary),
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 18,
+                        color: c.textSecondary,
+                      ),
                       const SizedBox(width: Space.sm),
-                      Expanded(child: Text('From your email receipt', style: context.tt.titleSmall)),
+                      Expanded(
+                        child: Text(
+                          'From your email receipt',
+                          style: context.tt.titleSmall,
+                        ),
+                      ),
                     ],
                   ),
                   if (tx.receiptNotes != null) ...[
                     const SizedBox(height: Space.sm),
-                    Text(tx.receiptNotes!, key: const Key('tx_receipt_notes'), style: context.tt.bodyMedium),
+                    Text(
+                      tx.receiptNotes!,
+                      key: const Key('tx_receipt_notes'),
+                      style: context.tt.bodyMedium,
+                    ),
                   ],
                   const SizedBox(height: Space.sm),
                   Text(

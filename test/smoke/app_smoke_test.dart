@@ -39,28 +39,38 @@ void main() {
     // Native plugins do not exist under `flutter test`: answer their channels
     // with harmless in-memory fakes so the app's own code is what gets tested.
     final secure = <String, String>{};
-    final messenger = TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
-    messenger.setMockMethodCallHandler(const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'), (c) async {
-      final key = (c.arguments as Map?)?['key'] as String?;
-      switch (c.method) {
-        case 'read':
-          return secure[key];
-        case 'write':
-          secure[key!] = (c.arguments as Map)['value'] as String;
-          return null;
-        case 'delete':
-          secure.remove(key);
-          return null;
-        case 'containsKey':
-          return secure.containsKey(key);
-        case 'readAll':
-          return secure;
-        default:
-          return null;
-      }
-    });
-    for (final name in ['dev.fluttercommunity.plus/connectivity', 'dev.fluttercommunity.plus/connectivity_status']) {
-      messenger.setMockMethodCallHandler(MethodChannel(name), (c) async => c.method == 'check' ? ['wifi'] : null);
+    final messenger =
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
+    messenger.setMockMethodCallHandler(
+      const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+      (c) async {
+        final key = (c.arguments as Map?)?['key'] as String?;
+        switch (c.method) {
+          case 'read':
+            return secure[key];
+          case 'write':
+            secure[key!] = (c.arguments as Map)['value'] as String;
+            return null;
+          case 'delete':
+            secure.remove(key);
+            return null;
+          case 'containsKey':
+            return secure.containsKey(key);
+          case 'readAll':
+            return secure;
+          default:
+            return null;
+        }
+      },
+    );
+    for (final name in [
+      'dev.fluttercommunity.plus/connectivity',
+      'dev.fluttercommunity.plus/connectivity_status',
+    ]) {
+      messenger.setMockMethodCallHandler(
+        MethodChannel(name),
+        (c) async => c.method == 'check' ? ['wifi'] : null,
+      );
     }
     addTearDown(() {
       for (final name in [
@@ -83,7 +93,8 @@ void main() {
     await tester.runAsync(() async {
       final catalog = CatalogService(
         db: db,
-        bundled: () async => File('assets/catalog/cards.json').readAsStringSync(),
+        bundled: () async =>
+            File('assets/catalog/cards.json').readAsStringSync(),
       );
       await catalog.loadBundled();
     });
@@ -91,23 +102,34 @@ void main() {
     /// Lets real async work (drift) finish, then pumps frames.
     Future<void> settle([int frames = 6]) async {
       for (var i = 0; i < frames; i++) {
-        await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 30)));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 30)),
+        );
         await tester.pump(const Duration(milliseconds: 250));
       }
     }
 
     Future<void> tapText(String text) async {
       final f = find.text(text);
-      final vertical = find.byWidgetPredicate((w) => w is Scrollable && w.axis == Axis.vertical);
+      final vertical = find.byWidgetPredicate(
+        (w) => w is Scrollable && w.axis == Axis.vertical,
+      );
       for (final delta in [300.0, -300.0, -300.0]) {
         if (f.evaluate().isNotEmpty || vertical.evaluate().isEmpty) break;
         try {
-          await tester.scrollUntilVisible(f, delta, scrollable: vertical.last, maxScrolls: 20);
+          await tester.scrollUntilVisible(
+            f,
+            delta,
+            scrollable: vertical.last,
+            maxScrolls: 20,
+          );
         } on Object {
           // Reported below with what is on screen.
         }
       }
-      final onScreen = [for (final w in tester.widgetList<Text>(find.byType(Text))) w.data].whereType<String>().toList();
+      final onScreen = [
+        for (final w in tester.widgetList<Text>(find.byType(Text))) w.data,
+      ].whereType<String>().toList();
       expect(f, findsWidgets, reason: 'expected "$text"; on screen: $onScreen');
       await tester.ensureVisible(f.first);
       await tester.tap(f.first, warnIfMissed: false);
@@ -121,7 +143,9 @@ void main() {
           privacyControllerProvider.overrideWithValue(privacy),
           learningControllerProvider.overrideWithValue(learning),
           analyticsProvider.overrideWithValue(NoopAnalytics()),
-          shakeSourceProvider.overrideWithValue(() => const Stream<Accel>.empty()),
+          shakeSourceProvider.overrideWithValue(
+            () => const Stream<Accel>.empty(),
+          ),
           databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
         ],
         child: const PulseApp(),
@@ -133,7 +157,8 @@ void main() {
     expect(find.text('Skip'), findsOneWidget);
     await tapText('Skip');
     await settle(8);
-    if (find.text('No thanks').evaluate().isNotEmpty) await tapText('No thanks');
+    if (find.text('No thanks').evaluate().isNotEmpty)
+      await tapText('No thanks');
 
     // Intro -> Start fresh -> sign in (local) -> connect (later) -> home.
     await tapText('Start fresh with Pulse');
@@ -148,7 +173,10 @@ void main() {
       if (find.text('Add a card').evaluate().isNotEmpty) {
         await tapText('Add a card');
       } else {
-        await tester.tap(find.byIcon(Icons.add_rounded).first, warnIfMissed: false);
+        await tester.tap(
+          find.byIcon(Icons.add_rounded).first,
+          warnIfMissed: false,
+        );
         await settle();
         await tapText('Credit card');
       }
@@ -172,7 +200,10 @@ void main() {
 
     // Simulated card tap from Settings -> reward banner and card-check note.
     await tapText('Home');
-    await tester.tap(find.byIcon(Icons.account_circle_outlined).first, warnIfMissed: false);
+    await tester.tap(
+      find.byIcon(Icons.account_circle_outlined).first,
+      warnIfMissed: false,
+    );
     await settle();
     await tapText('Simulate a card tap');
     await settle(10);
@@ -188,26 +219,43 @@ void main() {
 
     // Settings > Privacy. Park the row mid-screen, clear of the app bar and the reward banner.
     final privacyRow = find.text('Not sharing anything');
-    final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
+    final pos = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
     pos.jumpTo(0);
     await settle();
     pos.jumpTo(pos.pixels + tester.getCenter(privacyRow).dy - 420);
     await settle();
     await tester.tap(privacyRow);
     await settle();
-    expect(find.text('Share anonymous usage'), findsWidgets, reason: 'Privacy screen open');
+    expect(
+      find.text('Share anonymous usage'),
+      findsWidgets,
+      reason: 'Privacy screen open',
+    );
     Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
     await settle();
 
     // Settings > Beta tools > Report a bug opens the sheet (testers who cannot shake).
     final reportRow = find.text('Report a bug');
-    await tester.scrollUntilVisible(reportRow, 300, scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      reportRow,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     pos.jumpTo(pos.pixels + tester.getCenter(reportRow).dy - 420);
     await settle();
     await tester.tap(reportRow);
     await settle(16);
-    expect(find.byKey(const Key('bug-note')), findsOneWidget, reason: 'bug report sheet open');
-    Navigator.of(tester.element(find.byKey(const Key('bug-note'))), rootNavigator: true).pop();
+    expect(
+      find.byKey(const Key('bug-note')),
+      findsOneWidget,
+      reason: 'bug report sheet open',
+    );
+    Navigator.of(
+      tester.element(find.byKey(const Key('bug-note'))),
+      rootNavigator: true,
+    ).pop();
     await settle();
     expect(find.byKey(const Key('bug-note')), findsNothing);
 

@@ -26,7 +26,9 @@ class _ViewNotifier extends Notifier<ReportView> {
   void set(ReportView v) => state = v;
 }
 
-final reportViewProvider = NotifierProvider<_ViewNotifier, ReportView>(_ViewNotifier.new);
+final reportViewProvider = NotifierProvider<_ViewNotifier, ReportView>(
+  _ViewNotifier.new,
+);
 
 /// Reports: where the money went, as a treemap you can tap into. By category
 /// always; by member when you are in a household. Month or a longer range.
@@ -46,7 +48,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     _reported = v.name;
     // After the frame: the screen is built, then this is noted once a view.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) ref.read(analyticsProvider).track(AnalyticsEvent.reportViewed(v.name));
+      if (mounted)
+        ref.read(analyticsProvider).track(AnalyticsEvent.reportViewed(v.name));
     });
   }
 
@@ -60,10 +63,15 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final span = ref.watch(reportSpanProvider);
     final end = ref.watch(reportEndProvider);
     final today = ref.watch(recurringTodayProvider);
-    final range = span == ReportSpan.month ? ReportRange.month(end) : ReportRange.lastMonths(end, span.months);
+    final range = span == ReportSpan.month
+        ? ReportRange.month(end)
+        : ReportRange.lastMonths(end, span.months);
     final rows = ref.watch(spendRowsProvider);
     final cats = ref.watch(categoriesProvider).value ?? SpendCategory.defaults;
-    String catLabel(String id) => cats.where((x) => x.id == id).firstOrNull?.label ?? SpendCategory.byId(id)?.label ?? 'Other';
+    String catLabel(String id) =>
+        cats.where((x) => x.id == id).firstOrNull?.label ??
+        SpendCategory.byId(id)?.label ??
+        'Other';
 
     List<SpendSlice> slices = const [];
     List<SpendSlice> before = const [];
@@ -75,7 +83,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     } else if (joint != null) {
       DateTime utc(CalDate d) => DateTime.utc(d.year, d.month, d.day);
       List<SpendSlice> memberSlices(ReportRange r) => [
-        for (final m in hh.spendByMember(joint.txs, from: utc(r.start), to: utc(r.end).add(const Duration(days: 1)), me: joint.me, shareMine: joint.shareMine))
+        for (final m in hh.spendByMember(
+          joint.txs,
+          from: utc(r.start),
+          to: utc(r.end).add(const Duration(days: 1)),
+          me: joint.me,
+          shareMine: joint.shareMine,
+        ))
           SpendSlice(m.owner, m.spentMinor, m.count),
       ];
       slices = memberSlices(range);
@@ -87,8 +101,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final prevTotal = before.fold(0, (a, s) => a + s.totalMinor);
     final sel = shown.where((s) => s.id == _selected).firstOrNull;
     final label = switch (span) {
-      ReportSpan.month => DateFormat('MMMM y').format(DateTime(end.year, end.month)),
-      _ => '${DateFormat('MMM y').format(DateTime(range.start.year, range.start.month))} to ${DateFormat('MMM y').format(DateTime(end.year, end.month))}',
+      ReportSpan.month => DateFormat(
+        'MMMM y',
+      ).format(DateTime(end.year, end.month)),
+      _ =>
+        '${DateFormat('MMM y').format(DateTime(range.start.year, range.start.month))} to ${DateFormat('MMM y').format(DateTime(end.year, end.month))}',
     };
     final base = today.year * 12 + today.month - 1;
     final idx = end.year * 12 + end.month - 1;
@@ -99,7 +116,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.budget),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.budget),
         ),
       ),
       body: ListView(
@@ -108,9 +126,17 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           const ScreenHeader('Reports', subtitle: 'Where the money went'),
           if (joint != null)
             Padding(
-              padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.md),
+              padding: const EdgeInsets.fromLTRB(
+                Space.gutter,
+                0,
+                Space.gutter,
+                Space.md,
+              ),
               child: Segmented<ReportView>(
-                segments: const {ReportView.category: 'By category', ReportView.member: 'By member'},
+                segments: const {
+                  ReportView.category: 'By category',
+                  ReportView.member: 'By member',
+                },
                 value: view,
                 onChanged: (v) {
                   setState(() => _selected = null);
@@ -166,10 +192,21 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             )
           else ...[
             Padding(
-              padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xl, Space.gutter, 0),
+              padding: const EdgeInsets.fromLTRB(
+                Space.gutter,
+                Space.xl,
+                Space.gutter,
+                0,
+              ),
               child: TreemapView(
                 entries: [
-                  for (final s in shown) TreemapEntry(s.id, labelOf(s.id), s.totalMinor.toDouble(), Money.aed(s.totalMinor / 100, decimals: false)),
+                  for (final s in shown)
+                    TreemapEntry(
+                      s.id,
+                      labelOf(s.id),
+                      s.totalMinor.toDouble(),
+                      Money.aed(s.totalMinor / 100, decimals: false),
+                    ),
                 ],
                 selectedId: _selected,
                 onSelect: (id) => setState(() => _selected = id),
@@ -177,7 +214,12 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
             ),
             if (sel != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  Space.gutter,
+                  Space.md,
+                  Space.gutter,
+                  0,
+                ),
                 child: SurfaceCard(
                   key: const Key('report_selected'),
                   child: Row(
@@ -195,8 +237,14 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                           ],
                         ),
                       ),
-                      if (view == ReportView.category && !(sel.id == 'other' && shown.length < slices.length))
-                        TextAction('See payments', onTap: () => context.push('${Routes.activity}?category=${sel.id}')),
+                      if (view == ReportView.category &&
+                          !(sel.id == 'other' && shown.length < slices.length))
+                        TextAction(
+                          'See payments',
+                          onTap: () => context.push(
+                            '${Routes.activity}?category=${sel.id}',
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -210,15 +258,24 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     key: Key('report_row_${s.id}'),
                     dense: true,
                     title: labelOf(s.id),
-                    subtitle: '${(s.totalMinor / total * 100).round()}% of spend',
+                    subtitle:
+                        '${(s.totalMinor / total * 100).round()}% of spend',
                     onTap: () => setState(() => _selected = s.id),
-                    trailing: Text(Money.aed(s.totalMinor / 100, decimals: false), style: PulseTheme.amount(c.textPrimary, size: 15)),
+                    trailing: Text(
+                      Money.aed(s.totalMinor / 100, decimals: false),
+                      style: PulseTheme.amount(c.textPrimary, size: 15),
+                    ),
                   ),
               ],
             ),
             if (view == ReportView.member)
               Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
+                padding: const EdgeInsets.fromLTRB(
+                  Space.gutter,
+                  Space.md,
+                  Space.gutter,
+                  0,
+                ),
                 child: Text(
                   'Only what each member shares with the household. Private payments are never counted.',
                   style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
@@ -232,7 +289,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 }
 
 class _ReportMonthBar extends StatelessWidget {
-  const _ReportMonthBar({required this.label, required this.canBack, required this.canFwd, required this.onBack, required this.onFwd});
+  const _ReportMonthBar({
+    required this.label,
+    required this.canBack,
+    required this.canFwd,
+    required this.onBack,
+    required this.onFwd,
+  });
   final String label;
   final bool canBack, canFwd;
   final VoidCallback onBack, onFwd;
@@ -249,17 +312,30 @@ class _ReportMonthBar extends StatelessWidget {
         child: SizedBox(
           width: 44,
           height: 44,
-          child: Icon(icon, size: 22, color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4)),
+          child: Icon(
+            icon,
+            size: 22,
+            color: on ? c.textPrimary : c.textTertiary.withValues(alpha: 0.4),
+          ),
         ),
       ),
     );
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Space.gutter - 8, vertical: Space.xs),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.gutter - 8,
+        vertical: Space.xs,
+      ),
       child: Row(
         key: const Key('report_month_bar'),
         children: [
           arrow(Icons.chevron_left_rounded, 'Earlier', canBack, onBack),
-          Expanded(child: Text(label, textAlign: TextAlign.center, style: context.tt.titleSmall)),
+          Expanded(
+            child: Text(
+              label,
+              textAlign: TextAlign.center,
+              style: context.tt.titleSmall,
+            ),
+          ),
           arrow(Icons.chevron_right_rounded, 'Later', canFwd, onFwd),
         ],
       ),

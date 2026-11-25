@@ -7,5 +7,6 @@ Object? loadFixture(String name) =>
     jsonDecode(File('test/fixtures/engine/$name').readAsStringSync());
 
 List<Map<String, Object?>> loadFixtureList(String name) => [
-  for (final e in loadFixture(name)! as List) Map<String, Object?>.from(e as Map),
+  for (final e in loadFixture(name)! as List)
+    Map<String, Object?>.from(e as Map),
 ];

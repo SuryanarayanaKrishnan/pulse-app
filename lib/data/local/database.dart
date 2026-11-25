@@ -79,7 +79,9 @@ class PulseDatabase extends _$PulseDatabase {
       // the ledger counts as reviewed, so nobody opens the app to a backlog.
       from2To3: (m, schema) async {
         await m.addColumn(schema.transactions, schema.transactions.reviewed);
-        await schema.database.customStatement('UPDATE transactions SET reviewed = 1');
+        await schema.database.customStatement(
+          'UPDATE transactions SET reviewed = 1',
+        );
       },
       // v4: `categories.icon_key`, the glyph picked for a custom category.
       // Null everywhere to start with; defaults resolve theirs from the slug.
@@ -125,7 +127,10 @@ class PulseDatabase extends _$PulseDatabase {
         await m.addColumn(schema.categories, schema.categories.budgetGroup);
         await m.addColumn(schema.categories, schema.categories.rollover);
         await m.addColumn(schema.categories, schema.categories.rolloverStart);
-        await m.addColumn(schema.categories, schema.categories.rolloverStartMinor);
+        await m.addColumn(
+          schema.categories,
+          schema.categories.rolloverStartMinor,
+        );
         await m.addColumn(schema.categories, schema.categories.cycleCostMinor);
         await m.addColumn(schema.categories, schema.categories.cycleMonths);
         await m.createTable(schema.budgetMoves);
@@ -146,7 +151,10 @@ class PulseDatabase extends _$PulseDatabase {
       // (extracted fields only). Additive, null for everything existing.
       from8To9: (m, schema) async {
         await m.addColumn(schema.transactions, schema.transactions.receiptRef);
-        await m.addColumn(schema.transactions, schema.transactions.receiptNotes);
+        await m.addColumn(
+          schema.transactions,
+          schema.transactions.receiptNotes,
+        );
       },
       // v10: the family vault. Two new tables; nothing existing is touched.
       from9To10: (m, schema) async {
@@ -182,17 +190,22 @@ class PulseDatabase extends _$PulseDatabase {
       }
     });
     await into(appSettings).insert(
-      AppSettingsCompanion.insert(key: 'seeded_at', value: DateTime.now().toUtc().toIso8601String()),
+      AppSettingsCompanion.insert(
+        key: 'seeded_at',
+        value: DateTime.now().toUtc().toIso8601String(),
+      ),
       mode: InsertMode.insertOrIgnore,
     );
   }
 
   Future<String?> setting(String key) async {
-    final row = await (select(appSettings)..where((t) => t.key.equals(key))).getSingleOrNull();
+    final row = await (select(
+      appSettings,
+    )..where((t) => t.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 
-  Future<void> putSetting(String key, String value) => into(appSettings).insertOnConflictUpdate(
-    AppSettingsCompanion.insert(key: key, value: value),
-  );
+  Future<void> putSetting(String key, String value) => into(
+    appSettings,
+  ).insertOnConflictUpdate(AppSettingsCompanion.insert(key: key, value: value));
 }

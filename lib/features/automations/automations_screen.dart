@@ -83,7 +83,9 @@ class AutomationsScreen extends ConsumerWidget {
                     children: [
                       for (final r in list)
                         ListRow(
-                          leading: r.action == RuleAction.setCategory && r.category != null
+                          leading:
+                              r.action == RuleAction.setCategory &&
+                                  r.category != null
                               ? CategoryIcon.well(r.category!)
                               : IconWell(_iconFor(r.action)),
                           title: r.condition,
@@ -286,7 +288,9 @@ class _RuleEditorSheetState extends ConsumerState<RuleEditorSheet> {
                 children: [
                   ListRow(
                     dense: true,
-                    leading: _category == null ? null : CategoryIcon(_category!, size: 22),
+                    leading: _category == null
+                        ? null
+                        : CategoryIcon(_category!, size: 22),
                     title: 'Category',
                     trailing: Text(
                       _category?.label ?? 'Choose',

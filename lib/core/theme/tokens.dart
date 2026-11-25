@@ -1,5 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 
+/// The five root tabs. Each owns one accent hue from a single harmonious
+/// palette (see [PulseColors.tabAccent]).
+enum PulseTab { home, budget, cards, splits, wealth }
+
 /// Semantic colour tokens exposed as a [ThemeExtension].
 ///
 /// One accent for interaction. Positive / negative / warning describe money
@@ -48,6 +52,41 @@ class PulseColors extends ThemeExtension<PulseColors> {
   /// soft mint-white (dark) instead of flat black. Contrast stays above 12:1.
   Color get ink => Color.lerp(textPrimary, accent, isDark ? 0.14 : 0.38)!;
 
+  /// The accent hue that belongs to [t]: Home green, Budget teal-blue, Cards
+  /// coral, Splits violet-blue, Wealth gold. Light values are all >= 4.5:1 on
+  /// the page background; dark values are bright and >= 8:1.
+  Color tabAccent(PulseTab t) => (isDark ? _tabDark : _tabLight)[t.index];
+
+  /// Header and hero ink for [t]: the tab hue pulled slightly toward the
+  /// primary text colour so large type stays rich but never neon.
+  /// [strength] 0 is plain text colour, 1 is the pure hue.
+  Color tabInk(PulseTab? t, {double strength = 0.9}) => t == null
+      ? ink
+      : Color.lerp(
+          textPrimary,
+          tabAccent(t),
+          isDark ? strength * 0.9 : strength,
+        )!;
+
+  /// Low-saturation wash for hero areas of [t].
+  Color tabWash(PulseTab t) =>
+      tabAccent(t).withValues(alpha: isDark ? 0.16 : 0.13);
+
+  static const _tabLight = [
+    Color(0xFF0E7F55), // home: emerald
+    Color(0xFF0A7893), // budget: teal-blue
+    Color(0xFFBE4626), // cards: coral
+    Color(0xFF4F56CF), // splits: violet-blue
+    Color(0xFFA05B00), // wealth: gold
+  ];
+  static const _tabDark = [
+    Color(0xFF4FD9AE),
+    Color(0xFF5CC9F2),
+    Color(0xFFFF907A),
+    Color(0xFFA3A9FF),
+    Color(0xFFF2C14E),
+  ];
+
   /// Dark: warm graphite, not black; a soft teal accent.
   static const dark = PulseColors(
     bg: Color(0xFF0F1211),
@@ -57,8 +96,8 @@ class PulseColors extends ThemeExtension<PulseColors> {
     textPrimary: Color(0xFFEDEFEC),
     textSecondary: Color(0xFF9DA59F),
     textTertiary: Color(0xFF68716C),
-    accent: Color(0xFF5BC2A8),
-    onAccent: Color(0xFF052A21),
+    accent: Color(0xFF4FD9AE),
+    onAccent: Color(0xFF04261D),
     positive: Color(0xFF72C990),
     negative: Color(0xFFE5846F),
     warning: Color(0xFFE6B450),
@@ -74,7 +113,7 @@ class PulseColors extends ThemeExtension<PulseColors> {
     textPrimary: Color(0xFF1A1E1C),
     textSecondary: Color(0xFF5C645F),
     textTertiary: Color(0xFF959B96),
-    accent: Color(0xFF1C826B),
+    accent: Color(0xFF0E7F55),
     onAccent: Color(0xFFFFFFFF),
     positive: Color(0xFF2E8452),
     negative: Color(0xFFC0533D),
@@ -171,4 +210,75 @@ class Motion {
 extension PulseThemeX on BuildContext {
   PulseColors get pc => Theme.of(this).extension<PulseColors>()!;
   TextTheme get tt => Theme.of(this).textTheme;
+
+  /// The accent of the tab this widget sits in (brand accent elsewhere).
+  Color get tabAccent {
+    final t = TabScope.maybeOf(this);
+    final c = pc;
+    return t == null ? c.accent : c.tabAccent(t);
+  }
+
+  /// Header/hero ink for the current tab.
+  Color tabInk({double strength = 0.9}) =>
+      pc.tabInk(TabScope.maybeOf(this), strength: strength);
+}
+
+/// Tells everything beneath a tab root which tab it belongs to, so headers,
+/// hero figures, chips and washes pick up that tab's hue from the theme.
+class TabScope extends InheritedWidget {
+  const TabScope({super.key, required this.tab, required super.child});
+  final PulseTab tab;
+
+  static PulseTab? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<TabScope>()?.tab;
+
+  @override
+  bool updateShouldNotify(TabScope old) => old.tab != tab;
+}
+
+/// Wraps a tab root: sets the [TabScope] and paints a soft wash of the tab
+/// hue fading out behind the header and hero area. The wrapped Scaffold is
+/// made transparent so the wash shows through.
+class TabBackdrop extends StatelessWidget {
+  const TabBackdrop({super.key, required this.tab, required this.child});
+  final PulseTab tab;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    final theme = Theme.of(context);
+    return TabScope(
+      tab: tab,
+      child: ColoredBox(
+        color: c.bg,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              height: 340,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      c.tabWash(tab),
+                      c.tabWash(tab).withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Theme(
+              data: theme.copyWith(scaffoldBackgroundColor: Colors.transparent),
+              child: child,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

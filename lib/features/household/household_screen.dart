@@ -23,7 +23,12 @@ void _toast(BuildContext context, String text) =>
 
 String _ordinal(int n) {
   if (n >= 11 && n <= 13) return '${n}th';
-  return '$n${switch (n % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', _ => 'th' }}';
+  return '$n${switch (n % 10) {
+    1 => 'st',
+    2 => 'nd',
+    3 => 'rd',
+    _ => 'th',
+  }}';
 }
 
 /// Settings > Household: start or join one, invite, members, shared bills
@@ -39,7 +44,8 @@ class HouseholdScreen extends ConsumerWidget {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.settings),
+          onPressed: () =>
+              context.canPop() ? context.pop() : context.go(Routes.settings),
         ),
       ),
       body: AsyncView<JointData?>(
@@ -58,11 +64,8 @@ class _Intro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    Widget point(IconData icon, String title, String body) => ListRow(
-      leading: IconWell(icon),
-      title: title,
-      subtitle: body,
-    );
+    Widget point(IconData icon, String title, String body) =>
+        ListRow(leading: IconWell(icon), title: title, subtitle: body);
     return ListView(
       padding: const EdgeInsets.only(bottom: Space.xxxl),
       children: [
@@ -78,27 +81,51 @@ class _Intro extends StatelessWidget {
         RowGroup(
           indent: ListRow.leadingInset,
           children: [
-            point(Icons.swap_horiz_rounded, 'Mine, theirs or shared', 'Mark any payment, account, asset or goal.'),
-            point(Icons.lock_outline_rounded, 'Private stays private', 'A Private item is never shared with the household.'),
-            point(Icons.enhanced_encryption_outlined, 'End-to-end encrypted', 'Only you and the people you invite can read what is shared. Not even Pulse can.'),
+            point(
+              Icons.swap_horiz_rounded,
+              'Mine, theirs or shared',
+              'Mark any payment, account, asset or goal.',
+            ),
+            point(
+              Icons.lock_outline_rounded,
+              'Private stays private',
+              'A Private item is never shared with the household.',
+            ),
+            point(
+              Icons.enhanced_encryption_outlined,
+              'End-to-end encrypted',
+              'Only you and the people you invite can read what is shared. Not even Pulse can.',
+            ),
           ],
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.gutter, 0),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.xxl,
+            Space.gutter,
+            0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               PrimaryButton(
                 key: const Key('household_start'),
                 label: 'Start a household',
-                onPressed: () => showPulseSheet<void>(context, builder: (_) => const CreateHouseholdSheet()),
+                onPressed: () => showPulseSheet<void>(
+                  context,
+                  builder: (_) => const CreateHouseholdSheet(),
+                ),
               ),
               const SizedBox(height: Space.md),
               PrimaryButton(
                 key: const Key('household_join'),
                 label: 'Join with a code',
                 secondary: true,
-                onPressed: () => showPulseSheet<void>(context, full: true, builder: (_) => const JoinHouseholdSheet()),
+                onPressed: () => showPulseSheet<void>(
+                  context,
+                  full: true,
+                  builder: (_) => const JoinHouseholdSheet(),
+                ),
               ),
             ],
           ),
@@ -118,7 +145,11 @@ class _Home extends ConsumerWidget {
     final status = ref.watch(householdStatusProvider);
     final svc = ref.read(householdServiceProvider);
     final today = DateTime.now();
-    final bills = upcomingBills(j.bills, CalDate(today.year, today.month, today.day), j.me);
+    final bills = upcomingBills(
+      j.bills,
+      CalDate(today.year, today.month, today.day),
+      j.me,
+    );
     final keyMissing = status.keyMissing;
     return ListView(
       padding: const EdgeInsets.only(bottom: Space.xxxl),
@@ -126,7 +157,12 @@ class _Home extends ConsumerWidget {
         ScreenHeader(j.config.name, subtitle: 'Household'),
         if (keyMissing)
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.lg),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              0,
+              Space.gutter,
+              Space.lg,
+            ),
             child: SurfaceCard(
               child: Text(
                 'This phone no longer has the household key (it is never part of a backup). Ask for a new invite, or leave and join again.',
@@ -151,7 +187,11 @@ class _Home extends ConsumerWidget {
                 leading: IconWell(Icons.add_rounded, color: c.accent),
                 title: 'Invite someone',
                 titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
-                onTap: () => showPulseSheet<void>(context, full: true, builder: (_) => const InviteSheet()),
+                onTap: () => showPulseSheet<void>(
+                  context,
+                  full: true,
+                  builder: (_) => const InviteSheet(),
+                ),
               ),
           ],
         ),
@@ -160,7 +200,8 @@ class _Home extends ConsumerWidget {
           children: [
             ListRow(
               title: 'Share my items',
-              subtitle: 'Items of yours not marked Private count in joint totals.',
+              subtitle:
+                  'Items of yours not marked Private count in joint totals.',
               trailing: Switch(
                 key: const Key('share_mine'),
                 value: j.shareMine,
@@ -175,7 +216,11 @@ class _Home extends ConsumerWidget {
         SectionHeader(
           'Shared bills',
           action: 'Add',
-          onAction: () => showPulseSheet<void>(context, full: true, builder: (_) => BillSheet(j)),
+          onAction: () => showPulseSheet<void>(
+            context,
+            full: true,
+            builder: (_) => BillSheet(j),
+          ),
         ),
         if (bills.isEmpty)
           Padding(
@@ -192,9 +237,17 @@ class _Home extends ConsumerWidget {
                 ListRow(
                   key: Key('bill_${b.bill.id}'),
                   title: b.bill.name,
-                  subtitle: 'Due ${_ordinal(b.bill.dueDay)} · your share ${aedMinor(b.myShareMinor)}',
-                  trailing: Text(aedMinor(b.bill.amountMinor), style: PulseTheme.amount(c.textPrimary, size: 15)),
-                  onTap: () => showPulseSheet<void>(context, full: true, builder: (_) => BillSheet(j, bill: b.bill)),
+                  subtitle:
+                      'Due ${_ordinal(b.bill.dueDay)} · your share ${aedMinor(b.myShareMinor)}',
+                  trailing: Text(
+                    aedMinor(b.bill.amountMinor),
+                    style: PulseTheme.amount(c.textPrimary, size: 15),
+                  ),
+                  onTap: () => showPulseSheet<void>(
+                    context,
+                    full: true,
+                    builder: (_) => BillSheet(j, bill: b.bill),
+                  ),
                 ),
             ],
           ),
@@ -202,20 +255,30 @@ class _Home extends ConsumerWidget {
         RowGroup(
           children: [
             ListRow(
-              title: status.running ? 'Syncing…' : (status.error ?? _statusLine(status)),
+              title: status.running
+                  ? 'Syncing…'
+                  : (status.error ?? _statusLine(status)),
               subtitle: 'End-to-end encrypted. Only ciphertext is stored on the server.',
               subtitleColor: c.textTertiary,
-              trailing: TextAction('Sync now', onTap: () async {
-                try {
-                  await svc.sync();
-                  ref.invalidate(jointDataProvider);
-                } catch (_) {}
-              }),
+              trailing: TextAction(
+                'Sync now',
+                onTap: () async {
+                  try {
+                    await svc.sync();
+                    ref.invalidate(jointDataProvider);
+                  } catch (_) {}
+                },
+              ),
             ),
           ],
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.xxl, Space.gutter, 0),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.xxl,
+            Space.gutter,
+            0,
+          ),
           child: PrimaryButton(
             key: const Key('household_leave'),
             label: 'Leave household',
@@ -248,8 +311,15 @@ class _Home extends ConsumerWidget {
           'Everything of yours stays here. What others already saw cannot be taken back.',
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
-          TextButton(key: const Key('leave_confirm'), onPressed: () => Navigator.pop(ctx, true), child: const Text('Leave')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('leave_confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Leave'),
+          ),
         ],
       ),
     );
@@ -283,7 +353,9 @@ class _CreateState extends ConsumerState<CreateHouseholdSheet> {
   Future<void> _create() async {
     setState(() => _busy = true);
     try {
-      await ref.read(householdServiceProvider).create(householdName: _house.text, myName: _me.text);
+      await ref
+          .read(householdServiceProvider)
+          .create(householdName: _house.text, myName: _me.text);
       invalidateHousehold(ref);
       Haptics.success();
       if (mounted) Navigator.of(context).pop();
@@ -357,12 +429,18 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
       _error = null;
     });
     try {
-      await ref.read(householdServiceProvider).join(code: _code.text, myName: _me.text);
+      await ref
+          .read(householdServiceProvider)
+          .join(code: _code.text, myName: _me.text);
       invalidateHousehold(ref);
       Haptics.success();
       if (mounted) Navigator.of(context).pop();
     } on FormatException {
-      if (mounted) setState(() => _error = "That code doesn't look right. Check it and try again.");
+      if (mounted)
+        setState(
+          () =>
+              _error = "That code doesn't look right. Check it and try again.",
+        );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -384,10 +462,16 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
             maxLines: 4,
             autocorrect: false,
             style: PulseTheme.amount(c.textPrimary, size: 14),
-            decoration: InputDecoration(hintText: 'PULSE-HH1-…', errorText: _error),
+            decoration: InputDecoration(
+              hintText: 'PULSE-HH1-…',
+              errorText: _error,
+            ),
             onChanged: (_) => setState(() => _error = null),
           ),
-          Align(alignment: Alignment.centerLeft, child: TextAction('Paste from clipboard', onTap: _paste)),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextAction('Paste from clipboard', onTap: _paste),
+          ),
           const SizedBox(height: Space.sm),
           TextField(
             key: const Key('join_myname'),
@@ -401,7 +485,9 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
             key: const Key('join_go'),
             label: 'Join',
             loading: _busy,
-            onPressed: _code.text.trim().isEmpty || _me.text.trim().isEmpty ? null : _join,
+            onPressed: _code.text.trim().isEmpty || _me.text.trim().isEmpty
+                ? null
+                : _join,
           ),
         ],
       ),
@@ -433,15 +519,24 @@ class InviteSheet extends ConsumerWidget {
                   child: Container(
                     key: const Key('invite_qr'),
                     padding: const EdgeInsets.all(Space.md),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(Radii.md)),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(Radii.md),
+                    ),
                     child: QrImageView(
                       data: code,
                       size: 208,
                       version: QrVersions.auto,
                       errorCorrectionLevel: QrErrorCorrectLevel.M,
                       backgroundColor: Colors.white,
-                      eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF111111)),
-                      dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF111111)),
+                      eyeStyle: const QrEyeStyle(
+                        eyeShape: QrEyeShape.square,
+                        color: Color(0xFF111111),
+                      ),
+                      dataModuleStyle: const QrDataModuleStyle(
+                        dataModuleShape: QrDataModuleShape.square,
+                        color: Color(0xFF111111),
+                      ),
                     ),
                   ),
                 ),
@@ -473,7 +568,12 @@ class InviteSheet extends ConsumerWidget {
                         label: 'Share',
                         secondary: true,
                         icon: Icons.ios_share_rounded,
-                        onPressed: () => SharePlus.instance.share(ShareParams(text: code, subject: 'Join my Pulse household')),
+                        onPressed: () => SharePlus.instance.share(
+                          ShareParams(
+                            text: code,
+                            subject: 'Join my Pulse household',
+                          ),
+                        ),
                       ),
                     ),
                   ],
@@ -506,7 +606,11 @@ class BillSheet extends ConsumerStatefulWidget {
 class _BillState extends ConsumerState<BillSheet> {
   late final _name = TextEditingController(text: widget.bill?.name);
   late final _amount = TextEditingController(
-    text: widget.bill == null ? '' : (widget.bill!.amountMinor / 100).toStringAsFixed(widget.bill!.amountMinor % 100 == 0 ? 0 : 2),
+    text: widget.bill == null
+        ? ''
+        : (widget.bill!.amountMinor / 100).toStringAsFixed(
+            widget.bill!.amountMinor % 100 == 0 ? 0 : 2,
+          ),
   );
   late int _day = widget.bill?.dueDay ?? 1;
   late double _mine = () {
@@ -557,7 +661,15 @@ class _BillState extends ConsumerState<BillSheet> {
     final c = context.pc;
     final j = widget.j;
     final amount = _amountMinor ?? 0;
-    final shares = billShares(HBill(id: 'x', name: 'x', amountMinor: amount, dueDay: _day, split: _split));
+    final shares = billShares(
+      HBill(
+        id: 'x',
+        name: 'x',
+        amountMinor: amount,
+        dueDay: _day,
+        split: _split,
+      ),
+    );
     return SheetScaffold(
       title: widget.bill == null ? 'Add a shared bill' : 'Edit bill',
       subtitle: 'Something you pay every month and split.',
@@ -576,13 +688,21 @@ class _BillState extends ConsumerState<BillSheet> {
             key: const Key('bill_amount'),
             controller: _amount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount each month', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Amount each month',
+              prefixText: 'AED  ',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.lg),
           Row(
             children: [
-              Expanded(child: Text('Due on the ${_ordinal(_day)}', style: context.tt.bodyLarge)),
+              Expanded(
+                child: Text(
+                  'Due on the ${_ordinal(_day)}',
+                  style: context.tt.bodyLarge,
+                ),
+              ),
               IconButton(
                 tooltip: 'Earlier',
                 onPressed: _day > 1 ? () => setState(() => _day--) : null,
@@ -607,7 +727,10 @@ class _BillState extends ConsumerState<BillSheet> {
               onChanged: (v) => setState(() => _mine = v),
             ),
           ] else
-            Text('Split equally between ${j.members.length} people', style: context.tt.bodyMedium),
+            Text(
+              'Split equally between ${j.members.length} people',
+              style: context.tt.bodyMedium,
+            ),
           RowGroup(
             padding: EdgeInsets.zero,
             children: [
@@ -627,15 +750,23 @@ class _BillState extends ConsumerState<BillSheet> {
           PrimaryButton(
             key: const Key('bill_save'),
             label: 'Save',
-            onPressed: _name.text.trim().isEmpty || _amountMinor == null ? null : _save,
+            onPressed: _name.text.trim().isEmpty || _amountMinor == null
+                ? null
+                : _save,
           ),
           if (widget.bill != null) ...[
             const SizedBox(height: Space.sm),
-            TextAction('Remove bill', color: c.negative, onTap: () async {
-              await ref.read(householdServiceProvider).deleteBill(widget.bill!.id);
-              ref.invalidate(jointDataProvider);
-              if (context.mounted) Navigator.of(context).pop();
-            }),
+            TextAction(
+              'Remove bill',
+              color: c.negative,
+              onTap: () async {
+                await ref
+                    .read(householdServiceProvider)
+                    .deleteBill(widget.bill!.id);
+                ref.invalidate(jointDataProvider);
+                if (context.mounted) Navigator.of(context).pop();
+              },
+            ),
           ],
         ],
       ),
@@ -647,13 +778,26 @@ class _BillState extends ConsumerState<BillSheet> {
 
 /// Pick a category and set a joint monthly limit on it.
 Future<void> addJointLimit(BuildContext context, WidgetRef ref) async {
-  final cat = await pickCategory(context, includeIncome: false, title: 'Category to share');
+  final cat = await pickCategory(
+    context,
+    includeIncome: false,
+    title: 'Category to share',
+  );
   if (cat == null || !context.mounted) return;
-  await showPulseSheet<void>(context, builder: (_) => JointLimitSheet(categoryId: cat.id, categoryLabel: cat.label));
+  await showPulseSheet<void>(
+    context,
+    builder: (_) =>
+        JointLimitSheet(categoryId: cat.id, categoryLabel: cat.label),
+  );
 }
 
 class JointLimitSheet extends ConsumerStatefulWidget {
-  const JointLimitSheet({super.key, required this.categoryId, required this.categoryLabel, this.existing});
+  const JointLimitSheet({
+    super.key,
+    required this.categoryId,
+    required this.categoryLabel,
+    this.existing,
+  });
   final String categoryId, categoryLabel;
   final HLimit? existing;
   @override
@@ -662,7 +806,9 @@ class JointLimitSheet extends ConsumerStatefulWidget {
 
 class _LimitState extends ConsumerState<JointLimitSheet> {
   late final _amount = TextEditingController(
-    text: widget.existing == null ? '' : (widget.existing!.limitMinor / 100).round().toString(),
+    text: widget.existing == null
+        ? ''
+        : (widget.existing!.limitMinor / 100).round().toString(),
   );
 
   @override
@@ -688,7 +834,10 @@ class _LimitState extends ConsumerState<JointLimitSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: 'Amount per month', prefixText: 'AED  '),
+          decoration: const InputDecoration(
+            hintText: 'Amount per month',
+            prefixText: 'AED  ',
+          ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.xl),
@@ -700,7 +849,11 @@ class _LimitState extends ConsumerState<JointLimitSheet> {
               : () async {
                   final svc = ref.read(householdServiceProvider);
                   await svc.saveLimit(
-                    HLimit(id: widget.existing?.id ?? svc.newRowId(), categoryId: widget.categoryId, limitMinor: _minor!),
+                    HLimit(
+                      id: widget.existing?.id ?? svc.newRowId(),
+                      categoryId: widget.categoryId,
+                      limitMinor: _minor!,
+                    ),
                   );
                   ref.invalidate(jointDataProvider);
                   if (context.mounted) Navigator.of(context).pop();
@@ -708,11 +861,17 @@ class _LimitState extends ConsumerState<JointLimitSheet> {
         ),
         if (widget.existing != null) ...[
           const SizedBox(height: Space.sm),
-          TextAction('Remove limit', color: context.pc.negative, onTap: () async {
-            await ref.read(householdServiceProvider).deleteLimit(widget.existing!.id);
-            ref.invalidate(jointDataProvider);
-            if (context.mounted) Navigator.of(context).pop();
-          }),
+          TextAction(
+            'Remove limit',
+            color: context.pc.negative,
+            onTap: () async {
+              await ref
+                  .read(householdServiceProvider)
+                  .deleteLimit(widget.existing!.id);
+              ref.invalidate(jointDataProvider);
+              if (context.mounted) Navigator.of(context).pop();
+            },
+          ),
         ],
       ],
     ),

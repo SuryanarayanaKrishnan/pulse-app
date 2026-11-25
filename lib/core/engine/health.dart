@@ -23,7 +23,13 @@ const _labels = {
 const minCoverage = 0.5;
 const targetSavingsRate = 0.20;
 const targetRunwayMonths = 6.0;
-const _utilisationCurve = [(0.0, 100.0), (10.0, 100.0), (30.0, 70.0), (50.0, 30.0), (80.0, 0.0)];
+const _utilisationCurve = [
+  (0.0, 100.0),
+  (10.0, 100.0),
+  (30.0, 70.0),
+  (50.0, 30.0),
+  (80.0, 0.0),
+];
 
 class Component {
   const Component(this.key, this.weight, this.score, this.value, this.detail);
@@ -39,10 +45,19 @@ int _clamp(double x) => roundHalfEven(math.max(0.0, math.min(100.0, x)));
 Component savingsComponent(double? rate) {
   const w = 30;
   if (rate == null) {
-    return const Component('savings_rate', w, null, null, 'No income recorded in recent months');
+    return const Component(
+      'savings_rate',
+      w,
+      null,
+      null,
+      'No income recorded in recent months',
+    );
   }
   return Component(
-    'savings_rate', w, _clamp(rate / targetSavingsRate * 100), roundTo(rate, 4),
+    'savings_rate',
+    w,
+    _clamp(rate / targetSavingsRate * 100),
+    roundTo(rate, 4),
     'You kept ${fmtFixed(rate * 100, 0)}% of income over 3 months (target ${fmtFixed(targetSavingsRate * 100, 0)}%)',
   );
 }
@@ -50,7 +65,13 @@ Component savingsComponent(double? rate) {
 Component utilisationComponent(int? owedMinor, int? limitMinor) {
   const w = 25;
   if (limitMinor == null || limitMinor == 0 || owedMinor == null) {
-    return const Component('credit_utilisation', w, null, null, 'No credit-card limit and balance known');
+    return const Component(
+      'credit_utilisation',
+      w,
+      null,
+      null,
+      'No credit-card limit and balance known',
+    );
   }
   final pct = math.max(0, owedMinor) / limitMinor * 100;
   var score = _utilisationCurve.last.$2;
@@ -62,28 +83,54 @@ Component utilisationComponent(int? owedMinor, int? limitMinor) {
       break;
     }
   }
-  return Component('credit_utilisation', w, _clamp(score), roundTo(pct, 1), 'Cards are ${fmtFixed(pct, 0)}% used overall');
+  return Component(
+    'credit_utilisation',
+    w,
+    _clamp(score),
+    roundTo(pct, 1),
+    'Cards are ${fmtFixed(pct, 0)}% used overall',
+  );
 }
 
 Component onTimeComponent(int paidOnTime, int total) {
   const w = 25;
   if (total == 0) {
-    return const Component('on_time_payments', w, null, null, 'No past card statements to judge');
+    return const Component(
+      'on_time_payments',
+      w,
+      null,
+      null,
+      'No past card statements to judge',
+    );
   }
   return Component(
-    'on_time_payments', w, _clamp(paidOnTime / total * 100), roundTo(paidOnTime / total, 4),
+    'on_time_payments',
+    w,
+    _clamp(paidOnTime / total * 100),
+    roundTo(paidOnTime / total, 4),
     '$paidOnTime of $total recent card statements had at least the minimum paid by the due date',
   );
 }
 
 Component runwayComponent(int? liquidMinor, int? monthlySpendMinor) {
   const w = 20;
-  if (liquidMinor == null || monthlySpendMinor == null || monthlySpendMinor == 0) {
-    return const Component('emergency_runway', w, null, null, 'Need a known balance and some spending history');
+  if (liquidMinor == null ||
+      monthlySpendMinor == null ||
+      monthlySpendMinor == 0) {
+    return const Component(
+      'emergency_runway',
+      w,
+      null,
+      null,
+      'Need a known balance and some spending history',
+    );
   }
   final months = math.max(0, liquidMinor) / monthlySpendMinor;
   return Component(
-    'emergency_runway', w, _clamp(months / targetRunwayMonths * 100), roundTo(months, 1),
+    'emergency_runway',
+    w,
+    _clamp(months / targetRunwayMonths * 100),
+    roundTo(months, 1),
     'Your cash covers about ${fmtFixed(months, 1)} months of spending (target ${fmtFixed(targetRunwayMonths, 0)})',
   );
 }
@@ -97,7 +144,13 @@ String band(int score) => score >= 80
     : 'needs_attention';
 
 class Health {
-  const Health(this.score, this.band, this.coverage, this.components, this.summary);
+  const Health(
+    this.score,
+    this.band,
+    this.coverage,
+    this.components,
+    this.summary,
+  );
   final int? score;
   final String? band;
   final double coverage;
@@ -111,14 +164,26 @@ Health computeHealth(List<Component> components) {
   final weight = avail.fold<int>(0, (a, c) => a + c.weight);
   final coverage = total == 0 ? 0.0 : roundTo(weight / total, 2);
   if (avail.isEmpty || coverage < minCoverage) {
-    return Health(null, null, coverage, components, 'Not enough data yet for a score: add balances and statements.');
+    return Health(
+      null,
+      null,
+      coverage,
+      components,
+      'Not enough data yet for a score: add balances and statements.',
+    );
   }
-  final score = roundHalfEven(avail.fold<double>(0, (a, c) => a + c.score! * c.weight) / weight);
+  final score = roundHalfEven(
+    avail.fold<double>(0, (a, c) => a + c.score! * c.weight) / weight,
+  );
   // max/min by (score, weight) / (score, -weight): the first of equals wins.
   var best = avail.first, worst = avail.first;
   for (final c in avail.skip(1)) {
-    if (c.score! > best.score! || (c.score == best.score && c.weight > best.weight)) best = c;
-    if (c.score! < worst.score! || (c.score == worst.score && c.weight > worst.weight)) worst = c;
+    if (c.score! > best.score! ||
+        (c.score == best.score && c.weight > best.weight))
+      best = c;
+    if (c.score! < worst.score! ||
+        (c.score == worst.score && c.weight > worst.weight))
+      worst = c;
   }
   final b = band(score);
   final label = b.replaceAll('_', ' ');

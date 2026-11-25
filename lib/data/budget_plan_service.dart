@@ -97,7 +97,12 @@ class BudgetPlanService {
   }
 
   /// What [c] plans for [month], before moves.
-  static int basePlanned(CategoryPlan c, List<LimitRow> limits, String month, String anchor) {
+  static int basePlanned(
+    CategoryPlan c,
+    List<LimitRow> limits,
+    String month,
+    String anchor,
+  ) {
     if (c.group == BudgetGroup.nonMonthly && c.cycleCostMinor > 0) {
       return sinkingContribution(
         costMinor: c.cycleCostMinor,
@@ -114,7 +119,11 @@ class BudgetPlanService {
   static Map<String, Map<String, int>> spendByMonth(Iterable<Transaction> txs) {
     final out = <String, Map<String, int>>{};
     for (final t in txs) {
-      if (t.isIncome || t.excluded || t.category.isTransfer || t.category.isIncome) continue;
+      if (t.isIncome ||
+          t.excluded ||
+          t.category.isTransfer ||
+          t.category.isIncome)
+        continue;
       final m = monthKeyFor(t.date);
       final byMonth = out.putIfAbsent(t.category.id, () => {});
       byMonth[m] = (byMonth[m] ?? 0) + (t.amount * 100).round();
@@ -135,7 +144,8 @@ class BudgetPlanService {
     final firstLimit = <String, String>{};
     for (final l in limits) {
       final cur = firstLimit[l.categoryId];
-      if (cur == null || l.month.compareTo(cur) < 0) firstLimit[l.categoryId] = l.month;
+      if (cur == null || l.month.compareTo(cur) < 0)
+        firstLimit[l.categoryId] = l.month;
     }
     final here = monthIndex(key);
 
@@ -143,7 +153,13 @@ class BudgetPlanService {
     Map<String, int> plannedIn(String m) {
       final base = <String, int>{
         for (final c in cats)
-          if (c.isExpense && !c.hidden) c.id: basePlanned(c, limits, m, c.rolloverStart ?? firstLimit[c.id] ?? key),
+          if (c.isExpense && !c.hidden)
+            c.id: basePlanned(
+              c,
+              limits,
+              m,
+              c.rolloverStart ?? firstLimit[c.id] ?? key,
+            ),
       };
       return applyMoves(base, moves, month: m, scope: MoveScope.mine);
     }
@@ -167,16 +183,26 @@ class BudgetPlanService {
                 spend[c.id]?[monthKeyOf(i)] ?? 0,
               ),
           ];
-          carry = rolloverChain(plans, openingMinor: from == start ? c.rolloverStartMinor : 0).last.closingMinor;
+          carry = rolloverChain(
+            plans,
+            openingMinor: from == start ? c.rolloverStartMinor : 0,
+          ).last.closingMinor;
         } else if (start == here) {
           carry = c.rolloverStartMinor;
         }
       }
       final planned = plannedHere[c.id] ?? 0;
       final spent = spend[c.id]?[key] ?? 0;
-      final moved = moveDeltas(moves, month: key, scope: MoveScope.mine)[c.id] ?? 0;
+      final moved =
+          moveDeltas(moves, month: key, scope: MoveScope.mine)[c.id] ?? 0;
       if (planned == 0 && spent == 0 && carry == 0 && moved == 0) continue;
-      final line = PlanLine(id: c.id, group: c.group, plannedMinor: planned, spentMinor: spent, rolloverInMinor: carry);
+      final line = PlanLine(
+        id: c.id,
+        group: c.group,
+        plannedMinor: planned,
+        spentMinor: spent,
+        rolloverInMinor: carry,
+      );
       rows.add(
         PlanRow(
           id: c.id,
@@ -227,8 +253,16 @@ class BudgetPlanService {
     int? sourcePlannedMinor,
   }) async {
     final key = monthKeyFor(month);
-    final source = sourcePlannedMinor ?? (await view(month)).row(fromId)?.plannedMinor ?? 0;
-    final problem = checkMove(fromId: fromId, toId: toId, amountMinor: amountMinor, sourcePlannedMinor: source);
+    final source =
+        sourcePlannedMinor ??
+        (await view(month)).row(fromId)?.plannedMinor ??
+        0;
+    final problem = checkMove(
+      fromId: fromId,
+      toId: toId,
+      amountMinor: amountMinor,
+      sourcePlannedMinor: source,
+    );
     if (problem != null) return (null, problem);
     final m = BudgetMove(
       id: newId('mv_'),

@@ -1,6 +1,7 @@
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
 import 'local/receipt_service.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderOrFamily;
 
@@ -39,7 +40,11 @@ import 'local/statement_service.dart';
 import 'statement_password_store.dart';
 import 'rules.dart';
 import 'statements.dart';
-import 'recurring_providers.dart' show netWorthHistoryProvider, recurringChoicesProvider, recurringSeriesProvider;
+import 'recurring_providers.dart'
+    show
+        netWorthHistoryProvider,
+        recurringChoicesProvider,
+        recurringSeriesProvider;
 import '../core/engine/goals.dart' show GoalKind;
 import '../core/engine/recurring.dart' show Series;
 import '../core/engine/recurring_plan.dart' show RecChoice;
@@ -55,7 +60,9 @@ final dioProvider = Provider<Dio>((ref) => buildApiClient());
 
 /// The encrypted on-device database. Opened in `main`; null in widget tests
 /// and previews, which then run on demo data.
-final localDatabaseProvider = Provider<PulseDatabase?>((ref) => ref.watch(databaseHolderProvider));
+final localDatabaseProvider = Provider<PulseDatabase?>(
+  (ref) => ref.watch(databaseHolderProvider),
+);
 
 /// Holds the open database so a restore can swap in the restored one without
 /// restarting the app: everything that watches [localDatabaseProvider]
@@ -68,12 +75,16 @@ class DatabaseHolder extends Notifier<PulseDatabase?> {
   void replace(PulseDatabase db) => state = db;
 }
 
-final databaseHolderProvider = NotifierProvider<DatabaseHolder, PulseDatabase?>(DatabaseHolder.new);
+final databaseHolderProvider = NotifierProvider<DatabaseHolder, PulseDatabase?>(
+  DatabaseHolder.new,
+);
 
 /// The card catalog (bundled, refreshed from the backend when configured).
 final catalogServiceProvider = Provider<CatalogService?>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  return db == null ? null : CatalogService(db: db, dio: Env.useApi ? ref.watch(dioProvider) : null);
+  return db == null
+      ? null
+      : CatalogService(db: db, dio: Env.useApi ? ref.watch(dioProvider) : null);
 });
 
 /// The on-device ingest pipeline every capture channel feeds.
@@ -96,24 +107,35 @@ final wealthStoreProvider = Provider<WealthStore>((ref) {
 });
 
 final photoPickerProvider = Provider<PhotoPicker>(
-  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? const NoPhotoPicker() : ImagePickerPhotoPicker(),
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null
+      ? const NoPhotoPicker()
+      : ImagePickerPhotoPicker(),
 );
 
 final attachmentStorageProvider = Provider<AttachmentStorage>(
-  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? MemoryAttachmentStorage() : PrivateAttachmentStorage(),
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null
+      ? MemoryAttachmentStorage()
+      : PrivateAttachmentStorage(),
 );
 
 final remindersProvider = Provider<Reminders>(
-  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? const NoopReminders() : LocalNotificationReminders(),
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null
+      ? const NoopReminders()
+      : LocalNotificationReminders(),
 );
 
 /// Gold and FX prices: fetched from the shared snapshot when `API_BASE_URL`
 /// is set, cached locally, with a bundled fallback.
 final priceServiceProvider = Provider<PriceService>(
-  (ref) => PriceService(store: ref.watch(wealthStoreProvider), dio: Env.useApi ? ref.watch(dioProvider) : null),
+  (ref) => PriceService(
+    store: ref.watch(wealthStoreProvider),
+    dio: Env.useApi ? ref.watch(dioProvider) : null,
+  ),
 );
 
-final fundLookupProvider = Provider<FundLookup>((ref) => FundLookup(Env.useApi ? ref.watch(dioProvider) : null));
+final fundLookupProvider = Provider<FundLookup>(
+  (ref) => FundLookup(Env.useApi ? ref.watch(dioProvider) : null),
+);
 
 final wealthServiceProvider = Provider<WealthService>(
   (ref) => WealthService(
@@ -126,14 +148,25 @@ final wealthServiceProvider = Provider<WealthService>(
 );
 
 /// The price book the phone values things with (cache over bundled).
-final priceBookProvider = FutureProvider<PriceBook>((ref) => ref.watch(wealthServiceProvider).book());
-final jewelleryProvider = FutureProvider<List<JewelleryView>>((ref) => ref.watch(wealthServiceProvider).jewelleryViews());
-final documentsProvider = FutureProvider<List<WealthDocument>>((ref) => ref.watch(wealthServiceProvider).documents());
-final fundsProvider = FutureProvider<List<FundView>>((ref) => ref.watch(wealthServiceProvider).fundViews());
-final upcomingProvider = FutureProvider<List<UpcomingItem>>((ref) => ref.watch(wealthServiceProvider).upcoming());
-final jewelleryHistoryProvider = FutureProvider.family<List<ValuationPoint>, String>(
-  (ref, id) => ref.watch(wealthServiceProvider).jewelleryHistory(id),
+final priceBookProvider = FutureProvider<PriceBook>(
+  (ref) => ref.watch(wealthServiceProvider).book(),
 );
+final jewelleryProvider = FutureProvider<List<JewelleryView>>(
+  (ref) => ref.watch(wealthServiceProvider).jewelleryViews(),
+);
+final documentsProvider = FutureProvider<List<WealthDocument>>(
+  (ref) => ref.watch(wealthServiceProvider).documents(),
+);
+final fundsProvider = FutureProvider<List<FundView>>(
+  (ref) => ref.watch(wealthServiceProvider).fundViews(),
+);
+final upcomingProvider = FutureProvider<List<UpcomingItem>>(
+  (ref) => ref.watch(wealthServiceProvider).upcoming(),
+);
+final jewelleryHistoryProvider =
+    FutureProvider.family<List<ValuationPoint>, String>(
+      (ref, id) => ref.watch(wealthServiceProvider).jewelleryHistory(id),
+    );
 
 /// Refreshes everything after jewellery, documents, funds or prices changed.
 void invalidateWealth(WidgetRef ref) {
@@ -159,7 +192,9 @@ final budgetPlanServiceProvider = Provider<BudgetPlanService>(
   (ref) => BudgetPlanService(
     store: ref.watch(budgetPlanStoreProvider),
     transactions: () => ref.read(repositoryProvider).transactions(),
-    onModeChanged: (m) => ref.read(analyticsProvider).track(AnalyticsEvent.budgetModeChanged(m.key)),
+    onModeChanged: (m) => ref
+        .read(analyticsProvider)
+        .track(AnalyticsEvent.budgetModeChanged(m.key)),
     onMoved: () => ref.read(analyticsProvider).track(AnalyticsEvent.moneyMoved),
   ),
 );
@@ -175,15 +210,20 @@ class BudgetMonthNotifier extends Notifier<DateTime> {
   void set(DateTime m) => state = DateTime(m.year, m.month, 1);
 }
 
-final budgetMonthProvider = NotifierProvider<BudgetMonthNotifier, DateTime>(BudgetMonthNotifier.new);
+final budgetMonthProvider = NotifierProvider<BudgetMonthNotifier, DateTime>(
+  BudgetMonthNotifier.new,
+);
 
 final budgetPlanProvider = FutureProvider<BudgetPlanView>(
-  (ref) => ref.watch(budgetPlanServiceProvider).view(ref.watch(budgetMonthProvider)),
+  (ref) =>
+      ref.watch(budgetPlanServiceProvider).view(ref.watch(budgetMonthProvider)),
 );
 
 /// Every move not undone, all months and both scopes (the Joint view reads
 /// its own from here).
-final budgetMovesProvider = FutureProvider<List<BudgetMove>>((ref) => ref.watch(budgetPlanServiceProvider).allMoves());
+final budgetMovesProvider = FutureProvider<List<BudgetMove>>(
+  (ref) => ref.watch(budgetPlanServiceProvider).allMoves(),
+);
 
 /// Refreshes the Budget after a budget, a move, a mode or a category's
 /// group changed.
@@ -206,11 +246,14 @@ final goalServiceProvider = Provider<GoalService>(
   (ref) => GoalService(
     store: ref.watch(goalStoreProvider),
     assets: () => ref.read(repositoryProvider).assets(),
-    onCompleted: () => ref.read(analyticsProvider).track(AnalyticsEvent.goalCompleted),
+    onCompleted: () =>
+        ref.read(analyticsProvider).track(AnalyticsEvent.goalCompleted),
   ),
 );
 
-final goalsProvider = FutureProvider<List<GoalView>>((ref) => ref.watch(goalServiceProvider).views());
+final goalsProvider = FutureProvider<List<GoalView>>(
+  (ref) => ref.watch(goalServiceProvider).views(),
+);
 
 /// Refreshes everything after a goal, a contribution or a pause changed:
 /// the goals themselves and the safe-to-spend they feed.
@@ -230,7 +273,10 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
   final pipeline = ref.watch(ingestPipelineProvider);
   final wealth = ref.watch(wealthServiceProvider);
   if (Env.demoData || db == null || catalog == null || pipeline == null) {
-    return MockPulseRepository(wealth: wealth, goals: ref.watch(goalStoreProvider));
+    return MockPulseRepository(
+      wealth: wealth,
+      goals: ref.watch(goalStoreProvider),
+    );
   }
   return LocalPulseRepository(
     db: db,
@@ -250,7 +296,9 @@ final captureOutcomesProvider = StreamProvider<IngestOutcome>(
 /// Card value report (rankings, rings, hints); empty off-device (demo data).
 final cardValueProvider = FutureProvider<CardValueReport>((ref) async {
   final repo = ref.watch(repositoryProvider);
-  return repo is LocalPulseRepository ? repo.cardValueReport() : const CardValueReport();
+  return repo is LocalPulseRepository
+      ? repo.cardValueReport()
+      : const CardValueReport();
 });
 
 final transactionsProvider = FutureProvider<List<Transaction>>(
@@ -283,21 +331,25 @@ final rulesProvider = FutureProvider<List<AutomationRule>>(
 final statementsProvider = FutureProvider<List<Statement>>(
   (ref) => ref.watch(repositoryProvider).statements(),
 );
+
 /// Statement passwords stay on this device (Keychain/Keystore), never synced.
 final statementPasswordStoreProvider = Provider<StatementPasswordStore>(
   (ref) => SecureStatementPasswordStore(),
 );
+
 /// Reads statement PDFs on this device; null with demo data or no database.
-final Provider<LocalStatementService?> localStatementServiceProvider = Provider<LocalStatementService?>((ref) {
-  final db = ref.watch(localDatabaseProvider);
-  if (Env.demoData || db == null) return null;
-  return LocalStatementService(
-    db: db,
-    passwords: ref.watch(statementPasswordStoreProvider),
-    locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
-    onTransfer: (c, minor) => ref.read(autoSettleServiceProvider).handle(c, minor),
-  );
-});
+final Provider<LocalStatementService?> localStatementServiceProvider =
+    Provider<LocalStatementService?>((ref) {
+      final db = ref.watch(localDatabaseProvider);
+      if (Env.demoData || db == null) return null;
+      return LocalStatementService(
+        db: db,
+        passwords: ref.watch(statementPasswordStoreProvider),
+        locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
+        onTransfer: (c, minor) =>
+            ref.read(autoSettleServiceProvider).handle(c, minor),
+      );
+    });
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
@@ -311,6 +363,7 @@ final cashflowProvider = FutureProvider<Cashflow>(
 final categoryTrendsProvider = FutureProvider<CategoryTrends>(
   (ref) => ref.watch(repositoryProvider).categoryTrends(),
 );
+
 /// This month's Flex plan (not the month the Budget tab happens to show).
 final currentFlexPlanProvider = FutureProvider<BudgetPlanView>(
   (ref) => ref.watch(budgetPlanServiceProvider).view(DateTime.now()),
@@ -387,18 +440,26 @@ void invalidateWallet(WidgetRef ref) {
 
 /// Where receipt emails come from. Gmail is a stub until the owner creates an
 /// OAuth client (docs/RECEIPTS.md), so this is not configured today.
-final receiptSourceProvider = Provider<ReceiptSource>((ref) => GmailReceiptSource.fromEnvironment());
+final receiptSourceProvider = Provider<ReceiptSource>(
+  (ref) => GmailReceiptSource.fromEnvironment(),
+);
 
 /// Links receipt emails to card charges on this device; null with demo data
 /// or no database.
 final receiptServiceProvider = Provider<ReceiptService?>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (Env.demoData || db == null) return null;
-  return ReceiptService(db: db, source: ref.watch(receiptSourceProvider), analytics: ref.watch(analyticsProvider));
+  return ReceiptService(
+    db: db,
+    source: ref.watch(receiptSourceProvider),
+    analytics: ref.watch(analyticsProvider),
+  );
 });
 
 /// Held receipts still waiting for their card charge.
-final receiptsWaitingProvider = FutureProvider<int>((ref) async => await ref.watch(receiptServiceProvider)?.waitingCount() ?? 0);
+final receiptsWaitingProvider = FutureProvider<int>(
+  (ref) async => await ref.watch(receiptServiceProvider)?.waitingCount() ?? 0,
+);
 
 // ---- Family vault ----------------------------------------------------------
 
