@@ -203,6 +203,12 @@ abstract final class AnalyticsSchema {
     EventSpec('card_recommendation_viewed', 'Everyday use', 'You look at a card recommendation.', props: {
       'category': EnumProp('Where you saw it', ['detail', 'which_card']),
     }),
+    EventSpec('card_suggestion_shown', 'Everyday use', 'Pulse suggests a card you do not hold. Only that it was shown, never which card.', props: {
+      'surface': EnumProp('Where you saw it', ['which_card']),
+    }),
+    EventSpec('card_suggestion_tapped', 'Everyday use', 'You open that suggested card.', props: {
+      'surface': EnumProp('Where you saw it', ['which_card']),
+    }),
     EventSpec('permission_granted', 'Everyday use', 'You allow Android to share bank alerts with Pulse.', props: {
       'permission': EnumProp('Which permission', ['sms_receive', 'sms_read', 'notification_access']),
     }),

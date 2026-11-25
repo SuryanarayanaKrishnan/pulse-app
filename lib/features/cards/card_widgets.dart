@@ -11,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/card_util.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'upsell_widgets.dart';
 
 /// Categories worth asking about before a purchase.
 const recommendableCategories = [
@@ -161,6 +162,7 @@ class _WhichCardSheetState extends ConsumerState<WhichCardSheet> {
                       ),
                     ),
                   ],
+                  UpsellRow(category: _cat),
                 ],
               ),
             ),

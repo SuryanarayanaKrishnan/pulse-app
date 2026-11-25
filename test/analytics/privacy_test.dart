@@ -60,6 +60,8 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.cardCheckShown(result: 'wrong', estimated: true),
   AnalyticsEvent.cardCheckWrong(missedBucket: 'lt_5'),
   AnalyticsEvent.cardRecommendationViewed('detail'),
+  AnalyticsEvent.cardSuggestionShown('which_card'),
+  AnalyticsEvent.cardSuggestionTapped('which_card'),
   AnalyticsEvent.permissionGranted('sms_read'),
   AnalyticsEvent.permissionDenied('sms_receive'),
   AnalyticsEvent.splitExpenseAdded,

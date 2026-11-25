@@ -134,6 +134,14 @@ class AnalyticsEvent {
   factory AnalyticsEvent.cardRecommendationViewed(String category) =>
       AnalyticsEvent._('card_recommendation_viewed', {'category': category});
 
+  /// The "You'd earn more with..." row of a card the user does not hold.
+  /// `surface` is where it was shown (`which_card`). Never the card, amounts
+  /// or category: only that it was shown or tapped.
+  factory AnalyticsEvent.cardSuggestionShown(String surface) =>
+      AnalyticsEvent._('card_suggestion_shown', {'surface': surface});
+  factory AnalyticsEvent.cardSuggestionTapped(String surface) =>
+      AnalyticsEvent._('card_suggestion_tapped', {'surface': surface});
+
   /// Android capture permission results. `permission` is one of
   /// `sms_receive`, `sms_read`, `notification_access`.
   factory AnalyticsEvent.permissionGranted(String permission) =>
