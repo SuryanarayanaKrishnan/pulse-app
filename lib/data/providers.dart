@@ -24,6 +24,10 @@ import 'local/goal_store.dart';
 import 'local/attachments.dart';
 import 'local/price_service.dart';
 import 'local/reminders.dart';
+import '../core/engine/investing.dart' show InvestRule, RuleOccurrence;
+import 'investing_service.dart';
+import 'local/investing_store.dart';
+import 'local/ocr_service.dart';
 import 'local/wealth_store.dart';
 import 'wealth_models.dart';
 import 'wealth_service.dart';
@@ -122,7 +126,39 @@ final wealthServiceProvider = Provider<WealthService>(
     fundLookup: ref.watch(fundLookupProvider),
     reminders: ref.watch(remindersProvider),
     storage: ref.watch(attachmentStorageProvider),
+    investing: ref.watch(investingStoreProvider),
   ),
+);
+
+// ---- Investing: scans, stock holdings, recurring rules ----------------------
+
+final investingStoreProvider = Provider<InvestingStore>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  if (Env.demoData || db == null) return demoInvestingStore();
+  return LocalInvestingStore(db);
+});
+
+final stockQuoteServiceProvider = Provider<StockQuoteService>(
+  (ref) => StockQuoteService(Env.useApi ? ref.watch(dioProvider) : null),
+);
+
+/// Reads text off a screenshot or bill on the phone (ML Kit); none on web.
+final ocrServiceProvider = Provider<OcrService>(
+  (ref) => kIsWeb || ref.watch(localDatabaseProvider) == null ? const NoOcr() : MlKitOcr(),
+);
+
+final investingServiceProvider = Provider<InvestingService>(
+  (ref) => InvestingService(
+    store: ref.watch(investingStoreProvider),
+    wealth: ref.watch(wealthServiceProvider),
+    quotes: ref.watch(stockQuoteServiceProvider),
+  ),
+);
+
+final stockViewsProvider = FutureProvider<List<StockView>>((ref) => ref.watch(investingServiceProvider).holdingViews());
+final ruleViewsProvider = FutureProvider<List<RuleView>>((ref) => ref.watch(investingServiceProvider).ruleViews());
+final pendingBuysProvider = FutureProvider<List<({InvestRule rule, RuleOccurrence occurrence})>>(
+  (ref) => ref.watch(investingServiceProvider).pendingBuys(),
 );
 
 /// The price book the phone values things with (cache over bundled).
@@ -143,6 +179,9 @@ void invalidateWealth(WidgetRef ref) {
   ref.invalidate(fundsProvider);
   ref.invalidate(upcomingProvider);
   ref.invalidate(jewelleryHistoryProvider);
+  ref.invalidate(stockViewsProvider);
+  ref.invalidate(ruleViewsProvider);
+  ref.invalidate(pendingBuysProvider);
   ref.invalidate(netWorthProvider);
   ref.invalidate(assetsProvider);
 }

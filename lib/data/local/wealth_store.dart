@@ -69,6 +69,7 @@ class LocalWealthStore implements WealthStore {
     makingChargesMinor: r.makingChargesMinor,
     notes: r.notes,
     photoPaths: _paths(r.photoPaths),
+    approximate: r.approximate,
     createdAt: r.createdAt,
   );
 
@@ -95,6 +96,7 @@ class LocalWealthStore implements WealthStore {
         makingChargesMinor: Value(i.makingChargesMinor),
         notes: Value(i.notes),
         photoPaths: Value(jsonEncode(i.photoPaths)),
+        approximate: Value(i.approximate),
         createdAt: Value(i.createdAt),
         deletedAt: const Value(null),
       ),

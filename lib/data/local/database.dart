@@ -43,6 +43,9 @@ part 'database.g.dart';
     RecurringChoices,
     VaultEntries,
     VaultNominees,
+    InvestmentHoldings,
+    InvestingRules,
+    InvestingOccurrences,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -50,7 +53,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 10;
+  static const currentSchemaVersion = 11;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -152,6 +155,15 @@ class PulseDatabase extends _$PulseDatabase {
       from9To10: (m, schema) async {
         await m.createTable(schema.vaultEntries);
         await m.createTable(schema.vaultNominees);
+      },
+      // v11: investing. Three new tables (stock/ETF holdings, recurring
+      // rules, their planned buys) and `jewellery_items.approximate` for gold
+      // entered from an estimate. Additive only: existing gold stays exact.
+      from10To11: (m, schema) async {
+        await m.createTable(schema.investmentHoldings);
+        await m.createTable(schema.investingRules);
+        await m.createTable(schema.investingOccurrences);
+        await m.addColumn(schema.jewelleryItems, schema.jewelleryItems.approximate);
       },
     ),
     beforeOpen: (details) async {

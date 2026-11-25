@@ -68,6 +68,7 @@ dependencies:
   pdfrx: ^3.1.0
   sensors_plus: ^7.1.1
   package_info_plus: ^10.2.2
+  google_mlkit_text_recognition: ^1.0.3
 dev_dependencies:
   flutter_test:
     sdk: flutter

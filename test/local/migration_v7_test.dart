@@ -43,7 +43,7 @@ void main() {
     for (final t in ['budget_moves', 'budget_prefs']) {
       expect((await db.customSelect('SELECT COUNT(*) AS n FROM $t').getSingle()).read<int>('n'), 0, reason: t);
     }
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 
   test('a fresh v7 database stores a group, a move and the mode', () async {

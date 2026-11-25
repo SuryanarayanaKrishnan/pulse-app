@@ -30,6 +30,9 @@ const syncedTables = <String>{
   'jewellery_items',
   'document_attachments',
   'fund_holdings',
+  'investment_holdings',
+  'investing_rules',
+  'investing_occurrences',
   // The family vault: where things are, never secrets (the input guard
   // refuses them). Release secrets and key shares live in `app_settings`
   // and never sync.

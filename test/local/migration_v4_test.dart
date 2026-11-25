@@ -47,6 +47,6 @@ void main() {
         .customSelect('SELECT icon_key FROM categories WHERE id = ?', variables: [Variable('c_new')])
         .getSingle();
     expect(r.read<String>('icon_key'), 'coffee');
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 }

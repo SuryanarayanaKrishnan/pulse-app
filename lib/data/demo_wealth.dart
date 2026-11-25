@@ -1,4 +1,6 @@
 import '../core/engine/dates.dart';
+import '../core/engine/investing.dart';
+import 'local/investing_store.dart';
 import '../core/engine/prices.dart';
 import 'local/wealth_store.dart';
 import 'wealth_models.dart';
@@ -166,5 +168,51 @@ MemoryWealthStore demoWealthStore({DateTime? now}) {
         createdAt: n,
       ),
     ],
+  );
+}
+
+/// Demo stock holdings and a monthly rule with buys waiting to be confirmed,
+/// so the web demo and screenshots show the Investing sections.
+MemoryInvestingStore demoInvestingStore({DateTime? now}) {
+  final n = now ?? DateTime.now();
+  final today = CalDate(n.year, n.month, n.day);
+  final rule = InvestRule(
+    id: 'ir1',
+    symbol: 'VOO',
+    name: 'Vanguard S&P 500 ETF',
+    amountMinor: 20000,
+    day: 5,
+    startDate: today.addDays(-200),
+  );
+  return MemoryInvestingStore(
+    holdings: [
+      StockHolding(
+        id: 'sh1',
+        symbol: 'VOO',
+        name: 'Vanguard S&P 500 ETF',
+        quantity: 6.4,
+        avgCost: 468.2,
+        lastPrice: 512.3,
+        priceAt: n.subtract(const Duration(hours: 3)),
+        priceSource: 'demo',
+        source: 'screenshot',
+        createdAt: n,
+      ),
+      StockHolding(
+        id: 'sh2',
+        symbol: 'AAPL',
+        name: 'Apple',
+        quantity: 10,
+        avgCost: 150,
+        lastPrice: 225.1,
+        priceAt: n.subtract(const Duration(hours: 3)),
+        priceSource: 'demo',
+        approximate: true,
+        source: 'typed',
+        note: 'quantity approximate',
+        createdAt: n,
+      ),
+    ],
+    rules: [rule],
   );
 }

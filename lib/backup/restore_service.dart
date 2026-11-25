@@ -93,6 +93,7 @@ class DeviceRestoreHost implements RestoreHost {
       'jewellery_items',
       'document_attachments',
       'fund_holdings',
+      'investment_holdings',
     ]) {
       final n = await db
           .customSelect('SELECT count(*) AS n FROM $t')

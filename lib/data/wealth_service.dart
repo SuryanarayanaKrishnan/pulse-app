@@ -2,10 +2,12 @@ import '../core/engine/dates.dart';
 import '../core/engine/prices.dart';
 import '../core/engine/valuation.dart';
 import 'local/attachments.dart';
+import 'local/investing_store.dart';
 import 'local/price_service.dart';
 import 'local/reminders.dart';
 import 'local/wealth_store.dart';
 import 'models.dart';
+import 'stock_assets.dart';
 import 'wealth_models.dart';
 
 class JewelleryView {
@@ -43,6 +45,7 @@ class WealthService {
     required this.fundLookup,
     Reminders? reminders,
     AttachmentStorage? storage,
+    this.investing,
     DateTime Function()? clock,
   }) : reminders = reminders ?? const NoopReminders(),
        storage = storage ?? MemoryAttachmentStorage(),
@@ -53,6 +56,9 @@ class WealthService {
   final FundLookup fundLookup;
   final Reminders reminders;
   final AttachmentStorage storage;
+
+  /// Where stock/ETF positions live, so they count in net worth.
+  final InvestingStore? investing;
   final DateTime Function() _clock;
 
   CalDate get today {
@@ -276,6 +282,7 @@ class WealthService {
         note: '${_units(f.units)} units · NAV ${f.currency} ${f.nav.toStringAsFixed(2)}',
       ));
     }
+    if (investing != null) out.addAll(stockAssets(await investing!.holdings(), b));
     return out;
   }
 

@@ -16,6 +16,7 @@ class JewelleryItem {
     this.makingChargesMinor,
     this.notes,
     this.photoPaths = const [],
+    this.approximate = false,
     required this.createdAt,
   });
 
@@ -29,6 +30,9 @@ class JewelleryItem {
 
   /// Files in the app-private attachments folder (or `demo:n` placeholders).
   final List<String> photoPaths;
+
+  /// Weight, karat or price estimated rather than read off a bill.
+  final bool approximate;
   final DateTime createdAt;
 
   double get purity => purityOverride ?? purityForKarat(karat);
@@ -50,6 +54,7 @@ class JewelleryItem {
     bool clearMaking = false,
     String? notes,
     List<String>? photoPaths,
+    bool? approximate,
   }) => JewelleryItem(
     id: id,
     name: name ?? this.name,
@@ -61,6 +66,7 @@ class JewelleryItem {
     makingChargesMinor: clearMaking ? null : (makingChargesMinor ?? this.makingChargesMinor),
     notes: notes ?? this.notes,
     photoPaths: photoPaths ?? this.photoPaths,
+    approximate: approximate ?? this.approximate,
     createdAt: createdAt,
   );
 }
@@ -199,4 +205,74 @@ class FundNav {
   final String? name;
   final String navDate;
   final double nav;
+}
+
+/// A stock or ETF position: entered by hand, read from a portfolio screenshot
+/// or built up by an investing rule. Priced from the last known close.
+class StockHolding {
+  const StockHolding({
+    required this.id,
+    required this.symbol,
+    this.name,
+    this.currency = 'USD',
+    required this.quantity,
+    this.avgCost,
+    this.lastPrice,
+    this.priceAt,
+    this.priceSource,
+    this.purchaseDate,
+    this.approximate = false,
+    this.source = 'manual',
+    this.note,
+    required this.createdAt,
+  });
+
+  final String id, symbol;
+  final String? name;
+  final String currency;
+  final double quantity;
+
+  /// Average cost per unit; null when unknown (then there is no P&L).
+  final double? avgCost;
+  final double? lastPrice;
+  final DateTime? priceAt;
+  final String? priceSource;
+  final CalDate? purchaseDate;
+  final bool approximate;
+
+  /// screenshot | typed | manual | rule
+  final String source;
+  final String? note;
+  final DateTime createdAt;
+
+  String get title => name == null || name!.isEmpty ? symbol : name!;
+
+  StockHolding copyWith({
+    String? name,
+    double? quantity,
+    double? avgCost,
+    bool clearAvg = false,
+    double? lastPrice,
+    DateTime? priceAt,
+    String? priceSource,
+    CalDate? purchaseDate,
+    bool? approximate,
+    String? source,
+    String? note,
+  }) => StockHolding(
+    id: id,
+    symbol: symbol,
+    name: name ?? this.name,
+    currency: currency,
+    quantity: quantity ?? this.quantity,
+    avgCost: clearAvg ? null : (avgCost ?? this.avgCost),
+    lastPrice: lastPrice ?? this.lastPrice,
+    priceAt: priceAt ?? this.priceAt,
+    priceSource: priceSource ?? this.priceSource,
+    purchaseDate: purchaseDate ?? this.purchaseDate,
+    approximate: approximate ?? this.approximate,
+    source: source ?? this.source,
+    note: note ?? this.note,
+    createdAt: createdAt,
+  );
 }
