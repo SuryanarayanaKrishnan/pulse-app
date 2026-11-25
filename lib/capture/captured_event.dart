@@ -61,8 +61,12 @@ class CapturedEvent {
     final tx = shortcut;
     if (tx != null) return tx.toPending(now);
     final isSms = kind == 'sms';
+    // Tabby puts the amount in the notification title and the card limit in
+    // the body, so the parser needs both.
+    final tabby = !isSms && (app ?? '').toLowerCase().contains('tabby');
     final dto = IngestRequestDto(
-      rawText: body,
+      rawText: tabby && (title ?? '').isNotEmpty ? '$title. $body' : body,
+      institution: tabby ? 'tabby' : null,
       sender: isSms ? sender : null,
       title: isSms ? null : title,
       appName: isSms ? null : app,

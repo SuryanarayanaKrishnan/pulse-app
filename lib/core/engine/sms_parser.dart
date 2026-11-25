@@ -12,6 +12,7 @@ library;
 
 import 'dates.dart';
 import 'institutions.dart';
+import 'tabby_parser.dart';
 import 'types.dart';
 
 class ParsedTransaction {
@@ -506,6 +507,7 @@ final List<SmsParser> allBankParsers = [
 ParserRegistry buildDefaultRegistry() {
   final r = ParserRegistry(fallback: GenericParser());
   allBankParsers.forEach(r.register);
+  r.register(TabbyParser());
   return r;
 }
 

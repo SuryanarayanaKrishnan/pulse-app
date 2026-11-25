@@ -1,4 +1,6 @@
 import '../core/engine/sms_parser.dart' show isOtpMessage;
+import '../core/engine/tabby_parser.dart';
+import '../core/engine/types.dart' show Direction;
 import 'apple_shortcut.dart';
 
 /// Reads a payment out of text recognised on a screenshot (a notification
@@ -8,6 +10,21 @@ import 'apple_shortcut.dart';
 ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
   final t = text.replaceAll('\r', '');
   if (t.trim().isEmpty || isOtpMessage(t)) return null;
+  final tabby = TabbyParser().parse(t, receivedAt: now);
+  if (tabby != null) {
+    return ShortcutTransaction.tryParse(
+      Uri(
+        scheme: 'pulse',
+        host: 'ingest',
+        queryParameters: {
+          'amount': 'AED ${(tabby.amountMinor / 100).toStringAsFixed(2)}',
+          'merchant': ?tabby.merchantRaw,
+          if (tabby.direction == Direction.credit) 'direction': 'credit',
+        },
+      ),
+      now: now,
+    )?.asScreenshot();
+  }
   final lines = [
     for (final l in t.split('\n'))
       if (l.trim().isNotEmpty) l.trim(),

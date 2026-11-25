@@ -34,7 +34,10 @@ final ingestSenderProvider = Provider<IngestSender>((ref) {
       return SendOutcome.sent;
     };
   }
-  return localIngestSender(pipeline, confirmer: ref.watch(captureConfirmerProvider));
+  return localIngestSender(
+    pipeline,
+    confirmer: ref.watch(captureConfirmerProvider),
+  );
 });
 
 final ingestQueueProvider = Provider<IngestQueue>(

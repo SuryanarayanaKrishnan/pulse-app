@@ -56,7 +56,7 @@ void main() {
           expect(registry.resolve(null, sender, 'x')!.institution, inst.key, reason: sender);
         }
       }
-      expect(registry.institutionKeys, [...institutions.keys]..sort());
+      expect(registry.institutionKeys, [...institutions.keys, 'tabby']..sort());
     });
 
     test('institution hint accepts free-text names', () {
