@@ -118,6 +118,8 @@
    "severity": "warn",
    "tier": "plus",
    "confidence": "reported",
+   "annual_saving_aed": 798,
+   "saving_note": "Estimate, not a promise: AED 700 a month of Tabby repayments (the app's typical shopping spend) earns 10% via Apple Pay or Google Pay on the SIB Cashback card (catalog: 10% online and wallet, AED 300 monthly cap, so 700 is under the cap) against the reported 0.5% when the card number is typed in, a gap of AED 66.50 a month. Depends on the community report holding and on how much you repay through Tabby.",
    "card_ids": [
     "sib-cashback",
     "tabby-card"

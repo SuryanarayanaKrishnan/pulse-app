@@ -166,11 +166,15 @@ GoRouter buildRouter({
       ),
       GoRoute(
         path: Routes.plus,
-        pageBuilder: (c, s) => fade(s, PlusPaywallScreen(feature: s.uri.queryParameters['feature'])),
+        pageBuilder: (c, s) => fade(
+          s,
+          PlusPaywallScreen(feature: s.uri.queryParameters['feature']),
+        ),
       ),
       GoRoute(
         path: Routes.plusBilling,
-        pageBuilder: (c, s) => fade(s, MockBillingScreen(offerId: s.uri.queryParameters['offer'])),
+        pageBuilder: (c, s) =>
+            fade(s, MockBillingScreen(offerId: s.uri.queryParameters['offer'])),
       ),
       GoRoute(
         path: Routes.sync,
@@ -386,8 +390,21 @@ GoRouter buildRouter({
   return router;
 }
 
+final _pushing = <String>{};
+
 /// Back that never throws: screens opened by a deep link, a notification or
 /// `go()` have nothing to pop, so they return to [fallback] instead.
 extension PulseNav on BuildContext {
-  void popOrHome([String fallback = Routes.home]) => canPop() ? pop() : go(fallback);
+  void popOrHome([String fallback = Routes.home]) =>
+      canPop() ? pop() : go(fallback);
+
+  /// Push [location] unless it is already open or opening, so a double tap
+  /// (or a tap during the open animation) cannot stack the same screen twice,
+  /// which needs one Back per copy.
+  void pushOnce(String location) {
+    if (!_pushing.add(location)) return;
+    GoRouter.of(this)
+        .push<void>(location)
+        .whenComplete(() => _pushing.remove(location));
+  }
 }

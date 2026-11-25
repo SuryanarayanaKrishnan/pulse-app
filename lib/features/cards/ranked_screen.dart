@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/router/router.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/theme.dart';
@@ -36,7 +38,7 @@ class _RankedCardsScreenState extends ConsumerState<RankedCardsScreen> {
         title: const Text('My cards ranked'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.popOrHome(),
+          onPressed: () => context.popOrHome(Routes.cards),
         ),
       ),
       body: AsyncView<List<CreditCard>>(
@@ -73,10 +75,7 @@ class _RankedCardsScreenState extends ConsumerState<RankedCardsScreen> {
                 }, style: context.tt.bodyMedium),
               ),
               const SizedBox(height: Space.sm),
-              AnimatedSwitcher(
-                duration: MediaQuery.disableAnimationsOf(context)
-                    ? Duration.zero
-                    : Motion.base,
+              PulseSwitcher(
                 child: RowGroup(
                   key: ValueKey(_sort),
                   indent: 24 + Space.md + 44 + Space.md,

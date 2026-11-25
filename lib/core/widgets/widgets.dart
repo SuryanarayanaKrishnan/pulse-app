@@ -9,6 +9,7 @@ export 'inspect_charts.dart';
 export 'pill.dart';
 export 'pressable.dart';
 export 'primary_button.dart';
+export 'pulse_switcher.dart';
 export 'progress_ring.dart';
 export 'pulse_sheet.dart';
 export 'rows.dart';
