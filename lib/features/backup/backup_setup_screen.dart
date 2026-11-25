@@ -1,7 +1,7 @@
 import 'dart:math';
 
+import '../../core/router/router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../backup/backup_controller.dart';
@@ -81,7 +81,7 @@ class _BackupSetupScreenState extends ConsumerState<BackupSetupScreen> {
   void _back() {
     switch (_step) {
       case _Step.current || _Step.choose || _Step.done || _Step.working:
-        context.pop();
+        context.popOrHome();
       case _Step.phrase || _Step.passphrase:
         _go(_Step.choose);
       case _Step.confirmPhrase:
@@ -437,7 +437,7 @@ class _BackupSetupScreenState extends ConsumerState<BackupSetupScreen> {
                     ? 'Your first backup is on its way. After this it happens by itself.'
                     : 'Use "Export encrypted file" in Backup whenever you want a copy.'),
           actions: [
-            PrimaryButton(label: 'Done', onPressed: () => context.pop()),
+            PrimaryButton(label: 'Done', onPressed: () => context.popOrHome()),
           ],
           children: [
             Icon(

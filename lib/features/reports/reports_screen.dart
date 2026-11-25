@@ -99,7 +99,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.canPop() ? context.pop() : context.go(Routes.budget),
+          onPressed: () => context.popOrHome(Routes.budget),
         ),
       ),
       body: ListView(

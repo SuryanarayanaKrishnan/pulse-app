@@ -110,7 +110,14 @@ class ListRow extends StatelessWidget {
             ),
             if (trailing != null) ...[
               const SizedBox(width: Space.md),
-              trailing!,
+              // Huge amounts or long labels shrink instead of overflowing.
+              Flexible(
+                flex: 0,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.45),
+                  child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: trailing!),
+                ),
+              ),
             ],
             if (chevron) ...[
               const SizedBox(width: Space.xs),

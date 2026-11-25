@@ -385,3 +385,9 @@ GoRouter buildRouter({
   );
   return router;
 }
+
+/// Back that never throws: screens opened by a deep link, a notification or
+/// `go()` have nothing to pop, so they return to [fallback] instead.
+extension PulseNav on BuildContext {
+  void popOrHome([String fallback = Routes.home]) => canPop() ? pop() : go(fallback);
+}

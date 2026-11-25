@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -49,7 +48,7 @@ class VaultScreen extends ConsumerWidget {
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
           onPressed: () =>
-              context.canPop() ? context.pop() : context.go(Routes.settings),
+              context.popOrHome(Routes.settings),
         ),
       ),
       body: ListView(

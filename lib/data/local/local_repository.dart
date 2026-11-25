@@ -1463,7 +1463,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     if (s == null) return fallback;
     try {
       return await call(s);
-    } on ApiException {
+    } on Object {
+      // Offline, a 401, a bad payload: the on-device ledger still works, so
+      // shared features show their empty state instead of an error screen.
       return fallback;
     }
   }
