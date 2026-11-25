@@ -1,4 +1,5 @@
 import 'capture_confirmation.dart';
+
 import 'dart:async';
 import 'dart:convert';
 
@@ -114,7 +115,11 @@ IngestSender localIngestSender(
     final txId = outcome.transactionId;
     final raw = item.payload['raw_text'];
     final f = item.payload['fields'];
-    if (outcome.isNew && txId != null && raw is String && raw.startsWith('Screenshot ') && f is Map) {
+    if (outcome.isNew &&
+        txId != null &&
+        raw is String &&
+        raw.startsWith('Screenshot ') &&
+        f is Map) {
       unawaited(
         confirmer.show(
           CaptureNotice(
