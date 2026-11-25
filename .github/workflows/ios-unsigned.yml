@@ -2,28 +2,69 @@ name: iOS unsigned IPA (free sideload)
 
 # Builds an UNSIGNED .ipa for sideloading with Sideloadly / AltStore and a free
 # Apple ID. No Apple Developer Program needed.
-# Runs only by hand or on a version tag (v*): macOS minutes count 10x against
-# the free quota, so it never runs on ordinary pushes. Guide: docs/SIDELOAD.md
+#
+# macOS minutes count 10x against the free quota (a run costs ~150 of 2,000/month), so:
+#   - scheduled runs (Mon and Thu, 02:00 UTC) build only if app code changed since the
+#     last published IPA, and stop after 8 scheduled runs in a calendar month;
+#   - a version tag (v*) or a manual run always builds.
+# Each build is published to the rolling release `ios-latest` as Pulse-unsigned.ipa.
+# Guide: docs/SIDELOAD.md and docs/CD.md
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * 1,4'
   push:
     tags:
       - 'v*'
 
 permissions:
-  contents: read
+  contents: write
+  actions: read
 
 concurrency:
-  group: ios-unsigned-${{ github.ref }}
-  cancel-in-progress: true
+  group: ios-unsigned
+  cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: macos-15
-    timeout-minutes: 30
+  gate:
+    name: Decide whether to build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      build: ${{ steps.decide.outputs.build }}
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: decide
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then echo "build=true" >> "$GITHUB_OUTPUT"; exit 0; fi
+          month="$(date -u +%Y-%m)-01"
+          runs="$(gh run list -R "$GITHUB_REPOSITORY" --workflow ios-unsigned.yml --event schedule --created ">=$month" --json conclusion -q '[.[] | select(.conclusion=="success" or .conclusion=="failure")] | length')"
+          if [ "${runs:-0}" -ge 8 ]; then echo "::notice::Monthly macOS budget guard hit ($runs runs)"; echo "build=false" >> "$GITHUB_OUTPUT"; exit 0; fi
+          prev="$(gh release view ios-latest --json body -q .body 2>/dev/null | sed -n 's/^sha: //p' | head -1 || true)"
+          if [ -n "$prev" ] && git cat-file -e "$prev^{commit}" 2>/dev/null; then
+            changed="$(git diff --name-only "$prev" HEAD)"
+            if [ -z "$changed" ] || ! echo "$changed" | grep -qvE '^docs/|\.md$|^\.github/|^android/'; then
+              echo "::notice::No app changes since $prev; skipping macOS build"; echo "build=false" >> "$GITHUB_OUTPUT"; exit 0
+            fi
+          fi
+          echo "build=true" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: gate
+    if: needs.gate.outputs.build == 'true'
+    runs-on: macos-15
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: subosito/flutter-action@v2
         with:
@@ -59,3 +100,17 @@ jobs:
           name: Pulse-unsigned-ipa
           path: Pulse-unsigned.ipa
           retention-days: 14
+
+      - name: Publish rolling release
+        run: |
+          sha="$(git rev-parse HEAD)"
+          prev="$(gh release view ios-latest --json body -q .body 2>/dev/null | sed -n 's/^sha: //p' | head -1 || true)"
+          if [ -n "$prev" ] && git cat-file -e "$prev^{commit}" 2>/dev/null; then
+            log="$(git log --no-merges --format='- %s' "$prev..$sha" | head -30)"
+          else
+            log="$(git log --no-merges --format='- %s' -10)"
+          fi
+          printf 'sha: %s\n\nWhat changed:\n%s\n\nInstall: download Pulse-unsigned.ipa and sideload with Sideloadly (Windows) using your Apple ID. Free Apple ID installs expire after 7 days: re-run Sideloadly (or use SideStore/AltStore auto-refresh, see docs/CD.md).\n' "$sha" "$log" > notes.md
+          gh release delete ios-latest --cleanup-tag -y 2>/dev/null || true
+          gh release create ios-latest Pulse-unsigned.ipa --target "$sha" --prerelease \
+            --title "Pulse iOS (build $(git rev-parse --short "$sha"))" --notes-file notes.md
