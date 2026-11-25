@@ -286,14 +286,15 @@ void main() {
   group('Wealth screen', () {
     testWidgets('lists jewellery, funds, documents and upcoming dates, and opens the jewellery detail', (tester) async {
       await pumpApp(tester, '/wealth');
-      await tester.drag(find.byType(ListView).first, const Offset(0, -900));
-      await tester.pump();
-      expect(find.widgetWithText(SectionHeader, 'Upcoming'), findsOneWidget);
-      expect(find.widgetWithText(SectionHeader, 'Gold and jewellery'), findsOneWidget);
-      await tester.drag(find.byType(ListView).first, const Offset(0, -700));
-      await tester.pump();
-      expect(find.widgetWithText(SectionHeader, 'Mutual funds'), findsOneWidget);
-      expect(find.widgetWithText(SectionHeader, 'Documents'), findsOneWidget);
+      await tester.pump(const Duration(milliseconds: 500)); // let the async sections load
+      for (final h in ['Upcoming', 'Gold and jewellery', 'Mutual funds', 'Stocks and ETFs', 'Investing plan', 'Documents']) {
+        // The list is lazy: scroll a screenful at a time until the header builds.
+        for (var i = 0; i < 20 && find.widgetWithText(SectionHeader, h).evaluate().isEmpty; i++) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+          await tester.pump();
+        }
+        expect(find.widgetWithText(SectionHeader, h), findsOneWidget, reason: h);
+      }
     });
 
     testWidgets('jewellery detail shows value, gain, chart and a full-screen photo viewer', (tester) async {

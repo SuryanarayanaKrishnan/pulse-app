@@ -40,7 +40,7 @@ void main() {
     for (final t in ['household_configs', 'household_members', 'household_bills', 'household_limits', 'household_mirror']) {
       expect((await db.customSelect('SELECT COUNT(*) AS n FROM $t').getSingle()).read<int>('n'), 0, reason: t);
     }
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 
   test('a fresh v6 database stores ownership and a household', () async {

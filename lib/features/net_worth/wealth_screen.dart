@@ -16,6 +16,7 @@ import '../household/household_common.dart';
 import '../household/joint_views.dart';
 import '../household/ownership_widgets.dart';
 import '../wallet/add_sheets.dart';
+import '../wealth/investing_screens.dart';
 import '../wealth/wealth_sections.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
@@ -140,7 +141,9 @@ class WealthScreen extends ConsumerWidget {
 /// pages, so the plain per-kind list leaves them out (they still count in the
 /// allocation and the totals).
 bool _inSections(Asset a) =>
-    a.id.startsWith('jewel:') || a.id.startsWith('fund:');
+    a.id.startsWith('jewel:') ||
+    a.id.startsWith('fund:') ||
+    a.id.startsWith('stock:');
 
 /// Upcoming dates, jewellery, funds and documents.
 class WealthSections extends StatelessWidget {
@@ -153,6 +156,8 @@ class WealthSections extends StatelessWidget {
       UpcomingSection(),
       JewellerySection(),
       FundsSection(),
+      InvestmentsSection(),
+      InvestingPlanSection(),
       DocumentsSection(),
     ],
   );

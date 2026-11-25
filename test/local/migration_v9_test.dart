@@ -30,7 +30,7 @@ void main() {
     expect(r.read<String>('notes'), 'my note');
     expect(r.read<String?>('receipt_ref'), isNull);
     expect(r.read<String?>('receipt_notes'), isNull);
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
   });
 
   test('a fresh v9 database stores a receipt link and notes', () async {

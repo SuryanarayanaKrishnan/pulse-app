@@ -29,7 +29,7 @@ void main() {
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 10);
 
-    expect(PulseDatabase.currentSchemaVersion, 10);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(10));
     expect(
       (await db.customSelect('SELECT name FROM accounts').getSingle())
           .read<String>('name'),

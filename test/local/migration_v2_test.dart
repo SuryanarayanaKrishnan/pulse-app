@@ -26,7 +26,7 @@ void main() {
 
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 10);
+    await verifier.migrateAndValidate(db, PulseDatabase.currentSchemaVersion);
 
     final assets = await db.select(db.assets).get();
     expect(assets.single.name, 'Old gold bar');
@@ -41,7 +41,7 @@ void main() {
     final schema = await verifier.schemaAt(1);
     final db = PulseDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 10);
+    await verifier.migrateAndValidate(db, PulseDatabase.currentSchemaVersion);
     await db.customStatement(
       "INSERT INTO jewellery_items (id, name, weight_grams, karat, photo_paths, created_at) VALUES ('j', 'Ring', 8.5, 22, '[]', 0)",
     );
