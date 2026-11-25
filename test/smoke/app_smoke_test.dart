@@ -148,6 +148,9 @@ void main() {
       if (find.text('Add a card').evaluate().isNotEmpty) {
         await tapText('Add a card');
       } else {
+        // The wallet is long now (card combos), so an earlier scroll may have left it down the page.
+        await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
+        await settle();
         await tester.tap(find.byIcon(Icons.add_rounded).first, warnIfMissed: false);
         await settle();
         await tapText('Credit card');

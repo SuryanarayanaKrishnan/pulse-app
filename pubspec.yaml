@@ -105,6 +105,7 @@ flutter:
 
   assets:
     - assets/catalog/cards.json
+    - assets/catalog/combos.json
     - assets/merchant_map.json
     - assets/merchant_offers.json
 

@@ -1,0 +1,135 @@
+{
+ "as_of": "2026-11-25",
+ "items": [
+  {
+   "id": "amazon-prime-or-online-cash",
+   "kind": "combo",
+   "title": "Amazon.ae: co-brand if you have Prime, otherwise a 10% online card",
+   "body": "Prime members get the most from the Emirates Islamic Amazon World card; others may do better with an online cashback card until its monthly cap.",
+   "severity": "info",
+   "tier": "free",
+   "confidence": "reported",
+   "card_ids": [
+    "ei-amazon-world",
+    "sib-cashback"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "ei-amazon-world",
+    "sib-cashback"
+   ],
+   "valid_until": null,
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://www.mastercard.com/news/eemea/en/newsroom/press-releases/en/2025-1/october/amazon-emirates-islamic-and-mastercard-to-introduce-region-s-first-amazon-credit-card-with-exclusive-savings-and-lifestyle-benefits-for-uae-customers"
+   ]
+  },
+  {
+   "id": "noon-platform-plus-cash",
+   "kind": "combo",
+   "title": "Shopping at noon: platform card or cash card",
+   "body": "A noon co-brand card wins only if roughly 60 to 70 percent or more of your online spend is at noon; below that a flat cash card returns more. Noon credits cannot be moved to a bank account, while the SIB Cashback card pays cash.",
+   "severity": "info",
+   "tier": "free",
+   "confidence": "reported",
+   "card_ids": [
+    "enbd-noon-one",
+    "sib-cashback"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "enbd-noon-one",
+    "sib-cashback"
+   ],
+   "valid_until": null,
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://kredit.ae/credit-cards/noon"
+   ]
+  },
+  {
+   "id": "talabat-first-ten-then-dining",
+   "kind": "combo",
+   "title": "Talabat: ADCB for the first ten orders, a dining card for the rest",
+   "body": "The ADCB Talabat card pays back about AED 35 on each of the first ten Talabat orders a month (AED 2,500 monthly card spend needed). Use a dining cashback card such as Mashreq 24X7 for the rest. Check how Talabat is coded on your first statement.",
+   "severity": "info",
+   "tier": "free",
+   "confidence": "corroborated",
+   "card_ids": [
+    "adcb-talabat",
+    "mashreq-24x7-cashback"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "adcb-talabat",
+    "mashreq-24x7-cashback"
+   ],
+   "valid_until": null,
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://kredit.ae/credit-cards/food-delivery"
+   ]
+  },
+  {
+   "id": "wio-card-bill-pairing",
+   "kind": "combo",
+   "title": "Pair Wio with your other cards' bills",
+   "body": "Wio's credit card reportedly earns cashback when you pay other UAE banks' card bills, but only with AED 5,000 of Wio retail spend that cycle, not on the Standard plan, capped at 0.5% of the Wio credit limit a month. Sources disagree on the fees, so check Wio's current key facts first.",
+   "severity": "warn",
+   "tier": "plus",
+   "confidence": "reported",
+   "card_ids": [
+    "wio-credit"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "wio-credit"
+   ],
+   "valid_until": null,
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://kredit.ae/blog/how-to-get-extra-cashback-pairing-uae-credit-cards.md"
+   ]
+  },
+  {
+   "id": "mashreq-noon-credit-rate-drop",
+   "kind": "offer_change",
+   "title": "Mashreq noon: credit rate drops in 2027",
+   "body": "Per the card notes, the noon-credit rate falls from 23 Jan 2027 and a monthly cap arrives on 7 Mar 2027. Plan big noon purchases before then.",
+   "severity": "warn",
+   "tier": "plus",
+   "confidence": "reported",
+   "card_ids": [
+    "mashreq-noon"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [],
+   "valid_until": "2027-03-07",
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://kredit.ae/credit-cards/noon"
+   ]
+  },
+  {
+   "id": "sib-cashback-tabby-wallet-only",
+   "kind": "caveat",
+   "title": "Paying Tabby with the SIB Cashback card",
+   "body": "Community reports say the 10% online rate on the SIB Cashback card only applies to Tabby repayments made through Apple Pay or Google Pay. Paying by typing the card number reportedly earns the low 0.5% tier. Tabby can also charge up to about 1% to repay by card, so a 0.5% repayment can lose money. Check the cashback line after the first repayment.",
+   "severity": "warn",
+   "tier": "plus",
+   "confidence": "reported",
+   "card_ids": [
+    "sib-cashback",
+    "tabby-card"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [],
+   "valid_until": null,
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "surya, 2026-11-25 (relaying r/UAECreditCards)",
+    "https://kredit.ae/blog/sib-tabby-cashback.md"
+   ]
+  }
+ ]
+}

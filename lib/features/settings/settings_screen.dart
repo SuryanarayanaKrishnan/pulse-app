@@ -13,6 +13,7 @@ import '../../household/household_providers.dart';
 import '../../sync/sync_providers.dart';
 import '../sync/sync_screen.dart';
 import '../../core/analytics/privacy_controller.dart';
+import '../../core/entitlement/entitlement.dart';
 import '../../core/env/env.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme_mode.dart';
@@ -67,6 +68,21 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 title: 'Sara Al Mansoori',
                 subtitle: 'sara@example.ae',
+              ),
+            ],
+          ),
+          const SectionHeader('Plan'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: IconWell(Icons.workspace_premium_outlined, color: context.pc.accent),
+                title: 'Pulse Plus',
+                subtitle: ref.watch(entitlementProvider).isPlus
+                    ? 'On (test billing)'
+                    : 'Niche card intel and AI summaries',
+                chevron: true,
+                onTap: () => context.push(Routes.plus),
               ),
             ],
           ),

@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/session.dart';
 import '../../features/backup/backup_screen.dart';
 import '../../features/privacy/learning_preview_screen.dart';
+import '../../features/plus/plus_screens.dart';
 import '../../features/privacy/privacy_screen.dart';
 import '../../features/sync/sync_screen.dart';
 import '../../features/backup/backup_setup_screen.dart';
@@ -63,6 +64,8 @@ abstract class Routes {
   static const backup = '/backup';
   static const backupSetup = '/backup/setup';
   static const sync = '/sync';
+  static const plus = '/plus';
+  static const plusBilling = '/plus/billing';
   static const privacy = '/privacy';
   static const learningPreview = '/privacy/learning';
   static const review = '/review';
@@ -154,6 +157,14 @@ GoRouter buildRouter({
       GoRoute(
         path: Routes.backup,
         pageBuilder: (c, s) => fade(s, const BackupScreen()),
+      ),
+      GoRoute(
+        path: Routes.plus,
+        pageBuilder: (c, s) => fade(s, PlusPaywallScreen(feature: s.uri.queryParameters['feature'])),
+      ),
+      GoRoute(
+        path: Routes.plusBilling,
+        pageBuilder: (c, s) => fade(s, MockBillingScreen(offerId: s.uri.queryParameters['offer'])),
       ),
       GoRoute(
         path: Routes.sync,

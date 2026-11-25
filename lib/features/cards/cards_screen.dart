@@ -17,6 +17,7 @@ import '../wallet/add_sheets.dart';
 import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
+import 'combo_widgets.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 
@@ -116,21 +117,27 @@ class _CardsView extends ConsumerWidget {
       onRetry: () => ref.invalidate(myCardsProvider),
       builder: (list) {
         if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.credit_card_outlined,
-            title: 'No cards yet',
-            message:
-                'Add the cards you carry. Pulse then tracks what each one '
-                'earns and which to use, all on this phone.',
-            action: PrimaryButton(
-              label: 'Add a card',
-              expand: false,
-              onPressed: () => showPulseSheet<void>(
-                context,
-                builder: (_) => const AddCardSheet(),
-                full: true,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              EmptyState(
+                icon: Icons.credit_card_outlined,
+                title: 'No cards yet',
+                message:
+                    'Add the cards you carry. Pulse then tracks what each one '
+                    'earns and which to use, all on this phone.',
+                action: PrimaryButton(
+                  label: 'Add a card',
+                  expand: false,
+                  onPressed: () => showPulseSheet<void>(
+                    context,
+                    builder: (_) => const AddCardSheet(),
+                    full: true,
+                  ),
+                ),
               ),
-            ),
+              const CardCombosSection(),
+            ],
           );
         }
         final standings = cardStandings(list, txs);
@@ -222,6 +229,7 @@ class _CardsView extends ConsumerWidget {
             ),
             const SectionHeader('Utilisation'),
             UtilisationChart(list),
+            const CardCombosSection(limit: 3),
             AsyncView<List<CreditCard>>(
               value: catalog,
               loading: const SizedBox.shrink(),
