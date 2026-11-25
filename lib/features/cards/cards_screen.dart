@@ -18,6 +18,8 @@ import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
 import 'combo_widgets.dart';
+import 'quick_pick_sheet.dart';
+import 'suggestion_widgets.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 
@@ -127,15 +129,12 @@ class _CardsView extends ConsumerWidget {
                     'Add the cards you carry. Pulse then tracks what each one '
                     'earns and which to use, all on this phone.',
                 action: PrimaryButton(
-                  label: 'Add a card',
+                  label: 'Pick your cards',
                   expand: false,
-                  onPressed: () => showPulseSheet<void>(
-                    context,
-                    builder: (_) => const AddCardSheet(),
-                    full: true,
-                  ),
+                  onPressed: () => showQuickPickCards(context),
                 ),
               ),
+              const CardSuggestionsSection(),
               const CardCombosSection(),
             ],
           );
@@ -229,6 +228,7 @@ class _CardsView extends ConsumerWidget {
             ),
             const SectionHeader('Utilisation'),
             UtilisationChart(list),
+            const CardSuggestionsSection(),
             const CardCombosSection(limit: 3),
             AsyncView<List<CreditCard>>(
               value: catalog,

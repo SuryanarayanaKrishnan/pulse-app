@@ -99,7 +99,7 @@ void main() {
 
   testWidgets('tapping a locked row opens the paywall, billing unlocks Plus', (tester) async {
     final container = await _pump(tester, '/cards');
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -500));
+    await tester.dragUntilVisible(find.text('Niche detail with Plus').first, find.byType(Scrollable).first, const Offset(0, -300));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Niche detail with Plus').first);
     await tester.pumpAndSettle();

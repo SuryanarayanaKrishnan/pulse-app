@@ -830,7 +830,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }) async {
     final cat = await (db.select(db.catalogCards)..where((c) => c.id.equals(catalogId))).getSingleOrNull();
     if (cat == null) throw const ApiException(message: 'That card is not in the catalog.', code: 'unknown_card');
-    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+    // Empty is fine: quick-add skips the digits and they can be added later.
+    if (last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
       throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
     }
     final accountId = newId();
@@ -842,7 +843,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
           type: 'credit_card',
           name: cat.name,
           institution: Value(cat.issuer),
-          last4: Value(last4),
+          last4: Value(last4.isEmpty ? null : last4),
           creditLimitMinor: Value(limit == null ? null : (limit * 100).round()),
           statementDay: Value(statementDay),
           dueDay: Value(dueDay),

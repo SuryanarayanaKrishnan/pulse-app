@@ -1,10 +1,12 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart' show driftRuntimeOptions;
+import 'package:drift/drift.dart' show Value, driftRuntimeOptions;
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pulse/core/widgets/widgets.dart';
+import 'package:pulse/features/cards/quick_pick_sheet.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pulse/app.dart';
 import 'package:pulse/bugreport/shake_detector.dart';
@@ -141,35 +143,29 @@ void main() {
     await tapText('I will do this later');
     expect(find.text('Home'), findsWidgets);
 
-    // Add two cards through the real sheet (a right/wrong check needs a choice).
-    Future<void> addCard(String search, String last4) async {
-      await tapText('Cards');
-      await settle();
-      if (find.text('Add a card').evaluate().isNotEmpty) {
-        await tapText('Add a card');
-      } else {
-        // The wallet is long now (card combos), so an earlier scroll may have left it down the page.
-        await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
-        await settle();
-        await tester.tap(find.byIcon(Icons.add_rounded).first, warnIfMissed: false);
-        await settle();
-        await tapText('Credit card');
-      }
+    // Add two cards through the quick picker: tick both, one button, no per-card popup.
+    await tapText('Cards');
+    await settle();
+    await tapText('Pick your cards');
+    for (final search in ['Emirates NBD', 'Mashreq']) {
       await tester.enterText(find.byType(TextField).first, search);
       await settle();
-      final tile = find.textContaining(search, findRichText: true);
+      final tile = find.descendant(of: find.byType(QuickPickCardsSheet), matching: find.byType(ListRow));
       expect(tile, findsWidgets, reason: 'catalog entry for "$search"');
-      await tester.tap(tile.last, warnIfMissed: false);
+      await tester.tap(tile.first);
       await settle();
-      await tester.enterText(find.byType(TextField).first, last4);
-      await settle();
-      await tapText('Add card');
     }
-
+    await tapText('Add 2 cards');
+    await settle();
     final cards = await tester.runAsync(() => db.select(db.accounts).get());
-    expect(cards, isEmpty);
-    await addCard('Emirates NBD', '1234');
-    await addCard('Mashreq', '5678');
+    expect(cards!.length, 2);
+    // Quick-add skips the digits; give the cards some so simulated alerts can match them.
+    await tester.runAsync(() async {
+      var i = 1234;
+      for (final a in cards) {
+        await (db.update(db.accounts)..where((t) => t.id.equals(a.id))).write(AccountsCompanion(last4: Value('${i++}')));
+      }
+    });
     final owned = await tester.runAsync(() => db.select(db.accounts).get());
     expect(owned!.length, 2, reason: 'both cards saved');
 
