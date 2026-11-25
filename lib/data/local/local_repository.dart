@@ -36,6 +36,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
+import '../digit_suggestion.dart';
 import 'statement_service.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -868,7 +869,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }) async {
     final cat = await (db.select(db.catalogCards)..where((c) => c.id.equals(catalogId))).getSingleOrNull();
     if (cat == null) throw const ApiException(message: 'That card is not in the catalog.', code: 'unknown_card');
-    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+    // Empty is fine: quick-add skips the digits and they can be added later.
+    if (last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
       throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
     }
     final accountId = newId();
@@ -880,7 +882,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
           type: 'credit_card',
           name: cat.name,
           institution: Value(cat.issuer),
-          last4: Value(last4),
+          last4: Value(last4.isEmpty ? null : last4),
           creditLimitMinor: Value(limit == null ? null : (limit * 100).round()),
           statementDay: Value(statementDay),
           dueDay: Value(dueDay),
@@ -895,6 +897,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     await pipeline.reprocessPending();
     return (await myCards()).firstWhere((c) => c.id == accountId);
   }
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) async {
+    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(AccountsCompanion(last4: Value(last4)));
+    await pipeline.reprocessPending();
+  }
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() => pipeline.digitSuggestions();
 
   @override
   Future<void> removeCard(String id) async {

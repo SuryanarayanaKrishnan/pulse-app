@@ -8,6 +8,7 @@ import '../../core/engine/card_value.dart';
 import '../../core/engine/dates.dart';
 import '../../core/engine/dedupe.dart';
 import '../../core/engine/institutions.dart';
+import '../digit_suggestion.dart';
 import '../../core/engine/merchants.dart';
 import '../../core/learning/global_merchant_map.dart';
 import '../../core/engine/rewards.dart';
@@ -262,6 +263,47 @@ class IngestPipeline {
       }
     }
     return made;
+  }
+
+  /// Waiting alerts whose card digits match no account, grouped by digits and
+  /// bank, with the digit-less accounts at that bank that could own them.
+  Future<List<DigitSuggestion>> digitSuggestions() async {
+    final rows = await (db.select(db.rawIngests)..where((r) => r.parseStatus.equals('needs_review'))).get();
+    if (rows.isEmpty) return const [];
+    final accounts = await (db.select(db.accounts)..where((a) => a.deletedAt.isNull())).get();
+    final known = {for (final a in accounts) if (a.last4 != null) a.last4!};
+    final waiting = <String, int>{};
+    final inst = <String, String>{};
+    for (final r in rows) {
+      try {
+        final input = IngestInput.fromStored(Map<String, Object?>.from(jsonDecode(r.payload) as Map));
+        final p = _parse(input);
+        final last4 = p?.last4;
+        final bank = p?.institution;
+        if (p == null || last4 == null || bank == null || known.contains(last4)) continue;
+        final k = '$last4|${institutions.resolveKey(bank) ?? normName(bank)}';
+        waiting[k] = (waiting[k] ?? 0) + 1;
+        inst[k] = bank;
+      } on Object {
+        continue;
+      }
+    }
+    final out = <DigitSuggestion>[];
+    for (final e in waiting.entries) {
+      final last4 = e.key.split('|').first;
+      final key = e.key.split('|').last;
+      final cands = [
+        for (final a in accounts)
+          if (a.last4 == null &&
+              a.institution != null &&
+              (institutions.resolveKey(a.institution!) ?? normName(a.institution!)) == key)
+            (id: a.id, label: '${a.institution} ${a.name}'.trim()),
+      ];
+      if (cands.isEmpty) continue;
+      out.add(DigitSuggestion(last4: last4, institution: inst[e.key]!, candidates: cands, waiting: e.value));
+    }
+    out.sort((a, b) => b.waiting.compareTo(a.waiting));
+    return out;
   }
 
   ParsedTransaction? _parse(IngestInput input) {

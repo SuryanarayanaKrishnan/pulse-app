@@ -17,6 +17,10 @@ import '../wallet/add_sheets.dart';
 import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
+import 'combo_widgets.dart';
+import 'digit_widgets.dart';
+import 'quick_pick_sheet.dart';
+import 'suggestion_widgets.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 
@@ -116,24 +120,28 @@ class _CardsView extends ConsumerWidget {
       onRetry: () => ref.invalidate(myCardsProvider),
       builder: (list) {
         if (list.isEmpty) {
-          return EmptyState(
-            icon: Icons.credit_card_outlined,
-            title: 'No cards yet',
-            message:
-                'Add the cards you carry. Pulse then tracks what each one '
-                'earns and which to use, all on this phone.',
-            action: PrimaryButton(
-              label: 'Add a card',
-              expand: false,
-              onPressed: () => showPulseSheet<void>(
-                context,
-                builder: (_) => const AddCardSheet(),
-                full: true,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              EmptyState(
+                icon: Icons.credit_card_outlined,
+                title: 'No cards yet',
+                message:
+                    'Add the cards you carry. Pulse then tracks what each one '
+                    'earns and which to use, all on this phone.',
+                action: PrimaryButton(
+                  label: 'Pick your cards',
+                  expand: false,
+                  onPressed: () => showQuickPickCards(context),
+                ),
               ),
-            ),
+              const CardSuggestionsSection(),
+              const CardCombosSection(),
+            ],
           );
         }
         final standings = cardStandings(list, txs);
+        // (the digit question sits above the totals, see below)
         final due = list.fold<double>(0, (a, k) => a + k.totalDue);
         final minDue = list.fold<double>(0, (a, k) => a + k.minDue);
         final limit = list.fold<double>(0, (a, k) => a + k.limit);
@@ -146,6 +154,7 @@ class _CardsView extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const DigitSuggestionBanner(),
             HeroNumber(
               label: 'Total due',
               value: due,
@@ -222,6 +231,8 @@ class _CardsView extends ConsumerWidget {
             ),
             const SectionHeader('Utilisation'),
             UtilisationChart(list),
+            const CardSuggestionsSection(),
+            const CardCombosSection(limit: 3),
             AsyncView<List<CreditCard>>(
               value: catalog,
               loading: const SizedBox.shrink(),
