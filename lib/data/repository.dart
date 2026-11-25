@@ -35,6 +35,12 @@ abstract class PulseRepository {
     required SpendCategory category,
   });
 
+  /// Adds dated payments from an imported sheet. Ones already imported
+  /// (same day, amount, name and category) are skipped, so importing the same
+  /// file twice changes nothing. Returns how many were added. Only the
+  /// on-device ledger takes them; others add none.
+  Future<int> importTransactions(List<ImportedTransaction> txs) async => 0;
+
   // ---- budget & categories ------------------------------------------------
 
   Future<BudgetOverview> budgetOverview();
