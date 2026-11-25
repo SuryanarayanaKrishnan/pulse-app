@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../cards/digit_widgets.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/theme.dart';
@@ -181,6 +182,19 @@ class CardDetailBody extends ConsumerWidget {
           ),
           ('Earned this month', Money.aed(earned), c.positive),
         ]),
+        if (card.last4 == '----')
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                leading: IconWell(Icons.pin_outlined, color: c.accent),
+                title: 'Add the last four digits',
+                subtitle: 'So bank alerts land on this card',
+                chevron: true,
+                onTap: () => showAddDigits(context, card.id),
+              ),
+            ],
+          ),
         CardValueSection(card.id),
         const SectionHeader('Payment'),
         PaymentDetails(card),

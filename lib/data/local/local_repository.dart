@@ -36,6 +36,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
+import '../digit_suggestion.dart';
 import 'statement_service.dart';
 
 const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -395,6 +396,44 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       ),
     );
     return _txById(id);
+  }
+
+  @override
+  Future<int> importTransactions(List<ImportedTransaction> txs) async {
+    if (txs.isEmpty) return 0;
+    final acct = await _cashAccount();
+    String key(DateTime d, int minor, String name, String cat) => '${d.year}-${d.month}-${d.day}|$minor|${name.toLowerCase()}|$cat';
+    final existing = <String>{
+      for (final r in await (db.select(db.transactions)..where((t) => t.sources.equals('["import"]'))).get())
+        key(r.postedAt.toLocal(), r.amountMinor, r.merchantRaw ?? '', r.categoryId ?? ''),
+    };
+    var added = 0;
+    await db.transaction(() async {
+      for (final t in txs) {
+        if (t.amountMinor <= 0) continue;
+        final catId = await _categoryId(t.category);
+        final name = t.merchant.trim().isEmpty ? t.category.label : t.merchant.trim();
+        final k = key(t.date, t.amountMinor, name, catId);
+        if (!existing.add(k)) continue;
+        await db.into(db.transactions).insert(
+          TransactionsCompanion.insert(
+            id: newId(),
+            accountId: acct.id,
+            amountMinor: t.amountMinor,
+            direction: t.isIncome ? 'credit' : 'debit',
+            categoryId: Value(catId),
+            merchantRaw: Value(name),
+            merchantNormalized: Value(name),
+            postedAt: DateTime(t.date.year, t.date.month, t.date.day, 12).toUtc(),
+            source: 'manual',
+            sources: const Value('["import"]'),
+            reviewed: const Value(true),
+          ),
+        );
+        added++;
+      }
+    });
+    return added;
   }
 
   // ---- categories & budgets ------------------------------------------------------
@@ -830,7 +869,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }) async {
     final cat = await (db.select(db.catalogCards)..where((c) => c.id.equals(catalogId))).getSingleOrNull();
     if (cat == null) throw const ApiException(message: 'That card is not in the catalog.', code: 'unknown_card');
-    // Last four digits are optional: they only help match SMS and wallet taps.
+    // Empty is fine: quick-add skips the digits and they can be added later.
     if (last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
       throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
     }
@@ -858,6 +897,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     await pipeline.reprocessPending();
     return (await myCards()).firstWhere((c) => c.id == accountId);
   }
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) async {
+    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(AccountsCompanion(last4: Value(last4)));
+    await pipeline.reprocessPending();
+  }
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() => pipeline.digitSuggestions();
 
   @override
   Future<void> removeCard(String id) async {

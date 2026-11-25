@@ -56,7 +56,7 @@ void main() {
   testWidgets('cards and accounts offer to add the first one', (tester) async {
     await _pump(tester, '/cards');
     expect(find.text('No cards yet'), findsOneWidget);
-    expect(find.text('Add a card'), findsOneWidget);
+    expect(find.text('Pick your cards'), findsOneWidget);
     await tester.tap(find.text('Accounts'));
     await tester.pumpAndSettle();
     expect(find.text('No accounts yet'), findsOneWidget);

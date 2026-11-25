@@ -28,7 +28,9 @@ class SectionHeader extends StatelessWidget {
             header: true,
             child: Text(
               title,
-              style: context.tt.titleLarge,
+              style: context.tt.titleLarge!.copyWith(
+                color: context.tabInk(strength: 0.6),
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),

@@ -97,27 +97,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     super.dispose();
   }
 
-  /// Cards ticked in the list; several can be added in one go.
-  final _selected = <String>{};
-
-  /// Last four digits are optional, but if typed they must be four digits.
-  bool get _valid => _last4.text.trim().isEmpty || RegExp(r'^\d{4}$').hasMatch(_last4.text.trim());
-
-  Future<void> _addSelected(List<CreditCard> all) async {
-    setState(() => _busy = true);
-    try {
-      final repo = ref.read(repositoryProvider);
-      for (final k in all) {
-        if (_selected.contains(k.id)) await repo.addCard(catalogId: k.id, last4: '');
-      }
-      invalidateWallet(ref);
-      if (mounted) Navigator.of(context).pop();
-    } on Object catch (e) {
-      if (mounted) _fail(context, e);
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
+  bool get _valid => RegExp(r'^\d{4}$').hasMatch(_last4.text.trim());
 
   Future<void> _save() async {
     final card = _picked;
@@ -147,8 +127,8 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     if (picked == null) {
       final catalog = ref.watch(catalogProvider);
       return SheetScaffold(
-        title: 'Which cards do you have?',
-        subtitle: 'Tick every card you hold, then add them together. Rewards come from the built-in catalog.',
+        title: 'Which card?',
+        subtitle: 'Rewards come from the built-in card catalog. Figures are not yet checked against the issuers.',
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -173,45 +153,18 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                     message: 'Try the bank name, like "Mashreq".',
                   );
                 }
-                final n = _selected.length;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                return RowGroup(
+                  padding: EdgeInsets.zero,
+                  indent: 56 + Space.md,
                   children: [
-                    RowGroup(
-                      padding: EdgeInsets.zero,
-                      indent: 56 + Space.md,
-                      children: [
-                        for (final k in shown)
-                          ListRow(
-                            leading: SizedBox(width: 56, child: CreditCardVisual(card: k, compact: true)),
-                            title: '${k.issuer} ${k.name}',
-                            subtitle: k.highlight,
-                            trailing: Icon(
-                              _selected.contains(k.id) ? Icons.check_circle_rounded : Icons.circle_outlined,
-                              color: _selected.contains(k.id) ? context.pc.accent : context.pc.textTertiary,
-                            ),
-                            onTap: () => setState(() {
-                              if (!_selected.remove(k.id)) _selected.add(k.id);
-                            }),
-                          ),
-                      ],
-                    ),
-                    if (n > 0) ...[
-                      const SizedBox(height: Space.lg),
-                      PrimaryButton(
-                        label: n == 1 ? 'Add this card' : 'Add $n cards',
-                        loading: _busy,
-                        onPressed: () => _addSelected(list),
+                    for (final k in shown)
+                      ListRow(
+                        leading: SizedBox(width: 56, child: CreditCardVisual(card: k, compact: true)),
+                        title: '${k.issuer} ${k.name}',
+                        subtitle: k.highlight,
+                        chevron: true,
+                        onTap: () => setState(() => _picked = k),
                       ),
-                      if (n == 1) ...[
-                        const SizedBox(height: Space.sm),
-                        PrimaryButton(
-                          label: 'Add with details',
-                          secondary: true,
-                          onPressed: () => setState(() => _picked = list.firstWhere((k) => _selected.contains(k.id))),
-                        ),
-                      ],
-                    ],
                   ],
                 );
               },
@@ -222,7 +175,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     }
     return SheetScaffold(
       title: '${picked.issuer} ${picked.name}',
-      subtitle: 'Everything here is optional. Only the last four digits are kept.',
+      subtitle: 'Only the last four digits are kept.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -231,7 +184,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             autofocus: true,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-            decoration: const InputDecoration(hintText: 'Last 4 digits (optional)'),
+            decoration: const InputDecoration(hintText: 'Last 4 digits'),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),

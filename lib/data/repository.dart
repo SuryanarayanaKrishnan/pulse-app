@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import '../core/engine/nw_history.dart';
 import 'api/api_exception.dart';
+import 'digit_suggestion.dart';
 import 'insights.dart';
 import 'models.dart';
 import 'rules.dart';
@@ -34,6 +35,12 @@ abstract class PulseRepository {
     required double amount,
     required SpendCategory category,
   });
+
+  /// Adds dated payments from an imported sheet. Ones already imported
+  /// (same day, amount, name and category) are skipped, so importing the same
+  /// file twice changes nothing. Returns how many were added. Only the
+  /// on-device ledger takes them; others add none.
+  Future<int> importTransactions(List<ImportedTransaction> txs) async => 0;
 
   // ---- budget & categories ------------------------------------------------
 
@@ -78,6 +85,12 @@ abstract class PulseRepository {
 
   /// Removes a card from the wallet (its transactions stay).
   Future<void> removeCard(String id);
+
+  /// Sets the last four digits of a card and replays alerts that were waiting for it.
+  Future<void> setCardLast4(String accountId, String last4);
+
+  /// Alerts waiting on card digits that a digit-less card could own.
+  Future<List<DigitSuggestion>> digitSuggestions();
 
   /// Adds a bank account, wallet or cash pot with an opening balance.
   Future<BankAccount> addBankAccount({
@@ -217,6 +230,12 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<void> removeCard(String id) => _unsupported('Removing cards');
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) => _unsupported('Editing cards');
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() async => const [];
 
   @override
   Future<BankAccount> addBankAccount({

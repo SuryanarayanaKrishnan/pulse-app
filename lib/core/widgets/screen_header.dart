@@ -29,7 +29,7 @@ class ScreenHeader extends StatelessWidget {
                 Text(
                   subtitle!.toUpperCase(),
                   style: context.tt.labelMedium!.copyWith(
-                    color: context.pc.accent,
+                    color: context.tabAccent,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.9,
@@ -41,9 +41,21 @@ class ScreenHeader extends StatelessWidget {
                 header: true,
                 child: Text(
                   title,
-                  style: context.tt.displayMedium,
+                  style: context.tt.displayMedium!.copyWith(
+                    color: context.tabInk(),
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(height: Space.sm),
+              // The friendly underline motif: a short accent pill.
+              Container(
+                width: 36,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: context.tabAccent,
+                  borderRadius: BorderRadius.circular(Radii.pill),
                 ),
               ),
             ],
@@ -76,7 +88,7 @@ class RoundIconButton extends StatelessWidget {
       child: SizedBox(
         width: 44,
         height: 44,
-        child: Icon(icon, color: context.pc.accent, size: 24),
+        child: Icon(icon, color: context.tabAccent, size: 26),
       ),
     ),
   );

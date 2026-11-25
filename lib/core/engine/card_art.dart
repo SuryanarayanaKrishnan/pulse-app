@@ -15,6 +15,10 @@ enum CardMotif { none, waves, lines, dots, arcs, grid }
 
 enum CardNetworkMark { visa, mastercard, amex }
 
+/// The physical material the face imitates. [auto] derives it from
+/// [CardFinish] (and from how dark the stops are for gloss).
+enum CardMaterial { auto, brushed, pearl, softTouch, blackGloss }
+
 class CardArtSpec {
   const CardArtSpec({
     required this.stops,
@@ -27,6 +31,11 @@ class CardArtSpec {
     this.chip = ChipStyle.gold,
     this.contactless = true,
     this.motif = CardMotif.none,
+    this.material = CardMaterial.auto,
+    this.grain = 0.5,
+    this.specular = 1.0,
+    this.emboss = 1.0,
+    this.hologram = true,
   });
 
   /// Gradient stops, top-left to bottom-right (2 to 3 colours).
@@ -48,6 +57,49 @@ class CardArtSpec {
   final ChipStyle chip;
   final bool contactless;
   final CardMotif motif;
+
+  /// Optional realism controls; every one has a default so existing art (the
+  /// 198-card catalog) renders without them.
+  final CardMaterial material;
+
+  /// Strength of the brushed grain / soft-touch noise, 0 to 1.
+  final double grain;
+
+  /// Strength of the moving specular highlight, 0 to 1.
+  final double specular;
+
+  /// Strength of the embossed relief on the number and name, 0 to 1.
+  final double emboss;
+
+  /// A small holographic security mark (never drawn on brushed metal).
+  final bool hologram;
+
+  /// The material to draw: [material], or one derived from [finish].
+  CardMaterial get resolvedMaterial {
+    if (material != CardMaterial.auto) return material;
+    switch (finish) {
+      case CardFinish.metal:
+        return CardMaterial.brushed;
+      case CardFinish.matte:
+        return CardMaterial.softTouch;
+      case CardFinish.gloss:
+        return _luma(stops) < 0.07
+            ? CardMaterial.blackGloss
+            : CardMaterial.pearl;
+    }
+  }
+
+  static double _luma(List<int> cs) {
+    var t = 0.0;
+    for (final c in cs) {
+      t +=
+          (0.2126 * ((c >> 16) & 255) +
+              0.7152 * ((c >> 8) & 255) +
+              0.0722 * (c & 255)) /
+          255;
+    }
+    return t / cs.length;
+  }
 
   /// Colours arrive as `#RRGGBB` strings (catalog data) or ARGB ints.
   static int _color(Object? v, int fallback) {
@@ -72,6 +124,12 @@ class CardArtSpec {
     chip: ChipStyle.values.byName((j['chip'] as String?) ?? 'gold'),
     contactless: (j['contactless'] as bool?) ?? true,
     motif: CardMotif.values.byName((j['motif'] as String?) ?? 'none'),
+    material:
+        CardMaterial.values.asNameMap()[j['material']] ?? CardMaterial.auto,
+    grain: (j['grain'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 0.5,
+    specular: (j['specular'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
+    emboss: (j['emboss'] as num?)?.toDouble().clamp(0.0, 1.0) ?? 1.0,
+    hologram: (j['hologram'] as bool?) ?? true,
   );
 
   Map<String, Object?> toJson() => {
@@ -85,6 +143,11 @@ class CardArtSpec {
     'chip': chip.name,
     'contactless': contactless,
     'motif': motif.name,
+    if (material != CardMaterial.auto) 'material': material.name,
+    if (grain != 0.5) 'grain': grain,
+    if (specular != 1.0) 'specular': specular,
+    if (emboss != 1.0) 'emboss': emboss,
+    if (!hologram) 'hologram': false,
   };
 }
 

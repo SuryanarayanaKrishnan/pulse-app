@@ -182,6 +182,14 @@ abstract final class AnalyticsSchema {
     EventSpec('receipt_matched', 'Everyday use', 'An email receipt is linked to a payment on this phone.', props: {
       'merchant': EnumProp('Which shop family (never the order, items or amounts)', ['noon', 'talabat', 'careem', 'other']),
     }),
+    EventSpec('budget_suggested', 'Everyday use', 'You use the one-step budget Pulse drafted for you.', props: {
+      'history': BoolProp('Whether your past spending was used'),
+    }),
+    EventSpec('budget_imported', 'Everyday use', 'You bring a budget from a sheet into Pulse.', props: {
+      'source': EnumProp('A file, or a Google Sheets link', ['file', 'link']),
+      'history': BoolProp('Whether past payments came with it'),
+      'items': EnumProp('How many lines it had (never their names or amounts)', ['few', 'some', 'many']),
+    }),
     EventSpec('money_moved', 'Everyday use', 'You move money between two categories in a month.'),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),

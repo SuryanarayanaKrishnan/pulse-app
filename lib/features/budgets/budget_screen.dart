@@ -68,10 +68,26 @@ class BudgetScreen extends ConsumerWidget {
                             'Once card alerts arrive, or you add a payment by '
                             'hand, spending shows up here. Set a monthly budget '
                             'to see how much is left.',
-                        action: PrimaryButton(
-                          label: 'Set a budget',
-                          expand: false,
-                          onPressed: () => context.push(Routes.categories),
+                        action: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            PrimaryButton(
+                              key: const Key('budget_build'),
+                              label: 'Build my budget',
+                              icon: Icons.auto_awesome_outlined,
+                              expand: false,
+                              onPressed: () => context.push(Routes.budgetSetup),
+                            ),
+                            const SizedBox(height: Space.sm),
+                            PrimaryButton(
+                              key: const Key('budget_import'),
+                              label: 'Import my sheet',
+                              icon: Icons.upload_file_outlined,
+                              secondary: true,
+                              expand: false,
+                              onPressed: () => context.push(Routes.budgetImport),
+                            ),
+                          ],
                         ),
                       )
                     : _Body(o),
@@ -163,6 +179,22 @@ class _Body extends ConsumerWidget {
         RowGroup(
           indent: ListRow.leadingInset,
           children: [
+            ListRow(
+              key: const Key('manage_build'),
+              leading: const IconWell(Icons.auto_awesome_outlined),
+              title: 'Build my budget',
+              subtitle: 'A full month from a few answers',
+              chevron: true,
+              onTap: () => context.push(Routes.budgetSetup),
+            ),
+            ListRow(
+              key: const Key('manage_import'),
+              leading: const IconWell(Icons.upload_file_outlined),
+              title: 'Import my sheet',
+              subtitle: 'Excel, Google Sheets or CSV',
+              chevron: true,
+              onTap: () => context.push(Routes.budgetImport),
+            ),
             ListRow(
               leading: const IconWell(Icons.category_outlined),
               title: 'Categories & budgets',
