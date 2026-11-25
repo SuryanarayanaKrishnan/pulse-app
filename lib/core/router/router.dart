@@ -1,3 +1,5 @@
+import '../theme/tokens.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:go_router/go_router.dart';
 
@@ -324,7 +326,8 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.home,
                 name: 'home',
-                builder: (c, s) => const HomeScreen(),
+                builder: (c, s) =>
+                    const TabBackdrop(tab: PulseTab.home, child: HomeScreen()),
               ),
             ],
           ),
@@ -333,7 +336,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.budget,
                 name: 'budget',
-                builder: (c, s) => const BudgetScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.budget,
+                  child: BudgetScreen(),
+                ),
               ),
             ],
           ),
@@ -342,7 +348,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.cards,
                 name: 'cards',
-                builder: (c, s) => const CardsScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.cards,
+                  child: CardsScreen(),
+                ),
               ),
             ],
           ),
@@ -351,7 +360,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.splits,
                 name: 'splits',
-                builder: (c, s) => const SplitsScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.splits,
+                  child: SplitsScreen(),
+                ),
               ),
             ],
           ),
@@ -360,7 +372,10 @@ GoRouter buildRouter({
               GoRoute(
                 path: Routes.wealth,
                 name: 'wealth',
-                builder: (c, s) => const WealthScreen(),
+                builder: (c, s) => const TabBackdrop(
+                  tab: PulseTab.wealth,
+                  child: WealthScreen(),
+                ),
               ),
             ],
           ),

@@ -83,7 +83,8 @@ class HeroNumber extends StatelessWidget {
             value,
             size: 40,
             weight: FontWeight.w700,
-            color: color,
+            color:
+                color ?? (value < 0 ? context.pc.negative : context.tabInk()),
           ),
         ),
         if (caption != null) ...[
