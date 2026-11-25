@@ -16,6 +16,7 @@ import '../../household/household_providers.dart';
 import '../goals/goal_widgets.dart' show aedMinor;
 import '../categories/category_picker.dart';
 import 'household_common.dart';
+import 'invite_scanner.dart';
 
 void _toast(BuildContext context, String text) =>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
@@ -119,6 +120,9 @@ class _Home extends ConsumerWidget {
     final today = DateTime.now();
     final bills = upcomingBills(j.bills, CalDate(today.year, today.month, today.day), j.me);
     final keyMissing = status.keyMissing;
+    final rot = ref.watch(householdRotationProvider).value;
+    final removedMe = rot?.removed ?? false;
+    final notice = removedMe ? null : rot?.notice;
     return ListView(
       padding: const EdgeInsets.only(bottom: Space.xxxl),
       children: [
@@ -133,6 +137,53 @@ class _Home extends ConsumerWidget {
               ),
             ),
           ),
+        if (removedMe)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              0,
+              Space.gutter,
+              Space.lg,
+            ),
+            child: SurfaceCard(
+              child: Text(
+                'You were removed from this household. This phone has stopped sharing with it. Leave to clear it; everything of yours stays on this phone.',
+                key: const Key('removed_notice'),
+                style: context.tt.bodyMedium,
+              ),
+            ),
+          ),
+        if (notice != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              0,
+              Space.gutter,
+              Space.lg,
+            ),
+            child: SurfaceCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${notice.name} changed the household code. Sharing continues once you enter the new one, which they give you in person or over a chat you trust.',
+                    key: const Key('rotation_notice'),
+                    style: context.tt.bodyMedium,
+                  ),
+                  const SizedBox(height: Space.md),
+                  PrimaryButton(
+                    key: const Key('adopt_open'),
+                    label: 'Enter the new code',
+                    onPressed: () => showPulseSheet<void>(
+                      context,
+                      full: true,
+                      builder: (_) => const AdoptCodeSheet(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         const SectionHeader('Members', top: 0),
         RowGroup(
           indent: ListRow.leadingInset,
@@ -143,14 +194,29 @@ class _Home extends ConsumerWidget {
                 leading: MemberAvatar(m.name, me: m.id == j.me),
                 title: m.name,
                 subtitle: m.id == j.me ? 'You' : 'In your household',
+                trailing: m.id == j.me || keyMissing || removedMe
+                    ? null
+                    : TextAction(
+                        'Remove',
+                        key: Key('remove_${m.name}'),
+                        onTap: () => _confirmRemove(context, ref, m),
+                      ),
               ),
-            if (!keyMissing)
+            if (!keyMissing && !removedMe)
               ListRow(
                 key: const Key('household_invite'),
                 leading: IconWell(Icons.add_rounded, color: c.accent),
                 title: 'Invite someone',
                 titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
                 onTap: () => showPulseSheet<void>(context, full: true, builder: (_) => const InviteSheet()),
+              ),
+            if (!keyMissing && !removedMe)
+              ListRow(
+                key: const Key('household_rotate'),
+                leading: IconWell(Icons.key_rounded, color: c.accent),
+                title: 'Change household code',
+                subtitle: 'After someone left, or if a code may have leaked.',
+                onTap: () => _confirmRotate(context, ref),
               ),
           ],
         ),
@@ -235,6 +301,77 @@ class _Home extends ConsumerWidget {
     if (d.inMinutes < 60) return 'Synced ${d.inMinutes} min ago';
     if (d.inHours < 24) return 'Synced ${d.inHours} h ago';
     return 'Synced ${d.inDays} days ago';
+  }
+
+  Future<void> _confirmRemove(
+    BuildContext context,
+    WidgetRef ref,
+    HMember m,
+  ) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Remove ${m.name}?'),
+        content: const Text(
+          'The household moves to a new code. Everyone else has to enter it (you give it to them in person or over a chat you trust), '
+          'and the person you remove can no longer read anything new. They keep what they already saw.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('remove_confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Remove'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final code = await ref.read(householdServiceProvider).removeMember(m.id);
+    invalidateHousehold(ref);
+    if (context.mounted) {
+      await showPulseSheet<void>(
+        context,
+        full: true,
+        builder: (_) => NewCodeSheet(code: code, removed: m.name),
+      );
+    }
+  }
+
+  Future<void> _confirmRotate(BuildContext context, WidgetRef ref) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Change the household code?'),
+        content: const Text(
+          'The household moves to a new code. Everyone has to enter it, and anyone holding the old code can no longer read anything new.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            key: const Key('rotate_confirm'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Change'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final code = await ref.read(householdServiceProvider).rotateKey();
+    invalidateHousehold(ref);
+    if (context.mounted) {
+      await showPulseSheet<void>(
+        context,
+        full: true,
+        builder: (_) => NewCodeSheet(code: code),
+      );
+    }
   }
 
   Future<void> _confirmLeave(BuildContext context, WidgetRef ref) async {
@@ -350,6 +487,11 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
     if (d?.text != null) setState(() => _code.text = d!.text!.trim());
   }
 
+  Future<void> _scan() async {
+    final code = await scanInviteCode(context);
+    if (code != null && mounted) setState(() => _code.text = code);
+  }
+
   Future<void> _join() async {
     setState(() {
       _busy = true;
@@ -372,7 +514,9 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
     final c = context.pc;
     return SheetScaffold(
       title: 'Join a household',
-      subtitle: 'Paste the code from the person who invited you.',
+      subtitle: inviteScannerAvailable
+          ? 'Scan the QR code on their phone, or paste the code they sent you.'
+          : 'Paste the code from the person who invited you.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -386,7 +530,19 @@ class _JoinState extends ConsumerState<JoinHouseholdSheet> {
             decoration: InputDecoration(hintText: 'PULSE-HH1-…', errorText: _error),
             onChanged: (_) => setState(() => _error = null),
           ),
-          Align(alignment: Alignment.centerLeft, child: TextAction('Paste from clipboard', onTap: _paste)),
+          Wrap(
+            spacing: Space.lg,
+            children: [
+              TextAction('Paste from clipboard', onTap: _paste),
+              if (inviteScannerAvailable) ...[
+                TextAction(
+                  'Scan QR code',
+                  key: const Key('join_scan'),
+                  onTap: _scan,
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: Space.sm),
           TextField(
             key: const Key('join_myname'),
@@ -418,72 +574,216 @@ class InviteSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
     final code = ref.watch(_inviteCodeProvider).value;
     return SheetScaffold(
       title: 'Invite someone',
-      subtitle: 'They choose Join with a code in Pulse and paste this. Scanning the QR with a camera gives the same text.',
-      child: code == null
-          ? const SizedBox(height: 200)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(
-                  child: Container(
-                    key: const Key('invite_qr'),
-                    padding: const EdgeInsets.all(Space.md),
-                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(Radii.md)),
-                    child: QrImageView(
-                      data: code,
-                      size: 208,
-                      version: QrVersions.auto,
-                      errorCorrectionLevel: QrErrorCorrectLevel.M,
-                      backgroundColor: Colors.white,
-                      eyeStyle: const QrEyeStyle(eyeShape: QrEyeShape.square, color: Color(0xFF111111)),
-                      dataModuleStyle: const QrDataModuleStyle(dataModuleShape: QrDataModuleShape.square, color: Color(0xFF111111)),
-                    ),
-                  ),
+      subtitle: inviteScannerAvailable
+          ? 'They choose Join with a code in Pulse and scan this QR code, or paste the text.'
+          : 'They choose Join with a code in Pulse and paste this. Scanning the QR with a camera gives the same text.',
+      child: code == null ? const SizedBox(height: 200) : _CodeBody(code),
+    );
+  }
+}
+
+/// Shown right after removing a member or changing the code: the new code
+/// for everyone who stays. The old one no longer opens anything new.
+class NewCodeSheet extends StatelessWidget {
+  const NewCodeSheet({super.key, required this.code, this.removed});
+  final String code;
+  final String? removed;
+
+  @override
+  Widget build(BuildContext context) => SheetScaffold(
+    title: 'New household code',
+    subtitle: removed == null
+        ? 'Give this to everyone who stays, in person or over a chat you trust. They open Household and tap Enter the new code.'
+        : '$removed is out. Give this to everyone who stays, in person or over a chat you trust. They open Household and tap Enter the new code.',
+    child: _CodeBody(code),
+  );
+}
+
+class _CodeBody extends StatelessWidget {
+  const _CodeBody(this.code);
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Container(
+            key: const Key('invite_qr'),
+            padding: const EdgeInsets.all(Space.md),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
+            child: QrImageView(
+              data: code,
+              size: 208,
+              version: QrVersions.auto,
+              errorCorrectionLevel: QrErrorCorrectLevel.M,
+              backgroundColor: Colors.white,
+              eyeStyle: const QrEyeStyle(
+                eyeShape: QrEyeShape.square,
+                color: Color(0xFF111111),
+              ),
+              dataModuleStyle: const QrDataModuleStyle(
+                dataModuleShape: QrDataModuleShape.square,
+                color: Color(0xFF111111),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: Space.lg),
+        SurfaceCard(
+          child: SelectableText(
+            code,
+            key: const Key('invite_code'),
+            style: PulseTheme.amount(c.textPrimary, size: 13),
+          ),
+        ),
+        const SizedBox(height: Space.md),
+        Row(
+          children: [
+            Expanded(
+              child: PrimaryButton(
+                label: 'Copy code',
+                secondary: true,
+                icon: Icons.copy_rounded,
+                onPressed: () async {
+                  await Clipboard.setData(ClipboardData(text: code));
+                  if (context.mounted) _toast(context, 'Code copied');
+                },
+              ),
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: PrimaryButton(
+                label: 'Share',
+                secondary: true,
+                icon: Icons.ios_share_rounded,
+                onPressed: () => SharePlus.instance.share(
+                  ShareParams(text: code, subject: 'Join my Pulse household'),
                 ),
-                const SizedBox(height: Space.lg),
-                SurfaceCard(
-                  child: SelectableText(
-                    code,
-                    key: const Key('invite_code'),
-                    style: PulseTheme.amount(c.textPrimary, size: 13),
-                  ),
-                ),
-                const SizedBox(height: Space.md),
-                Row(
-                  children: [
-                    Expanded(
-                      child: PrimaryButton(
-                        label: 'Copy code',
-                        secondary: true,
-                        icon: Icons.copy_rounded,
-                        onPressed: () async {
-                          await Clipboard.setData(ClipboardData(text: code));
-                          if (context.mounted) _toast(context, 'Code copied');
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: Space.md),
-                    Expanded(
-                      child: PrimaryButton(
-                        label: 'Share',
-                        secondary: true,
-                        icon: Icons.ios_share_rounded,
-                        onPressed: () => SharePlus.instance.share(ShareParams(text: code, subject: 'Join my Pulse household')),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: Space.lg),
-                Text(
-                  'This code opens your household. Anyone who has it can read what you share, so pass it in person or in a chat you trust, and only to the people you mean.',
-                  style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: Space.lg),
+        Text(
+          'This code opens your household. Anyone who has it can read what you share, so pass it in person or in a chat you trust, and only to the people you mean.',
+          style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+        ),
+      ],
+    );
+  }
+}
+
+/// A remaining member enters the new code after someone was removed or the
+/// code was changed. Keeps their name and everything of theirs.
+class AdoptCodeSheet extends ConsumerStatefulWidget {
+  const AdoptCodeSheet({super.key});
+  @override
+  ConsumerState<AdoptCodeSheet> createState() => _AdoptState();
+}
+
+class _AdoptState extends ConsumerState<AdoptCodeSheet> {
+  final _code = TextEditingController();
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _code.dispose();
+    super.dispose();
+  }
+
+  Future<void> _paste() async {
+    final d = await Clipboard.getData(Clipboard.kTextPlain);
+    if (d?.text != null) setState(() => _code.text = d!.text!.trim());
+  }
+
+  Future<void> _scan() async {
+    final code = await scanInviteCode(context);
+    if (code != null && mounted) setState(() => _code.text = code);
+  }
+
+  Future<void> _adopt() async {
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(householdServiceProvider).adoptRotation(_code.text);
+      invalidateHousehold(ref);
+      Haptics.success();
+      if (mounted) Navigator.of(context).pop();
+    } on FormatException {
+      if (mounted)
+        setState(
+          () =>
+              _error = "That code doesn't look right. Check it and try again.",
+        );
+    } on StateError {
+      if (mounted)
+        setState(
+          () => _error =
+              'That is the code you already have. Ask for the new one.',
+        );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return SheetScaffold(
+      title: 'Enter the new code',
+      subtitle: inviteScannerAvailable
+          ? 'Scan the QR code on their phone, or paste the code they sent you.'
+          : 'Paste the new code from the person who changed it.',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            key: const Key('adopt_code'),
+            controller: _code,
+            minLines: 3,
+            maxLines: 4,
+            autocorrect: false,
+            style: PulseTheme.amount(c.textPrimary, size: 14),
+            decoration: InputDecoration(
+              hintText: 'PULSE-HH1-…',
+              errorText: _error,
+            ),
+            onChanged: (_) => setState(() => _error = null),
+          ),
+          Wrap(
+            spacing: Space.lg,
+            children: [
+              TextAction('Paste from clipboard', onTap: _paste),
+              if (inviteScannerAvailable) ...[
+                TextAction(
+                  'Scan QR code',
+                  key: const Key('adopt_scan'),
+                  onTap: _scan,
                 ),
               ],
-            ),
+            ],
+          ),
+          const SizedBox(height: Space.xl),
+          PrimaryButton(
+            key: const Key('adopt_go'),
+            label: 'Continue sharing',
+            loading: _busy,
+            onPressed: _code.text.trim().isEmpty ? null : _adopt,
+          ),
+        ],
+      ),
     );
   }
 }

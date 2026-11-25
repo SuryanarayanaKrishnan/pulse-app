@@ -15,6 +15,7 @@ import '../../data/wealth_models.dart';
 import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
 import '../../core/vault/vault_models.dart';
+import '../household/ownership_widgets.dart';
 import '../vault/held_at.dart';
 import 'wealth_widgets.dart';
 
@@ -681,6 +682,7 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
         const SectionHeader('Holding'),
         RowGroup(
           children: [
+            OwnerRow(table: 'lines', id: 'fund:${f.id}', title: f.name),
             _kv(context, 'Units', u(f.units)),
             if (f.avgCostNav != null)
               _kv(

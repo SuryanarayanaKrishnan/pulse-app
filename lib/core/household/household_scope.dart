@@ -38,7 +38,7 @@ abstract final class HTable {
 
 /// Columns that may be written to the log, per table. `owner` is absolute.
 const householdColumns = <String, Set<String>>{
-  HTable.members: {'name', 'joined_at'},
+  HTable.members: {'name', 'joined_at', 'removed_by'},
   HTable.bills: {
     'name',
     'amount_minor',

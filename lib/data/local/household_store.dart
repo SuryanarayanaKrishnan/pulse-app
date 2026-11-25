@@ -68,16 +68,31 @@ class LocalHouseholdStore implements HouseholdStore {
 
   @override
   Future<List<HMember>> members() async => [
-    for (final r in await (db.select(db.householdMembers)
-          ..orderBy([(t) => OrderingTerm.asc(t.joinedAt), (t) => OrderingTerm.asc(t.id)]))
-        .get())
-      HMember(id: r.id, name: r.name, joinedAt: r.joinedAt),
+    for (final r
+        in await (db.select(db.householdMembers)..orderBy([
+              (t) => OrderingTerm.asc(t.joinedAt),
+              (t) => OrderingTerm.asc(t.id),
+            ]))
+            .get())
+      HMember(
+        id: r.id,
+        name: r.name,
+        joinedAt: r.joinedAt,
+        removedBy: r.removedBy,
+      ),
   ];
 
   @override
-  Future<void> saveMember(HMember m) => db.into(db.householdMembers).insertOnConflictUpdate(
-    HouseholdMembersCompanion.insert(id: m.id, name: m.name, joinedAt: Value(m.joinedAt)),
-  );
+  Future<void> saveMember(HMember m) => db
+      .into(db.householdMembers)
+      .insertOnConflictUpdate(
+        HouseholdMembersCompanion.insert(
+          id: m.id,
+          name: m.name,
+          joinedAt: Value(m.joinedAt),
+          removedBy: Value(m.removedBy),
+        ),
+      );
 
   @override
   Future<void> deleteMember(String id) =>
@@ -220,9 +235,9 @@ class LocalHouseholdStore implements HouseholdStore {
     return out;
   }
 
-  /// Ownership of every Wealth line by its Wealth-list id. Lines the
-  /// household cannot yet hold (jewellery, funds) are absent: the caller
-  /// treats them as Private.
+  /// Ownership of every Wealth line by its Wealth-list id (`jewel:` and
+  /// `fund:` rows included). Lines with no ownership columns (stocks) are
+  /// absent: the caller treats them as Private.
   Future<Map<String, Ownership>> _lineOwnership() async {
     final m = <String, Ownership>{};
     for (final a in await db.select(db.accounts).get()) {
@@ -235,6 +250,12 @@ class LocalHouseholdStore implements HouseholdStore {
     }
     for (final l in await db.select(db.liabilities).get()) {
       m[l.id] = Ownership(owner: l.owner, isPrivate: l.isPrivate);
+    }
+    for (final j in await db.select(db.jewelleryItems).get()) {
+      m['jewel:${j.id}'] = Ownership(owner: j.owner, isPrivate: j.isPrivate);
+    }
+    for (final f in await db.select(db.fundHoldings).get()) {
+      m['fund:${f.id}'] = Ownership(owner: f.owner, isPrivate: f.isPrivate);
     }
     return m;
   }
@@ -268,8 +289,17 @@ class LocalHouseholdStore implements HouseholdStore {
       case HTable.lines:
         if (id.startsWith('account:') || id.startsWith('card:')) {
           final aid = id.substring(id.indexOf(':') + 1);
-          await (db.update(db.accounts)..where((t) => t.id.equals(aid)))
-              .write(AccountsCompanion(owner: o(), isPrivate: p()));
+          await (db.update(db.accounts)..where((t) => t.id.equals(aid))).write(
+            AccountsCompanion(owner: o(), isPrivate: p()),
+          );
+        } else if (id.startsWith('jewel:')) {
+          await (db.update(db.jewelleryItems)
+                ..where((t) => t.id.equals(id.substring(6))))
+              .write(JewelleryItemsCompanion(owner: o(), isPrivate: p()));
+        } else if (id.startsWith('fund:')) {
+          await (db.update(db.fundHoldings)
+                ..where((t) => t.id.equals(id.substring(5))))
+              .write(FundHoldingsCompanion(owner: o(), isPrivate: p()));
         } else {
           await (db.update(db.assets)..where((t) => t.id.equals(id)))
               .write(AssetsCompanion(owner: o(), isPrivate: p()));
@@ -306,6 +336,37 @@ class LocalHouseholdStore implements HouseholdStore {
   }
 
   @override
+  Future<void> clearMirror() => db.delete(db.householdMirror).go();
+
+  @override
+  Future<void> reassignOwner(String from, String to) async {
+    for (final t in [
+      'accounts',
+      'transactions',
+      'assets',
+      'liabilities',
+      'savings_goals',
+      'jewellery_items',
+      'fund_holdings',
+    ]) {
+      await db.customUpdate(
+        'UPDATE $t SET owner = ? WHERE owner = ?',
+        variables: [Variable<String>(to), Variable<String>(from)],
+        updates: {
+          db.accounts,
+          db.transactions,
+          db.assets,
+          db.liabilities,
+          db.savingsGoals,
+          db.jewelleryItems,
+          db.fundHoldings,
+        },
+        updateKind: UpdateKind.update,
+      );
+    }
+  }
+
+  @override
   Future<void> clearAll() async {
     await db.transaction(() async {
       await db.delete(db.householdConfigs).go();
@@ -313,10 +374,26 @@ class LocalHouseholdStore implements HouseholdStore {
       await db.delete(db.householdBills).go();
       await db.delete(db.householdLimits).go();
       await db.delete(db.householdMirror).go();
-      for (final t in ['accounts', 'transactions', 'assets', 'liabilities', 'savings_goals']) {
+      for (final t in [
+        'accounts',
+        'transactions',
+        'assets',
+        'liabilities',
+        'savings_goals',
+        'jewellery_items',
+        'fund_holdings',
+      ]) {
         await db.customUpdate(
           "UPDATE $t SET owner = 'me' WHERE owner <> 'me'",
-          updates: {db.accounts, db.transactions, db.assets, db.liabilities, db.savingsGoals},
+          updates: {
+            db.accounts,
+            db.transactions,
+            db.assets,
+            db.liabilities,
+            db.savingsGoals,
+            db.jewelleryItems,
+            db.fundHoldings,
+          },
           updateKind: UpdateKind.update,
         );
       }

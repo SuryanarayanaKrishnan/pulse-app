@@ -5,7 +5,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>
-	<string>Take photos of jewellery and documents. Photos are kept on this phone and never uploaded.</string>
+	<string>Take photos of jewellery and documents, and scan a household invite QR code. Photos are kept on this phone and never uploaded; scanned codes are never sent anywhere.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Choose photos of jewellery, documents, statements or receipts. Photos are copied into Pulse on this phone and never uploaded.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

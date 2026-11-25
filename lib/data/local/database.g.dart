@@ -13659,6 +13659,31 @@ class $JewelleryItemsTable extends JewelleryItems
     ),
     defaultValue: const Constant(false),
   );
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('me'),
+  );
+  static const VerificationMeta _isPrivateMeta = const VerificationMeta(
+    'isPrivate',
+  );
+  @override
+  late final GeneratedColumn<bool> isPrivate = GeneratedColumn<bool>(
+    'is_private',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_private" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -13674,6 +13699,8 @@ class $JewelleryItemsTable extends JewelleryItems
     createdAt,
     deletedAt,
     approximate,
+    owner,
+    isPrivate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -13788,6 +13815,18 @@ class $JewelleryItemsTable extends JewelleryItems
         ),
       );
     }
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    }
+    if (data.containsKey('is_private')) {
+      context.handle(
+        _isPrivateMeta,
+        isPrivate.isAcceptableOrUnknown(data['is_private']!, _isPrivateMeta),
+      );
+    }
     return context;
   }
 
@@ -13849,6 +13888,14 @@ class $JewelleryItemsTable extends JewelleryItems
         DriftSqlType.bool,
         data['${effectivePrefix}approximate'],
       )!,
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      isPrivate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_private'],
+      )!,
     );
   }
 
@@ -13881,6 +13928,11 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
   /// True when the weight, karat or price were estimated rather than read
   /// off a bill (added in schema v11).
   final bool approximate;
+
+  /// Household ownership (added in schema v12): `me`, `shared` or a member id,
+  /// and a Private flag that keeps the item out of every household log.
+  final String owner;
+  final bool isPrivate;
   const JewelleryRow({
     required this.id,
     required this.name,
@@ -13895,6 +13947,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     required this.createdAt,
     this.deletedAt,
     required this.approximate,
+    required this.owner,
+    required this.isPrivate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -13924,6 +13978,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
     map['approximate'] = Variable<bool>(approximate);
+    map['owner'] = Variable<String>(owner);
+    map['is_private'] = Variable<bool>(isPrivate);
     return map;
   }
 
@@ -13954,6 +14010,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           ? const Value.absent()
           : Value(deletedAt),
       approximate: Value(approximate),
+      owner: Value(owner),
+      isPrivate: Value(isPrivate),
     );
   }
 
@@ -13976,6 +14034,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
       approximate: serializer.fromJson<bool>(json['approximate']),
+      owner: serializer.fromJson<String>(json['owner']),
+      isPrivate: serializer.fromJson<bool>(json['isPrivate']),
     );
   }
   @override
@@ -13995,6 +14055,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
       'approximate': serializer.toJson<bool>(approximate),
+      'owner': serializer.toJson<String>(owner),
+      'isPrivate': serializer.toJson<bool>(isPrivate),
     };
   }
 
@@ -14012,6 +14074,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
     bool? approximate,
+    String? owner,
+    bool? isPrivate,
   }) => JewelleryRow(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -14032,6 +14096,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
     approximate: approximate ?? this.approximate,
+    owner: owner ?? this.owner,
+    isPrivate: isPrivate ?? this.isPrivate,
   );
   JewelleryRow copyWithCompanion(JewelleryItemsCompanion data) {
     return JewelleryRow(
@@ -14062,6 +14128,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
       approximate: data.approximate.present
           ? data.approximate.value
           : this.approximate,
+      owner: data.owner.present ? data.owner.value : this.owner,
+      isPrivate: data.isPrivate.present ? data.isPrivate.value : this.isPrivate,
     );
   }
 
@@ -14080,7 +14148,9 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           ..write('photoPaths: $photoPaths, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
-          ..write('approximate: $approximate')
+          ..write('approximate: $approximate, ')
+          ..write('owner: $owner, ')
+          ..write('isPrivate: $isPrivate')
           ..write(')'))
         .toString();
   }
@@ -14100,6 +14170,8 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
     createdAt,
     deletedAt,
     approximate,
+    owner,
+    isPrivate,
   );
   @override
   bool operator ==(Object other) =>
@@ -14117,7 +14189,9 @@ class JewelleryRow extends DataClass implements Insertable<JewelleryRow> {
           other.photoPaths == this.photoPaths &&
           other.createdAt == this.createdAt &&
           other.deletedAt == this.deletedAt &&
-          other.approximate == this.approximate);
+          other.approximate == this.approximate &&
+          other.owner == this.owner &&
+          other.isPrivate == this.isPrivate);
 }
 
 class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
@@ -14134,6 +14208,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
   final Value<bool> approximate;
+  final Value<String> owner;
+  final Value<bool> isPrivate;
   final Value<int> rowid;
   const JewelleryItemsCompanion({
     this.id = const Value.absent(),
@@ -14149,6 +14225,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.approximate = const Value.absent(),
+    this.owner = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   JewelleryItemsCompanion.insert({
@@ -14165,6 +14243,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
     this.approximate = const Value.absent(),
+    this.owner = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name),
@@ -14184,6 +14264,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
     Expression<bool>? approximate,
+    Expression<String>? owner,
+    Expression<bool>? isPrivate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -14202,6 +14284,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
       if (approximate != null) 'approximate': approximate,
+      if (owner != null) 'owner': owner,
+      if (isPrivate != null) 'is_private': isPrivate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -14220,6 +14304,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
     Value<bool>? approximate,
+    Value<String>? owner,
+    Value<bool>? isPrivate,
     Value<int>? rowid,
   }) {
     return JewelleryItemsCompanion(
@@ -14236,6 +14322,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
       approximate: approximate ?? this.approximate,
+      owner: owner ?? this.owner,
+      isPrivate: isPrivate ?? this.isPrivate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -14282,6 +14370,12 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
     if (approximate.present) {
       map['approximate'] = Variable<bool>(approximate.value);
     }
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (isPrivate.present) {
+      map['is_private'] = Variable<bool>(isPrivate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -14304,6 +14398,8 @@ class JewelleryItemsCompanion extends UpdateCompanion<JewelleryRow> {
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
           ..write('approximate: $approximate, ')
+          ..write('owner: $owner, ')
+          ..write('isPrivate: $isPrivate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -15147,6 +15243,31 @@ class $FundHoldingsTable extends FundHoldings
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _ownerMeta = const VerificationMeta('owner');
+  @override
+  late final GeneratedColumn<String> owner = GeneratedColumn<String>(
+    'owner',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('me'),
+  );
+  static const VerificationMeta _isPrivateMeta = const VerificationMeta(
+    'isPrivate',
+  );
+  @override
+  late final GeneratedColumn<bool> isPrivate = GeneratedColumn<bool>(
+    'is_private',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_private" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -15164,6 +15285,8 @@ class $FundHoldingsTable extends FundHoldings
     sipDay,
     createdAt,
     deletedAt,
+    owner,
+    isPrivate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -15283,6 +15406,18 @@ class $FundHoldingsTable extends FundHoldings
         deletedAt.isAcceptableOrUnknown(data['deleted_at']!, _deletedAtMeta),
       );
     }
+    if (data.containsKey('owner')) {
+      context.handle(
+        _ownerMeta,
+        owner.isAcceptableOrUnknown(data['owner']!, _ownerMeta),
+      );
+    }
+    if (data.containsKey('is_private')) {
+      context.handle(
+        _isPrivateMeta,
+        isPrivate.isAcceptableOrUnknown(data['is_private']!, _isPrivateMeta),
+      );
+    }
     return context;
   }
 
@@ -15352,6 +15487,14 @@ class $FundHoldingsTable extends FundHoldings
         DriftSqlType.dateTime,
         data['${effectivePrefix}deleted_at'],
       ),
+      owner: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}owner'],
+      )!,
+      isPrivate: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_private'],
+      )!,
     );
   }
 
@@ -15387,6 +15530,11 @@ class FundRow extends DataClass implements Insertable<FundRow> {
   final int? sipDay;
   final DateTime createdAt;
   final DateTime? deletedAt;
+
+  /// Household ownership (added in schema v12): `me`, `shared` or a member id,
+  /// and a Private flag that keeps the item out of every household log.
+  final String owner;
+  final bool isPrivate;
   const FundRow({
     required this.id,
     required this.kind,
@@ -15403,6 +15551,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
     this.sipDay,
     required this.createdAt,
     this.deletedAt,
+    required this.owner,
+    required this.isPrivate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -15436,6 +15586,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
     if (!nullToAbsent || deletedAt != null) {
       map['deleted_at'] = Variable<DateTime>(deletedAt);
     }
+    map['owner'] = Variable<String>(owner);
+    map['is_private'] = Variable<bool>(isPrivate);
     return map;
   }
 
@@ -15470,6 +15622,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
       deletedAt: deletedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(deletedAt),
+      owner: Value(owner),
+      isPrivate: Value(isPrivate),
     );
   }
 
@@ -15494,6 +15648,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
       sipDay: serializer.fromJson<int?>(json['sipDay']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       deletedAt: serializer.fromJson<DateTime?>(json['deletedAt']),
+      owner: serializer.fromJson<String>(json['owner']),
+      isPrivate: serializer.fromJson<bool>(json['isPrivate']),
     );
   }
   @override
@@ -15515,6 +15671,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
       'sipDay': serializer.toJson<int?>(sipDay),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'deletedAt': serializer.toJson<DateTime?>(deletedAt),
+      'owner': serializer.toJson<String>(owner),
+      'isPrivate': serializer.toJson<bool>(isPrivate),
     };
   }
 
@@ -15534,6 +15692,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
     Value<int?> sipDay = const Value.absent(),
     DateTime? createdAt,
     Value<DateTime?> deletedAt = const Value.absent(),
+    String? owner,
+    bool? isPrivate,
   }) => FundRow(
     id: id ?? this.id,
     kind: kind ?? this.kind,
@@ -15552,6 +15712,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
     sipDay: sipDay.present ? sipDay.value : this.sipDay,
     createdAt: createdAt ?? this.createdAt,
     deletedAt: deletedAt.present ? deletedAt.value : this.deletedAt,
+    owner: owner ?? this.owner,
+    isPrivate: isPrivate ?? this.isPrivate,
   );
   FundRow copyWithCompanion(FundHoldingsCompanion data) {
     return FundRow(
@@ -15578,6 +15740,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
       sipDay: data.sipDay.present ? data.sipDay.value : this.sipDay,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       deletedAt: data.deletedAt.present ? data.deletedAt.value : this.deletedAt,
+      owner: data.owner.present ? data.owner.value : this.owner,
+      isPrivate: data.isPrivate.present ? data.isPrivate.value : this.isPrivate,
     );
   }
 
@@ -15598,7 +15762,9 @@ class FundRow extends DataClass implements Insertable<FundRow> {
           ..write('sipAmountMinor: $sipAmountMinor, ')
           ..write('sipDay: $sipDay, ')
           ..write('createdAt: $createdAt, ')
-          ..write('deletedAt: $deletedAt')
+          ..write('deletedAt: $deletedAt, ')
+          ..write('owner: $owner, ')
+          ..write('isPrivate: $isPrivate')
           ..write(')'))
         .toString();
   }
@@ -15620,6 +15786,8 @@ class FundRow extends DataClass implements Insertable<FundRow> {
     sipDay,
     createdAt,
     deletedAt,
+    owner,
+    isPrivate,
   );
   @override
   bool operator ==(Object other) =>
@@ -15639,7 +15807,9 @@ class FundRow extends DataClass implements Insertable<FundRow> {
           other.sipAmountMinor == this.sipAmountMinor &&
           other.sipDay == this.sipDay &&
           other.createdAt == this.createdAt &&
-          other.deletedAt == this.deletedAt);
+          other.deletedAt == this.deletedAt &&
+          other.owner == this.owner &&
+          other.isPrivate == this.isPrivate);
 }
 
 class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
@@ -15658,6 +15828,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
   final Value<int?> sipDay;
   final Value<DateTime> createdAt;
   final Value<DateTime?> deletedAt;
+  final Value<String> owner;
+  final Value<bool> isPrivate;
   final Value<int> rowid;
   const FundHoldingsCompanion({
     this.id = const Value.absent(),
@@ -15675,6 +15847,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
     this.sipDay = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.owner = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FundHoldingsCompanion.insert({
@@ -15693,6 +15867,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
     this.sipDay = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.deletedAt = const Value.absent(),
+    this.owner = const Value.absent(),
+    this.isPrivate = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        kind = Value(kind),
@@ -15715,6 +15891,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
     Expression<int>? sipDay,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? deletedAt,
+    Expression<String>? owner,
+    Expression<bool>? isPrivate,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -15733,6 +15911,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
       if (sipDay != null) 'sip_day': sipDay,
       if (createdAt != null) 'created_at': createdAt,
       if (deletedAt != null) 'deleted_at': deletedAt,
+      if (owner != null) 'owner': owner,
+      if (isPrivate != null) 'is_private': isPrivate,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -15753,6 +15933,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
     Value<int?>? sipDay,
     Value<DateTime>? createdAt,
     Value<DateTime?>? deletedAt,
+    Value<String>? owner,
+    Value<bool>? isPrivate,
     Value<int>? rowid,
   }) {
     return FundHoldingsCompanion(
@@ -15771,6 +15953,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
       sipDay: sipDay ?? this.sipDay,
       createdAt: createdAt ?? this.createdAt,
       deletedAt: deletedAt ?? this.deletedAt,
+      owner: owner ?? this.owner,
+      isPrivate: isPrivate ?? this.isPrivate,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -15823,6 +16007,12 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
     if (deletedAt.present) {
       map['deleted_at'] = Variable<DateTime>(deletedAt.value);
     }
+    if (owner.present) {
+      map['owner'] = Variable<String>(owner.value);
+    }
+    if (isPrivate.present) {
+      map['is_private'] = Variable<bool>(isPrivate.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -15847,6 +16037,8 @@ class FundHoldingsCompanion extends UpdateCompanion<FundRow> {
           ..write('sipDay: $sipDay, ')
           ..write('createdAt: $createdAt, ')
           ..write('deletedAt: $deletedAt, ')
+          ..write('owner: $owner, ')
+          ..write('isPrivate: $isPrivate, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -16690,8 +16882,19 @@ class $HouseholdMembersTable extends HouseholdMembers
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _removedByMeta = const VerificationMeta(
+    'removedBy',
+  );
   @override
-  List<GeneratedColumn> get $columns => [id, name, joinedAt];
+  late final GeneratedColumn<String> removedBy = GeneratedColumn<String>(
+    'removed_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, name, joinedAt, removedBy];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -16723,6 +16926,12 @@ class $HouseholdMembersTable extends HouseholdMembers
         joinedAt.isAcceptableOrUnknown(data['joined_at']!, _joinedAtMeta),
       );
     }
+    if (data.containsKey('removed_by')) {
+      context.handle(
+        _removedByMeta,
+        removedBy.isAcceptableOrUnknown(data['removed_by']!, _removedByMeta),
+      );
+    }
     return context;
   }
 
@@ -16744,6 +16953,10 @@ class $HouseholdMembersTable extends HouseholdMembers
         DriftSqlType.dateTime,
         data['${effectivePrefix}joined_at'],
       ),
+      removedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}removed_by'],
+      ),
     );
   }
 
@@ -16758,10 +16971,15 @@ class HouseholdMemberRow extends DataClass
   final String id;
   final String name;
   final DateTime? joinedAt;
+
+  /// Member id of whoever removed this member (schema v12). Set when the
+  /// household is re-keyed without them; null for everyone else.
+  final String? removedBy;
   const HouseholdMemberRow({
     required this.id,
     required this.name,
     this.joinedAt,
+    this.removedBy,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -16770,6 +16988,9 @@ class HouseholdMemberRow extends DataClass
     map['name'] = Variable<String>(name);
     if (!nullToAbsent || joinedAt != null) {
       map['joined_at'] = Variable<DateTime>(joinedAt);
+    }
+    if (!nullToAbsent || removedBy != null) {
+      map['removed_by'] = Variable<String>(removedBy);
     }
     return map;
   }
@@ -16781,6 +17002,9 @@ class HouseholdMemberRow extends DataClass
       joinedAt: joinedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(joinedAt),
+      removedBy: removedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(removedBy),
     );
   }
 
@@ -16793,6 +17017,7 @@ class HouseholdMemberRow extends DataClass
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       joinedAt: serializer.fromJson<DateTime?>(json['joinedAt']),
+      removedBy: serializer.fromJson<String?>(json['removedBy']),
     );
   }
   @override
@@ -16802,6 +17027,7 @@ class HouseholdMemberRow extends DataClass
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
       'joinedAt': serializer.toJson<DateTime?>(joinedAt),
+      'removedBy': serializer.toJson<String?>(removedBy),
     };
   }
 
@@ -16809,16 +17035,19 @@ class HouseholdMemberRow extends DataClass
     String? id,
     String? name,
     Value<DateTime?> joinedAt = const Value.absent(),
+    Value<String?> removedBy = const Value.absent(),
   }) => HouseholdMemberRow(
     id: id ?? this.id,
     name: name ?? this.name,
     joinedAt: joinedAt.present ? joinedAt.value : this.joinedAt,
+    removedBy: removedBy.present ? removedBy.value : this.removedBy,
   );
   HouseholdMemberRow copyWithCompanion(HouseholdMembersCompanion data) {
     return HouseholdMemberRow(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
+      removedBy: data.removedBy.present ? data.removedBy.value : this.removedBy,
     );
   }
 
@@ -16827,37 +17056,42 @@ class HouseholdMemberRow extends DataClass
     return (StringBuffer('HouseholdMemberRow(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('joinedAt: $joinedAt')
+          ..write('joinedAt: $joinedAt, ')
+          ..write('removedBy: $removedBy')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, joinedAt);
+  int get hashCode => Object.hash(id, name, joinedAt, removedBy);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is HouseholdMemberRow &&
           other.id == this.id &&
           other.name == this.name &&
-          other.joinedAt == this.joinedAt);
+          other.joinedAt == this.joinedAt &&
+          other.removedBy == this.removedBy);
 }
 
 class HouseholdMembersCompanion extends UpdateCompanion<HouseholdMemberRow> {
   final Value<String> id;
   final Value<String> name;
   final Value<DateTime?> joinedAt;
+  final Value<String?> removedBy;
   final Value<int> rowid;
   const HouseholdMembersCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.joinedAt = const Value.absent(),
+    this.removedBy = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   HouseholdMembersCompanion.insert({
     required String id,
     required String name,
     this.joinedAt = const Value.absent(),
+    this.removedBy = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        name = Value(name);
@@ -16865,12 +17099,14 @@ class HouseholdMembersCompanion extends UpdateCompanion<HouseholdMemberRow> {
     Expression<String>? id,
     Expression<String>? name,
     Expression<DateTime>? joinedAt,
+    Expression<String>? removedBy,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (joinedAt != null) 'joined_at': joinedAt,
+      if (removedBy != null) 'removed_by': removedBy,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -16879,12 +17115,14 @@ class HouseholdMembersCompanion extends UpdateCompanion<HouseholdMemberRow> {
     Value<String>? id,
     Value<String>? name,
     Value<DateTime?>? joinedAt,
+    Value<String?>? removedBy,
     Value<int>? rowid,
   }) {
     return HouseholdMembersCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       joinedAt: joinedAt ?? this.joinedAt,
+      removedBy: removedBy ?? this.removedBy,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -16901,6 +17139,9 @@ class HouseholdMembersCompanion extends UpdateCompanion<HouseholdMemberRow> {
     if (joinedAt.present) {
       map['joined_at'] = Variable<DateTime>(joinedAt.value);
     }
+    if (removedBy.present) {
+      map['removed_by'] = Variable<String>(removedBy.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -16913,6 +17154,7 @@ class HouseholdMembersCompanion extends UpdateCompanion<HouseholdMemberRow> {
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('joinedAt: $joinedAt, ')
+          ..write('removedBy: $removedBy, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -31500,6 +31742,8 @@ typedef $$JewelleryItemsTableCreateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<bool> approximate,
+      Value<String> owner,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 typedef $$JewelleryItemsTableUpdateCompanionBuilder =
@@ -31517,6 +31761,8 @@ typedef $$JewelleryItemsTableUpdateCompanionBuilder =
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
       Value<bool> approximate,
+      Value<String> owner,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 
@@ -31591,6 +31837,16 @@ class $$JewelleryItemsTableFilterComposer
 
   ColumnFilters<bool> get approximate => $composableBuilder(
     column: $table.approximate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -31668,6 +31924,16 @@ class $$JewelleryItemsTableOrderingComposer
     column: $table.approximate,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$JewelleryItemsTableAnnotationComposer
@@ -31731,6 +31997,12 @@ class $$JewelleryItemsTableAnnotationComposer
     column: $table.approximate,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPrivate =>
+      $composableBuilder(column: $table.isPrivate, builder: (column) => column);
 }
 
 class $$JewelleryItemsTableTableManager
@@ -31779,6 +32051,8 @@ class $$JewelleryItemsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<bool> approximate = const Value.absent(),
+                Value<String> owner = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JewelleryItemsCompanion(
                 id: id,
@@ -31794,6 +32068,8 @@ class $$JewelleryItemsTableTableManager
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 approximate: approximate,
+                owner: owner,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -31811,6 +32087,8 @@ class $$JewelleryItemsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
                 Value<bool> approximate = const Value.absent(),
+                Value<String> owner = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => JewelleryItemsCompanion.insert(
                 id: id,
@@ -31826,6 +32104,8 @@ class $$JewelleryItemsTableTableManager
                 createdAt: createdAt,
                 deletedAt: deletedAt,
                 approximate: approximate,
+                owner: owner,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -32218,6 +32498,8 @@ typedef $$FundHoldingsTableCreateCompanionBuilder =
       Value<int?> sipDay,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
+      Value<String> owner,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 typedef $$FundHoldingsTableUpdateCompanionBuilder =
@@ -32237,6 +32519,8 @@ typedef $$FundHoldingsTableUpdateCompanionBuilder =
       Value<int?> sipDay,
       Value<DateTime> createdAt,
       Value<DateTime?> deletedAt,
+      Value<String> owner,
+      Value<bool> isPrivate,
       Value<int> rowid,
     });
 
@@ -32321,6 +32605,16 @@ class $$FundHoldingsTableFilterComposer
 
   ColumnFilters<DateTime> get deletedAt => $composableBuilder(
     column: $table.deletedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -32408,6 +32702,16 @@ class $$FundHoldingsTableOrderingComposer
     column: $table.deletedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get owner => $composableBuilder(
+    column: $table.owner,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isPrivate => $composableBuilder(
+    column: $table.isPrivate,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$FundHoldingsTableAnnotationComposer
@@ -32471,6 +32775,12 @@ class $$FundHoldingsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get deletedAt =>
       $composableBuilder(column: $table.deletedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get owner =>
+      $composableBuilder(column: $table.owner, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPrivate =>
+      $composableBuilder(column: $table.isPrivate, builder: (column) => column);
 }
 
 class $$FundHoldingsTableTableManager
@@ -32519,6 +32829,8 @@ class $$FundHoldingsTableTableManager
                 Value<int?> sipDay = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> owner = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FundHoldingsCompanion(
                 id: id,
@@ -32536,6 +32848,8 @@ class $$FundHoldingsTableTableManager
                 sipDay: sipDay,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
+                owner: owner,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -32555,6 +32869,8 @@ class $$FundHoldingsTableTableManager
                 Value<int?> sipDay = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime?> deletedAt = const Value.absent(),
+                Value<String> owner = const Value.absent(),
+                Value<bool> isPrivate = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FundHoldingsCompanion.insert(
                 id: id,
@@ -32572,6 +32888,8 @@ class $$FundHoldingsTableTableManager
                 sipDay: sipDay,
                 createdAt: createdAt,
                 deletedAt: deletedAt,
+                owner: owner,
+                isPrivate: isPrivate,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -33076,6 +33394,7 @@ typedef $$HouseholdMembersTableCreateCompanionBuilder =
       required String id,
       required String name,
       Value<DateTime?> joinedAt,
+      Value<String?> removedBy,
       Value<int> rowid,
     });
 typedef $$HouseholdMembersTableUpdateCompanionBuilder =
@@ -33083,6 +33402,7 @@ typedef $$HouseholdMembersTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> name,
       Value<DateTime?> joinedAt,
+      Value<String?> removedBy,
       Value<int> rowid,
     });
 
@@ -33107,6 +33427,11 @@ class $$HouseholdMembersTableFilterComposer
 
   ColumnFilters<DateTime> get joinedAt => $composableBuilder(
     column: $table.joinedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get removedBy => $composableBuilder(
+    column: $table.removedBy,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -33134,6 +33459,11 @@ class $$HouseholdMembersTableOrderingComposer
     column: $table.joinedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get removedBy => $composableBuilder(
+    column: $table.removedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$HouseholdMembersTableAnnotationComposer
@@ -33153,6 +33483,9 @@ class $$HouseholdMembersTableAnnotationComposer
 
   GeneratedColumn<DateTime> get joinedAt =>
       $composableBuilder(column: $table.joinedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get removedBy =>
+      $composableBuilder(column: $table.removedBy, builder: (column) => column);
 }
 
 class $$HouseholdMembersTableTableManager
@@ -33195,11 +33528,13 @@ class $$HouseholdMembersTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<DateTime?> joinedAt = const Value.absent(),
+                Value<String?> removedBy = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HouseholdMembersCompanion(
                 id: id,
                 name: name,
                 joinedAt: joinedAt,
+                removedBy: removedBy,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -33207,11 +33542,13 @@ class $$HouseholdMembersTableTableManager
                 required String id,
                 required String name,
                 Value<DateTime?> joinedAt = const Value.absent(),
+                Value<String?> removedBy = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => HouseholdMembersCompanion.insert(
                 id: id,
                 name: name,
                 joinedAt: joinedAt,
+                removedBy: removedBy,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

@@ -6,7 +6,9 @@
     <uses-permission android:name="android.permission.READ_SMS"/>
     <uses-permission android:name="android.permission.READ_CONTACTS"/>
     <!-- Photos of jewellery and documents: taken with the camera or picked from the
-         gallery (system picker, no storage permission) and kept on this phone. -->
+         gallery (system picker, no storage permission) and kept on this phone.
+         Also the in-app scanner for household invite QR codes (mobile_scanner;
+         requested only when "Scan QR code" is tapped). -->
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <!-- Local reminders for maturity, renewal and expiry dates. -->

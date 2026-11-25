@@ -24,10 +24,24 @@ abstract final class Owner {
 }
 
 class HMember {
-  const HMember({required this.id, required this.name, this.joinedAt});
+  const HMember({
+    required this.id,
+    required this.name,
+    this.joinedAt,
+    this.removedBy,
+  });
   final String id;
   final String name;
   final DateTime? joinedAt;
+
+  /// Id of the member who removed this one when the household was re-keyed
+  /// without them; null for a current member.
+  final String? removedBy;
+
+  bool get isRemoved => removedBy != null;
+
+  HMember markRemoved(String by) =>
+      HMember(id: id, name: name, joinedAt: joinedAt, removedBy: by);
 }
 
 /// The one household this phone belongs to.
@@ -50,13 +64,14 @@ class HouseholdConfig {
   final bool shareMine;
   final DateTime createdAt;
 
-  HouseholdConfig copyWith({String? name, bool? shareMine}) => HouseholdConfig(
-    id: id,
-    name: name ?? this.name,
-    myMemberId: myMemberId,
-    shareMine: shareMine ?? this.shareMine,
-    createdAt: createdAt,
-  );
+  HouseholdConfig copyWith({String? id, String? name, bool? shareMine}) =>
+      HouseholdConfig(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        myMemberId: myMemberId,
+        shareMine: shareMine ?? this.shareMine,
+        createdAt: createdAt,
+      );
 }
 
 /// A recurring due split between members.

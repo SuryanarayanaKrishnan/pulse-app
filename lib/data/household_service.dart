@@ -158,12 +158,128 @@ class HouseholdService {
 
   Future<bool> hasKey() async => (await keys.load()) != null;
 
+  // ---- remove a member / re-key -------------------------------------------------
+
+  /// Whoever removed another member and has a new household for the rest to
+  /// adopt. Non-null on a remaining member's phone from the moment the old
+  /// log tells it, until it adopts the new code with [adoptRotation].
+  Future<HMember?> rotationNotice() async {
+    final cfg = await store.config();
+    if (cfg == null) return null;
+    final ms = await store.members();
+    final removers = {
+      for (final m in ms)
+        if (m.removedBy != null && m.id != cfg.myMemberId) m.removedBy!,
+    };
+    if (removers.isEmpty) return null;
+    return ms
+            .where((m) => removers.contains(m.id) && !m.isRemoved)
+            .firstOrNull ??
+        HMember(id: removers.first, name: 'A member');
+  }
+
+  /// True on the phone of a member the others removed: it stops sharing.
+  Future<bool> iWasRemoved() async {
+    final cfg = await store.config();
+    if (cfg == null) return false;
+    return (await store.members()).any(
+      (m) => m.id == cfg.myMemberId && m.isRemoved,
+    );
+  }
+
+  /// Removes [memberId] and re-keys. Any member may do this. The household
+  /// moves to a new id and key: [removeMember] returns the new invite code,
+  /// which the remaining members adopt (in person or over a trusted channel)
+  /// with [adoptRotation]. The removed member's key opens only the old log,
+  /// which nobody writes to or reads any more.
+  Future<String> removeMember(String memberId) async {
+    final cfg = await store.config();
+    if (cfg == null) throw StateError('Not in a household');
+    if (memberId == cfg.myMemberId)
+      throw StateError('Use leave to remove yourself');
+    final target = (await store.members())
+        .where((m) => m.id == memberId)
+        .firstOrNull;
+    if (target == null) throw StateError('No such member');
+    return _rotate(cfg, removing: target);
+  }
+
+  /// Re-keys without removing anyone: after a member left, or when a code may
+  /// have leaked. Returns the new invite code.
+  Future<String> rotateKey() async {
+    final cfg = await store.config();
+    if (cfg == null) throw StateError('Not in a household');
+    return _rotate(cfg);
+  }
+
+  Future<String> _rotate(HouseholdConfig cfg, {HMember? removing}) async {
+    try {
+      await _running;
+    } catch (_) {}
+    final oldKey = await keys.load();
+    if (oldKey == null) throw StateError('This phone has no household key');
+    if (removing != null) {
+      // Tell the others, through the old log, that a new code is coming and
+      // from whom. Offline is fine: the new code still reaches them directly.
+      await store.saveMember(removing.markRemoved(cfg.myMemberId));
+      try {
+        await _sync();
+      } catch (_) {}
+      await store.deleteMember(removing.id);
+      await store.reassignOwner(removing.id, Owner.me);
+    }
+    final newId = BackupCrypto.hex(BackupCrypto.randomBytes(16));
+    final newKey = BackupCrypto.randomBytes(32);
+    await _switchTo(cfg, newId, newKey);
+    unawaited(sync().catchError((_) => const HouseholdSyncResult()));
+    return HouseholdInvite(householdId: newId, key: newKey).encode();
+  }
+
+  /// A remaining member takes the new household's code. Keeps their member
+  /// id, name and everything of theirs; the mirror is rebuilt from the new
+  /// log. Throws [FormatException] for a bad code and [StateError] when it is
+  /// the household already in use.
+  Future<void> adoptRotation(String code) async {
+    final cfg = await store.config();
+    if (cfg == null) throw StateError('Not in a household');
+    final invite = HouseholdInvite.decode(code);
+    if (invite.householdId == cfg.id)
+      throw StateError('That is the current code');
+    if (await iWasRemoved())
+      throw StateError('You were removed from this household');
+    // Whoever is marked removed stays out of the new household.
+    for (final m in await store.members()) {
+      if (m.isRemoved) {
+        await store.deleteMember(m.id);
+        await store.reassignOwner(m.id, Owner.me);
+      }
+    }
+    await _switchTo(cfg, invite.householdId, invite.key);
+    try {
+      await sync();
+    } catch (_) {}
+  }
+
+  Future<void> _switchTo(
+    HouseholdConfig cfg,
+    String newId,
+    List<int> newKey,
+  ) async {
+    await keys.save(Uint8List.fromList(newKey));
+    await store.saveConfig(cfg.copyWith(id: newId));
+    await store.clearMirror();
+    final st = stateStoreFor?.call(cfg.id);
+    if (st is ClearableStateStore) await st.clear();
+    _emit(const HouseholdStatus());
+  }
+
   /// Stops sharing: my rows are withdrawn from the log (the others' copies
   /// of them are deleted), my membership is removed, and this phone forgets
   /// the household and its key. Everything of mine stays on this phone.
   ///
   /// It cannot take back what the others already saw, and it does not
-  /// re-key the household: see `docs/HOUSEHOLD.md`.
+  /// re-key the household: any member can do that afterwards with
+  /// [rotateKey] (see `docs/HOUSEHOLD.md`).
   Future<void> leave() async {
     final cfg = await store.config();
     if (cfg == null) return;
@@ -266,7 +382,10 @@ class HouseholdService {
 
     return JointData(
       config: cfg,
-      members: await store.members(),
+      members: [
+        for (final m in await store.members())
+          if (!m.isRemoved) m,
+      ],
       txs: txs,
       lines: lines,
       goals: goals,
@@ -306,6 +425,8 @@ class HouseholdService {
     }
     final tf = transportFor, sf = stateStoreFor;
     if (tf == null || sf == null) return const HouseholdSyncResult();
+    // Removed by another member: this phone no longer writes to the log.
+    if (!withdraw && await iWasRemoved()) return const HouseholdSyncResult();
     _emit(HouseholdStatus(running: true, lastSuccess: _last.lastSuccess));
     try {
       final engine = SyncEngine(

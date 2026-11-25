@@ -543,6 +543,11 @@ class JewelleryItems extends Table {
   /// off a bill (added in schema v11).
   BoolColumn get approximate => boolean().withDefault(const Constant(false))();
 
+  /// Household ownership (added in schema v12): `me`, `shared` or a member id,
+  /// and a Private flag that keeps the item out of every household log.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -609,6 +614,11 @@ class FundHoldings extends Table {
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
   DateTimeColumn get deletedAt => dateTime().nullable()();
 
+  /// Household ownership (added in schema v12): `me`, `shared` or a member id,
+  /// and a Private flag that keeps the item out of every household log.
+  TextColumn get owner => text().withDefault(const Constant('me'))();
+  BoolColumn get isPrivate => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -662,6 +672,10 @@ class HouseholdMembers extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
   DateTimeColumn get joinedAt => dateTime().nullable()();
+
+  /// Member id of whoever removed this member (schema v12). Set when the
+  /// household is re-keyed without them; null for everyone else.
+  TextColumn get removedBy => text().nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

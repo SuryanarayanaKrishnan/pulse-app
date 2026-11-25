@@ -57,6 +57,40 @@ void main() {
       }
     });
 
+    test('private jewellery and fund lines never export, shared ones do', () {
+      HRow l(String id, {String owner = 'me', bool priv = false}) => HRow(
+        table: HTable.lines,
+        id: id,
+        owner: owner,
+        isPrivate: priv,
+        values: {
+          'name': 'n',
+          'liability': false,
+          'value_minor': 1,
+          'currency': 'AED',
+          'notes': 'x',
+        },
+      );
+      final snap = exportSnapshot(
+        [
+          l('jewel:p', priv: true),
+          l('fund:p', priv: true),
+          l('jewel:s', owner: Owner.shared),
+          l('fund:m'),
+        ],
+        myMemberId: 'aaaa',
+        shareMine: true,
+      );
+      expect(snap[HTable.lines]!.keys.toSet(), {'jewel:s', 'fund:m'});
+      expect(snap[HTable.lines]!['jewel:s']!.containsKey('notes'), isFalse);
+      final off = exportSnapshot(
+        [l('jewel:p', priv: true), l('fund:m')],
+        myMemberId: 'aaaa',
+        shareMine: false,
+      );
+      expect(off, isEmpty);
+    });
+
     test('mine exports only while sharing mine is on; shared and partner items always', () {
       expect(exportRow(row('transactions'), myMemberId: 'aaaa', shareMine: false), isNull);
       expect(exportRow(row('transactions'), myMemberId: 'aaaa', shareMine: true), isNotNull);

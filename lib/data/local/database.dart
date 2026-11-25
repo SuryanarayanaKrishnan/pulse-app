@@ -53,7 +53,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 11;
+  static const currentSchemaVersion = 12;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -164,6 +164,29 @@ class PulseDatabase extends _$PulseDatabase {
         await m.createTable(schema.investingRules);
         await m.createTable(schema.investingOccurrences);
         await m.addColumn(schema.jewelleryItems, schema.jewelleryItems.approximate);
+      },
+      // v12: household ownership for jewellery and fund holdings. Until now
+      // they were always treated as Private; the existing rows are marked
+      // Private so nothing starts being shared by this upgrade. Members also
+      // gain `removed_by` for the remove-member and re-key flow.
+      from11To12: (m, schema) async {
+        await m.addColumn(schema.jewelleryItems, schema.jewelleryItems.owner);
+        await m.addColumn(
+          schema.jewelleryItems,
+          schema.jewelleryItems.isPrivate,
+        );
+        await m.addColumn(schema.fundHoldings, schema.fundHoldings.owner);
+        await m.addColumn(schema.fundHoldings, schema.fundHoldings.isPrivate);
+        await m.addColumn(
+          schema.householdMembers,
+          schema.householdMembers.removedBy,
+        );
+        await schema.database.customStatement(
+          'UPDATE jewellery_items SET is_private = 1',
+        );
+        await schema.database.customStatement(
+          'UPDATE fund_holdings SET is_private = 1',
+        );
       },
     ),
     beforeOpen: (details) async {

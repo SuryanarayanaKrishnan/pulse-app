@@ -26,7 +26,7 @@ void main() {
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 11);
 
-    expect(PulseDatabase.currentSchemaVersion, 11);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(11));
     final j = await db
         .customSelect(
           'SELECT name, weight_grams, approximate FROM jewellery_items',

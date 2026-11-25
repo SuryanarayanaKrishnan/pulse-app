@@ -1,10 +1,10 @@
 # Household planning
 
-A couple or family manages money jointly while everything stays on-device first and end-to-end encrypted. It reuses the sync machinery (`docs/SYNC.md`): the same change-log merge, hybrid clocks, segment codec and transport interface, with a separate log, a separate key and a strict privacy gate. Free: no new paid service; `qr_flutter` (BSD) draws the invite QR.
+A couple or family manages money jointly while everything stays on-device first and end-to-end encrypted. It reuses the sync machinery (`docs/SYNC.md`): the same change-log merge, hybrid clocks, segment codec and transport interface, with a separate log, a separate key and a strict privacy gate. Free: no new paid service; `qr_flutter` (BSD) draws the invite QR and `mobile_scanner` (BSD) reads it.
 
 ## What the user sees
 
-- **Settings > Household**: start a household, join with a code, members, invite (QR and code), "Share my items", shared bills (rent, internet, the helper, split by a slider or equally), sync status, leave.
+- **Settings > Household**: start a household, join with a code (scan the QR in the app, or paste), members, invite (QR and code), remove a member, change the household code, "Share my items", shared bills (rent, internet, the helper, split by a slider or equally), sync status, leave.
 - **Mine / Partner's / Shared** on a transaction (Transaction detail > Household), a Wealth row (account, card balance, asset, loan: tap it) and a goal (Goal detail), plus a **Private** switch. The sheet is the same everywhere (`features/household/ownership_widgets.dart`).
 - **Budget > Mine | Joint**: household spend against joint category limits, who spent it (by member and Shared), shared bills with each person's share, shared goals.
 - **Wealth > Mine | Joint**: joint net worth, by person, and the list of what is counted.
@@ -13,9 +13,9 @@ The toggles appear only once there is a household; nothing changes for a single 
 
 ## Ownership model
 
-Five tables gain `owner` (default `me`) and `is_private` (default false): `accounts`, `transactions`, `assets`, `liabilities`, `savings_goals`. `owner` is `me`, `shared` or another member's id. Stored locally as `me` and converted to the member's real id when it leaves the phone (and back), so an owner means the same thing on every phone.
+Seven tables carry `owner` (default `me`) and `is_private` (default false): `accounts`, `transactions`, `assets`, `liabilities`, `savings_goals` (schema v6), `jewellery_items` and `fund_holdings` (schema v12). `owner` is `me`, `shared` or another member's id. Stored locally as `me` and converted to the member's real id when it leaves the phone (and back), so an owner means the same thing on every phone.
 
-Net worth lines come from the Wealth list; an `account:`/`card:` row takes its ownership from the account, an asset or loan row from its own table. Jewellery and fund holdings have no ownership columns yet: they count as Mine but are always treated as Private.
+Net worth lines come from the Wealth list; an `account:`/`card:` row takes its ownership from the account, an asset or loan row from its own table, a `jewel:` row from the piece and a `fund:` row from the holding (set on the piece's or fund's detail screen). Rows with no ownership columns (stocks and ETFs, `stock:`) are treated as Private, and so is any line whose ownership cannot be found. Jewellery and funds that existed before v12 were migrated as Private, so the upgrade shares nothing; new ones start as Mine (shared while "Share my items" is on, like a new account) until marked Private.
 
 ## Joint views (`lib/core/household/household_engine.dart`, pure)
 
@@ -51,9 +51,17 @@ Never in the log: notes, tags, raw merchant text, account ids, statement lines, 
 
 **Personal rows are mirrored, not merged.** The other members' transactions, lines and goals arrive in a read-only `household_mirror` table, never in your own ledger. They cannot double count, cannot be edited by mistake, never enter your personal sync log, and are wiped on leaving. Shared tables (`members`, `bills`, `limits`) are real local tables merged per field (last writer wins), so either member can edit a bill.
 
-**Invite**: `PULSE-HH1-XXXXX-...` = base32 of version, 16-byte household id, 32-byte key and a 4-byte checksum (a typo is caught before anything is created). It is shown as text and a QR on the inviting phone only; it does not pass through any server. Anyone holding the code can read the household log, so the UI says to pass it in person or over a trusted channel. The key is kept in the keystore (iOS Keychain this-device-only, Android Keystore), never in the database or in backups.
+**Invite**: `PULSE-HH1-XXXXX-...` = base32 of version, 16-byte household id, 32-byte key and a 4-byte checksum (a typo is caught before anything is created). It is shown as text and a QR on the inviting phone only; it does not pass through any server. The joining phone reads the QR in the app (`mobile_scanner`; camera permission is asked only on tapping Scan QR code, nothing is stored or uploaded, and anything that is not an intact invite is ignored) or takes the pasted text; the paste field always works, also when the camera is denied or unavailable. Anyone holding the code can read the household log, so the UI says to pass it in person or over a trusted channel. The key is kept in the keystore (iOS Keychain this-device-only, Android Keystore), never in the database or in backups.
 
 **Joining**: the new phone stores the key, creates its member row, and its first sync reads the log before comparing its own data (the engine's bootstrap), so it adopts the household's members, bills and limits first; then its own shareable rows go out.
+
+**Removing a member and re-keying**: any member can remove another (Members > Remove), or change the code without removing anyone (Household > Change household code, for after someone left or a code leaked). The remover's phone:
+
+1. marks the removed member's row `removed_by` in the *old* log and syncs once (best effort, offline is fine), so the others learn who is changing the code;
+2. creates a **new household id and a new random key**, deletes the removed member locally, gives their items assigned to them back to "mine", wipes the mirror and the old log state, and starts a log under the new id;
+3. shows the new invite code (text and QR) to hand to the remaining members in person or over a channel they trust.
+
+A remaining member's phone shows "<name> changed the household code" and **Enter the new code** (scan or paste). Adopting keeps their member id, name, bills and everything of theirs, deletes removed members' rows, switches to the new id and key, rebuilds the mirror from the new log and syncs. Their private items stay off the new log exactly as before (the gate runs on every row). The new code never goes through the old log (the removed member could read it). The removed member's key opens only the old log, and nobody reads or writes it any more: a tested guarantee that nothing written after the re-key can be decrypted with the old key or purpose. If the removed phone does sync the old log it sees it was removed, stops pushing and offers Leave (it keeps everything of its own).
 
 **Leaving**: the phone removes its member row, runs a last sync offering none of its own rows (so every row it wrote is tombstoned and the others' mirrors drop them), then forgets the household, the key and the log state, and puts every `owner` back to `me` (Private flags are kept). Everything of the user's stays on the phone.
 
@@ -86,6 +94,7 @@ This lets any signed-in user list and read any household's ciphertext if they ca
 ## Schema v6 and sync
 
 - `drift_schemas/drift_schema_v6.json`; `from5To6` adds the ten columns and five tables. Additive: existing rows are `me`, not private.
+- v12 (`from11To12`): `owner` and `is_private` on `jewellery_items` and `fund_holdings` (existing rows set Private), and `household_members.removed_by`. Additive; `migration_v12_test.dart`. The `removed_by` column is allow-listed for the log like the other member columns.
 - The ownership columns are on already allow-listed tables, so they sync to the user's own devices (a Private flag set on one phone applies on the other).
 - New tables `household_configs`, `household_members`, `household_bills`, `household_limits`, `household_mirror` are **not** on the personal sync allow-list (the log is its own channel and its key lives on one phone). Tests: `migration_v6_test.dart`, `sync/drift_test.dart` (columns sync, household tables never do, a shared and a private transaction arrive marked).
 
@@ -101,12 +110,12 @@ Does not protect against: someone who has the invite code or the key; a member w
 
 ## Limits and what is left
 
-- **No re-keying.** Leaving does not rotate the key: a former member who kept the code can still read the log going forward. Removing someone for real needs a new household id and key and re-inviting everyone (not built). There is also no "remove member" for the others.
+- **Re-keying is manual and in person.** Removing someone or changing the code needs every remaining member to enter the new code; until they do, they keep writing to the old log (which the removed member can still read) and see a notice. Two members re-keying at the same time produce two competing households (agree on one, the other adopts its code). A removed member keeps everything they already saw and any copy of the old code. Leaving does not re-key by itself: someone must tap Change household code afterwards. Not tested with real phones or a real server.
 - **One household per phone, one phone per member.** A second phone of the same person would be a second member; it would need its own invite. The key is not in backups, so a restored phone shows "needs a new invite".
-- **Joining is by pasting the code.** The QR is for showing in person (a camera app reads the same text); there is no in-app scanner (would need a camera plugin and native permission setup, not verified here).
+- **The in-app QR scanner is unverified on devices.** `mobile_scanner` 7.5 (Android: CameraX plus the bundled ML Kit barcode model, which adds a few MB; iOS: Apple Vision) with the CAMERA permission and `NSCameraUsageDescription` already in the app for photos. The plugin ships its own R8 keep rules, but no Android release build (R8) or iOS build was run where this was written: build both once before relying on it. The scanner has no automated test (no camera in CI); only the code check is unit tested.
 - **Real network unverified**: Supabase transport and policy, background sync (runs on local writes with a debounce and on resume only), two real phones.
 - **Shared accounts**: if both members add the same joint account and mark it Shared, it is counted twice. No de-duplication.
-- **Net worth lines are snapshots** of values computed on the owner's phone (balances, valuations, FX are AED only); no joint history chart. Jewellery and funds cannot be shared yet. Non-AED amounts are left out of spending totals.
+- **Net worth lines are snapshots** of values computed on the owner's phone (balances, valuations, FX are AED only); no joint history chart. Stocks and ETFs cannot be shared yet. Non-AED amounts are left out of spending totals.
 - **Window**: only this and the previous month of transactions are shared.
 - **No per-member visibility levels** beyond "share my items" on/off and the per-item Private flag; bills have no "paid" state or reminders; no shared monthly check-in; goals show progress only (no joint contributions or pace).
 - **The household log is never compacted** (same as personal sync).
