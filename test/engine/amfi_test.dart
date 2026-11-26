@@ -42,6 +42,11 @@ void main() {
       '100001',
     );
     expect(book.match(name: 'Totally Different Biotech Fund'), isNull);
+    // Sharing the AMC name is not enough to be the same fund.
+    expect(
+      book.match(name: 'Sample Liquid Fund - Regular Plan - Growth'),
+      isNull,
+    );
   });
 
   test('empty or garbage input is an empty book, not an error', () {
