@@ -229,19 +229,16 @@ void main() {
     },
   );
 
-  testWidgets(
-    'a dismissal is persisted for the next launch',
-    (tester) async {
-      await open(tester);
-      await tester.tap(find.text('Not interested'));
-      await settle(tester);
-      final saved = await kv.read(UpsellPrefs.dismissedKey);
-      expect(await UpsellPrefs(kv).dismissed(), {'cand'});
-      expect(saved, isNotNull);
-      // The only candidate is dismissed, so nothing replaces it.
-      expect(find.text("You'd earn more with..."), findsNothing);
-    },
-  );
+  testWidgets('a dismissal is persisted for the next launch', (tester) async {
+    await open(tester);
+    await tester.tap(find.text('Not interested'));
+    await settle(tester);
+    final saved = await kv.read(UpsellPrefs.dismissedKey);
+    expect(await UpsellPrefs(kv).dismissed(), {'cand'});
+    expect(saved, isNotNull);
+    // The only candidate is dismissed, so nothing replaces it.
+    expect(find.text("You'd earn more with..."), findsNothing);
+  });
 
   test('salary estimate: largest recent month, ignores old, excluded and non-salary', () {
     final now = DateTime(2026, 11, 25);

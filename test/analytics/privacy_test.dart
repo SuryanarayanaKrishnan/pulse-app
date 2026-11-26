@@ -67,12 +67,20 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.splitExpenseAdded,
   AnalyticsEvent.splitGroupCreated(members: 'few'),
   AnalyticsEvent.splitActionFailed(action: 'create_group', reason: 'storage'),
-  AnalyticsEvent.splitAutoSettled(match: 'phone', partial: false, direction: 'debit'),
+  AnalyticsEvent.splitAutoSettled(
+    match: 'phone',
+    partial: false,
+    direction: 'debit',
+  ),
   AnalyticsEvent.splitSettleUndone,
   AnalyticsEvent.splitSettleAsked(match: 'iban'),
   AnalyticsEvent.manualTransactionAdded(category: 'groceries'),
   AnalyticsEvent.backupEnabled(secretKind: 'phrase', destination: 'cloud'),
-  AnalyticsEvent.backupCompleted(trigger: 'auto', sizeBucket: '<1MB', seconds: 12),
+  AnalyticsEvent.backupCompleted(
+    trigger: 'auto',
+    sizeBucket: '<1MB',
+    seconds: 12,
+  ),
   AnalyticsEvent.backupFailed(trigger: 'manual', reason: 'offline'),
   AnalyticsEvent.backupExported,
   AnalyticsEvent.backupPassphraseChanged,
@@ -84,7 +92,11 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.bugReportSent('issue'),
   AnalyticsEvent.syncEnabled,
   AnalyticsEvent.syncStarted(trigger: 'resume'),
-  AnalyticsEvent.syncCompleted(trigger: 'auto', changesBucket: 'few', seconds: 3),
+  AnalyticsEvent.syncCompleted(
+    trigger: 'auto',
+    changesBucket: 'few',
+    seconds: 3,
+  ),
   AnalyticsEvent.syncFailed(trigger: 'manual', reason: 'too_new'),
   AnalyticsEvent.restoreStarted('file'),
   AnalyticsEvent.restoreCompleted('cloud'),
@@ -120,33 +132,57 @@ List<AnalyticsEvent> everyEvent() => [
 
 void main() {
   group('schema', () {
-    test('every event the app builds is listed, and the list has no extras', () {
-      final built = everyEvent().map((e) => e.name).toSet();
-      final listed = AnalyticsSchema.events.map((e) => e.name).toSet();
-      expect(listed, built);
-      expect(AnalyticsSchema.events.length, listed.length, reason: 'no duplicates');
-    });
+    test(
+      'every event the app builds is listed, and the list has no extras',
+      () {
+        final built = everyEvent().map((e) => e.name).toSet();
+        final listed = AnalyticsSchema.events.map((e) => e.name).toSet();
+        expect(listed, built);
+        expect(
+          AnalyticsSchema.events.length,
+          listed.length,
+          reason: 'no duplicates',
+        );
+      },
+    );
 
-    test('every built event survives the schema untouched (properties match)', () {
-      for (final e in everyEvent()) {
-        if (e.name == 'transaction_recategorized') continue; // custom -> custom
-        expect(AnalyticsSchema.clean(e.name, e.properties), e.properties, reason: e.name);
-      }
-    });
+    test(
+      'every built event survives the schema untouched (properties match)',
+      () {
+        for (final e in everyEvent()) {
+          if (e.name == 'transaction_recategorized')
+            continue; // custom -> custom
+          expect(
+            AnalyticsSchema.clean(e.name, e.properties),
+            e.properties,
+            reason: e.name,
+          );
+        }
+      },
+    );
 
     test('the listing describes exactly the properties the events carry', () {
       for (final e in everyEvent()) {
         final spec = AnalyticsSchema.specFor(e.name)!;
-        expect(spec.props.keys.toSet(), e.properties.keys.toSet(), reason: e.name);
+        expect(
+          spec.props.keys.toSet(),
+          e.properties.keys.toSet(),
+          reason: e.name,
+        );
       }
     });
 
-    test('category values track the app categories; custom ones are masked', () {
-      final ids = SpendCategory.defaults.map((c) => c.id).toSet();
-      expect(AnalyticsSchema.categories.toSet(), {...ids, 'custom'});
-      final e = AnalyticsEvent.manualTransactionAdded(category: 'Dad birthday gifts');
-      expect(e.properties['category'], 'custom');
-    });
+    test(
+      'category values track the app categories; custom ones are masked',
+      () {
+        final ids = SpendCategory.defaults.map((c) => c.id).toSet();
+        expect(AnalyticsSchema.categories.toSet(), {...ids, 'custom'});
+        final e = AnalyticsEvent.manualTransactionAdded(
+          category: 'Dad birthday gifts',
+        );
+        expect(e.properties['category'], 'custom');
+      },
+    );
 
     test('durations are buckets, not seconds', () {
       expect(AnalyticsEvent.durationBucket(2), 'lt_5s');
@@ -162,7 +198,11 @@ void main() {
           if (p is EnumProp) {
             expect(p.values, isNotEmpty);
             for (final v in p.values) {
-              expect(v.length, lessThan(24), reason: 'a choice, never free text');
+              expect(
+                v.length,
+                lessThan(24),
+                reason: 'a choice, never free text',
+              );
             }
           }
         }
@@ -171,28 +211,54 @@ void main() {
   });
 
   group('private values never reach the sink', () {
-    test('free-text, amounts, merchants and names in properties are dropped', () {
-      final t = setup();
-      t.gate.track(const AnalyticsEvent.unchecked('card_check_shown', {
-        'result': 'wrong',
-        'estimated': true,
-        'merchant': 'Carrefour Dubai Mall',
-        'amount': 123.45,
-        'name': 'Aisha Rahman',
-        'contact': '+971501234567',
-        'message': 'Your card ending 1234 was charged AED 99',
-      }));
-      expect(t.sink.events, hasLength(1));
-      expect(t.sink.events.single.properties, {'result': 'wrong', 'estimated': true});
-    });
+    test(
+      'free-text, amounts, merchants and names in properties are dropped',
+      () {
+        final t = setup();
+        t.gate.track(
+          const AnalyticsEvent.unchecked('card_check_shown', {
+            'result': 'wrong',
+            'estimated': true,
+            'merchant': 'Carrefour Dubai Mall',
+            'amount': 123.45,
+            'name': 'Aisha Rahman',
+            'contact': '+971501234567',
+            'message': 'Your card ending 1234 was charged AED 99',
+          }),
+        );
+        expect(t.sink.events, hasLength(1));
+        expect(t.sink.events.single.properties, {
+          'result': 'wrong',
+          'estimated': true,
+        });
+      },
+    );
 
     test('a value outside the allowed choices is dropped, not forwarded', () {
       final t = setup();
-      t.gate.track(const AnalyticsEvent.unchecked('source_connected', {'type': 'Carrefour'}));
-      t.gate.track(const AnalyticsEvent.unchecked('card_check_wrong', {'missed_bucket': '37.50'}));
-      t.gate.track(const AnalyticsEvent.unchecked('card_check_shown', {'result': 'right', 'estimated': 'yes'}));
+      t.gate.track(
+        const AnalyticsEvent.unchecked('source_connected', {
+          'type': 'Carrefour',
+        }),
+      );
+      t.gate.track(
+        const AnalyticsEvent.unchecked('card_check_wrong', {
+          'missed_bucket': '37.50',
+        }),
+      );
+      t.gate.track(
+        const AnalyticsEvent.unchecked('card_check_shown', {
+          'result': 'right',
+          'estimated': 'yes',
+        }),
+      );
       for (final e in t.sink.events) {
-        expect(e.properties.values.every((v) => v != 'Carrefour' && v != '37.50' && v != 'yes'), isTrue);
+        expect(
+          e.properties.values.every(
+            (v) => v != 'Carrefour' && v != '37.50' && v != 'yes',
+          ),
+          isTrue,
+        );
       }
       expect(t.sink.events[0].properties, isEmpty);
       expect(t.sink.events[1].properties, isEmpty);
@@ -201,15 +267,28 @@ void main() {
 
     test('unknown events are dropped', () {
       final t = setup();
-      t.gate.track(const AnalyticsEvent.unchecked('merchant_viewed', {'merchant': 'Noon'}));
-      t.gate.track(const AnalyticsEvent.unchecked('transaction_added', {'amount': 10.0}));
+      t.gate.track(
+        const AnalyticsEvent.unchecked('merchant_viewed', {'merchant': 'Noon'}),
+      );
+      t.gate.track(
+        const AnalyticsEvent.unchecked('transaction_added', {'amount': 10.0}),
+      );
       expect(t.sink.events, isEmpty);
     });
 
     test('nothing the sink receives contains a planted private string', () {
       final t = setup();
       const secrets = ['Carrefour', 'Aisha', '+9715', '99.50'];
-      for (final key in ['merchant', 'name', 'phone', 'amount', 'note', 'step', 'type', 'category']) {
+      for (final key in [
+        'merchant',
+        'name',
+        'phone',
+        'amount',
+        'note',
+        'step',
+        'type',
+        'category',
+      ]) {
         for (final s in secrets) {
           for (final spec in AnalyticsSchema.events) {
             t.gate.track(AnalyticsEvent.unchecked(spec.name, {key: s}));
@@ -278,18 +357,23 @@ void main() {
       expect(t.sink.events, isEmpty);
     });
 
-    test('a saved choice is restored; a saved id is not kept without consent', () async {
-      final kv = MemoryKvStore()
-        ..data[PrivacyController.consentKey] = 'declined'
-        ..data[PrivacyController.idKey] = 'leftover';
-      final p = PrivacyController(kv);
-      await p.load();
-      expect(p.sharing, isFalse);
-      expect(p.installId, isNull);
-      final on = PrivacyController(MemoryKvStore()..data[PrivacyController.consentKey] = 'granted');
-      await on.load();
-      expect(on.sharing, isTrue);
-    });
+    test(
+      'a saved choice is restored; a saved id is not kept without consent',
+      () async {
+        final kv = MemoryKvStore()
+          ..data[PrivacyController.consentKey] = 'declined'
+          ..data[PrivacyController.idKey] = 'leftover';
+        final p = PrivacyController(kv);
+        await p.load();
+        expect(p.sharing, isFalse);
+        expect(p.installId, isNull);
+        final on = PrivacyController(
+          MemoryKvStore()..data[PrivacyController.consentKey] = 'granted',
+        );
+        await on.load();
+        expect(on.sharing, isTrue);
+      },
+    );
   });
 
   group('anonymous id', () {
@@ -299,8 +383,13 @@ void main() {
       expect(a, matches(RegExp(r'^[0-9a-f]{32}$')));
       expect(a, isNot(b));
       // Seeded randomness only decides the bytes; the clock plays no part.
-      final x = PrivacyController(MemoryKvStore(), random: Random(1))..setSharing(true);
-      final y = PrivacyController(MemoryKvStore(), random: Random(1), clock: () => DateTime(2030))..setSharing(true);
+      final x = PrivacyController(MemoryKvStore(), random: Random(1))
+        ..setSharing(true);
+      final y = PrivacyController(
+        MemoryKvStore(),
+        random: Random(1),
+        clock: () => DateTime(2030),
+      )..setSharing(true);
       expect(x.installId, y.installId);
     });
 
@@ -332,7 +421,10 @@ void main() {
       t.gate.track(AnalyticsEvent.firstCardAdded);
       t.gate.track(AnalyticsEvent.firstCardAdded);
       t.gate.track(AnalyticsEvent.firstCapture);
-      expect(t.sink.events.map((e) => e.name), ['first_card_added', 'first_capture']);
+      expect(t.sink.events.map((e) => e.name), [
+        'first_card_added',
+        'first_capture',
+      ]);
     });
 
     test('a milestone reached before opting in is not sent later', () {

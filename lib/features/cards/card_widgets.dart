@@ -244,22 +244,22 @@ class PaymentDetails extends StatelessWidget {
                 ),
               ),
             if (card.hasDueDate)
-            ListRow(
-              dense: true,
-              title: 'Due',
-              subtitle: d.nudge,
-              subtitleColor: d.urgent ? tone : null,
-              trailing: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  num(date.format(card.dueDate)),
-                  Text(
-                    _days(d.daysLeft),
-                    style: context.tt.bodySmall!.copyWith(color: tone),
-                  ),
-                ],
+              ListRow(
+                dense: true,
+                title: 'Due',
+                subtitle: d.nudge,
+                subtitleColor: d.urgent ? tone : null,
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    num(date.format(card.dueDate)),
+                    Text(
+                      _days(d.daysLeft),
+                      style: context.tt.bodySmall!.copyWith(color: tone),
+                    ),
+                  ],
+                ),
               ),
-            ),
             ListRow(
               dense: true,
               title: 'Full amount',

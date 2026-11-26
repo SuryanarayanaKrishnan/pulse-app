@@ -51,16 +51,20 @@ class AnalyticsEvent {
     'from': _category(from),
     'to': _category(to),
   });
+
   /// `scope`: once | future | all. Never carries the merchant or counts.
   factory AnalyticsEvent.recategoriseScope(String scope) =>
       AnalyticsEvent._('recategorise_scope', {'scope': scope});
+
   /// `direction`: right (looks right) | left (fix it). Never the payment.
   factory AnalyticsEvent.reviewSwiped(String direction) =>
       AnalyticsEvent._('review_swiped', {'direction': direction});
+
   /// `enabled`: yes or no. Never what would be shared.
   factory AnalyticsEvent.learningOptIn(bool enabled) =>
       AnalyticsEvent._('learning_opt_in', {'enabled': enabled});
   static const reviewInboxZero = AnalyticsEvent._('review_inbox_zero');
+
   /// `action`: added | removed | resized | moved. `widget`: a built-in
   /// widget kind. Never the dashboard's name.
   factory AnalyticsEvent.dashboardCustomised({
@@ -70,14 +74,21 @@ class AnalyticsEvent {
     'action': action,
     'widget': widget,
   });
+
   /// `type`: save | paydown. Never the name, the amount or the date.
-  factory AnalyticsEvent.goalCreated(String type) => AnalyticsEvent._('goal_created', {'type': type});
+  factory AnalyticsEvent.goalCreated(String type) =>
+      AnalyticsEvent._('goal_created', {'type': type});
   static const goalCompleted = AnalyticsEvent._('goal_completed');
+
   /// Household planning. No names, amounts or member counts.
   static const householdCreated = AnalyticsEvent._('household_created');
-  static const householdMemberJoined = AnalyticsEvent._('household_member_joined');
+  static const householdMemberJoined = AnalyticsEvent._(
+    'household_member_joined',
+  );
+
   /// `mode`: flex | category. Never a category, an amount or a month.
-  factory AnalyticsEvent.budgetModeChanged(String mode) => AnalyticsEvent._('budget_mode_changed', {'mode': mode});
+  factory AnalyticsEvent.budgetModeChanged(String mode) =>
+      AnalyticsEvent._('budget_mode_changed', {'mode': mode});
   static const moneyMoved = AnalyticsEvent._('money_moved');
 
   /// One-step budget. `history`: whether past spending was used. Never an
@@ -87,15 +98,24 @@ class AnalyticsEvent {
 
   /// A sheet brought in. `source`: file | link. `items`: few | some | many.
   /// Never a label or an amount.
-  factory AnalyticsEvent.budgetImported({required String source, required bool history, required String items}) =>
-      AnalyticsEvent._('budget_imported', {'source': source, 'history': history, 'items': items});
+  factory AnalyticsEvent.budgetImported({
+    required String source,
+    required bool history,
+    required String items,
+  }) => AnalyticsEvent._('budget_imported', {
+    'source': source,
+    'history': history,
+    'items': items,
+  });
 
   /// Family vault. `type`: a vault entry type key. Never a name, a place or
   /// a value.
-  factory AnalyticsEvent.vaultEntryAdded(String type) => AnalyticsEvent._('vault_entry_added', {'type': type});
+  factory AnalyticsEvent.vaultEntryAdded(String type) =>
+      AnalyticsEvent._('vault_entry_added', {'type': type});
 
   /// `kind`: sheet | sealed.
-  factory AnalyticsEvent.vaultExported(String kind) => AnalyticsEvent._('vault_exported', {'kind': kind});
+  factory AnalyticsEvent.vaultExported(String kind) =>
+      AnalyticsEvent._('vault_exported', {'kind': kind});
 
   /// You confirm a detected recurring payment. `cadence`: weekly |
   /// fortnightly | monthly | quarterly | yearly. Never the merchant or amount.
@@ -104,7 +124,8 @@ class AnalyticsEvent {
 
   /// You open a report. `view`: category | member. Never a category, a
   /// member, an amount or a month.
-  factory AnalyticsEvent.reportViewed(String view) => AnalyticsEvent._('report_viewed', {'view': view});
+  factory AnalyticsEvent.reportViewed(String view) =>
+      AnalyticsEvent._('report_viewed', {'view': view});
   static const budgetCreated = AnalyticsEvent._('budget_created');
   static const cardAdded = AnalyticsEvent._('card_added');
 
@@ -125,8 +146,13 @@ class AnalyticsEvent {
   factory AnalyticsEvent.receiptMatched(String merchant) =>
       AnalyticsEvent._('receipt_matched', {'merchant': merchant});
 
-  factory AnalyticsEvent.cardCheckShown({required String result, required bool estimated}) =>
-      AnalyticsEvent._('card_check_shown', {'result': result, 'estimated': estimated});
+  factory AnalyticsEvent.cardCheckShown({
+    required String result,
+    required bool estimated,
+  }) => AnalyticsEvent._('card_check_shown', {
+    'result': result,
+    'estimated': estimated,
+  });
 
   /// `missed_bucket`: lt_5 | 5_20 | gt_20 (AED).
   factory AnalyticsEvent.cardCheckWrong({required String missedBucket}) =>
@@ -156,33 +182,64 @@ class AnalyticsEvent {
 
   /// `action`: create_group | add_expense | add_people | settle | confirm.
   /// `reason`: not_supported | offline | invalid | storage | other.
-  factory AnalyticsEvent.splitActionFailed({required String action, required String reason}) =>
-      AnalyticsEvent._('split_action_failed', {'action': action, 'reason': reason});
-  factory AnalyticsEvent.splitAutoSettled({required String match, required bool partial, required String direction}) =>
-      AnalyticsEvent._('split_auto_settled', {'match': match, 'partial': partial, 'direction': direction});
+  factory AnalyticsEvent.splitActionFailed({
+    required String action,
+    required String reason,
+  }) => AnalyticsEvent._('split_action_failed', {
+    'action': action,
+    'reason': reason,
+  });
+  factory AnalyticsEvent.splitAutoSettled({
+    required String match,
+    required bool partial,
+    required String direction,
+  }) => AnalyticsEvent._('split_auto_settled', {
+    'match': match,
+    'partial': partial,
+    'direction': direction,
+  });
   static const splitSettleUndone = AnalyticsEvent._('split_settle_undone');
   factory AnalyticsEvent.splitSettleAsked({required String match}) =>
       AnalyticsEvent._('split_settle_asked', {'match': match});
 
   /// Manual entry is the exception; we measure how often it is needed.
   factory AnalyticsEvent.manualTransactionAdded({required String category}) =>
-      AnalyticsEvent._('manual_transaction_added', {'category': _category(category)});
+      AnalyticsEvent._('manual_transaction_added', {
+        'category': _category(category),
+      });
 
   // ---- Backup. Never carries amounts, names, file names or key material. ----
 
   /// `secret_kind`: phrase | passphrase. `destination`: cloud | file.
-  factory AnalyticsEvent.backupEnabled({required String secretKind, required String destination}) =>
-      AnalyticsEvent._('backup_enabled', {'secret_kind': secretKind, 'destination': destination});
+  factory AnalyticsEvent.backupEnabled({
+    required String secretKind,
+    required String destination,
+  }) => AnalyticsEvent._('backup_enabled', {
+    'secret_kind': secretKind,
+    'destination': destination,
+  });
 
   /// `trigger`: manual | auto | daily | setup. Size and time are bucketed.
-  factory AnalyticsEvent.backupCompleted({required String trigger, required String sizeBucket, required int seconds}) =>
-      AnalyticsEvent._('backup_completed', {'trigger': trigger, 'size_bucket': sizeBucket, 'duration': durationBucket(seconds)});
+  factory AnalyticsEvent.backupCompleted({
+    required String trigger,
+    required String sizeBucket,
+    required int seconds,
+  }) => AnalyticsEvent._('backup_completed', {
+    'trigger': trigger,
+    'size_bucket': sizeBucket,
+    'duration': durationBucket(seconds),
+  });
 
   /// `reason`: offline | signed_out | storage_full | provider_unavailable | keys_missing | other.
-  factory AnalyticsEvent.backupFailed({required String trigger, required String reason}) =>
+  factory AnalyticsEvent.backupFailed({
+    required String trigger,
+    required String reason,
+  }) =>
       AnalyticsEvent._('backup_failed', {'trigger': trigger, 'reason': reason});
   static const backupExported = AnalyticsEvent._('backup_exported');
-  static const backupPassphraseChanged = AnalyticsEvent._('backup_passphrase_changed');
+  static const backupPassphraseChanged = AnalyticsEvent._(
+    'backup_passphrase_changed',
+  );
   static const backupCloudDeleted = AnalyticsEvent._('backup_cloud_deleted');
   static const backupDisabled = AnalyticsEvent._('backup_disabled');
 
@@ -204,18 +261,32 @@ class AnalyticsEvent {
       AnalyticsEvent._('sync_started', {'trigger': trigger});
 
   /// `changes_bucket`: none | few | many (sent plus received).
-  factory AnalyticsEvent.syncCompleted({required String trigger, required String changesBucket, required int seconds}) =>
-      AnalyticsEvent._('sync_completed', {'trigger': trigger, 'changes_bucket': changesBucket, 'duration': durationBucket(seconds)});
+  factory AnalyticsEvent.syncCompleted({
+    required String trigger,
+    required String changesBucket,
+    required int seconds,
+  }) => AnalyticsEvent._('sync_completed', {
+    'trigger': trigger,
+    'changes_bucket': changesBucket,
+    'duration': durationBucket(seconds),
+  });
 
   /// `reason`: offline | signed_out | too_new | integrity | keys_missing | other.
-  factory AnalyticsEvent.syncFailed({required String trigger, required String reason}) =>
-      AnalyticsEvent._('sync_failed', {'trigger': trigger, 'reason': reason});
+  factory AnalyticsEvent.syncFailed({
+    required String trigger,
+    required String reason,
+  }) => AnalyticsEvent._('sync_failed', {'trigger': trigger, 'reason': reason});
 
-  factory AnalyticsEvent.restoreStarted(String source) => AnalyticsEvent._('restore_started', {'source': source});
-  factory AnalyticsEvent.restoreCompleted(String source) => AnalyticsEvent._('restore_completed', {'source': source});
+  factory AnalyticsEvent.restoreStarted(String source) =>
+      AnalyticsEvent._('restore_started', {'source': source});
+  factory AnalyticsEvent.restoreCompleted(String source) =>
+      AnalyticsEvent._('restore_completed', {'source': source});
 
   /// `reason`: wrong_passphrase | not_found | incomplete | corrupt | too_new | other.
-  factory AnalyticsEvent.restoreFailed({required String source, required String reason}) =>
+  factory AnalyticsEvent.restoreFailed({
+    required String source,
+    required String reason,
+  }) =>
       AnalyticsEvent._('restore_failed', {'source': source, 'reason': reason});
 }
 

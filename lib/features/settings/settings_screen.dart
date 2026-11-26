@@ -113,7 +113,8 @@ class SettingsScreen extends ConsumerWidget {
               ],
             ),
           ],
-          if ((ref.watch(dismissedUpsellsProvider).value ?? const <String>{}).isNotEmpty) ...[
+          if ((ref.watch(dismissedUpsellsProvider).value ?? const <String>{})
+              .isNotEmpty) ...[
             const SectionHeader('Card suggestions'),
             RowGroup(
               indent: ListRow.leadingInset,
@@ -122,7 +123,8 @@ class SettingsScreen extends ConsumerWidget {
                   key: const Key('settings_hidden_suggestions'),
                   leading: const IconWell(Icons.undo_rounded),
                   title: 'Hidden card suggestions',
-                  subtitle: '${ref.watch(dismissedUpsellsProvider).value!.length} hidden. Tap to show any again.',
+                  subtitle:
+                      '${ref.watch(dismissedUpsellsProvider).value!.length} hidden. Tap to show any again.',
                   chevron: true,
                   onTap: () => showHiddenSuggestions(context),
                 ),
