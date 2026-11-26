@@ -103,6 +103,9 @@ class _PulseAppState extends ConsumerState<PulseApp>
         await svc.prices.refresh();
         await svc.refreshNavs();
       }
+      // Free public sources read on the phone (AMFI NAVs, end-of-day closes).
+      // Throttled to every few hours, so repeated opens cost nothing.
+      await ref.read(livePriceServiceProvider).refresh();
       await svc.recordValuations();
       if (mounted) invalidateWealth(ref);
     } on Object catch (e) {
