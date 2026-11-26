@@ -409,6 +409,20 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
+          if (ref.watch(packTipsProvider).isNotEmpty) ...[
+            const SectionHeader('Tips from Pulse'),
+            RowGroup(
+              children: [
+                for (final t in ref.watch(packTipsProvider).take(5))
+                  ListRow(
+                    key: Key('pack_tip_${t.id}'),
+                    leading: const IconWell(Icons.lightbulb_outline_rounded),
+                    title: t.title,
+                    subtitle: t.body,
+                  ),
+              ],
+            ),
+          ],
           const SectionHeader('Preferences'),
           RowGroup(
             children: [

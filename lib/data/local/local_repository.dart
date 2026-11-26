@@ -20,6 +20,7 @@ import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart' as eng;
 import '../../core/engine/types.dart' show Direction, TxnSource;
 import '../api/api_exception.dart';
+import '../../core/network/cloud_access.dart';
 import '../api/dto.dart';
 import '../insights.dart';
 import '../models.dart';
@@ -72,7 +73,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     this.wealth,
     this.statementService,
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+    bool Function()? cloudReady,
+  }) : _clock = clock ?? DateTime.now,
+       _cloudReady = cloudReady ?? (() => currentCloudAccess().isReady);
 
   /// Statement PDFs read on this device; without it uploads need the server.
   final LocalStatementService? statementService;
@@ -87,6 +90,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   final IngestPipeline pipeline;
   final PulseRepository? shared;
   final DateTime Function() _clock;
+
+  /// Whether a Pulse sign-in exists for the backend (overridden in tests).
+  final bool Function() _cloudReady;
 
   CalDate get _today => toDubaiDate(_clock());
 
@@ -1529,7 +1535,23 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     required String name,
     String emoji = '👥',
     List<NewGroupMember> members = const [],
-  }) => _splits.createGroup(name: name, emoji: emoji, members: members);
+  }) async {
+    // Signed in to the backend: make a shared group on the server, so people
+    // added by phone number who use Pulse see it too. Offline, signed out, or
+    // a server problem: keep it on this phone (it still works, just unshared).
+    final s = shared;
+    if (s != null && _cloudReady()) {
+      try {
+        return await s.createSplitGroup(name: name, emoji: emoji, members: members);
+      } on ApiException catch (e) {
+        // A rejected request (bad phone number, ...) is the person's to fix.
+        if (e.isPermanent) rethrow;
+      } on Object {
+        // Offline or unavailable: fall through to a group on this phone.
+      }
+    }
+    return _splits.createGroup(name: name, emoji: emoji, members: members);
+  }
 
   @override
   Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) async {

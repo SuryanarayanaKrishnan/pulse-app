@@ -13,6 +13,7 @@ const _device = DeviceSnapshot(
   build: '7',
   platform: 'android',
   osVersion: 'Android 14',
+  model: 'Google Pixel 8',
   locale: 'en-AE',
   theme: 'dark',
   route: '/home',
@@ -34,6 +35,7 @@ void main() {
     expect(md, contains('- app_version: 1.0.0'));
     expect(md, contains('- build: 7'));
     expect(md, contains('- platform: android'));
+    expect(md, contains('- model: Google Pixel 8'));
     expect(md, contains('- locale: en-AE'));
     expect(md, contains('- theme: dark'));
     expect(md, contains('- screen: /home'));
