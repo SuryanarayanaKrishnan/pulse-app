@@ -84,6 +84,10 @@ class SuggestedBudget {
 
   int get spendMinor => lines.fold(0, (a, l) => a + l.amountMinor);
   int get leftoverMinor => incomeMinor - spendMinor - savingsMinor;
+
+  /// Planned spend plus savings exceeds take-home (leftover is negative).
+  bool get isOverBudget => leftoverMinor < 0;
+
   SuggestedLine? line(String id) => lines.where((l) => l.categoryId == id).firstOrNull;
 }
 
