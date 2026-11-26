@@ -14,12 +14,15 @@ import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../core/vault/vault_models.dart';
+import '../../core/engine/live_quote.dart';
 import '../../data/investing_service.dart';
+import '../../data/local/live_prices.dart';
 import '../../data/local/wealth_store.dart' show newWealthId;
 import '../../data/providers.dart';
 import '../../data/wealth_models.dart';
 import '../net_worth/wealth_screen.dart' show ago;
 import '../vault/held_at.dart';
+import 'live_widgets.dart';
 import 'scan_screens.dart';
 import 'wealth_widgets.dart';
 
@@ -54,11 +57,16 @@ class InvestmentsSection extends ConsumerStatefulWidget {
 class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
   bool _refreshing = false, _didAuto = false;
 
-  Future<void> _refresh() async {
-    setState(() => _refreshing = true);
+  /// [auto] is the quiet refresh when the section first shows: no spinner,
+  /// and the throttle applies. The button forces one.
+  Future<void> _refresh({bool auto = false}) async {
+    if (!auto) setState(() => _refreshing = true);
     try {
       final n = await ref.read(investingServiceProvider).refreshPrices();
-      if (n > 0) invalidateWealth(ref);
+      final live = await ref
+          .read(livePriceServiceProvider)
+          .refresh(force: !auto);
+      if (n > 0 || live.anyUpdated) invalidateWealth(ref);
     } finally {
       if (mounted) setState(() => _refreshing = false);
     }
@@ -70,7 +78,7 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
     final list = ref.watch(stockViewsProvider).value ?? const [];
     if (list.isNotEmpty && !_didAuto) {
       _didAuto = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+      WidgetsBinding.instance.addPostFrameCallback((_) => _refresh(auto: true));
     }
     void add() => showPulseSheet<void>(
       context,
@@ -159,6 +167,13 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
                               : c.negative,
                         ),
                       ),
+                    DayChangeText(
+                      quote: ref
+                          .watch(liveQuotesProvider)
+                          .value?[LivePriceService.stockKey(v.holding.symbol)],
+                      quantity: v.holding.quantity,
+                      currency: v.holding.currency,
+                    ),
                   ],
                 ),
               ),
@@ -181,23 +196,22 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
                   style: context.tt.bodySmall,
                 ),
               ),
-              if (ref.watch(stockQuoteServiceProvider).available)
-                _refreshing
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : IconButton(
-                        tooltip: 'Refresh prices',
-                        visualDensity: VisualDensity.compact,
-                        onPressed: _refresh,
-                        icon: Icon(
-                          Icons.refresh_rounded,
-                          size: 20,
-                          color: c.textSecondary,
-                        ),
+              _refreshing
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : IconButton(
+                      tooltip: 'Refresh prices',
+                      visualDensity: VisualDensity.compact,
+                      onPressed: _refresh,
+                      icon: Icon(
+                        Icons.refresh_rounded,
+                        size: 20,
+                        color: c.textSecondary,
                       ),
+                    ),
             ],
           ),
         ),
@@ -213,7 +227,11 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
     final price = h.lastPrice == null
         ? 'no price yet'
         : _ccy(h.currency, h.lastPrice!);
-    return '${h.approximate ? '~' : ''}$qty × $price${v.priceStale && h.lastPrice != null ? ' · saved' : ''}${h.approximate ? ' · approximate' : ''}';
+    final asOf =
+        h.priceSource != null && h.priceSource!.startsWith('last close ')
+        ? '\n${asOfLabel(h.priceSource!.substring(11), DateTime.now(), fund: false)}'
+        : '';
+    return '${h.approximate ? '~' : ''}$qty × $price${v.priceStale && h.lastPrice != null ? ' · saved' : ''}${h.approximate ? ' · approximate' : ''}$asOf';
   }
 }
 

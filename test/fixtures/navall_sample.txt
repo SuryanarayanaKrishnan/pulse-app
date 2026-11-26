@@ -1,0 +1,15 @@
+Scheme Code;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Scheme Name;Net Asset Value;Date
+
+Open Ended Schemes(Equity Scheme - Flexi Cap Fund)
+
+Example Mutual Fund
+100001;INF000A01AB1;-;Example Flexi Cap Fund - Direct Plan - Growth;215.1000;25-Nov-2026
+100002;INF000A01AC9;INF000A01AD7;Example Flexi Cap Fund - Direct Plan - IDCW;48.2200;25-Nov-2026
+100003;INF000A01AE5;-;Example Flexi Cap Fund - Regular Plan - Growth;198.5000;25-Nov-2026
+
+Open Ended Schemes(Debt Scheme - Liquid Fund)
+
+Sample Asset Management
+200001;INF000B01XY3;-;Sample Liquid Fund - Direct Plan - Growth;N.A.;25-Nov-2026
+200002;-;-;Sample Short Term Fund - Growth;1,234.5600;25-Nov-2026
+200003;INF000B01ZZ0;-;Sample Gilt Fund - Direct Plan - Growth;31.0000;bad-date
