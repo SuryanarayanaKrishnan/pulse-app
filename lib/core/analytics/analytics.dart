@@ -91,6 +91,19 @@ class AnalyticsEvent {
       AnalyticsEvent._('budget_mode_changed', {'mode': mode});
   static const moneyMoved = AnalyticsEvent._('money_moved');
 
+  /// An over-budget category was shown. `kind`: one_off | pattern | watch |
+  /// early. `surface`: budget | home. Never the category, merchant or amount.
+  factory AnalyticsEvent.overrunViewed({required String kind, required String surface}) =>
+      AnalyticsEvent._('overrun_viewed', {'kind': kind, 'surface': surface});
+
+  /// `category` is a default category id, or `custom`. Never an amount.
+  factory AnalyticsEvent.overrunMarkedOneOff(String category) =>
+      AnalyticsEvent._('overrun_marked_one_off', {'category': _category(category)});
+  factory AnalyticsEvent.overrunCeilingRaised(String category) =>
+      AnalyticsEvent._('overrun_ceiling_raised', {'category': _category(category)});
+  factory AnalyticsEvent.overrunRaiseUndone(String category) =>
+      AnalyticsEvent._('overrun_raise_undone', {'category': _category(category)});
+
   /// One-step budget. `history`: whether past spending was used. Never an
   /// amount, an income or a household size.
   factory AnalyticsEvent.budgetSuggested({required bool history}) =>

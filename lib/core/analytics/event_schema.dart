@@ -378,6 +378,38 @@ abstract final class AnalyticsSchema {
       'You move money between two categories in a month.',
     ),
     EventSpec('budget_created', 'Everyday use', 'You create a budget.'),
+    EventSpec(
+      'overrun_viewed',
+      'Everyday use',
+      'Pulse shows you a category that is over its budget.',
+      props: {
+        'kind': EnumProp('One-off, recurring, worth watching, or too early to tell', [
+          'one_off',
+          'pattern',
+          'watch',
+          'early',
+        ]),
+        'surface': EnumProp('Where it was shown', ['budget', 'home']),
+      },
+    ),
+    EventSpec(
+      'overrun_marked_one_off',
+      'Everyday use',
+      'You mark an overspend as a one-off.',
+      props: {'category': EnumProp('Category it was in', categories)},
+    ),
+    EventSpec(
+      'overrun_ceiling_raised',
+      'Everyday use',
+      'You accept a higher monthly budget Pulse suggested.',
+      props: {'category': EnumProp('Category it was in', categories)},
+    ),
+    EventSpec(
+      'overrun_raise_undone',
+      'Everyday use',
+      'You undo a higher monthly budget you had accepted.',
+      props: {'category': EnumProp('Category it was in', categories)},
+    ),
     EventSpec('card_added', 'Everyday use', 'You add a card.'),
     EventSpec(
       'card_check_shown',
