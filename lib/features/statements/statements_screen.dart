@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/router/router.dart';
+
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/network/cloud_access.dart';
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
@@ -160,6 +163,7 @@ class _StatementRow extends StatelessWidget {
     final (label, color) = switch (s.state) {
       CloseState.matched => ('Matched', c.positive),
       CloseState.processing => ('Reading', c.textSecondary),
+      CloseState.imported => ('Imported', c.textSecondary),
       CloseState.mismatch => ('Mismatch', c.warning),
       CloseState.needsPassword => ('Locked', c.warning),
       CloseState.needsAccount => ('Needs account', c.warning),
@@ -208,7 +212,8 @@ class _NeedsYou extends ConsumerWidget {
         'Add password',
         () => showPulseSheet<void>(
           context,
-          builder: (_) => PasswordSheet(institution: s.institution),
+          builder: (_) =>
+              PasswordSheet(institution: s.institution, statementId: s.id),
         ),
       ),
       CloseState.needsAccount => (
@@ -217,11 +222,13 @@ class _NeedsYou extends ConsumerWidget {
         () => ref
             .read(repositoryProvider)
             .reprocessStatement(s.id)
-            .then((_) => ref.invalidate(statementsProvider)),
+            .then((_) => ref.invalidate(statementsProvider))
+            .catchError((Object _) => ref.invalidate(statementsProvider)),
       ),
       _ => (
         s.parseError ??
-            'This file could not be read. Scanned PDFs are not supported yet.',
+            'This file could not be read. Choose it again, or download the '
+                'statement as a PDF or CSV.',
         'Upload another',
         () => uploadStatement(context, ref),
       ),
@@ -264,6 +271,7 @@ class _Sources extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
+    final cloud = ref.watch(cloudAccessProvider);
     final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
     final active = gmail.where((g) => g.active).firstOrNull;
     final reauth = gmail.where((g) => !g.active).firstOrNull;
@@ -273,23 +281,31 @@ class _Sources extends ConsumerWidget {
         ListRow(
           leading: const IconWell(Icons.mail_outline_rounded),
           title: 'Gmail',
-          subtitle: active != null
+          subtitle: !cloud.isReady
+              ? needsSignInTitle
+              : active != null
               ? 'Connected · ${active.email}'
               : reauth != null
               ? 'Reconnect ${reauth.email} to keep importing'
               : 'Finds bank statements in your inbox. Read-only.',
-          subtitleColor: reauth != null && active == null ? c.warning : null,
-          trailing: active != null
+          subtitleColor: cloud.isReady && reauth != null && active == null
+              ? c.warning
+              : null,
+          trailing: active != null && cloud.isReady
               ? Icon(Icons.check_rounded, color: c.positive, size: 20)
               : TextAction(
-                  reauth != null ? 'Reconnect' : 'Connect',
+                  !cloud.isReady
+                      ? 'Details'
+                      : reauth != null
+                      ? 'Reconnect'
+                      : 'Connect',
                   onTap: () => connectGmail(context, ref),
                 ),
         ),
         ListRow(
           leading: const IconWell(Icons.upload_file_outlined),
-          title: 'Upload a statement',
-          subtitle: 'PDF or CSV from any UAE bank',
+          title: 'Add a statement',
+          subtitle: 'PDF, CSV or Excel, read on this phone',
           trailing: TextAction(
             'Choose',
             onTap: () => uploadStatement(context, ref),
@@ -354,8 +370,20 @@ class _Passwords extends ConsumerWidget {
 
 /// Set a statement password for one bank. Write-only.
 class PasswordSheet extends ConsumerStatefulWidget {
-  const PasswordSheet({super.key, this.institution});
+  const PasswordSheet({
+    super.key,
+    this.institution,
+    this.statementId,
+    this.notice,
+  });
   final String? institution;
+
+  /// A locked statement waiting for this password; the sheet says so when the
+  /// password did not open it.
+  final String? statementId;
+
+  /// Shown above the field (e.g. the saved password did not work).
+  final String? notice;
   @override
   ConsumerState<PasswordSheet> createState() => _PasswordSheetState();
 }
@@ -365,6 +393,7 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
   final _pw = TextEditingController();
   bool _busy = false;
   bool _obscure = true;
+  String? _wrong;
 
   @override
   void dispose() {
@@ -380,9 +409,29 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
       _pw.clear();
       // Locked statements waiting for this password open now.
       await ref.read(localStatementServiceProvider)?.retryLocked();
-      Haptics.success();
       ref.invalidate(statementPasswordsProvider);
       ref.invalidate(statementsProvider);
+      final id = widget.statementId;
+      if (id != null) {
+        final list =
+            await ref.read(localStatementServiceProvider)?.statements() ??
+            const <Statement>[];
+        final still = list.any(
+          (x) => x.id == id && x.state == CloseState.needsPassword,
+        );
+        if (still) {
+          // Wrong password: keep the sheet open and say so, no scary error.
+          await ref.read(statementPasswordStoreProvider).remove(_inst!);
+          ref.invalidate(statementPasswordsProvider);
+          if (mounted) {
+            setState(
+              () => _wrong = 'That password did not open this statement. Check it and try again.',
+            );
+          }
+          return;
+        }
+      }
+      Haptics.success();
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) {
@@ -424,6 +473,14 @@ class _PasswordSheetState extends ConsumerState<PasswordSheet> {
               ],
             ),
             const SizedBox(height: Space.lg),
+          ],
+          if (_wrong ?? widget.notice case final msg?) ...[
+            Text(
+              msg,
+              key: const Key('password_notice'),
+              style: context.tt.bodyMedium!.copyWith(color: c.warning),
+            ),
+            const SizedBox(height: Space.md),
           ],
           if (_inst != null) ...[
             Text(statementPasswordHint(_inst), style: context.tt.bodyMedium),
@@ -543,7 +600,7 @@ class ReconciliationSheet extends ConsumerWidget {
               if (r.statementOnly.isNotEmpty) ...[
                 const SizedBox(height: Space.xl),
                 Text(
-                  'On the statement, never captured',
+                  'On the statement, not captured',
                   style: context.tt.bodySmall,
                 ),
                 RowGroup(
@@ -552,8 +609,7 @@ class ReconciliationSheet extends ConsumerWidget {
                     for (final l in r.statementOnly)
                       ListRow(
                         title: l.description,
-                        subtitle:
-                            '${DateFormat('d MMM').format(l.date)} · added to your ledger',
+                        subtitle: DateFormat('d MMM').format(l.date),
                         trailing: money(l.credit ? l.amount : -l.amount),
                       ),
                   ],
@@ -598,6 +654,16 @@ class ReconciliationSheet extends ConsumerWidget {
                       if (context.mounted) {
                         ScaffoldMessenger.of(context)
                             .showSnackBar(SnackBar(content: Text(e.message)));
+                      }
+                    } catch (_) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Could not read the statement again. Choose the file again.',
+                            ),
+                          ),
+                        );
                       }
                     }
                   },

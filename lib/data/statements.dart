@@ -83,6 +83,9 @@ enum CloseState {
   needsPassword,
   needsAccount,
   processing,
+
+  /// Read fine, but the file has no balances to check against.
+  imported,
   failed,
 }
 
@@ -129,12 +132,14 @@ class Statement {
     ParseStatus.parsed => switch (recon) {
       ReconStatus.matched => CloseState.matched,
       ReconStatus.mismatch => CloseState.mismatch,
-      ReconStatus.pending => CloseState.processing,
+      ReconStatus.pending => CloseState.imported,
     },
   };
 
   bool get needsAttention =>
-      state != CloseState.matched && state != CloseState.processing;
+      state != CloseState.matched &&
+      state != CloseState.processing &&
+      state != CloseState.imported;
 
   Statement copyWith({ParseStatus? parse, ReconStatus? recon, double? diff}) =>
       Statement(

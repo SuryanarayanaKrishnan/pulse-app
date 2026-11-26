@@ -26,6 +26,13 @@ class SessionController extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Opens the sign-in screen from inside the app (a feature that needs a
+  /// Pulse account). Keeps the connect step done, so signing in returns home.
+  void requestSignIn() {
+    signedIn = false;
+    notifyListeners();
+  }
+
   void finishConnect() {
     connected = true;
     notifyListeners();

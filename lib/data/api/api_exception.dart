@@ -80,3 +80,14 @@ Future<T> guardApi<T>(Future<T> Function() body) async {
     throw ApiException.fromDio(e);
   }
 }
+
+/// A shared feature was used without a backend or a Pulse sign-in. Carries a
+/// calm, consistent message for the toast or sheet that shows it.
+class NeedsSignInException extends ApiException {
+  NeedsSignInException(this.feature)
+    : super(
+        message: "$feature is available once you're signed in.",
+        code: 'needs_sign_in',
+      );
+  final String feature;
+}

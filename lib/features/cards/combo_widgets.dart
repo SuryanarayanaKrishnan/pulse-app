@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/entitlement/entitlement.dart';
 import '../../core/entitlement/plus_gate.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/card_combos.dart';
 import '../../data/providers.dart';
@@ -95,7 +96,20 @@ class ComboRow extends ConsumerWidget {
       ),
       title: combo.title,
       subtitle: locked ? 'Niche detail with Plus' : combo.headline,
-      trailing: locked ? const PlusBadge() : null,
+      trailing: combo.hasSaving
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  'Up to ${Money.aed(combo.annualSavingAed!, decimals: false)}',
+                  style: context.tt.labelLarge!.copyWith(color: c.positive),
+                ),
+                Text('a year, estimate', style: context.tt.labelSmall),
+                if (locked) const PlusBadge(),
+              ],
+            )
+          : (locked ? const PlusBadge() : null),
       chevron: !locked,
       onTap: () => locked
           ? showPaywall(context, PlusFeature.nicheIntel)
@@ -134,6 +148,18 @@ class ComboDetailSheet extends StatelessWidget {
           ),
           const SizedBox(height: Space.lg),
           Text(combo.body, style: context.tt.bodyLarge),
+          if (combo.hasSaving) ...[
+            const SizedBox(height: Space.md),
+            Text(
+              'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
+              style: context.tt.titleSmall!.copyWith(color: c.positive),
+            ),
+            if (combo.savingNote != null)
+              Text(
+                combo.savingNote!,
+                style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
+              ),
+          ],
           const SizedBox(height: Space.lg),
           Wrap(
             spacing: Space.sm,

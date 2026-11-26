@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import '../../core/network/cloud_access.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +24,8 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
 import '../cards/digit_widgets.dart';
+import '../cards/upsell_widgets.dart';
+import '../../data/card_upsell_providers.dart';
 import '../../capture/providers.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
@@ -108,6 +112,24 @@ class SettingsScreen extends ConsumerWidget {
                       ref.invalidate(digitSuggestionsProvider);
                     },
                   ),
+              ],
+            ),
+          ],
+          if ((ref.watch(dismissedUpsellsProvider).value ?? const <String>{})
+              .isNotEmpty) ...[
+            const SectionHeader('Card suggestions'),
+            RowGroup(
+              indent: ListRow.leadingInset,
+              children: [
+                ListRow(
+                  key: const Key('settings_hidden_suggestions'),
+                  leading: const IconWell(Icons.undo_rounded),
+                  title: 'Hidden card suggestions',
+                  subtitle:
+                      '${ref.watch(dismissedUpsellsProvider).value!.length} hidden. Tap to show any again.',
+                  chevron: true,
+                  onTap: () => showHiddenSuggestions(context),
+                ),
               ],
             ),
           ],
@@ -226,7 +248,9 @@ class SettingsScreen extends ConsumerWidget {
               ListRow(
                 leading: const IconWell(Icons.mail_outline_rounded),
                 title: 'Gmail statements',
-                subtitle: connected == null
+                subtitle: !ref.watch(cloudAccessProvider).isReady
+                    ? needsSignInTitle
+                    : connected == null
                     ? 'Not connected'
                     : 'Connected · ${connected.email}',
                 trailing: connected == null

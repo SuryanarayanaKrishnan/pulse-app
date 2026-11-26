@@ -85,7 +85,7 @@ void main() {
       final r = await rig();
       await expectLater(
         r.repo.startGmailConnect(),
-        throwsA(isA<ApiException>().having((e) => e.code, 'code', 'not_supported')),
+        throwsA(isA<ApiException>().having((e) => e.code, 'code', 'needs_sign_in')),
       );
       await expectLater(r.repo.simulateCapture(), throwsA(isA<ApiException>()));
     });
