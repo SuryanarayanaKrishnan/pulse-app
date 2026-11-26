@@ -67,32 +67,37 @@ class _AppShellState extends ConsumerState<AppShell> {
               ),
               child: SafeArea(
                 top: false,
-                child: SizedBox(
-                  height: 56,
-                  child: Row(
-                    children: [
-                      for (var i = 0; i < _items.length; i++)
-                        Expanded(
-                          child: _NavItem(
-                            index: i,
-                            icon: shell.currentIndex == i
-                                ? _items[i].$1
-                                : _items[i].$2,
-                            label: _items[i].$3,
-                            selected: shell.currentIndex == i,
-                            onTap: () {
-                              if (i != shell.currentIndex) {
-                                Haptics.tap();
-                                ref.read(analyticsProvider).screen(_names[i]);
-                              }
-                              shell.goBranch(
-                                i,
-                                initialLocation: i == shell.currentIndex,
-                              );
-                            },
+                // The bar is a fixed 56 high: cap how far large text can grow
+                // its labels so they never overflow it.
+                child: MediaQuery.withClampedTextScaling(
+                  maxScaleFactor: 1.0,
+                  child: SizedBox(
+                    height: 56,
+                    child: Row(
+                      children: [
+                        for (var i = 0; i < _items.length; i++)
+                          Expanded(
+                            child: _NavItem(
+                              index: i,
+                              icon: shell.currentIndex == i
+                                  ? _items[i].$1
+                                  : _items[i].$2,
+                              label: _items[i].$3,
+                              selected: shell.currentIndex == i,
+                              onTap: () {
+                                if (i != shell.currentIndex) {
+                                  Haptics.tap();
+                                  ref.read(analyticsProvider).screen(_names[i]);
+                                }
+                                shell.goBranch(
+                                  i,
+                                  initialLocation: i == shell.currentIndex,
+                                );
+                              },
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
