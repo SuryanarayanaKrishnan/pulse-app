@@ -12,7 +12,10 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../../data/wealth_service.dart';
 import '../net_worth/wealth_screen.dart' show ago;
+import '../../core/engine/live_quote.dart';
+import '../../data/local/live_prices.dart';
 import 'document_screens.dart';
+import 'live_widgets.dart';
 import 'fund_screens.dart';
 import 'investing_screens.dart';
 import 'jewellery_screens.dart';
@@ -114,11 +117,12 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     final svc = ref.read(wealthServiceProvider);
     await svc.prices.refresh(force: true);
     await svc.refreshNavs();
+    final live = await ref.read(livePriceServiceProvider).refresh(force: true);
     await svc.recordValuations();
     invalidateWealth(ref);
     if (mounted) {
       setState(() => _busy = false);
-      if (svc.prices.lastError != null) {
+      if (svc.prices.lastError != null || live.errors.isNotEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Offline. Showing the last saved prices.'),
@@ -134,12 +138,14 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     final book = ref.watch(priceBookProvider).value;
     if (book == null) return const SizedBox.shrink();
     final at = book.fetchedAt;
-    final canFetch = ref.watch(priceServiceProvider).canFetch;
+    // Funds and stocks refresh from public sources on the phone, so there is
+    // always something to refresh.
+    const canFetch = true;
     final fresh =
         at != null && DateTime.now().difference(at) < const Duration(hours: 1);
     final (label, color) = book.origin == PriceOrigin.bundled
         ? (
-            'Demo prices${canFetch ? '' : ' · connect a price service for live ones'}',
+            'Gold: demo value · funds and stocks update from public sources',
             c.warning,
           )
         : fresh
@@ -337,6 +343,8 @@ class FundsSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
     final list = ref.watch(fundsProvider).value ?? const [];
+    final quotes = ref.watch(liveQuotesProvider).value ?? const {};
+    final today = DateTime.now();
     void add() => showPulseSheet<void>(
       context,
       full: true,
@@ -368,7 +376,8 @@ class FundsSection extends ConsumerWidget {
                 title: v.holding.name,
                 subtitle:
                     '${_units(v.holding.units)} units · NAV ${v.holding.currency} ${v.holding.nav.toStringAsFixed(2)}'
-                    '${v.holding.hasSip ? ' · SIP' : ''}',
+                    '${v.holding.hasSip ? ' · SIP' : ''}'
+                    '${v.holding.isIndian ? '\n${asOfLabel(v.holding.navDate, today, fund: true)}' : ''}',
                 chevron: true,
                 onTap: () => context.push('${Routes.fund}/${v.holding.id}'),
                 trailing: Column(
@@ -392,6 +401,12 @@ class FundsSection extends ConsumerWidget {
                               ? c.positive
                               : c.negative,
                         ),
+                      ),
+                    if (v.holding.schemeCode != null)
+                      DayChangeText(
+                        quote: quotes[LivePriceService.fundKey(v.holding.schemeCode!)],
+                        quantity: v.holding.units,
+                        currency: v.holding.currency,
                       ),
                   ],
                 ),
