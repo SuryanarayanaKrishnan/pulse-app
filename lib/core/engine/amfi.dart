@@ -107,7 +107,13 @@ class AmfiBook {
       if (hit != null) return hit;
     }
     final picked = pickScheme(name, schemes.map((s) => s.asScheme));
-    return picked == null ? null : byCode(picked.code);
+    if (picked == null) return null;
+    // Money is at stake: every identifying word of the statement's name must
+    // be in the scheme's name, or it is a different fund ("Liquid" is not
+    // "Short Term").
+    final have = fundKeywords(picked.name).toSet();
+    if (!fundKeywords(name).every(have.contains)) return null;
+    return byCode(picked.code);
   }
 }
 

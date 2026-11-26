@@ -30,6 +30,7 @@ import 'local/db_key.dart';
 import 'local/encrypted_attachments.dart';
 import 'local/price_service.dart';
 import 'local/live_prices.dart';
+import 'local/cas_import_service.dart';
 import '../core/engine/live_quote.dart';
 import 'local/reminders.dart';
 import '../core/engine/investing.dart' show InvestRule, RuleOccurrence;
@@ -183,13 +184,31 @@ final publicDioProvider = Provider<Dio>(
   ),
 );
 
+final amfiServiceProvider = Provider<AmfiService>(
+  (ref) => AmfiService(
+    dio: kIsWeb ? null : ref.watch(publicDioProvider),
+    cache: kIsWeb ? MemoryTextCache() : FileTextCache(),
+    kv: SharedPrefsKvStore(prefix: 'pulse.prices.'),
+  ),
+);
+
+/// Reads a CAMS/KFintech CAS PDF on the phone (text extraction, parsing and
+/// saving holdings); nothing from the statement leaves the device.
+final casImportServiceProvider = Provider<CasImportService>(
+  (ref) => CasImportService(
+    extractor: const PdfrxTextExtractor(),
+    amfi: ref.watch(amfiServiceProvider),
+    wealth: ref.watch(wealthServiceProvider),
+  ),
+);
+
 final livePriceServiceProvider = Provider<LivePriceService>((ref) {
   final kv = SharedPrefsKvStore(prefix: 'pulse.prices.');
   final dio = kIsWeb ? null : ref.watch(publicDioProvider);
   return LivePriceService(
     wealth: ref.watch(wealthStoreProvider),
     investing: ref.watch(investingStoreProvider),
-    amfi: AmfiService(dio: dio, cache: kIsWeb ? MemoryTextCache() : FileTextCache(), kv: kv),
+    amfi: ref.watch(amfiServiceProvider),
     stooq: StooqService(dio),
     kv: kv,
     backendStocks: ref.watch(stockQuoteServiceProvider),
