@@ -81,12 +81,16 @@ class BudgetChartPager extends ConsumerStatefulWidget {
 }
 
 class _BudgetChartPagerState extends ConsumerState<BudgetChartPager> {
-  PageController? _controller;
+  final PageController _controller = PageController();
   int _page = 0;
+
+  /// Set once the person swipes or taps, so a late-loading saved page never
+  /// moves the chart out from under them.
+  bool _touched = false;
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -96,34 +100,39 @@ class _BudgetChartPagerState extends ConsumerState<BudgetChartPager> {
         c,
   ];
 
-  void _go(int i, List<BudgetChart> pages) {
-    final ctl = _controller;
-    if (ctl == null || !ctl.hasClients) return;
+  void _go(int i) {
+    _touched = true;
+    if (!_controller.hasClients) return;
     if (MediaQuery.disableAnimationsOf(context)) {
-      ctl.jumpToPage(i);
+      _controller.jumpToPage(i);
     } else {
-      ctl.animateToPage(i, duration: Motion.base, curve: Motion.curve);
+      _controller.animateToPage(i, duration: Motion.base, curve: Motion.curve);
     }
+  }
+
+  /// Opens on the page that was open last, as soon as it has been read.
+  void _restore(String key, List<BudgetChart> pages) {
+    if (_touched) return;
+    final i = pages.indexWhere((p) => p.key == key);
+    if (i <= 0 || i == _page) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _touched || !_controller.hasClients) return;
+      _controller.jumpToPage(i);
+      setState(() => _page = i);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final saved = ref.watch(budgetChartPageProvider);
     final plan = ref.watch(budgetPlanProvider).value;
     final pages = _pages(plan);
+    ref.listen(budgetChartPageProvider, (_, next) {
+      if (next.loaded) _restore(next.key, pages);
+    });
+    final saved = ref.read(budgetChartPageProvider);
+    if (saved.loaded && !_touched && _page == 0) _restore(saved.key, pages);
     final scale = MediaQuery.textScalerOf(context).scale(1).clamp(1.0, 1.6);
-    if (!saved.loaded) {
-      return SizedBox(
-        key: const Key('chart_pager_loading'),
-        height: BudgetChart.category.height * scale,
-      );
-    }
-    if (_controller == null) {
-      final start = pages.indexWhere((p) => p.key == saved.key);
-      _page = start < 0 ? 0 : start;
-      _controller = PageController(initialPage: _page);
-    }
     final index = _page.clamp(0, pages.length - 1);
     final current = pages[index];
     final height = (current.height - 80) * scale + 80;
@@ -167,6 +176,7 @@ class _BudgetChartPagerState extends ConsumerState<BudgetChartPager> {
               key: const Key('chart_pages'),
               controller: _controller,
               onPageChanged: (i) {
+                _touched = true;
                 setState(() => _page = i);
                 ref.read(budgetChartPageProvider.notifier).set(pages[i]);
               },
@@ -180,7 +190,7 @@ class _BudgetChartPagerState extends ConsumerState<BudgetChartPager> {
               ],
             ),
           ),
-          _Dots(pages: pages, index: index, onTap: (i) => _go(i, pages)),
+          _Dots(pages: pages, index: index, onTap: _go),
         ],
       ),
     );
