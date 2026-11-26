@@ -165,9 +165,17 @@ void main() {
       (tester) async {
         final kv = MemoryKvStore();
         await pump(tester, '/home', kv: kv);
-        await tester.tap(
-          find.byKey(const Key('best_move_reddit-liv-df-sib-tabby-stack')),
+        final move = find.byKey(
+          const Key('best_move_reddit-liv-df-sib-tabby-stack'),
         );
+        await tester.scrollUntilVisible(
+          move,
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await Scrollable.ensureVisible(tester.element(move), alignment: 0.4);
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.tap(move);
         for (var i = 0; i < 12; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }

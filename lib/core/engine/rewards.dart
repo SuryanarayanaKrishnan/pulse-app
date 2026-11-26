@@ -47,6 +47,8 @@ class CardSpec {
     this.excludedCategories = const {},
     this.minMonthlySpendMinor = 0,
     this.feeWaiverSpendMinor,
+    this.totalCapUnits,
+    this.capCycle,
   });
   final String unit;
   final double pointValueAed;
@@ -55,6 +57,15 @@ class CardSpec {
   final Set<String> excludedCategories;
   final int minMonthlySpendMinor;
   final int? feeWaiverSpendMinor;
+
+  /// Monthly cap on everything the card earns (AED for cashback, points
+  /// otherwise), shared by all rules. Null = the catalog has none.
+  final double? totalCapUnits;
+
+  /// `calendar` or `statement` when the issuer's terms say which month the
+  /// caps run on; null = not recorded (the card's statement day is used when
+  /// the user set one, else the calendar month).
+  final String? capCycle;
 
   bool get isCashback => unit == 'cashback';
 
@@ -102,10 +113,28 @@ CardSpec parseStructure(Map<String, Object?> data) {
     excludedCategories: ((data['excluded_categories'] as List?) ?? const []).cast<String>().toSet(),
     minMonthlySpendMinor: (data['min_monthly_spend_minor'] as num?)?.toInt() ?? 0,
     feeWaiverSpendMinor: (data['fee_waiver_spend_minor'] as num?)?.toInt(),
+    totalCapUnits: _totalCap(data),
+    capCycle: switch (data['cap_cycle']) {
+      'calendar' => 'calendar',
+      'statement' => 'statement',
+      _ => null,
+    },
   );
 }
 
+/// The catalog spells the card-wide cap three ways; a null value means none.
+double? _totalCap(Map<String, Object?> data) {
+  for (final k in const ['monthly_total_cap_units', 'monthly_cap_total_units', 'monthly_cap_points_total']) {
+    final v = (data[k] as num?)?.toDouble();
+    if (v != null && v > 0) return v;
+  }
+  return null;
+}
+
 const baseRuleName = 'Base';
+
+/// Key of the card-wide cap in [CycleResult.usage].
+const totalCapKey = '\u0000total';
 
 /// The rule that earns for this spend; null when the category is excluded.
 RuleSpec? selectRule(CardSpec spec, String? category, String? merchantKey) {
@@ -163,6 +192,13 @@ class CycleResult {
   if (state.capUnits != null) {
     units = math.min(units, math.max(0, state.capUnits! - state.usedUnits));
   }
+  final total = spec.totalCapUnits == null
+      ? null
+      : usage.putIfAbsent(totalCapKey, () => CapUsage('Card total', spec.totalCapUnits));
+  if (total != null) {
+    units = math.min(units, math.max(0, total.capUnits! - total.usedUnits));
+    total.usedUnits += units;
+  }
   state.usedUnits += units;
   return (units, rule);
 }
@@ -202,7 +238,12 @@ Quote quote(CardSpec spec, CycleResult state, Spend spend) {
     headroom = math.max(0, rule.capUnits! - (used?.usedUnits ?? 0));
   }
   final full = spend.amountMinor / 100 * rule.rate;
-  final units = headroom == null ? full : math.min(full, headroom);
+  var units = headroom == null ? full : math.min(full, headroom);
+  if (spec.totalCapUnits != null) {
+    final left = math.max(0, spec.totalCapUnits! - (state.usage[totalCapKey]?.usedUnits ?? 0));
+    headroom = headroom == null ? left.toDouble() : math.min(headroom, left.toDouble());
+    units = math.min(units, left.toDouble());
+  }
   return Quote(units, spec.valueMinor(units), rule.name, headroom, units < full);
 }
 

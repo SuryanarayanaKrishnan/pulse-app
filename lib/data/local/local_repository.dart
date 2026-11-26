@@ -23,6 +23,7 @@ import '../../core/engine/types.dart' show Direction, TxnSource;
 import '../api/api_exception.dart';
 import '../../core/network/cloud_access.dart';
 import '../api/dto.dart';
+import '../cap_snapshot.dart';
 import '../insights.dart';
 import '../models.dart';
 import '../wealth_service.dart';
@@ -65,7 +66,7 @@ String _monthKey(int year, int month) => '$year-${month.toString().padLeft(2, '0
 /// (splits with other people, family sharing, statement parsing, Gmail) go
 /// to [shared] when a backend is configured and report "not supported"
 /// otherwise.
-class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource {
+class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource, CapSource {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -948,6 +949,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       dueDate: due,
       statementDate: stmt,
       cycle: cycle,
+    );
+  }
+
+  @override
+  Future<CapSnapshot> capSnapshot() async {
+    final today = _today;
+    final cards = await loadOwnedCards(db);
+    return CapSnapshot(
+      today: today,
+      cards: await capStatuses(db, cards, today),
+      held: await rankables(db, cards, today),
+      history: await spendHistory(db, today),
     );
   }
 
