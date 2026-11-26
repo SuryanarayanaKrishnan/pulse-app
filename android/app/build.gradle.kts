@@ -31,11 +31,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        // Shared beta key so every CI build installs over the previous one (the debug
+        // keystore is regenerated on each runner). CI decodes pulse-beta.keystore.b64 into
+        // pulse-beta.keystore. A friends-and-family key only: Google Play needs its own key.
+        val betaStore = file("pulse-beta.keystore")
+        if (betaStore.exists()) {
+            create("beta") {
+                storeFile = betaStore
+                storePassword = "pulsebeta"
+                keyAlias = "pulsebeta"
+                keyPassword = "pulsebeta"
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            // Beta key when present (CI), else the debug keys so `flutter run --release` works.
+            signingConfig = signingConfigs.findByName("beta") ?: signingConfigs.getByName("debug")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }

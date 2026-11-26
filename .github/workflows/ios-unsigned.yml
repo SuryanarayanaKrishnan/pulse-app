@@ -82,7 +82,7 @@ jobs:
       - run: flutter pub get
 
       - name: Build (no code signing)
-        run: flutter build ios --release --no-codesign --build-number ${{ github.run_number }}
+        run: flutter build ios --release --no-codesign --dart-define-from-file=deploy/app.defines.json --build-number ${{ github.run_number }}
 
       - name: Package .ipa
         run: |
