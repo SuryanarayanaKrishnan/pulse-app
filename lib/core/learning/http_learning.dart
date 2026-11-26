@@ -56,7 +56,7 @@ Future<bool> refreshMerchantMap(
     );
     final body = r.data;
     if (body == null) return false;
-    return GlobalMerchantMapLoader(kv: kv).offerRefreshed(body, current);
+    return await GlobalMerchantMapLoader(kv: kv).offerRefreshed(body, current);
   } on Object {
     return false;
   }
