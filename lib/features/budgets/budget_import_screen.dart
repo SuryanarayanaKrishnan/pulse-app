@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/analytics/analytics.dart';
+import '../../core/engine/budget_file.dart';
 import '../../core/engine/sheet_import.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
@@ -16,19 +17,48 @@ import '../../data/budget_import_service.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 
-/// Downloads a Google Sheet as a workbook. Works for sheets shared as
-/// "anyone with the link"; replaced in tests.
-final sheetFetcherProvider = Provider<Future<Uint8List> Function(String sheetId)>(
-  (ref) => (id) async {
-    final r = await Dio().get<List<int>>(
-      'https://docs.google.com/spreadsheets/d/$id/export?format=xlsx',
-      options: Options(responseType: ResponseType.bytes, receiveTimeout: const Duration(seconds: 30)),
-    );
-    return Uint8List.fromList(r.data ?? const []);
-  },
-);
+/// A Google Sheets link that could not be read, with what to do about it.
+class SheetLinkException implements Exception {
+  const SheetLinkException(this.message);
+  final String message;
+}
 
-String? sheetIdFromLink(String link) => RegExp(r'/spreadsheets/d/([a-zA-Z0-9_-]{20,})').firstMatch(link)?.group(1);
+/// Downloads a Google Sheet as a workbook. Works for sheets shared as
+/// "anyone with the link", with no sign-in; replaced in tests.
+final sheetFetcherProvider =
+    Provider<Future<Uint8List> Function(String sheetId)>(
+      (ref) => (id) async {
+        try {
+          final r = await Dio().get<List<int>>(
+            'https://docs.google.com/spreadsheets/d/$id/export?format=xlsx',
+            options: Options(
+              responseType: ResponseType.bytes,
+              receiveTimeout: const Duration(seconds: 30),
+            ),
+          );
+          final bytes = Uint8List.fromList(r.data ?? const []);
+          // A private sheet answers with Google's sign-in page, not a workbook.
+          if (bytes.length < 4 || bytes[0] != 0x50 || bytes[1] != 0x4B)
+            throw const SheetLinkException(_privateSheet);
+          return bytes;
+        } on DioException catch (e) {
+          final code = e.response?.statusCode;
+          if (code == 401 || code == 403 || code == 404)
+            throw const SheetLinkException(_privateSheet);
+          throw const SheetLinkException(
+            'Could not reach Google Sheets. Check your connection, or download the sheet as Excel '
+            'and choose the file instead. Files work without a connection.',
+          );
+        }
+      },
+    );
+
+const _privateSheet =
+    'That sheet is private. Reading private sheets needs a Google sign-in, which is not available yet. '
+    'Set sharing to "Anyone with the link can view", or download it as Excel and choose the file instead.';
+
+String? sheetIdFromLink(String link) =>
+    RegExp(r'/spreadsheets/d/([a-zA-Z0-9_-]{20,})').firstMatch(link)?.group(1);
 
 /// Bring a budget kept in Excel, Google Sheets or a CSV into Pulse: pick the
 /// file, check how each line maps, import. Free: it is what gets someone
@@ -54,14 +84,40 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
   }
 
   Future<void> _pickFile() async {
+    final List<PlatformFile> files;
     try {
-      final files = await FilePicker.pickFiles(type: FileType.custom, allowedExtensions: const ['xlsx', 'csv', 'tsv', 'txt']);
-      final f = files.firstOrNull;
-      if (f == null) return;
-      await _read(await f.readAsBytes(), f.name, 'file');
+      files = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: const ['xlsx', 'xls', 'csv', 'tsv', 'txt'],
+      );
     } on Object {
-      if (mounted) setState(() => _error = 'We could not open that file.');
+      if (mounted)
+        setState(
+          () => _error = 'Could not open Files. Check that Pulse is allowed to see it, then try again.',
+        );
+      return;
     }
+    final f = files.firstOrNull;
+    if (f == null) return;
+    Uint8List bytes;
+    try {
+      bytes = await f.readAsBytes();
+    } on Object {
+      final path = f.path;
+      try {
+        bytes = await File(path!).readAsBytes();
+      } on Object {
+        if (mounted) {
+          setState(
+            () => _error =
+                'Could not open that file from Files. If it is in iCloud Drive, open it in Files '
+                'first so it downloads to this phone, then choose it again.',
+          );
+        }
+        return;
+      }
+    }
+    await _read(bytes, f.name, 'file');
   }
 
   Future<void> _fromLink() async {
@@ -77,12 +133,18 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
     try {
       final bytes = await ref.read(sheetFetcherProvider)(id);
       await _read(bytes, 'sheet.xlsx', 'link');
+    } on SheetLinkException catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = e.message;
+        });
+      }
     } on Object {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error = 'We could not open that sheet. Set sharing to "Anyone with the link can view", '
-              'or download it as Excel and choose the file instead.';
+          _error = 'We could not open that sheet. Download it as Excel and choose the file instead.';
         });
       }
     }
@@ -94,15 +156,13 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
       _error = null;
     });
     try {
-      final isXlsx = bytes.length > 3 && bytes[0] == 0x50 && bytes[1] == 0x4B; // "PK": a zip
-      final sheets = isXlsx
-          ? readXlsx(bytes)
-          : {'Sheet1': parseCsv(_decode(bytes))};
-      final a = analyzeSheets(sheets);
+      final a = analyzeSheets(readBudgetFile(bytes, name));
       if (a.isEmpty) {
         setState(() {
           _busy = false;
-          _error = a.warnings.first;
+          _error = a.warnings.isEmpty
+              ? 'We could not find a budget in that file. It needs a category column and an amount or month columns.'
+              : a.warnings.first;
         });
         return;
       }
@@ -115,7 +175,15 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
         _analysis = a;
         _mappings = maps;
         _source = source;
-        _targets = [...SpendCategory.defaults, const SpendCategory('other_income', 'Other Income', kind: CategoryKind.income), ...custom];
+        _targets = [
+          ...SpendCategory.defaults,
+          const SpendCategory(
+            'other_income',
+            'Other Income',
+            kind: CategoryKind.income,
+          ),
+          ...custom,
+        ];
       });
     } on FormatException catch (e) {
       setState(() {
@@ -125,23 +193,17 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
     } on Object {
       setState(() {
         _busy = false;
-        _error = 'We could not read that file.';
+        _error = 'We could not read that file. Export it as .xlsx or CSV and try again.';
       });
-    }
-  }
-
-  static String _decode(Uint8List b) {
-    try {
-      return utf8.decode(b, allowMalformed: true);
-    } on Object {
-      return String.fromCharCodes(b);
     }
   }
 
   Future<void> _remap() async {
     final a = _analysis;
     if (a == null) return;
-    final maps = await ref.read(budgetImportServiceProvider).proposeMappings(a, keepOwnNames: _keepNames);
+    final maps = await ref
+        .read(budgetImportServiceProvider)
+        .proposeMappings(a, keepOwnNames: _keepNames);
     if (mounted) setState(() => _mappings = maps);
   }
 
@@ -149,26 +211,39 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
     final a = _analysis!;
     setState(() => _busy = true);
     try {
-      final r = await ref.read(budgetImportServiceProvider).apply(a, _mappings, importHistory: _history);
+      final r = await ref
+          .read(budgetImportServiceProvider)
+          .apply(a, _mappings, importHistory: _history);
       final n = _mappings.length;
-      ref.read(analyticsProvider).track(
-        AnalyticsEvent.budgetImported(
-          source: _source ?? 'file',
-          history: _history && r.transactionsAdded > 0,
-          items: n < 8 ? 'few' : (n < 25 ? 'some' : 'many'),
-        ),
-      );
+      ref
+          .read(analyticsProvider)
+          .track(
+            AnalyticsEvent.budgetImported(
+              source: _source ?? 'file',
+              history: _history && r.transactionsAdded > 0,
+              items: n < 8 ? 'few' : (n < 25 ? 'some' : 'many'),
+            ),
+          );
       invalidateBudgetPlan(ref);
       ref.invalidate(categoriesProvider);
       ref.invalidate(transactionsProvider);
       if (!mounted) return;
       final parts = [
-        if (r.limitsSet > 0) '${r.limitsSet} budget ${r.limitsSet == 1 ? 'amount' : 'amounts'}',
-        if (r.transactionsAdded > 0) '${r.transactionsAdded} ${r.transactionsAdded == 1 ? 'payment' : 'payments'}',
-        if (r.categoriesCreated > 0) '${r.categoriesCreated} new ${r.categoriesCreated == 1 ? 'category' : 'categories'}',
+        if (r.limitsSet > 0)
+          '${r.limitsSet} budget ${r.limitsSet == 1 ? 'amount' : 'amounts'}',
+        if (r.transactionsAdded > 0)
+          '${r.transactionsAdded} ${r.transactionsAdded == 1 ? 'payment' : 'payments'}',
+        if (r.categoriesCreated > 0)
+          '${r.categoriesCreated} new ${r.categoriesCreated == 1 ? 'category' : 'categories'}',
       ];
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(parts.isEmpty ? 'Nothing new to import.' : 'Imported ${parts.join(', ')}.')),
+        SnackBar(
+          content: Text(
+            parts.isEmpty
+                ? 'Nothing new to import.'
+                : 'Imported ${parts.join(', ')}.',
+          ),
+        ),
       );
       context.pop();
     } on Object {
@@ -209,7 +284,11 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
                 onTap: () => Navigator.pop(ctx, const SkipTarget()),
               ),
               for (final c in _targets)
-                ListRow(leading: CategoryIcon.well(c), title: c.label, onTap: () => Navigator.pop(ctx, ExistingTarget(c))),
+                ListRow(
+                  leading: CategoryIcon.well(c),
+                  title: c.label,
+                  onTap: () => Navigator.pop(ctx, ExistingTarget(c)),
+                ),
             ],
           ),
         ),
@@ -225,22 +304,40 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Import my sheet'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: a == null ? _picker(c) : _review(c, a),
       bottomNavigationBar: a == null
           ? null
           : SafeArea(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
-                child: PrimaryButton(key: const Key('import_apply'), label: 'Import', loading: _busy, onPressed: _import),
+                padding: const EdgeInsets.fromLTRB(
+                  Space.gutter,
+                  Space.sm,
+                  Space.gutter,
+                  Space.md,
+                ),
+                child: PrimaryButton(
+                  key: const Key('import_apply'),
+                  label: 'Import',
+                  loading: _busy,
+                  onPressed: _import,
+                ),
               ),
             ),
     );
   }
 
   Widget _picker(PulseColors c) => ListView(
-    padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.xxxl),
+    padding: const EdgeInsets.fromLTRB(
+      Space.gutter,
+      Space.sm,
+      Space.gutter,
+      Space.xxxl,
+    ),
     children: [
       Text(
         'Keep your progress. Bring in the budget you already track in Excel, Google Sheets or a CSV, '
@@ -262,19 +359,30 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
         key: const Key('import_link'),
         controller: _link,
         keyboardType: TextInputType.url,
-        decoration: const InputDecoration(hintText: 'https://docs.google.com/spreadsheets/d/…'),
+        decoration: const InputDecoration(
+          hintText: 'https://docs.google.com/spreadsheets/d/…',
+        ),
         onSubmitted: (_) => _fromLink(),
       ),
       const SizedBox(height: Space.sm),
-      PrimaryButton(label: 'Read the sheet', secondary: true, onPressed: _busy ? null : _fromLink),
+      PrimaryButton(
+        label: 'Read the sheet',
+        secondary: true,
+        onPressed: _busy ? null : _fromLink,
+      ),
       const SizedBox(height: Space.sm),
       Text(
-        'The sheet must be shared as "Anyone with the link can view". Pulse reads it once and keeps no connection to it.',
+        'Excel and CSV files from Files work on this phone with no sign-in. A link needs a connection and the sheet shared as '
+        '"Anyone with the link can view"; Pulse reads it once and keeps no connection to it.',
         style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
       ),
       if (_error != null) ...[
         const SizedBox(height: Space.lg),
-        Text(_error!, key: const Key('import_error'), style: context.tt.bodyMedium!.copyWith(color: c.negative)),
+        Text(
+          _error!,
+          key: const Key('import_error'),
+          style: context.tt.bodyMedium!.copyWith(color: c.negative),
+        ),
       ],
     ],
   );
@@ -290,13 +398,29 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
       padding: const EdgeInsets.only(bottom: 120),
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
-          child: Text('We found ${bits.join(' · ')}. Check where each line goes.', style: context.tt.bodyMedium!.copyWith(color: c.textSecondary)),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            Space.md,
+          ),
+          child: Text(
+            'We found ${bits.join(' · ')}. Check where each line goes.',
+            style: context.tt.bodyMedium!.copyWith(color: c.textSecondary),
+          ),
         ),
         for (final w in a.warnings)
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),
-            child: Text(w, style: context.tt.bodySmall!.copyWith(color: c.textTertiary)),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              0,
+              Space.gutter,
+              Space.sm,
+            ),
+            child: Text(
+              w,
+              style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+            ),
           ),
         SwitchListTile.adaptive(
           key: const Key('import_keep_names'),
@@ -309,11 +433,16 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
             _remap();
           },
         ),
-        if (a.transactions.isNotEmpty || a.labels.values.any((l) => l.actual.isNotEmpty))
+        if (a.transactions.isNotEmpty ||
+            a.labels.values.any((l) => l.actual.isNotEmpty))
           SwitchListTile.adaptive(
-            contentPadding: const EdgeInsets.symmetric(horizontal: Space.gutter),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: Space.gutter,
+            ),
             title: const Text('Bring in my history'),
-            subtitle: const Text('Past payments, so charts and rollovers carry on.'),
+            subtitle: const Text(
+              'Past payments, so charts and rollovers carry on.',
+            ),
             value: _history,
             onChanged: (v) => setState(() => _history = v),
           ),
@@ -332,7 +461,9 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
                     _targetLabel(m.target),
                     textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
-                    style: context.tt.bodyMedium!.copyWith(color: m.target is SkipTarget ? c.textTertiary : c.accent),
+                    style: context.tt.bodyMedium!.copyWith(
+                      color: m.target is SkipTarget ? c.textTertiary : c.accent,
+                    ),
                   ),
                 ),
                 chevron: true,
@@ -343,7 +474,10 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
         if (_error != null)
           Padding(
             padding: const EdgeInsets.all(Space.gutter),
-            child: Text(_error!, style: context.tt.bodyMedium!.copyWith(color: c.negative)),
+            child: Text(
+              _error!,
+              style: context.tt.bodyMedium!.copyWith(color: c.negative),
+            ),
           ),
       ],
     );
@@ -353,8 +487,10 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
     final l = m.label;
     final amounts = l.budget.values.where((v) => v > 0).toList();
     final parts = [
-      if (l.group.isNotEmpty) l.group[0].toUpperCase() + l.group.substring(1).toLowerCase(),
-      if (amounts.isNotEmpty) '${Money.aed(amounts.last / 100, decimals: false)} a month',
+      if (l.group.isNotEmpty)
+        l.group[0].toUpperCase() + l.group.substring(1).toLowerCase(),
+      if (amounts.isNotEmpty)
+        '${Money.aed(amounts.last / 100, decimals: false)} a month',
       if (l.txCount > 0) '${l.txCount} payments',
     ];
     return parts.isEmpty ? null : parts.join(' · ');

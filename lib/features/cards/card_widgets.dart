@@ -11,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/card_util.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'upsell_widgets.dart';
 
 /// Categories worth asking about before a purchase.
 const recommendableCategories = [
@@ -161,6 +162,7 @@ class _WhichCardSheetState extends ConsumerState<WhichCardSheet> {
                       ),
                     ),
                   ],
+                  UpsellRow(category: _cat),
                 ],
               ),
             ),
@@ -242,22 +244,22 @@ class PaymentDetails extends StatelessWidget {
                 ),
               ),
             if (card.hasDueDate)
-            ListRow(
-              dense: true,
-              title: 'Due',
-              subtitle: d.nudge,
-              subtitleColor: d.urgent ? tone : null,
-              trailing: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  num(date.format(card.dueDate)),
-                  Text(
-                    _days(d.daysLeft),
-                    style: context.tt.bodySmall!.copyWith(color: tone),
-                  ),
-                ],
+              ListRow(
+                dense: true,
+                title: 'Due',
+                subtitle: d.nudge,
+                subtitleColor: d.urgent ? tone : null,
+                trailing: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    num(date.format(card.dueDate)),
+                    Text(
+                      _days(d.daysLeft),
+                      style: context.tt.bodySmall!.copyWith(color: tone),
+                    ),
+                  ],
+                ),
               ),
-            ),
             ListRow(
               dense: true,
               title: 'Full amount',

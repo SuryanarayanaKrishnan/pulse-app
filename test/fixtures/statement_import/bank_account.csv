@@ -1,0 +1,8 @@
+Sample Bank - Account statement
+Account Number,XXXX1234
+
+Date,Description,Debit,Credit,Balance
+01/03/2026,Salary ACME LLC,,5000.00,6000.00
+03/03/2026,Carrefour Marina,120.50,,5879.50
+05/03/2026,Careem Ride,35.00,,5844.50
+09/03/2026,Netflix,55.00,,5789.50

@@ -21,7 +21,10 @@ class _NoCards extends MockPulseRepository {
   Future<List<CreditCard>> myCards() async => const [];
 }
 
-final _combos = parseCombos(File('assets/catalog/combos.json').readAsStringSync(), now: DateTime(2026, 11, 30));
+final _combos = parseCombos(
+  File('assets/catalog/combos.json').readAsStringSync(),
+  now: DateTime(2026, 11, 30),
+);
 
 Future<ProviderContainer> _pump(WidgetTester tester, String location) async {
   PulseTheme.useGoogleFonts = false;
@@ -33,12 +36,22 @@ Future<ProviderContainer> _pump(WidgetTester tester, String location) async {
       repositoryProvider.overrideWithValue(_NoCards()),
       analyticsProvider.overrideWithValue(NoopAnalytics()),
       cardCombosProvider.overrideWith((ref) async => _combos),
-      entitlementServiceProvider.overrideWithValue(MockEntitlementService(delay: Duration.zero)),
-      sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+      entitlementServiceProvider.overrideWithValue(
+        MockEntitlementService(delay: Duration.zero),
+      ),
+      sessionProvider.overrideWith(
+        (ref) =>
+            SessionController(onboarded: true, signedIn: true, connected: true),
+      ),
     ],
   );
   addTearDown(container.dispose);
-  await tester.pumpWidget(UncontrolledProviderScope(container: container, child: PulseApp(initialLocation: location)));
+  await tester.pumpWidget(
+    UncontrolledProviderScope(
+      container: container,
+      child: PulseApp(initialLocation: location),
+    ),
+  );
   await tester.pump(const Duration(milliseconds: 100));
   await tester.pump(const Duration(seconds: 3));
   return container;
@@ -47,12 +60,20 @@ Future<ProviderContainer> _pump(WidgetTester tester, String location) async {
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('shipped bundle has free combos for new users and locked niche items', () {
-    final free = _combos.where((c) => !c.isPlus && c.kind == 'combo');
-    expect(free.length, greaterThanOrEqualTo(3));
-    expect(_combos.any((c) => c.isPlus), isTrue);
-    expect(_combos.indexWhere((c) => c.isPlus), greaterThan(_combos.lastIndexWhere((c) => !c.isPlus)));
-  });
+  test(
+    'shipped bundle has free combos for new users and locked niche items',
+    () {
+      final free = _combos.where((c) => !c.isPlus && c.kind == 'combo');
+      expect(free.length, greaterThanOrEqualTo(3));
+      expect(_combos.any((c) => c.isPlus), isTrue);
+      // Among items with no savings figure, free ones come before plus ones.
+      final plain = _combos.where((c) => !c.hasSaving).toList();
+      expect(
+        plain.indexWhere((c) => c.isPlus),
+        greaterThan(plain.lastIndexWhere((c) => !c.isPlus)),
+      );
+    },
+  );
 
   test('expired items are dropped and a missing tier means plus', () {
     final src = jsonEncode({
@@ -69,7 +90,11 @@ void main() {
   test('mock billing flips the entitlement and cancel reverts it', () async {
     SharedPreferences.setMockInitialValues({});
     final c = ProviderContainer(
-      overrides: [entitlementServiceProvider.overrideWithValue(MockEntitlementService(delay: Duration.zero))],
+      overrides: [
+        entitlementServiceProvider.overrideWithValue(
+          MockEntitlementService(delay: Duration.zero),
+        ),
+      ],
     );
     addTearDown(c.dispose);
     expect(c.read(canUseProvider(PlusFeature.aiSummaries)), isFalse);
@@ -78,7 +103,11 @@ void main() {
     expect(c.read(canUseProvider(PlusFeature.nicheIntel)), isTrue);
     // A fresh container (app restart) still sees Plus.
     final again = ProviderContainer(
-      overrides: [entitlementServiceProvider.overrideWithValue(MockEntitlementService(delay: Duration.zero))],
+      overrides: [
+        entitlementServiceProvider.overrideWithValue(
+          MockEntitlementService(delay: Duration.zero),
+        ),
+      ],
     );
     addTearDown(again.dispose);
     again.read(entitlementProvider);
@@ -88,7 +117,9 @@ void main() {
     expect(again.read(entitlementProvider).isPlus, isFalse);
   });
 
-  testWidgets('a user with no cards sees free combos and locked Plus rows', (tester) async {
+  testWidgets('a user with no cards sees free combos and locked Plus rows', (
+    tester,
+  ) async {
     await _pump(tester, '/cards');
     expect(find.text('No cards yet'), findsOneWidget);
     expect(find.text('Card combos'), findsOneWidget);
@@ -97,9 +128,15 @@ void main() {
     expect(find.text('Niche detail with Plus'), findsWidgets);
   });
 
-  testWidgets('tapping a locked row opens the paywall, billing unlocks Plus', (tester) async {
+  testWidgets('tapping a locked row opens the paywall, billing unlocks Plus', (
+    tester,
+  ) async {
     final container = await _pump(tester, '/cards');
-    await tester.dragUntilVisible(find.text('Niche detail with Plus').first, find.byType(Scrollable).first, const Offset(0, -300));
+    await tester.dragUntilVisible(
+      find.text('Niche detail with Plus').first,
+      find.byType(Scrollable).first,
+      const Offset(0, -300),
+    );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Niche detail with Plus').first);
     await tester.pumpAndSettle();

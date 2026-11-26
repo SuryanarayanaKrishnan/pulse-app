@@ -17,6 +17,8 @@ class CardCombo {
     required this.severity,
     required this.confidence,
     this.validUntil,
+    this.annualSavingAed,
+    this.savingNote,
   });
 
   final String id;
@@ -30,6 +32,15 @@ class CardCombo {
   final String severity;
   final String confidence;
   final DateTime? validUntil;
+
+  /// Estimated potential saving in AED a year, when the catalog gives enough
+  /// to work one out. Null means no figure, and never zero.
+  final double? annualSavingAed;
+
+  /// How [annualSavingAed] was worked out and what it assumes.
+  final String? savingNote;
+
+  bool get hasSaving => annualSavingAed != null && annualSavingAed! > 0;
 
   bool get isPlus => tier == 'plus';
   bool get isWarning => severity == 'warn';
@@ -59,6 +70,8 @@ class CardCombo {
     severity: j['severity'] as String? ?? 'info',
     confidence: j['confidence'] as String? ?? 'reported',
     validUntil: DateTime.tryParse(j['valid_until'] as String? ?? ''),
+    annualSavingAed: (j['annual_saving_aed'] as num?)?.toDouble(),
+    savingNote: j['saving_note'] as String?,
   );
 }
 
@@ -77,9 +90,28 @@ List<CardCombo> parseCombos(String source, {DateTime? now}) {
                 ),
           )
           .toList();
-  // Free first, then plus; stable within each.
-  out.sort((a, b) => (a.isPlus ? 1 : 0).compareTo(b.isPlus ? 1 : 0));
-  return out;
+  return sortCombos(out);
+}
+
+/// Combos with a savings figure first, biggest saving first. Everything
+/// without one (including warnings and caveats) follows, free before plus,
+/// information before warnings. Stable otherwise.
+List<CardCombo> sortCombos(List<CardCombo> items) {
+  final indexed = items.indexed.toList();
+  int rank(CardCombo c) => c.hasSaving ? 0 : 1;
+  indexed.sort((a, b) {
+    final x = a.$2, y = b.$2;
+    var r = rank(x).compareTo(rank(y));
+    if (r != 0) return r;
+    if (x.hasSaving) {
+      r = y.annualSavingAed!.compareTo(x.annualSavingAed!);
+    } else {
+      r = (x.isPlus ? 1 : 0).compareTo(y.isPlus ? 1 : 0);
+      if (r == 0) r = (x.isWarning ? 1 : 0).compareTo(y.isWarning ? 1 : 0);
+    }
+    return r != 0 ? r : a.$1.compareTo(b.$1);
+  });
+  return [for (final e in indexed) e.$2];
 }
 
 final cardCombosProvider = FutureProvider<List<CardCombo>>((ref) async {

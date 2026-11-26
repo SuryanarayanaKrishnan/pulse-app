@@ -1,6 +1,5 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/analytics/analytics.dart';
@@ -101,10 +100,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                     ),
                   ),
                 ),
-                AnimatedSwitcher(
-                  duration: MediaQuery.disableAnimationsOf(context)
-                      ? Duration.zero
-                      : Motion.base,
+                PulseSwitcher(
                   child: _tab == _Wallet.cards
                       ? const _CardsView(key: ValueKey('cards'))
                       : const _AccountsView(key: ValueKey('accounts')),
@@ -195,7 +191,7 @@ class _CardsView extends ConsumerWidget {
             SectionHeader(
               'Your cards',
               action: 'Ranked',
-              onAction: () => context.push(Routes.cardsRanked),
+              onAction: () => context.pushOnce(Routes.cardsRanked),
             ),
             const SizedBox(height: Space.sm),
             WalletStack(
@@ -237,7 +233,7 @@ class _CardsView extends ConsumerWidget {
                   title: 'My cards ranked',
                   subtitle: 'By use, rewards and return after fees',
                   chevron: true,
-                  onTap: () => context.push(Routes.cardsRanked),
+                  onTap: () => context.pushOnce(Routes.cardsRanked),
                 ),
                 ListRow(
                   leading: IconWell(Icons.bolt_rounded, color: c.accent),
