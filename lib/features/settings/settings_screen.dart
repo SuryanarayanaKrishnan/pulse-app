@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import '../../core/network/cloud_access.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -226,7 +228,9 @@ class SettingsScreen extends ConsumerWidget {
               ListRow(
                 leading: const IconWell(Icons.mail_outline_rounded),
                 title: 'Gmail statements',
-                subtitle: connected == null
+                subtitle: !ref.watch(cloudAccessProvider).isReady
+                    ? needsSignInTitle
+                    : connected == null
                     ? 'Not connected'
                     : 'Connected · ${connected.email}',
                 trailing: connected == null

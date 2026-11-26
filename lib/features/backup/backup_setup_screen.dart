@@ -1,6 +1,8 @@
 import 'dart:math';
 
+import '../../core/network/cloud_access.dart';
 import '../../core/router/router.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -398,7 +400,7 @@ class _BackupSetupScreenState extends ConsumerState<BackupSetupScreen> {
               badge: cloudOk ? 'Automatic' : null,
               subtitle: cloudOk
                   ? 'Backs up by itself on Wi-Fi and can be restored on any phone you sign in on.'
-                  : 'Needs a signed-in account, which this build does not have.',
+                  : needsSignInTitle,
               selected: _dest == BackupDestination.cloud && cloudOk,
               onTap: cloudOk
                   ? () => setState(() => _dest = BackupDestination.cloud)

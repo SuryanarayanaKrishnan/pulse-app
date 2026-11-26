@@ -1,4 +1,7 @@
 import 'package:file_picker/file_picker.dart';
+
+import '../../core/network/cloud_access.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -242,7 +245,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
               title: 'From my Pulse account',
               subtitle: cloudOk
                   ? 'Sign in, then pick a saved version.'
-                  : 'Not available in this build.',
+                  : needsSignInTitle,
               selected: false,
               onTap: cloudOk ? () => _chooseSource(RestoreSource.cloud) : null,
             ),
