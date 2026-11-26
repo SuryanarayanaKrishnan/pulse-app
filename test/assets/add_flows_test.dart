@@ -14,6 +14,7 @@ import 'package:pulse/data/providers.dart';
 import 'package:pulse/data/wealth_models.dart';
 import 'package:pulse/features/auth/session.dart';
 import 'package:pulse/features/wealth/document_screens.dart';
+import 'package:pulse/features/wealth/cas_import_screen.dart';
 import 'package:pulse/features/wealth/fund_screens.dart';
 import 'package:pulse/features/wealth/jewellery_screens.dart';
 import 'package:pulse/features/wealth/wealth_widgets.dart';
@@ -270,15 +271,13 @@ void main() {
       expect((f.kind, f.schemeCode, f.currency, f.navSource, f.nav), ('india_mf', '122639', 'INR', 'market', 81.5));
     });
 
-    testWidgets('the CAS import entry point says coming soon and keeps nothing', (tester) async {
+    testWidgets('the CAS import entry point shows the free steps and keeps nothing', (tester) async {
       final rig = Rig();
       await pumpSheet(tester, rig, const CasImportSheet());
-      expect(find.byKey(const Key('cas-coming-soon')), findsNothing);
-      await tester.tap(find.text('Choose the PDF'));
-      await tester.pump(const Duration(milliseconds: 200));
-      expect(find.byKey(const Key('cas-coming-soon')), findsOneWidget);
-      expect(find.text('Coming soon'), findsOneWidget);
-      expect(find.textContaining('password'), findsWidgets);
+      expect(find.text('Get your statement'), findsOneWidget);
+      expect(find.byKey(const Key('cas-open-cams')), findsOneWidget);
+      expect(find.byKey(const Key('cas-open-kfintech')), findsOneWidget);
+      expect(find.textContaining('PAN'), findsWidgets);
       expect(await rig.store.funds(), isEmpty);
     });
   });

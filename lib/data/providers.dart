@@ -29,6 +29,9 @@ import 'local/attachments.dart';
 import 'local/db_key.dart';
 import 'local/encrypted_attachments.dart';
 import 'local/price_service.dart';
+import 'local/live_prices.dart';
+import 'local/cas_import_service.dart';
+import '../core/engine/live_quote.dart';
 import 'local/reminders.dart';
 import '../core/engine/investing.dart' show InvestRule, RuleOccurrence;
 import 'http_relay.dart';
@@ -168,6 +171,53 @@ final investingStoreProvider = Provider<InvestingStore>((ref) {
   return LocalInvestingStore(db);
 });
 
+/// A plain client for public sources read straight from the phone (AMFI,
+/// Stooq). Deliberately not [dioProvider]: no base URL and no auth header, so
+/// nothing about the user can reach those hosts.
+final publicDioProvider = Provider<Dio>(
+  (ref) => Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 30),
+      headers: {'User-Agent': 'PulseApp'},
+    ),
+  ),
+);
+
+final amfiServiceProvider = Provider<AmfiService>(
+  (ref) => AmfiService(
+    dio: kIsWeb ? null : ref.watch(publicDioProvider),
+    cache: kIsWeb ? MemoryTextCache() : FileTextCache(),
+    kv: SharedPrefsKvStore(prefix: 'pulse.prices.'),
+  ),
+);
+
+/// Reads a CAMS/KFintech CAS PDF on the phone (text extraction, parsing and
+/// saving holdings); nothing from the statement leaves the device.
+final casImportServiceProvider = Provider<CasImportService>(
+  (ref) => CasImportService(
+    extractor: const PdfrxTextExtractor(),
+    amfi: ref.watch(amfiServiceProvider),
+    wealth: ref.watch(wealthServiceProvider),
+  ),
+);
+
+final livePriceServiceProvider = Provider<LivePriceService>((ref) {
+  final kv = SharedPrefsKvStore(prefix: 'pulse.prices.');
+  final dio = kIsWeb ? null : ref.watch(publicDioProvider);
+  return LivePriceService(
+    wealth: ref.watch(wealthStoreProvider),
+    investing: ref.watch(investingStoreProvider),
+    amfi: ref.watch(amfiServiceProvider),
+    stooq: StooqService(dio),
+    kv: kv,
+    backendStocks: ref.watch(stockQuoteServiceProvider),
+  );
+});
+
+/// Stored end-of-day quotes (with the previous close) for the day change.
+final liveQuotesProvider = FutureProvider<Map<String, LiveQuote>>((ref) => ref.watch(livePriceServiceProvider).quotes());
+
 final stockQuoteServiceProvider = Provider<StockQuoteService>(
   (ref) => StockQuoteService(Env.useApi ? ref.watch(dioProvider) : null),
 );
@@ -204,6 +254,7 @@ final jewelleryHistoryProvider = FutureProvider.family<List<ValuationPoint>, Str
 /// Refreshes everything after jewellery, documents, funds or prices changed.
 void invalidateWealth(WidgetRef ref) {
   ref.invalidate(priceBookProvider);
+  ref.invalidate(liveQuotesProvider);
   ref.invalidate(jewelleryProvider);
   ref.invalidate(documentsProvider);
   ref.invalidate(fundsProvider);
