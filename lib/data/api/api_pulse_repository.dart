@@ -182,6 +182,8 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
     required String merchant,
     required double amount,
     required SpendCategory category,
+    DateTime? date,
+    String? note,
   }) async {
     var (accounts, categories) = await (_accounts(), _categories()).wait;
     // Prefer a cash account for manual entries; create one on first use.
@@ -206,7 +208,7 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
       'direction': category.isIncome ? 'credit' : 'debit',
       'merchant_raw': merchant,
       if (cat != null) 'category_id': cat.id,
-      'posted_at': _clock().toUtc().toIso8601String(),
+      'posted_at': (date ?? _clock()).toUtc().toIso8601String(),
     });
     return TransactionDto.fromJson(json)
         .toDomain(accounts: accounts, categories: categories);

@@ -59,20 +59,14 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           onPressed: () => context.popOrHome(),
         ),
         actions: [
-          // Manual entry is intentionally a small overflow action.
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_horiz_rounded),
-            onSelected: (v) {
-              if (v == 'manual') {
-                showPulseSheet<void>(
-                  context,
-                  builder: (_) => const AddManualTxSheet(),
-                );
-              }
-            },
-            itemBuilder: (_) => const [
-              PopupMenuItem(value: 'manual', child: Text('Add cash expense')),
-            ],
+          IconButton(
+            key: const Key('activity_add'),
+            tooltip: 'Add a payment',
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () => showPulseSheet<void>(
+              context,
+              builder: (_) => const AddManualTxSheet(),
+            ),
           ),
         ],
       ),

@@ -13,9 +13,9 @@ class _Spy extends MockPulseRepository {
   _Spy() : super(latency: Duration.zero);
   final calls = <String>[];
   @override
-  Future<Transaction> addManualTransaction({required String merchant, required double amount, required SpendCategory category}) {
+  Future<Transaction> addManualTransaction({required String merchant, required double amount, required SpendCategory category, DateTime? date, String? note}) {
     calls.add('tx $merchant $amount ${category.id}');
-    return super.addManualTransaction(merchant: merchant, amount: amount, category: category);
+    return super.addManualTransaction(merchant: merchant, amount: amount, category: category, date: date, note: note);
   }
 
   @override
