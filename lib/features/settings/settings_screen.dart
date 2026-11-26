@@ -31,6 +31,8 @@ import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
 import '../coach/coach_progress.dart';
+import '../discover/all_features_sheet.dart';
+import '../onboarding/start_choice.dart';
 import '../tour/tour_progress.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
@@ -324,6 +326,44 @@ class SettingsScreen extends ConsumerWidget {
               value: ref.watch(themeModeProvider),
               onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
             ),
+          ),
+          const SectionHeader('Explore'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              ListRow(
+                key: const Key('settings_all_features'),
+                leading: const IconWell(Icons.apps_rounded),
+                title: 'All features',
+                subtitle: 'Search everything the app can do',
+                chevron: true,
+                onTap: () => showAllFeaturesSheet(context),
+              ),
+              if (ref.watch(startChoiceProvider) == StartChoice.sample)
+                ListRow(
+                  key: const Key('settings_sample_off'),
+                  leading: const IconWell(Icons.auto_awesome_rounded),
+                  title: 'Sample data is on',
+                  subtitle: ref.watch(databaseHolderProvider) == null
+                      ? 'Tap to switch to your own data'
+                      : 'Your own data is showing',
+                  onTap: () async {
+                    final ok = await ref
+                        .read(startChoiceProvider.notifier)
+                        .choose(StartChoice.fresh);
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          ok
+                              ? 'Now showing your own data'
+                              : 'Restart ${Env.appName} to use your own data',
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
           ),
           const SectionHeader('Tour'),
           RowGroup(

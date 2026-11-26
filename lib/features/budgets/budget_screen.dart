@@ -11,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/budget_plan_service.dart' show PlanRow;
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../discover/feature_shortcuts.dart';
 import '../household/joint_views.dart';
 import '../../core/household/household_engine.dart' show NwScope;
 import '../../household/household_providers.dart';
@@ -128,6 +129,10 @@ class _Body extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const TabTip(
+          tab: TipTab.budget,
+          child: FeatureShortcuts(ids: ['recurring', 'household']),
+        ),
         if (!flex)
           CoachTarget(
             id: 'hero',
@@ -195,20 +200,15 @@ class _Body extends ConsumerWidget {
         ],
         CoachTarget(
           id: 'categories',
-          child: TabTip(
-            tab: TipTab.budget,
-            child: flex
-                ? const SizedBox.shrink()
-                : SnapRail(
-                    // Grows with large text so the tile never clips.
-                    height: MediaQuery.textScalerOf(context).scale(128) + 24,
-                    itemCount: lines.length,
-                    itemBuilder: (context, i) => _CategoryTile(
-                      lines[i],
-                      plan?.row(lines[i].category.id),
-                    ),
-                  ),
-          ),
+          child: flex
+              ? const SizedBox.shrink()
+              : SnapRail(
+                  // Grows with large text so the tile never clips.
+                  height: MediaQuery.textScalerOf(context).scale(128) + 24,
+                  itemCount: lines.length,
+                  itemBuilder: (context, i) =>
+                      _CategoryTile(lines[i], plan?.row(lines[i].category.id)),
+                ),
         ),
         _WhereItWent(o),
         const SectionHeader('Manage'),

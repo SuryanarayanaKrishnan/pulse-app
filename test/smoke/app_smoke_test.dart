@@ -151,9 +151,8 @@ void main() {
     await settle(8);
     if (find.text('No thanks').evaluate().isNotEmpty) await tapText('No thanks');
 
-    // Intro -> Start fresh -> sign in (local) -> connect (later) -> home.
+    // Intro -> Start fresh -> connect (later) -> home. No sign-in without a backend.
     await tapText('Start fresh with Pulse');
-    await tapText('Continue with Google');
     await tapText('Skip for now');
     expect(find.text('Home'), findsWidgets);
 
