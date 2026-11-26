@@ -34,6 +34,12 @@ Analytics (only when the person has turned sharing on) record
 
 ## Turning on the issue endpoint
 
+The hosted API now has this endpoint: `POST {API_BASE_URL}/v1/bug-reports`
+(pulse-api `app/api/v1/routers/bug_reports.py`). It answers 503 until the
+server has `BUG_REPORT_REPO` and `BUG_REPORT_GITHUB_TOKEN` (see
+`deploy/oci/env.example` there); the app then falls back to the share sheet.
+`deploy/app.defines.json` points `BUG_REPORT_URL` at it.
+
 ```
 flutter run --dart-define=BUG_REPORT_URL=https://pulse-bugs.<you>.workers.dev/report
 ```
@@ -223,8 +229,9 @@ restart; put a reverse proxy limit in front for anything public.
 
 ## Known limits
 
-* Device model is not included: it needs a native plugin (`device_info_plus`)
-  or a platform channel. OS name and version come from `dart:io`.
+* Device model comes from `device_info_plus` (iOS: hardware identifier such as
+  `iPhone16,2`, not the marketing name; Android: maker and model). OS name and
+  version come from `dart:io`.
 * Screenshots come from the Flutter view only. System dialogs, keyboards and
   platform views (maps, PDF viewers) may be missing.
 * The redactor is deliberately blunt and cannot know a free-text note's

@@ -154,7 +154,7 @@ class SmsParser implements MessageParser {
     this.institution,
     List<Template> templates, {
     List<String> nameHints = const [],
-  }) : _templates = [...templates, ...commonTemplates],
+  }) : _own = templates,
        _senders = {
          for (final s in institutions.get(institution)?.smsSenders ?? const [])
            normName(s),
@@ -169,7 +169,15 @@ class SmsParser implements MessageParser {
 
   @override
   final String institution;
-  final List<Template> _templates;
+  final List<Template> _own;
+
+  /// Wording delivered by the backend (`parser_rules` pack). Tried first.
+  List<Template> _remote = const [];
+
+  /// Replaces the downloaded wordings (empty clears them).
+  void setRemoteTemplates(List<Template> t) => _remote = List.unmodifiable(t);
+
+  List<Template> get _templates => [..._remote, ..._own, ...commonTemplates];
   final Set<String> _senders;
   final List<RegExp> _hints;
 

@@ -1,5 +1,6 @@
 import '../capture/kv_store.dart';
 import '../core/packs/content_packs.dart';
+import '../core/packs/tips.dart';
 import '../core/remote_config/remote_config.dart';
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
@@ -88,6 +89,12 @@ final contentPacksProvider = Provider<ContentPackService>((ref) {
     config: ref.watch(remoteConfigProvider),
   );
 });
+
+/// Tips and warnings from the Pulse team (the `tips` pack): the downloaded
+/// copy when newer, else the bundled one.
+final packTipsProvider = Provider.autoDispose<List<PackTip>>(
+  (ref) => tipsFromPack(ref.watch(contentPacksProvider).pack('tips')),
+);
 
 /// True when [flag] is on for this phone.
 final featureFlagProvider = Provider.family<bool, String>(

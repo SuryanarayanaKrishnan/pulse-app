@@ -15,7 +15,9 @@ import 'core/analytics/gated_analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
+import 'core/engine/sms_parser.dart' show defaultParserRegistry;
 import 'core/packs/content_packs.dart';
+import 'core/packs/parser_rules.dart';
 import 'core/remote_config/remote_config.dart';
 import 'data/local/catalog_service.dart';
 import 'backup/background.dart';
@@ -65,7 +67,15 @@ Future<void> main() async {
     dio: Env.useApi ? buildApiClient() : null,
   );
   await packs.load(const ['tips', 'walkthrough', 'parser_rules']);
-  unawaited(remoteConfig.refresh().then((_) => packs.refresh()));
+  // Bank-text wordings from the pack (bundled or last verified download).
+  applyParserRules(defaultParserRegistry, packs.pack('parser_rules'));
+  unawaited(
+    remoteConfig.refresh().then((_) => packs.refresh()).then((changed) {
+      if (changed.contains('parser_rules')) {
+        applyParserRules(defaultParserRegistry, packs.pack('parser_rules'));
+      }
+    }),
+  );
 
   // The ledger lives in an encrypted database on this phone. Without it the
   // app must not pretend to work, so a failure stops here.

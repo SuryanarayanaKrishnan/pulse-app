@@ -31,7 +31,15 @@ class SessionController extends ChangeNotifier {
 
   /// Sign-in blocks the app only when a backend needs it, or when a feature
   /// that needs an account asked for it.
-  bool get mustSignIn => !signedIn && (requireSignIn || _signInRequested);
+  bool get mustSignIn => !signedIn && (_signInRequested || (requireSignIn && !_signInSkipped));
+
+  /// "Not now" on the sign-in screen: the app opens without an account (the
+  /// shared features stay "available once you're signed in") and the screen
+  /// is not shown again unless a feature asks for it. Remembered.
+  bool _signInSkipped = false;
+
+  /// True while a feature asked for sign-in from inside the app.
+  bool get signInRequested => _signInRequested;
 
   /// Where the three steps are remembered, so a returning person is not taken
   /// through them again. Null in tests and previews.
@@ -40,6 +48,7 @@ class SessionController extends ChangeNotifier {
   static const _kOnboarded = 'session.onboarded';
   static const _kSignedIn = 'session.signed_in';
   static const _kConnected = 'session.connected';
+  static const _kSkipped = 'session.sign_in_skipped';
 
   /// Reads the remembered steps. A storage failure leaves the defaults.
   static Future<SessionController> load(
@@ -49,7 +58,9 @@ class SessionController extends ChangeNotifier {
     var o = Env.devSkipOnboarding,
         s = Env.devSkipOnboarding,
         c = Env.devSkipOnboarding;
+    var skipped = false;
     try {
+      skipped = await store.read(_kSkipped) == '1';
       o = o || await store.read(_kOnboarded) == '1';
       s = s || await store.read(_kSignedIn) == '1';
       c = c || await store.read(_kConnected) == '1';
@@ -60,7 +71,7 @@ class SessionController extends ChangeNotifier {
       connected: c,
       requireSignIn: requireSignIn,
       store: store,
-    );
+    ).._signInSkipped = skipped;
   }
 
   void _remember(String key, bool on) {
@@ -78,6 +89,8 @@ class SessionController extends ChangeNotifier {
   void signIn() {
     signedIn = true;
     _signInRequested = false;
+    _signInSkipped = false;
+    _remember(_kSkipped, false);
     _remember(_kSignedIn, true);
     notifyListeners();
   }
@@ -87,6 +100,14 @@ class SessionController extends ChangeNotifier {
   void requestSignIn() {
     signedIn = false;
     _signInRequested = true;
+    notifyListeners();
+  }
+
+  /// Leaves the sign-in screen without an account.
+  void skipSignIn() {
+    _signInRequested = false;
+    _signInSkipped = true;
+    _remember(_kSkipped, true);
     notifyListeners();
   }
 

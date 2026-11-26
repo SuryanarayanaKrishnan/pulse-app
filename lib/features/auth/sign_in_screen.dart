@@ -1,11 +1,29 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:supabase_flutter/supabase_flutter.dart' show AuthException;
+
 import '../../core/analytics/analytics.dart';
 import '../../core/env/env.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import 'session.dart';
+
+/// Plain wording for a failed sign-in step (never the raw exception).
+String signInErrorText(Object e) {
+  if (e is String) return e;
+  if (e is AuthException) {
+    final m = e.message.toLowerCase();
+    if (m.contains('rate') || m.contains('seconds') || e.statusCode == '429') {
+      return 'Too many tries. Wait a minute and ask for a new code.';
+    }
+    if (m.contains('expired') || m.contains('invalid')) {
+      return 'That code did not work or has expired. Ask for a new one.';
+    }
+    return e.message;
+  }
+  return 'Could not reach the sign-in service. Check your connection and try again.';
+}
 
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
@@ -54,7 +72,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         _done();
       }
     } catch (e) {
-      setState(() => _error = e.toString());
+      setState(() => _error = signInErrorText(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -108,7 +126,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         counterText: '',
                         prefixIcon: const Icon(Icons.password_rounded),
                         helperText: Env.hasSupabase
-                            ? null
+                            ? 'Check your inbox (and spam). It can take a minute.'
                             : 'Mock mode: any 6 digits work',
                       ),
                     ),
@@ -126,32 +144,42 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     loading: _busy,
                     onPressed: _submit,
                   ),
-                  const SizedBox(height: Space.xl),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: c.border)),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('or', style: context.tt.bodySmall),
-                      ),
-                      Expanded(child: Divider(color: c.border)),
-                    ],
-                  ),
-                  const SizedBox(height: Space.xl),
-                  PrimaryButton(
-                    label: 'Continue with Apple',
-                    icon: Icons.apple,
-                    secondary: true,
-                    onPressed: _done,
+                  if (!Env.hasSupabase) ...[
+                    const SizedBox(height: Space.xl),
+                    Row(
+                      children: [
+                        Expanded(child: Divider(color: c.border)),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: Text('or', style: context.tt.bodySmall),
+                        ),
+                        Expanded(child: Divider(color: c.border)),
+                      ],
+                    ),
+                    const SizedBox(height: Space.xl),
+                    PrimaryButton(
+                      label: 'Continue with Apple',
+                      icon: Icons.apple,
+                      secondary: true,
+                      onPressed: _done,
+                    ),
+                    const SizedBox(height: Space.md),
+                    PrimaryButton(
+                      label: 'Continue with Google',
+                      icon: Icons.g_mobiledata_rounded,
+                      secondary: true,
+                      onPressed: _done,
+                    ),
+                  ],
+                  const SizedBox(height: Space.md),
+                  Center(
+                    child: TextButton(
+                      key: const Key('sign_in_not_now'),
+                      onPressed: () => ref.read(sessionProvider).skipSignIn(),
+                      child: const Text('Not now'),
+                    ),
                   ),
                   const SizedBox(height: Space.md),
-                  PrimaryButton(
-                    label: 'Continue with Google',
-                    icon: Icons.g_mobiledata_rounded,
-                    secondary: true,
-                    onPressed: _done,
-                  ),
-                  const SizedBox(height: Space.xl),
                   Center(
                     child: Text(
                       'By continuing you agree to our Terms and Privacy Policy.',

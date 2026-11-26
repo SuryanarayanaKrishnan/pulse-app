@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../insights.dart';
+import '../local/splits_store.dart' show NewGroupMember;
 import '../models.dart';
 import '../repository.dart';
 import '../rules.dart';
@@ -688,6 +689,36 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
           myUserId: me,
         ),
     ];
+  }
+
+  /// `POST /v1/splits/groups`: a group the server holds, so people you add by
+  /// phone number who use Pulse can see it. You are added as a member by the
+  /// server. The server has no emoji field, so [emoji] is not kept.
+  @override
+  Future<SplitGroup> createSplitGroup({
+    required String name,
+    String emoji = '👥',
+    List<NewGroupMember> members = const [],
+  }) async {
+    // One after the other: a parallel wait would wrap a rejection in a
+    // ParallelWaitError and hide its ApiException.
+    final json = await _send('POST', '/v1/splits/groups', {
+      'name': name,
+      'currency': 'AED',
+      'members': [
+        for (final m in members)
+          {
+            'display_name': m.name,
+            if (m.phone != null && m.phone!.isNotEmpty) 'phone': m.phone,
+          },
+      ],
+    });
+    final me = await _myUserId();
+    return splitGroupToDomain(
+      SplitGroupDto.fromJson(json),
+      const [],
+      myUserId: me,
+    );
   }
 
   @override
