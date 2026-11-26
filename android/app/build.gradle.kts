@@ -32,16 +32,18 @@ android {
     }
 
     signingConfigs {
-        // Shared beta key so every CI build installs over the previous one (the debug
-        // keystore is regenerated on each runner). CI decodes pulse-beta.keystore.b64 into
-        // pulse-beta.keystore. A friends-and-family key only: Google Play needs its own key.
+        // Beta key for friends-and-family builds so every CI build installs over the previous
+        // one. Never committed: CI writes android/app/pulse-beta.keystore from the
+        // ANDROID_KEYSTORE_B64 secret and passes ANDROID_KEYSTORE_PASSWORD. Without them
+        // (local builds, fork pull requests) the debug key is used.
         val betaStore = file("pulse-beta.keystore")
-        if (betaStore.exists()) {
+        val betaPassword = System.getenv("ANDROID_KEYSTORE_PASSWORD")
+        if (betaStore.exists() && !betaPassword.isNullOrEmpty()) {
             create("beta") {
                 storeFile = betaStore
-                storePassword = "pulsebeta"
+                storePassword = betaPassword
                 keyAlias = "pulsebeta"
-                keyPassword = "pulsebeta"
+                keyPassword = betaPassword
             }
         }
     }
