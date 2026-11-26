@@ -24,7 +24,7 @@ class TxTile extends StatelessWidget {
       subtitle: [
         tx.category.label,
         tx.source.label,
-        if (tx.excluded) 'Excluded',
+        if (tx.pendingHold) 'Hold, waiting for the final charge' else if (tx.excluded) 'Excluded',
       ].join(' · '),
       trailing: Text(
         Money.aed(tx.signed, sign: true),

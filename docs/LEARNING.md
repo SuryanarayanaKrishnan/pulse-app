@@ -42,7 +42,7 @@ Settings > Privacy > **Help improve categories**. A separate switch from "Share 
 
 ## 3. Transport and endpoint contract
 
-`ContributionTransport` (`contribution_transport.dart`): `enabled` and `send(batch) -> bool`. This build ships only `DisabledContributionTransport` (`enabled == false`: nothing is ever sent, the preview says so) and `MemoryContributionTransport` for tests. **The backend endpoint does not exist yet.** Contract for whoever builds it:
+`ContributionTransport` (`contribution_transport.dart`): `enabled` and `send(batch) -> bool`. This build ships only `DisabledContributionTransport` (`enabled == false`: nothing is ever sent, the preview says so) and `MemoryContributionTransport` for tests. **The backend endpoint now exists** (pulse PR "Learning: anonymous category contributions": `POST /v1/category-contributions`, `GET /v1/merchant-map`) and `HttpContributionTransport` (`http_learning.dart`) is used whenever the build has an API base URL. Contract:
 
 ```
 POST <base>/v1/category-contributions
@@ -59,7 +59,7 @@ Server expectations: validate `format`, keys and category keys against the same 
 
 ## Limits
 
-- Not sent anywhere yet (no endpoint); the HTTP transport and the map refresh fetch are not written or tested against a server.
+- The HTTP transport and the map refresh are covered by unit tests with a fake server only; promoting aggregates into `data/learning/merchant_map.json` is a manual review step on the backend repo.
 - The "looks like a business" and "person-like" checks are heuristics. A person's name that is not in the built-in list, written with a business word, could pass ("Zubair Trading"); known-merchant keys are the safe path, and the 2-confirmation threshold and review of promotions on the server are the backstops. Non-Latin names are rejected by the character rule unless they are in the map.
 - Randomised leave-out gives plausible deniability per pair, not formal differential privacy; there is no budget across weeks.
 - Only merchants whose normalised name differs from the raw descriptor are affected by normalisation; the key is the normalised merchant name the app already shows.

@@ -143,6 +143,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       accountLabel: acct == null ? 'Account' : _label(acct),
       isIncome: income,
       excluded: t.excludeFromBudget,
+      pendingHold: t.tags.contains('pending_hold'),
       reviewed: t.reviewed,
       receiptNotes: t.receiptNotes,
       receiptRef: t.receiptRef,
