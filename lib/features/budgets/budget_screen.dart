@@ -19,6 +19,7 @@ import '../../household/household_providers.dart';
 import '../../data/local/budget_plan_store.dart' show BudgetMode;
 import 'budget_chart_pager.dart';
 import 'flex_budget_section.dart';
+import 'overrun_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 import '../coach/coach.dart';
@@ -191,6 +192,7 @@ class _Body extends ConsumerWidget {
         flex
             ? const CoachTarget(id: 'hero', child: FlexBudgetSection())
             : const FlexBudgetSection(),
+        if (o.planned > 0) const OverrunSection(),
         if (!flex) ...[
           SectionHeader(
             'Categories',

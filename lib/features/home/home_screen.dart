@@ -13,6 +13,7 @@ import '../cards/best_moves_strip.dart';
 import '../cards/cap_watch_card.dart';
 import '../cards/card_widgets.dart';
 import '../discover/all_features_sheet.dart';
+import '../budgets/overrun_section.dart';
 import '../review/review_state.dart';
 import '../wallet/add_sheets.dart';
 import 'dashboard/dashboard_controller.dart';
@@ -126,6 +127,7 @@ class HomeScreen extends ConsumerWidget {
                         const CapWatchCard(),
                         const BestMovesStrip(),
                         const _ReviewCard(),
+                        const OverrunHomeLine(),
                         const _Health(),
                       ],
                     ],
@@ -133,6 +135,7 @@ class HomeScreen extends ConsumerWidget {
                       const _WhichCard(),
                       const BestMovesStrip(),
                       const _ReviewCard(),
+                      const OverrunHomeLine(),
                       const _Health(),
                     ],
                     const _Overview(),
