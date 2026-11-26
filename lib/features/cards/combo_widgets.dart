@@ -6,6 +6,7 @@ import '../../core/entitlement/plus_gate.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/best_moves.dart';
 import '../../data/card_combos.dart';
 import '../../data/providers.dart';
 
@@ -29,11 +30,7 @@ class CardCombosSection extends ConsumerWidget {
         SectionHeader(
           'Card combos',
           action: limit != null && combos.length > limit! ? 'See all' : null,
-          onAction: () => showPulseSheet<void>(
-            context,
-            full: true,
-            builder: (_) => const _AllCombosSheet(),
-          ),
+          onAction: () => showAllCombos(context),
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(
@@ -129,67 +126,95 @@ class ComboDetailSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Space.gutter,
-        Space.sm,
-        Space.gutter,
-        Space.xl,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(combo.title, style: context.tt.headlineSmall),
-          const SizedBox(height: Space.sm),
-          Text(
-            combo.confidenceLabel,
-            style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
-          ),
-          const SizedBox(height: Space.lg),
-          Text(combo.body, style: context.tt.bodyLarge),
-          if (combo.hasSaving) ...[
-            const SizedBox(height: Space.md),
+    // Long notes (the savings working) scroll rather than overflow the sheet.
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          Space.gutter,
+          Space.sm,
+          Space.gutter,
+          Space.xl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(combo.title, style: context.tt.headlineSmall),
+            const SizedBox(height: Space.sm),
             Text(
-              'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
-              style: context.tt.titleSmall!.copyWith(color: c.positive),
+              combo.confidenceLabel,
+              style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
             ),
-            if (combo.savingNote != null)
+            const SizedBox(height: Space.lg),
+            Text(combo.body, style: context.tt.bodyLarge),
+            if (combo.hasSaving) ...[
+              const SizedBox(height: Space.md),
               Text(
-                combo.savingNote!,
+                'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
+                style: context.tt.titleSmall!.copyWith(color: c.positive),
+              ),
+              if (combo.savingNote != null)
+                Text(
+                  combo.savingNote!,
+                  style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
+                ),
+            ],
+            const SizedBox(height: Space.lg),
+            Wrap(
+              spacing: Space.sm,
+              runSpacing: Space.sm,
+              children: [
+                for (final id in combo.cardIds) Pill(cardLabel(id, names)),
+              ],
+            ),
+            if (combo.validUntil != null) ...[
+              const SizedBox(height: Space.md),
+              Text(
+                'Applies until ${combo.validUntil!.day}/${combo.validUntil!.month}/${combo.validUntil!.year}.',
                 style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
               ),
-          ],
-          const SizedBox(height: Space.lg),
-          Wrap(
-            spacing: Space.sm,
-            runSpacing: Space.sm,
-            children: [
-              for (final id in combo.cardIds) Pill(cardLabel(id, names)),
             ],
-          ),
-          if (combo.validUntil != null) ...[
             const SizedBox(height: Space.md),
             Text(
-              'Applies until ${combo.validUntil!.day}/${combo.validUntil!.month}/${combo.validUntil!.year}.',
-              style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
+              'Terms change. Check the bank before you apply or pay. Not financial advice.',
+              style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
             ),
           ],
-          const SizedBox(height: Space.md),
-          Text(
-            'Terms change. Check the bank before you apply or pay. Not financial advice.',
-            style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _AllCombosSheet extends ConsumerWidget {
-  const _AllCombosSheet();
+/// The full list of card combos, biggest saving first. Opening it counts every
+/// combo as seen, which clears the "new" badge.
+Future<void> showAllCombos(BuildContext context) => showPulseSheet<void>(
+  context,
+  full: true,
+  builder: (_) => const AllCombosSheet(),
+);
+
+class AllCombosSheet extends ConsumerStatefulWidget {
+  const AllCombosSheet({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AllCombosSheet> createState() => _AllCombosSheetState();
+}
+
+class _AllCombosSheetState extends ConsumerState<AllCombosSheet> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (!mounted) return;
+      final combos = ref.read(cardCombosProvider).value ?? const <CardCombo>[];
+      ref.read(seenCombosProvider.notifier).markSeen([
+        for (final c in combos) c.id,
+      ]);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final combos = ref.watch(cardCombosProvider).value ?? const [];
     final names = _catalogNames(ref);
     return ListView(

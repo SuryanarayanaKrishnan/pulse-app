@@ -7,6 +7,7 @@ import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/best_moves.dart';
 import '../../data/card_ranking.dart';
 import '../../data/card_util.dart';
 import '../../data/models.dart';
@@ -67,6 +68,13 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
                         label: 'Add a card or account',
                         onTap: () => showAddMenu(context),
                       ),
+                    ),
+                    RoundIconButton(
+                      key: const Key('cards-combos-button'),
+                      icon: Icons.layers_outlined,
+                      label: 'Card combos and best moves',
+                      badge: ref.watch(newHighValueCombosProvider).isNotEmpty,
+                      onTap: () => showAllCombos(context),
                     ),
                     CoachTarget(
                       id: 'which',

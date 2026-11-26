@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../data/best_moves.dart';
 import '../../data/providers.dart';
 import '../../features/rewards/reward_moment.dart';
 import '../../features/tour/tab_tip.dart';
@@ -38,6 +39,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
+    // A new high-value card combo: a quiet dot on the Cards tab.
+    final newCombos = ref.watch(newHighValueCombosProvider).isNotEmpty;
     // A capture arrived (SMS, wallet tap, Shortcut): refresh and celebrate.
     ref.listen(captureOutcomesProvider, (_, next) {
       final o = next.value;
@@ -84,6 +87,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                                   : _items[i].$2,
                               label: _items[i].$3,
                               selected: shell.currentIndex == i,
+                              badge: i == 2 && newCombos,
                               onTap: () {
                                 if (i != shell.currentIndex) {
                                   Haptics.tap();
@@ -127,7 +131,9 @@ class _NavItem extends StatelessWidget {
     required this.label,
     required this.selected,
     required this.onTap,
+    this.badge = false,
   });
+  final bool badge;
   final int index;
   final IconData icon;
   final String label;
@@ -150,9 +156,33 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            AnimatedSwitcher(
-              duration: Motion.fast,
-              child: Icon(icon, key: ValueKey(icon), size: 24, color: color),
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                AnimatedSwitcher(
+                  duration: Motion.fast,
+                  child: Icon(
+                    icon,
+                    key: ValueKey(icon),
+                    size: 24,
+                    color: color,
+                  ),
+                ),
+                if (badge)
+                  Positioned(
+                    top: -1,
+                    right: -2,
+                    child: Container(
+                      key: const Key('nav_badge_cards'),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: c.accent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+              ],
             ),
             const SizedBox(height: 2),
             Text(

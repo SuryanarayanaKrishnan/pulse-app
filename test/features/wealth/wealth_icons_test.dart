@@ -96,7 +96,7 @@ void main() {
           ),
           home: Scaffold(
             body: ListView(
-              cacheExtent: 5000,
+              scrollCacheExtent: const ScrollCacheExtent.pixels(5000),
               children: [
                 for (final k in WealthKind.values)
                   ListTile(leading: WealthIcon(k), title: Text(k.label)),

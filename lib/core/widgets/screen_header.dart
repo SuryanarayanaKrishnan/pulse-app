@@ -82,10 +82,14 @@ class RoundIconButton extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.label,
+    this.badge = false,
   });
   final IconData icon;
   final VoidCallback onTap;
   final String? label;
+
+  /// A small dot for something new here. Quiet: no number, no motion.
+  final bool badge;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -96,7 +100,27 @@ class RoundIconButton extends StatelessWidget {
       child: SizedBox(
         width: 44,
         height: 44,
-        child: Icon(icon, color: context.tabAccent, size: 26),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Icon(icon, color: context.tabAccent, size: 26),
+            if (badge)
+              Positioned(
+                top: 9,
+                right: 9,
+                child: Container(
+                  key: const Key('round_icon_badge'),
+                  width: 9,
+                  height: 9,
+                  decoration: BoxDecoration(
+                    color: context.pc.accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: context.pc.bg, width: 1.5),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     ),
   );
