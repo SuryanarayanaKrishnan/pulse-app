@@ -83,7 +83,8 @@ class AnnotationController extends ChangeNotifier {
     final cur = _live;
     _live = null;
     if (cur is PenMark && cur.points.length >= 2) _marks.add(cur);
-    if (cur is BlurMark && cur.rect.width > 0.01 && cur.rect.height > 0.01) _marks.add(cur);
+    if (cur is BlurMark && cur.rect.width > 0.01 && cur.rect.height > 0.01)
+      _marks.add(cur);
     notifyListeners();
   }
 
@@ -130,11 +131,22 @@ class AnnotationPainter extends CustomPainter {
   final ui.Image? coarse;
   final AnnotationController controller;
 
+  /// True for an image that was already disposed (debug builds only can tell;
+  /// owners must also keep images alive while a painter may use them).
+  static bool _isDead(ui.Image i) {
+    var dead = false;
+    assert(() {
+      dead = i.debugDisposed;
+      return true;
+    }());
+    return dead;
+  }
+
   static final _blocky = Paint()..filterQuality = FilterQuality.none;
 
   void _drawCoarse(Canvas canvas, Size size, Rect dst) {
     final c = coarse;
-    if (c == null) {
+    if (c == null || _isDead(c)) {
       // Not ready yet: never show the original through a blur box.
       canvas.drawRect(dst, Paint()..color = const Color(0xFF8A8F8C));
       return;
@@ -151,7 +163,7 @@ class AnnotationPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final full = Offset.zero & size;
     final img = image;
-    if (img != null) {
+    if (img != null && !_isDead(img)) {
       canvas.drawImageRect(
         img,
         Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
@@ -160,7 +172,10 @@ class AnnotationPainter extends CustomPainter {
       );
     }
     if (controller.maskAll) _drawCoarse(canvas, size, full);
-    final all = [...controller.marks, if (controller.live != null) controller.live!];
+    final all = [
+      ...controller.marks,
+      if (controller.live != null) controller.live!,
+    ];
     for (final m in all) {
       if (m is BlurMark) {
         final r = Rect.fromLTRB(
@@ -189,13 +204,19 @@ class AnnotationPainter extends CustomPainter {
           ..strokeWidth = size.width * 0.011;
         final path = Path();
         for (var i = 0; i < m.points.length; i++) {
-          final p = Offset(m.points[i].dx * size.width, m.points[i].dy * size.height);
+          final p = Offset(
+            m.points[i].dx * size.width,
+            m.points[i].dy * size.height,
+          );
           i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
         }
         canvas.drawPath(path, paint);
         if (m.points.length == 1) {
           canvas.drawCircle(
-            Offset(m.points.first.dx * size.width, m.points.first.dy * size.height),
+            Offset(
+              m.points.first.dx * size.width,
+              m.points.first.dy * size.height,
+            ),
             paint.strokeWidth / 2,
             paint..style = PaintingStyle.fill,
           );
@@ -206,7 +227,9 @@ class AnnotationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(AnnotationPainter old) =>
-      old.image != image || old.coarse != coarse || old.controller != controller;
+      old.image != image ||
+      old.coarse != coarse ||
+      old.controller != controller;
 }
 
 /// Renders the annotated screenshot to PNG at the screenshot's own size.
@@ -218,7 +241,11 @@ Future<Uint8List?> renderAnnotatedPng({
   final size = Size(image.width.toDouble(), image.height.toDouble());
   final rec = ui.PictureRecorder();
   final canvas = Canvas(rec);
-  AnnotationPainter(image: image, coarse: coarse, controller: controller).paint(canvas, size);
+  AnnotationPainter(
+    image: image,
+    coarse: coarse,
+    controller: controller,
+  ).paint(canvas, size);
   final out = await rec.endRecording().toImage(image.width, image.height);
   final data = await out.toByteData(format: ui.ImageByteFormat.png);
   return data?.buffer.asUint8List();

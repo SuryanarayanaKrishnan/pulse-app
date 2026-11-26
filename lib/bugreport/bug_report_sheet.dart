@@ -49,7 +49,14 @@ class _BugReportSheetState extends State<BugReportSheet> {
   String? _message;
   ui.Image? _coarse;
 
-  bool get _hasShot => widget.screenshot != null;
+  /// The sheet's own handle on the screenshot. The launcher disposes the
+  /// image it captured as soon as the sheet route is popped, which is before
+  /// the close animation has finished painting; painting that disposed image
+  /// raised "non-genuine Image" on every frame. A clone keeps the pixels alive
+  /// until [dispose].
+  ui.Image? _shot;
+
+  bool get _hasShot => _shot != null;
   bool get _shotOn => _hasShot && _includeShot;
   bool get _issueReady => widget.issue?.available ?? false;
 
@@ -57,11 +64,14 @@ class _BugReportSheetState extends State<BugReportSheet> {
   void initState() {
     super.initState();
     _ann.addListener(() => setState(() {}));
-    final s = widget.screenshot;
+    final s = widget.screenshot?.clone();
+    _shot = s;
     if (s != null) {
-      pixelate(s).then((c) {
-        if (mounted) setState(() => _coarse = c);
-      }).catchError((Object _) {});
+      pixelate(s)
+          .then((c) {
+            if (mounted) setState(() => _coarse = c);
+          })
+          .catchError((Object _) {});
     }
   }
 
@@ -70,14 +80,19 @@ class _BugReportSheetState extends State<BugReportSheet> {
     _note.dispose();
     _ann.dispose();
     _coarse?.dispose();
+    _shot?.dispose();
     super.dispose();
   }
 
   Future<BugReport> _buildReport() async {
     Uint8List? png;
-    final s = widget.screenshot;
+    final s = _shot;
     if (_shotOn && s != null) {
-      png = await renderAnnotatedPng(image: s, coarse: _coarse, controller: _ann);
+      png = await renderAnnotatedPng(
+        image: s,
+        coarse: _coarse,
+        controller: _ann,
+      );
     }
     return BugReport(
       category: _category,
@@ -98,7 +113,10 @@ class _BugReportSheetState extends State<BugReportSheet> {
     final report = await _buildReport();
     var outcome = await (viaIssue ? widget.issue! : widget.local).send(report);
     if (!outcome.ok && viaIssue) {
-      if (mounted) setState(() => _message = 'Could not reach the report service. Opening the share sheet instead.');
+      if (mounted)
+        setState(
+          () => _message = 'Could not reach the report service. Opening the share sheet instead.',
+        );
       outcome = await widget.local.send(report);
     }
     if (!mounted) return;
@@ -106,9 +124,15 @@ class _BugReportSheetState extends State<BugReportSheet> {
       widget.onSent?.call(outcome.method);
       final messenger = ScaffoldMessenger.maybeOf(context);
       Navigator.of(context).pop();
-      messenger?.showSnackBar(SnackBar(
-        content: Text(outcome.method == DeliveryMethod.issue ? 'Thanks, your report was sent' : 'Thanks for the report'),
-      ));
+      messenger?.showSnackBar(
+        SnackBar(
+          content: Text(
+            outcome.method == DeliveryMethod.issue
+                ? 'Thanks, your report was sent'
+                : 'Thanks for the report',
+          ),
+        ),
+      );
     } else {
       setState(() {
         _busy = false;
@@ -157,7 +181,11 @@ class _BugReportSheetState extends State<BugReportSheet> {
           _preview(context),
           if (_message != null) ...[
             const SizedBox(height: Space.md),
-            Text(_message!, key: const Key('bug-message'), style: context.tt.bodyMedium?.copyWith(color: c.warning)),
+            Text(
+              _message!,
+              key: const Key('bug-message'),
+              style: context.tt.bodyMedium?.copyWith(color: c.warning),
+            ),
           ],
           const SizedBox(height: Space.lg),
           if (_issueReady) ...[
@@ -209,16 +237,25 @@ class _BugReportSheetState extends State<BugReportSheet> {
         if (_shotOn) ...[
           Container(
             padding: const EdgeInsets.all(Space.md),
-            decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(Radii.md)),
+            decoration: BoxDecoration(
+              color: c.surfaceElevated,
+              borderRadius: BorderRadius.circular(Radii.md),
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.visibility_off_outlined, size: 18, color: c.textSecondary),
+                Icon(
+                  Icons.visibility_off_outlined,
+                  size: 18,
+                  color: c.textSecondary,
+                ),
                 const SizedBox(width: Space.sm),
                 Expanded(
                   child: Text(
                     'The screenshot may show balances or names. Cover anything private before you send.',
-                    style: context.tt.bodySmall?.copyWith(color: c.textSecondary),
+                    style: context.tt.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -242,7 +279,8 @@ class _BugReportSheetState extends State<BugReportSheet> {
           _switchRow(
             key: const Key('bug-mask-all'),
             title: 'Mask all text in screenshot',
-            subtitle: 'Hides numbers and words by pixelating the whole picture.',
+            subtitle:
+                'Hides numbers and words by pixelating the whole picture.',
             value: _ann.maskAll,
             onChanged: _ann.setMaskAll,
           ),
@@ -269,7 +307,12 @@ class _BugReportSheetState extends State<BugReportSheet> {
               children: [
                 Text(title, style: context.tt.titleMedium),
                 if (subtitle != null)
-                  Text(subtitle, style: context.tt.bodySmall?.copyWith(color: c.textSecondary)),
+                  Text(
+                    subtitle,
+                    style: context.tt.bodySmall?.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -280,7 +323,7 @@ class _BugReportSheetState extends State<BugReportSheet> {
   }
 
   Widget _canvas({required bool interactive}) {
-    final s = widget.screenshot!;
+    final s = _shot!;
     final aspect = s.width / s.height;
     return AspectRatio(
       aspectRatio: aspect,
@@ -293,11 +336,16 @@ class _BugReportSheetState extends State<BugReportSheet> {
           borderRadius: BorderRadius.circular(Radii.sm),
           child: LayoutBuilder(
             builder: (context, box) {
-              Offset norm(Offset p) => Offset(p.dx / box.maxWidth, p.dy / box.maxHeight);
+              Offset norm(Offset p) =>
+                  Offset(p.dx / box.maxWidth, p.dy / box.maxHeight);
               final paint = CustomPaint(
                 key: const Key('bug-canvas'),
                 size: Size.infinite,
-                painter: AnnotationPainter(image: s, coarse: _coarse, controller: _ann),
+                painter: AnnotationPainter(
+                  image: s,
+                  coarse: _coarse,
+                  controller: _ann,
+                ),
               );
               if (!interactive) return paint;
               return GestureDetector(
@@ -319,11 +367,17 @@ class _BugReportSheetState extends State<BugReportSheet> {
     final maxH = MediaQuery.sizeOf(context).height * 0.5;
     return SheetScaffold(
       title: 'Mark the screenshot',
-      subtitle: 'Draw to point something out. Use the box to hide anything private.',
+      subtitle:
+          'Draw to point something out. Use the box to hide anything private.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Center(child: ConstrainedBox(constraints: BoxConstraints(maxHeight: maxH), child: _canvas(interactive: true))),
+          Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: maxH),
+              child: _canvas(interactive: true),
+            ),
+          ),
           const SizedBox(height: Space.md),
           Wrap(
             spacing: Space.sm,
@@ -350,7 +404,8 @@ class _BugReportSheetState extends State<BugReportSheet> {
                   button: true,
                   child: GestureDetector(
                     key: Key('bug-color-$i'),
-                    onTap: () => _ann.setColor(AnnotationController.penColors[i]),
+                    onTap: () =>
+                        _ann.setColor(AnnotationController.penColors[i]),
                     child: Container(
                       width: 28,
                       height: 28,
@@ -358,8 +413,18 @@ class _BugReportSheetState extends State<BugReportSheet> {
                         color: AnnotationController.penColors[i],
                         shape: BoxShape.circle,
                         border: Border.all(
-                          width: _ann.penColor == AnnotationController.penColors[i] && _ann.tool == AnnotateTool.pen ? 3 : 1,
-                          color: _ann.penColor == AnnotationController.penColors[i] && _ann.tool == AnnotateTool.pen ? c.textPrimary : c.border,
+                          width:
+                              _ann.penColor ==
+                                      AnnotationController.penColors[i] &&
+                                  _ann.tool == AnnotateTool.pen
+                              ? 3
+                              : 1,
+                          color:
+                              _ann.penColor ==
+                                      AnnotationController.penColors[i] &&
+                                  _ann.tool == AnnotateTool.pen
+                              ? c.textPrimary
+                              : c.border,
                         ),
                       ),
                     ),
@@ -432,8 +497,14 @@ class _BugReportSheetState extends State<BugReportSheet> {
         children: [
           Text('What will be attached', style: context.tt.titleMedium),
           const SizedBox(height: Space.sm),
-          item(Icons.smartphone_rounded, 'Pulse ${d.appVersion} (${d.build}), ${d.platform} ${d.osVersion}'),
-          item(Icons.layers_outlined, 'Screen ${d.route}, ${d.locale}, ${d.theme} theme'),
+          item(
+            Icons.smartphone_rounded,
+            'Pulse ${d.appVersion} (${d.build}), ${d.platform} ${d.osVersion}',
+          ),
+          item(
+            Icons.layers_outlined,
+            'Screen ${d.route}, ${d.locale}, ${d.theme} theme',
+          ),
           item(Icons.image_outlined, shot),
           item(
             Icons.list_alt_rounded,
@@ -452,11 +523,20 @@ class _BugReportSheetState extends State<BugReportSheet> {
               key: const Key('bug-log-view'),
               constraints: const BoxConstraints(maxHeight: 160),
               padding: const EdgeInsets.all(Space.sm),
-              decoration: BoxDecoration(color: c.surfaceElevated, borderRadius: BorderRadius.circular(Radii.sm)),
+              decoration: BoxDecoration(
+                color: c.surfaceElevated,
+                borderRadius: BorderRadius.circular(Radii.sm),
+              ),
               child: SingleChildScrollView(
                 child: SelectableText(
-                  widget.logLines.isEmpty ? 'Nothing logged yet.' : widget.logLines.join('\n'),
-                  style: const TextStyle(fontFamily: 'monospace', fontSize: 11, height: 1.35),
+                  widget.logLines.isEmpty
+                      ? 'Nothing logged yet.'
+                      : widget.logLines.join('\n'),
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    height: 1.35,
+                  ),
                 ),
               ),
             ),

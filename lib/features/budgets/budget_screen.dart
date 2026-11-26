@@ -406,8 +406,7 @@ class _WhereItWentState extends State<_WhereItWent> {
             onChanged: (v) => setState(() => _by = v),
           ),
         ),
-        AnimatedSwitcher(
-          duration: Motion.base,
+        PulseSwitcher(
           child: RowGroup(
             key: ValueKey(_by),
             indent: ListRow.leadingInset,
