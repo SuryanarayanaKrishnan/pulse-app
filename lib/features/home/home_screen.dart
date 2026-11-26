@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../cards/best_moves_strip.dart';
+import '../cards/cap_watch_card.dart';
 import '../cards/card_widgets.dart';
 import '../discover/all_features_sheet.dart';
 import '../review/review_state.dart';
@@ -121,6 +122,8 @@ class HomeScreen extends ConsumerWidget {
                       // the user has put it.
                       if (i == 0) ...[
                         const _WhichCard(),
+                        const CapWatchCard(),
+                        const CapWatchCard(),
                         const BestMovesStrip(),
                         const _ReviewCard(),
                         const _Health(),

@@ -22,8 +22,14 @@ final capSnapshotProvider = FutureProvider<CapSnapshot>((ref) async {
   final cards = await ref.watch(myCardsProvider.future);
   final now = DateTime.now();
   final today = CalDate(now.year, now.month, now.day);
-  final (start, end) = (CalDate(today.year, today.month, 1), CalDate(today.year, today.month, 28));
-  return CapSnapshot(today: today, cards: [for (final c in cards) _fromModel(c, start, end)]);
+  final (start, end) = (
+    CalDate(today.year, today.month, 1),
+    CalDate(today.year, today.month, 28),
+  );
+  return CapSnapshot(
+    today: today,
+    cards: [for (final c in cards) _fromModel(c, start, end)],
+  );
 });
 
 CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
@@ -39,7 +45,9 @@ CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
         isTotal: false,
         capAed: e.value.limit,
         earnedAed: e.value.used,
-        rate: (c.categoryRates[e.key] ?? 0) > 0 ? c.categoryRates[e.key]! / 100 : null,
+        rate: (c.categoryRates[e.key] ?? 0) > 0
+            ? c.categoryRates[e.key]! / 100
+            : null,
         spentAed: 0,
         categories: {e.key.id},
         approxSpend: false,
@@ -61,7 +69,9 @@ CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
 }
 
 /// Combos the user holds at least two cards of, with their legs' caps added.
-final capStacksProvider = FutureProvider<List<(String, StackCapStatus)>>((ref) async {
+final capStacksProvider = FutureProvider<List<(String, StackCapStatus)>>((
+  ref,
+) async {
   final snap = await ref.watch(capSnapshotProvider.future);
   final combos = ref.watch(cardCombosProvider).value ?? const <CardCombo>[];
   final byCatalog = {
@@ -85,7 +95,11 @@ final capStacksProvider = FutureProvider<List<(String, StackCapStatus)>>((ref) a
 /// What the user told us about cap alerts, kept on this phone: cards muted for
 /// good, alerts dismissed for this month, and notifications already sent.
 class CapAlertPrefsState {
-  const CapAlertPrefsState({this.muted = const {}, this.dismissed = const {}, this.sent = const {}});
+  const CapAlertPrefsState({
+    this.muted = const {},
+    this.dismissed = const {},
+    this.sent = const {},
+  });
   final Set<String> muted;
   final Set<String> dismissed;
   final Set<String> sent;
@@ -100,8 +114,14 @@ class CapAlertPrefs extends AsyncNotifier<CapAlertPrefsState> {
       final raw = await ref.read(kvStoreProvider).read(capPrefsKey);
       if (raw == null) return const CapAlertPrefsState();
       final j = jsonDecode(raw) as Map<String, dynamic>;
-      Set<String> set(String k) => {for (final x in (j[k] as List? ?? const [])) '$x'};
-      return CapAlertPrefsState(muted: set('muted'), dismissed: set('dismissed'), sent: set('sent'));
+      Set<String> set(String k) => {
+        for (final x in (j[k] as List? ?? const [])) '$x',
+      };
+      return CapAlertPrefsState(
+        muted: set('muted'),
+        dismissed: set('dismissed'),
+        sent: set('sent'),
+      );
     } on Object {
       return const CapAlertPrefsState();
     }
@@ -128,13 +148,38 @@ class CapAlertPrefs extends AsyncNotifier<CapAlertPrefsState> {
     }
   }
 
-  Future<void> mute(String cardId) => _save(CapAlertPrefsState(muted: {..._cur.muted, cardId}, dismissed: _cur.dismissed, sent: _cur.sent));
-  Future<void> unmute(String cardId) => _save(CapAlertPrefsState(muted: {..._cur.muted}..remove(cardId), dismissed: _cur.dismissed, sent: _cur.sent));
-  Future<void> dismiss(String key) => _save(CapAlertPrefsState(muted: _cur.muted, dismissed: {..._cur.dismissed, key}, sent: _cur.sent));
-  Future<void> markSent(Iterable<String> keys) => _save(CapAlertPrefsState(muted: _cur.muted, dismissed: _cur.dismissed, sent: {..._cur.sent, ...keys}));
+  Future<void> mute(String cardId) => _save(
+    CapAlertPrefsState(
+      muted: {..._cur.muted, cardId},
+      dismissed: _cur.dismissed,
+      sent: _cur.sent,
+    ),
+  );
+  Future<void> unmute(String cardId) => _save(
+    CapAlertPrefsState(
+      muted: {..._cur.muted}..remove(cardId),
+      dismissed: _cur.dismissed,
+      sent: _cur.sent,
+    ),
+  );
+  Future<void> dismiss(String key) => _save(
+    CapAlertPrefsState(
+      muted: _cur.muted,
+      dismissed: {..._cur.dismissed, key},
+      sent: _cur.sent,
+    ),
+  );
+  Future<void> markSent(Iterable<String> keys) => _save(
+    CapAlertPrefsState(
+      muted: _cur.muted,
+      dismissed: _cur.dismissed,
+      sent: {..._cur.sent, ...keys},
+    ),
+  );
 }
 
-final capAlertPrefsProvider = AsyncNotifierProvider<CapAlertPrefs, CapAlertPrefsState>(CapAlertPrefs.new);
+final capAlertPrefsProvider =
+    AsyncNotifierProvider<CapAlertPrefs, CapAlertPrefsState>(CapAlertPrefs.new);
 
 /// Alerts to show in the app: near and hit, minus muted cards and ones the
 /// user dismissed.
@@ -160,7 +205,9 @@ Future<void> dispatchCapNotifications(Ref ref, List<CapAlert> alerts) async {
     try {
       await reminders.schedule(
         id: 0x2000000 + (a.key.hashCode & 0xFFFFFF),
-        title: a.level == CapLevel.hit ? 'Cashback cap reached' : 'Nearly at a cashback cap',
+        title: a.level == CapLevel.hit
+            ? 'Cashback cap reached'
+            : 'Nearly at a cashback cap',
         body: '${a.message}. Open Pulse for the next best card.',
         at: DateTime.now().add(const Duration(seconds: 3)),
       );
@@ -168,7 +215,9 @@ Future<void> dispatchCapNotifications(Ref ref, List<CapAlert> alerts) async {
       // No permission or no plugin: the in-app status still shows.
     }
   }
-  await ref.read(capAlertPrefsProvider.notifier).markSent(fresh.map((a) => a.key));
+  await ref
+      .read(capAlertPrefsProvider.notifier)
+      .markSent(fresh.map((a) => a.key));
 }
 
 /// The forecast-based next-best plan: what the user holds against the cards
@@ -188,7 +237,11 @@ final nextBestProvider = FutureProvider<NextBestPlan?>((ref) async {
   } on Object {
     budget = {};
   }
-  final forecast = forecastRemainingSpend(history: snap.history, today: snap.today, budgetMinor: budget);
+  final forecast = forecastRemainingSpend(
+    history: snap.history,
+    today: snap.today,
+    budgetMinor: budget,
+  );
   final afterCap = snap.cards.any((c) => c.level == CapLevel.hit);
   return rankNextBest(
     forecast: forecast,
@@ -211,4 +264,12 @@ final capWatchProvider = FutureProvider<List<CardCapStatus>>((ref) async {
       if (c.level != CapLevel.ok) c,
   ]..sort((a, b) => b.worst!.pct.compareTo(a.worst!.pct));
   return out;
+});
+
+/// Watching this sends any new near/hit alerts as local notifications (once
+/// each). Home watches it, so alerts go out whenever the app opens or the
+/// ledger changes.
+final capNotifyProvider = FutureProvider<void>((ref) async {
+  final alerts = await ref.watch(capAlertsProvider.future);
+  await dispatchCapNotifications(ref, alerts);
 });
