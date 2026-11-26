@@ -24,6 +24,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
 import '../cards/digit_widgets.dart';
+import '../../capture/providers.dart';
 import '../capture/capture_setup_sheet.dart';
 import '../rewards/reward_moment.dart';
 import '../statements/statement_actions.dart';
@@ -250,8 +251,15 @@ class SettingsScreen extends ConsumerWidget {
               else
                 ListRow(
                   leading: const IconWell(Icons.apple),
-                  title: 'Apple Pay Shortcut',
-                  subtitle: 'Capture every tap-to-pay instantly',
+                  title: 'iPhone capture setup',
+                  subtitle: ref
+                      .watch(captureProgressProvider)
+                      .maybeWhen(
+                        data: (d) =>
+                            '${d.length} of 4 working: Apple Pay, bank SMS, screenshots, shopping nudge',
+                        orElse: () =>
+                            'Apple Pay, bank SMS, screenshots, shopping nudge',
+                      ),
                   chevron: true,
                   onTap: () => context.push(Routes.applePaySetup),
                 ),

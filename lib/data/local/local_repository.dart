@@ -36,6 +36,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
+import 'splits_store.dart';
 import '../digit_suggestion.dart';
 import 'statement_service.dart';
 
@@ -75,6 +76,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   /// Statement PDFs read on this device; without it uploads need the server.
   final LocalStatementService? statementService;
+
+  late final LocalSplitsStore _splits = LocalSplitsStore(db, clock: _clock);
 
   /// Jewellery, funds and prices (optional so older call sites still work).
   final WealthService? wealth;
@@ -1511,31 +1514,55 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     }
   }
 
+  /// Groups made on this phone, plus (best effort) the ones a configured
+  /// server already has. A server outage never hides the local groups.
   @override
-  Future<List<SplitGroup>> splitGroups() => _orDefault(const [], (s) => s.splitGroups());
+  Future<List<SplitGroup>> splitGroups() async {
+    final mine = await _splits.groups();
+    final remote = await _orDefault(const <SplitGroup>[], (s) => s.splitGroups());
+    final ids = {for (final g in mine) g.id};
+    return [...mine, for (final g in remote) if (!ids.contains(g.id)) g];
+  }
 
   @override
-  Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) =>
-      _needsServer('Splitting with others', (s) => s.addSplitExpense(groupId, expense));
+  Future<SplitGroup> createSplitGroup({
+    required String name,
+    String emoji = '👥',
+    List<NewGroupMember> members = const [],
+  }) => _splits.createGroup(name: name, emoji: emoji, members: members);
 
   @override
-  Future<Member> addMember(String groupId, {required String name, String? phone}) =>
-      _needsServer('Splitting with others', (s) => s.addMember(groupId, name: name, phone: phone));
+  Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) async {
+    if (await _splits.hasGroup(groupId)) return _splits.addExpense(groupId, expense);
+    return _needsServer('Splitting with others', (s) => s.addSplitExpense(groupId, expense));
+  }
+
+  @override
+  Future<Member> addMember(String groupId, {required String name, String? phone}) async {
+    if (await _splits.hasGroup(groupId)) return _splits.addMember(groupId, name: name, phone: phone);
+    return _needsServer('Splitting with others', (s) => s.addMember(groupId, name: name, phone: phone));
+  }
 
   @override
   Future<Set<String>> matchContacts(List<String> phoneHashes) => _orDefault(<String>{}, (s) => s.matchContacts(phoneHashes));
 
   @override
-  Future<SettlementRecord> markSettlementPaid(String groupId, {required String from, required String to, required double amount}) =>
-      _needsServer('Settling up', (s) => s.markSettlementPaid(groupId, from: from, to: to, amount: amount));
+  Future<SettlementRecord> markSettlementPaid(String groupId, {required String from, required String to, required double amount}) async {
+    if (await _splits.hasGroup(groupId)) return _splits.markPaid(groupId, from: from, to: to, amount: amount);
+    return _needsServer('Settling up', (s) => s.markSettlementPaid(groupId, from: from, to: to, amount: amount));
+  }
 
   @override
-  Future<SettlementRecord> confirmSettlement(String groupId, String settlementId) =>
-      _needsServer('Settling up', (s) => s.confirmSettlement(groupId, settlementId));
+  Future<SettlementRecord> confirmSettlement(String groupId, String settlementId) async {
+    if (await _splits.hasGroup(groupId)) return _splits.confirm(groupId, settlementId);
+    return _needsServer('Settling up', (s) => s.confirmSettlement(groupId, settlementId));
+  }
 
   @override
-  Future<void> undoSettlement(String groupId, String settlementId) =>
-      _needsServer('Settling up', (s) => s.undoSettlement(groupId, settlementId));
+  Future<void> undoSettlement(String groupId, String settlementId) async {
+    if (await _splits.hasGroup(groupId)) return _splits.undo(groupId, settlementId);
+    return _needsServer('Settling up', (s) => s.undoSettlement(groupId, settlementId));
+  }
 
   @override
   Future<List<Statement>> statements() {

@@ -7,11 +7,12 @@ import '../../core/analytics/analytics.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
-import '../../data/api/api_exception.dart';
 import '../../data/models.dart';
 import '../../data/phone.dart';
 import '../../data/providers.dart';
+import '../../data/local/splits_store.dart' show NewGroupMember;
 import 'contacts.dart';
+import 'splits_errors.dart';
 
 void _toast(BuildContext context, String text) => ScaffoldMessenger.of(context)
     .showSnackBar(
@@ -85,8 +86,14 @@ Future<void> confirmReceived(
         'Confirmed. ${g.member(s.from)?.name ?? 'They'} are settled up.',
       );
     }
-  } on ApiException catch (e) {
-    if (context.mounted) _toast(context, e.message);
+  } catch (e, st) {
+    reportSplitsError(
+      ref,
+      context.mounted ? context : null,
+      SplitsAction.confirm,
+      e,
+      st,
+    );
   }
 }
 
@@ -161,8 +168,14 @@ class _AaniSettleSheetState extends ConsumerState<AaniSettleSheet> {
           content: Text('Marked as paid. ${widget.payee.name} will confirm.'),
         ),
       );
-    } on ApiException catch (e) {
-      if (mounted) _toast(context, e.message);
+    } catch (e, st) {
+      reportSplitsError(
+        ref,
+        mounted ? context : null,
+        SplitsAction.settle,
+        e,
+        st,
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -246,10 +259,21 @@ class _AaniSettleSheetState extends ConsumerState<AaniSettleSheet> {
   }
 }
 
-/// Pick group members from the address book and see who is already on Pulse.
+/// Pick group members from the address book (or type a name) and see who is
+/// already on Pulse. With [group] they are added to it; with [onPicked] they
+/// are handed back instead (the group does not exist yet).
 class ContactPickerSheet extends ConsumerStatefulWidget {
-  const ContactPickerSheet({super.key, required this.group});
-  final SplitGroup group;
+  const ContactPickerSheet({
+    super.key,
+    this.group,
+    this.onPicked,
+    this.exclude = const {},
+  }) : assert(group != null || onPicked != null);
+  final SplitGroup? group;
+  final void Function(List<NewGroupMember> people)? onPicked;
+
+  /// E.164 numbers already chosen (hidden from the list).
+  final Set<String> exclude;
   @override
   ConsumerState<ContactPickerSheet> createState() => _ContactPickerSheetState();
 }
@@ -260,6 +284,8 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   Set<String> _onPulse = const {};
   final _selected = <String, DeviceContact>{};
   final _search = TextEditingController();
+  final _manualName = TextEditingController();
+  final _manual = <String>[];
   bool _busy = false;
 
   @override
@@ -271,8 +297,20 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   @override
   void dispose() {
     _search.dispose();
+    _manualName.dispose();
     super.dispose();
   }
+
+  void _addManual() {
+    final n = _manualName.text.trim();
+    if (n.isEmpty) return;
+    setState(() {
+      _manual.add(n);
+      _manualName.clear();
+    });
+  }
+
+  int get _count => _selected.length + _manual.length;
 
   Future<void> _load() async {
     final src = ref.read(contactsSourceProvider);
@@ -283,7 +321,10 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
         return;
       }
       final list = await src.load();
-      final existing = {for (final m in widget.group.members) ?m.phone};
+      final existing = {
+        for (final m in widget.group?.members ?? const <Member>[]) ?m.phone,
+        ...widget.exclude,
+      };
       final fresh = [
         for (final c in list)
           if (!existing.contains(c.primaryPhone)) c,
@@ -311,21 +352,36 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
   bool _isOnPulse(DeviceContact c) => c.phones.any(_onPulse.contains);
 
   Future<void> _add() async {
+    _addManual();
+    final people = [
+      for (final c in _selected.values)
+        NewGroupMember(name: c.name.split(' ').first, phone: c.primaryPhone),
+      for (final n in _manual) NewGroupMember(name: n),
+    ];
+    if (people.isEmpty) return;
+    final pick = widget.onPicked;
+    if (pick != null) {
+      pick(people);
+      Navigator.of(context).pop();
+      return;
+    }
     setState(() => _busy = true);
     final repo = ref.read(repositoryProvider);
     try {
-      for (final c in _selected.values) {
-        await repo.addMember(
-          widget.group.id,
-          name: c.name.split(' ').first,
-          phone: c.primaryPhone,
-        );
+      for (final p in people) {
+        await repo.addMember(widget.group!.id, name: p.name, phone: p.phone);
       }
       Haptics.success();
       ref.invalidate(splitGroupsProvider);
       if (mounted) Navigator.of(context).pop();
-    } on ApiException catch (e) {
-      if (mounted) _toast(context, e.message);
+    } catch (e, st) {
+      reportSplitsError(
+        ref,
+        mounted ? context : null,
+        SplitsAction.addPeople,
+        e,
+        st,
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -348,84 +404,138 @@ class _ContactPickerSheetState extends ConsumerState<ContactPickerSheet> {
       subtitle:
           'From your contacts. To show who is on Pulse, only a one-way '
           'fingerprint of each number is checked.',
-      child: switch (_access) {
-        null => const Padding(
-          padding: EdgeInsets.all(Space.xxl),
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-        ContactsAccess.denied => EmptyState(
-          icon: Icons.contacts_outlined,
-          title: 'Contacts are off',
-          message: 'Allow contacts access in Settings to add people quickly.',
-          action: TextAction(
-            'Try again',
-            onTap: () {
-              setState(() => _access = null);
-              _load();
-            },
-          ),
-        ),
-        _ => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _search,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Search contacts',
-                prefixIcon: Icon(Icons.search_rounded, color: c.textTertiary),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          switch (_access) {
+            null => const Padding(
+              padding: EdgeInsets.all(Space.xxl),
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            ContactsAccess.denied => EmptyState(
+              icon: Icons.contacts_outlined,
+              title: 'Contacts are off',
+              message:
+                  'Allow contacts access in Settings to add people quickly.',
+              action: TextAction(
+                'Try again',
+                onTap: () {
+                  setState(() => _access = null);
+                  _load();
+                },
               ),
             ),
-            const SizedBox(height: Space.sm),
-            RowGroup(
-              padding: EdgeInsets.zero,
-              indent: ListRow.leadingInset,
+            _ => Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final x in shown)
-                  ListRow(
-                    dense: true,
-                    leading: MemberAvatar(
-                      Member('', x.name, c.accent, onPulse: _isOnPulse(x)),
+                TextField(
+                  controller: _search,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: 'Search contacts',
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: c.textTertiary,
                     ),
-                    title: x.name,
-                    subtitle: _isOnPulse(x)
-                        ? 'On Pulse · ${formatPhone(x.primaryPhone!)}'
-                        : formatPhone(x.primaryPhone!),
-                    trailing: AnimatedSwitcher(
-                      duration: Motion.fast,
-                      child: Icon(
-                        _selected.containsKey(x.primaryPhone)
-                            ? Icons.check_circle_rounded
-                            : Icons.circle_outlined,
-                        key: ValueKey(_selected.containsKey(x.primaryPhone)),
-                        color: _selected.containsKey(x.primaryPhone)
-                            ? c.accent
-                            : c.textTertiary,
+                  ),
+                ),
+                const SizedBox(height: Space.sm),
+                RowGroup(
+                  padding: EdgeInsets.zero,
+                  indent: ListRow.leadingInset,
+                  children: [
+                    for (final x in shown)
+                      ListRow(
+                        dense: true,
+                        leading: MemberAvatar(
+                          Member('', x.name, c.accent, onPulse: _isOnPulse(x)),
+                        ),
+                        title: x.name,
+                        subtitle: _isOnPulse(x)
+                            ? 'On Pulse · ${formatPhone(x.primaryPhone!)}'
+                            : formatPhone(x.primaryPhone!),
+                        trailing: AnimatedSwitcher(
+                          duration: Motion.fast,
+                          child: Icon(
+                            _selected.containsKey(x.primaryPhone)
+                                ? Icons.check_circle_rounded
+                                : Icons.circle_outlined,
+                            key: ValueKey(
+                              _selected.containsKey(x.primaryPhone),
+                            ),
+                            color: _selected.containsKey(x.primaryPhone)
+                                ? c.accent
+                                : c.textTertiary,
+                          ),
+                        ),
+                        onTap: () {
+                          Haptics.tap();
+                          setState(() {
+                            final k = x.primaryPhone!;
+                            _selected.containsKey(k)
+                                ? _selected.remove(k)
+                                : _selected[k] = x;
+                          });
+                        },
                       ),
-                    ),
-                    onTap: () {
-                      Haptics.tap();
-                      setState(() {
-                        final k = x.primaryPhone!;
-                        _selected.containsKey(k)
-                            ? _selected.remove(k)
-                            : _selected[k] = x;
-                      });
-                    },
+                  ],
+                ),
+              ],
+            ),
+          },
+          const SizedBox(height: Space.lg),
+          Text('Or add by name', style: context.tt.bodySmall),
+          const SizedBox(height: Space.sm),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  key: const Key('manual-member-name'),
+                  controller: _manualName,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.done,
+                  onChanged: (_) => setState(() {}),
+                  onSubmitted: (_) => _addManual(),
+                  decoration: const InputDecoration(hintText: 'Name'),
+                ),
+              ),
+              const SizedBox(width: Space.sm),
+              IconButton(
+                key: const Key('manual-member-add'),
+                tooltip: 'Add name',
+                icon: const Icon(Icons.add_circle_outline_rounded),
+                onPressed: _addManual,
+              ),
+            ],
+          ),
+          if (_manual.isNotEmpty) ...[
+            const SizedBox(height: Space.sm),
+            Wrap(
+              spacing: Space.sm,
+              runSpacing: Space.sm,
+              children: [
+                for (final n in _manual)
+                  Pill(
+                    n,
+                    selected: true,
+                    icon: Icons.close_rounded,
+                    onTap: () => setState(() => _manual.remove(n)),
                   ),
               ],
             ),
-            const SizedBox(height: Space.xl),
-            PrimaryButton(
-              label: _selected.isEmpty
-                  ? 'Add people'
-                  : 'Add ${_selected.length} ${_selected.length == 1 ? 'person' : 'people'}',
-              loading: _busy,
-              onPressed: _selected.isEmpty ? null : _add,
-            ),
           ],
-        ),
-      },
+          const SizedBox(height: Space.xl),
+          PrimaryButton(
+            label: _count == 0
+                ? 'Add people'
+                : 'Add $_count ${_count == 1 ? 'person' : 'people'}',
+            loading: _busy,
+            onPressed: (_count == 0 && _manualName.text.trim().isEmpty)
+                ? null
+                : _add,
+          ),
+        ],
+      ),
     );
   }
 }

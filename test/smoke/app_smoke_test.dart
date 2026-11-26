@@ -154,7 +154,7 @@ void main() {
     // Intro -> Start fresh -> sign in (local) -> connect (later) -> home.
     await tapText('Start fresh with Pulse');
     await tapText('Continue with Google');
-    await tapText('I will do this later');
+    await tapText('Skip for now');
     expect(find.text('Home'), findsWidgets);
 
     // Add two cards through the quick picker: tick both, one button, no per-card popup.

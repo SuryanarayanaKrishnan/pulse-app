@@ -913,3 +913,81 @@ class InvestingOccurrences extends Table {
     {ruleId, dueDate},
   ];
 }
+
+// ---- schema v13: splits ledger kept on the phone ------------------------------
+
+/// A bill-splitting group. Lives on the phone first; a server (when one is
+/// configured) only ever receives what [syncedAt] says it has not seen yet.
+@DataClassName('SplitGroupRow')
+class SplitGroups extends Table {
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get emoji => text().withDefault(const Constant('👥'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  /// When the server last accepted this group; null until it has.
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+  DateTimeColumn get deletedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// A person in a group. You are `me` in every group.
+@DataClassName('SplitMemberRow')
+class SplitMembers extends Table {
+  TextColumn get groupId => text()();
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+
+  /// ARGB colour of the avatar.
+  IntColumn get colorValue => integer()();
+
+  /// E.164, when the member came from contacts.
+  TextColumn get phone => text().nullable()();
+  BoolColumn get onPulse => boolean().withDefault(const Constant(false))();
+  TextColumn get ibanTail => text().nullable()();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {groupId, id};
+}
+
+@DataClassName('SplitExpenseRow')
+class SplitExpenses extends Table {
+  TextColumn get id => text()();
+  TextColumn get groupId => text()();
+  TextColumn get title => text()();
+  TextColumn get paidBy => text()();
+  IntColumn get amountMinor => integer()();
+
+  /// JSON list of member ids.
+  TextColumn get participants => text()();
+
+  /// JSON map of member id to minor units; null for an equal split.
+  TextColumn get shares => text().nullable()();
+  DateTimeColumn get date => dateTime()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+@DataClassName('SplitSettlementRow')
+class SplitSettlements extends Table {
+  TextColumn get id => text()();
+  TextColumn get groupId => text()();
+  TextColumn get fromMember => text()();
+  TextColumn get toMember => text()();
+  IntColumn get amountMinor => integer()();
+  DateTimeColumn get date => dateTime()();
+
+  /// awaitingConfirmation | confirmed
+  TextColumn get status => text().withDefault(const Constant('confirmed'))();
+  TextColumn get method => text().withDefault(const Constant('aani'))();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}

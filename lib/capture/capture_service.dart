@@ -6,6 +6,7 @@ import '../core/analytics/analytics.dart';
 import '../core/engine/sms_parser.dart' show isOtpMessage;
 import 'capture_config.dart';
 import 'capture_platform.dart';
+import 'capture_source.dart';
 import 'ingest_queue.dart';
 import 'kv_store.dart';
 
@@ -36,9 +37,27 @@ class CaptureService {
   /// iPhone setup watches this to confirm the automation really runs.
   static const shortcutSeenKey = 'capture.shortcut_first_seen';
 
-  Future<DateTime?> shortcutFirstSeen() async {
-    final v = await kv.read(shortcutSeenKey);
+  Future<DateTime?> shortcutFirstSeen() =>
+      sourceFirstSeen(CaptureSource.wallet);
+
+  /// When the first event of [s] arrived, or null if none has yet.
+  Future<DateTime?> sourceFirstSeen(CaptureSource s) async {
+    final v = await kv.read(s.firstSeenKey);
     return v == null ? null : DateTime.tryParse(v);
+  }
+
+  /// When the latest event of [s] arrived. Lets "Test it" tell a fresh event
+  /// from one that arrived before the test started.
+  Future<DateTime?> sourceLastSeen(CaptureSource s) async {
+    final v = await kv.read(s.lastSeenKey);
+    return v == null ? null : DateTime.tryParse(v);
+  }
+
+  Future<void> _markSeen(CaptureSource s, DateTime now) async {
+    if (await kv.read(s.firstSeenKey) == null) {
+      await kv.write(s.firstSeenKey, now.toIso8601String());
+    }
+    await kv.write(s.lastSeenKey, now.toIso8601String());
   }
 
   StreamSubscription<void>? _sub;
@@ -96,10 +115,8 @@ class CaptureService {
             // One-time codes are never queued, parsed or stored anywhere.
             if (isOtpMessage(e.body) || isOtpMessage(e.title ?? '')) continue;
             await queue.enqueue(e.toPending(now));
-            if (e.kind == 'apple_shortcut' &&
-                await kv.read(shortcutSeenKey) == null) {
-              await kv.write(shortcutSeenKey, now.toIso8601String());
-            }
+            final src = e.source;
+            if (src != null) await _markSeen(src, now);
           }
           // Only after the items are durably queued.
           await platform.ackPending([for (final e in events) e.id]);

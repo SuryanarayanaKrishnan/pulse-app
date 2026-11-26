@@ -9,7 +9,7 @@ import '../data/api/ingest_api.dart';
 import 'ingest_queue.dart';
 import 'kv_store.dart';
 
-/// A transaction handed over by the iOS Shortcuts "Transaction" automation via
+/// A transaction handed over by the iOS Shortcuts Wallet automation via
 /// `pulse://ingest?amount=..&merchant=..&card=..[&currency=..&ts=..&direction=..]`.
 @immutable
 class ShortcutTransaction {
@@ -22,6 +22,7 @@ class ShortcutTransaction {
     this.last4,
     this.direction = 'debit',
     this.viaScreenshot = false,
+    this.viaNudge = false,
   });
 
   final int amountMinor;
@@ -35,7 +36,11 @@ class ShortcutTransaction {
   /// Read from a screenshot: the app shows a light Undo/Edit confirmation.
   final bool viaScreenshot;
 
-  ShortcutTransaction asScreenshot() => ShortcutTransaction(
+  /// Read from a screenshot that the "ask then capture" nudge took after a
+  /// shopping app closed. Always also [viaScreenshot].
+  final bool viaNudge;
+
+  ShortcutTransaction asScreenshot({bool nudge = false}) => ShortcutTransaction(
     amountMinor: amountMinor,
     merchant: merchant,
     currency: currency,
@@ -44,6 +49,7 @@ class ShortcutTransaction {
     last4: last4,
     direction: direction,
     viaScreenshot: true,
+    viaNudge: nudge,
   );
 
   /// Parses a deep link. Returns null when it is not an ingest link or has no

@@ -5,6 +5,7 @@ import 'api/api_exception.dart';
 import 'digit_suggestion.dart';
 import 'insights.dart';
 import 'models.dart';
+import 'local/splits_store.dart' show NewGroupMember;
 import 'rules.dart';
 import 'statements.dart';
 
@@ -131,6 +132,14 @@ abstract class PulseRepository {
 
   Future<List<SplitGroup>> splitGroups();
   Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense);
+
+  /// Creates a group (you plus [members]). Works with no backend: the group
+  /// is kept on the phone.
+  Future<SplitGroup> createSplitGroup({
+    required String name,
+    String emoji,
+    List<NewGroupMember> members,
+  });
   Future<Member> addMember(
     String groupId, {
     required String name,
@@ -219,6 +228,13 @@ abstract interface class NetWorthHistorySource {
 
 /// Defaults for repositories without an on-device ledger (demo data, API).
 mixin LocalOnlyFeatures implements PulseRepository {
+  @override
+  Future<SplitGroup> createSplitGroup({
+    required String name,
+    String emoji = '👥',
+    List<NewGroupMember> members = const [],
+  }) => _unsupported('Creating groups');
+
   @override
   Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async => category;
 

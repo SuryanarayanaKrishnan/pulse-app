@@ -63,6 +63,8 @@ List<AnalyticsEvent> everyEvent() => [
   AnalyticsEvent.permissionGranted('sms_read'),
   AnalyticsEvent.permissionDenied('sms_receive'),
   AnalyticsEvent.splitExpenseAdded,
+  AnalyticsEvent.splitGroupCreated(members: 'few'),
+  AnalyticsEvent.splitActionFailed(action: 'create_group', reason: 'storage'),
   AnalyticsEvent.splitAutoSettled(match: 'phone', partial: false, direction: 'debit'),
   AnalyticsEvent.splitSettleUndone,
   AnalyticsEvent.splitSettleAsked(match: 'iban'),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
+import '../../capture/providers.dart';
 import '../../core/engine/review.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
@@ -98,6 +99,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ],
                 ),
+                const _CaptureNudge(),
                 if (empty)
                   const _GetStarted()
                 else ...[
@@ -327,6 +329,44 @@ class _Overview extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Reminder on iPhone while any of the four capture paths is not working yet.
+class _CaptureNudge extends ConsumerWidget {
+  const _CaptureNudge();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(iosCaptureProvider)) return const SizedBox.shrink();
+    final done = ref.watch(captureProgressProvider).value;
+    if (done == null || done.length >= 4) return const SizedBox.shrink();
+    final c = context.pc;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.md,
+        Space.gutter,
+        0,
+      ),
+      child: SurfaceCard(
+        key: const Key('capture_nudge'),
+        onTap: () => context.push(Routes.applePaySetup),
+        child: Row(
+          children: [
+            Icon(Icons.bolt_rounded, color: c.accent),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Text(
+                'Finish capture setup: ${done.length} of 4 working. '
+                'Payments on the other paths are missed until then.',
+                style: context.tt.bodyMedium,
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.textTertiary),
+          ],
+        ),
+      ),
     );
   }
 }

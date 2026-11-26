@@ -11,7 +11,9 @@ import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
 import '../../data/splits_util.dart';
+import 'create_group_sheet.dart';
 import 'split_widgets.dart';
+import 'splits_errors.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 import '../coach/coach.dart';
@@ -40,17 +42,8 @@ class SplitsScreen extends ConsumerWidget {
                       tab: TipTab.splits,
                       child: RoundIconButton(
                         icon: Icons.add_rounded,
-                        label: 'Add expense',
-                        onTap: () {
-                          final list = groups.value;
-                          if (list != null && list.isNotEmpty) {
-                            showPulseSheet<void>(
-                              context,
-                              full: true,
-                              builder: (_) => AddSplitSheet(groups: list),
-                            );
-                          }
-                        },
+                        label: 'Add',
+                        onTap: () => _onAdd(context, ref, groups),
                       ),
                     ),
                   ),
@@ -64,10 +57,16 @@ class SplitsScreen extends ConsumerWidget {
                   loading: const SkeletonList(rows: 3, height: 64),
                   builder: (list) {
                     if (list.isEmpty) {
-                      return const EmptyState(
+                      return EmptyState(
                         icon: Icons.people_outline_rounded,
                         title: 'No groups yet',
                         message: 'Create a group to split bills with friends.',
+                        action: PrimaryButton(
+                          label: 'Create group',
+                          icon: Icons.group_add_rounded,
+                          expand: false,
+                          onPressed: () => showCreateGroupSheet(context),
+                        ),
                       );
                     }
                     return _Body(list);
@@ -80,6 +79,80 @@ class SplitsScreen extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// The header +. No groups yet: create one. Otherwise offer an expense or a
+/// new group. If groups are still loading or failed, say so rather than
+/// doing nothing.
+Future<void> _onAdd(
+  BuildContext context,
+  WidgetRef ref,
+  AsyncValue<List<SplitGroup>> groups,
+) async {
+  final list = groups.value;
+  if (list == null) {
+    if (groups.hasError) {
+      reportSplitsError(
+        ref,
+        context,
+        SplitsAction.createGroup,
+        groups.error!,
+        groups.stackTrace,
+      );
+      ref.invalidate(splitGroupsProvider);
+    } else {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Still loading your groups.')),
+        );
+    }
+    return;
+  }
+  if (list.isEmpty) {
+    await showCreateGroupSheet(context);
+    return;
+  }
+  await showPulseSheet<void>(
+    context,
+    builder: (sheetContext) => SheetScaffold(
+      title: 'Add',
+      child: RowGroup(
+        padding: EdgeInsets.zero,
+        indent: ListRow.leadingInset,
+        children: [
+          ListRow(
+            leading: IconWell(
+              Icons.receipt_long_outlined,
+              color: sheetContext.pc.accent,
+            ),
+            title: 'Add expense',
+            chevron: true,
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              showPulseSheet<void>(
+                context,
+                full: true,
+                builder: (_) => AddSplitSheet(groups: list),
+              );
+            },
+          ),
+          ListRow(
+            leading: IconWell(
+              Icons.group_add_outlined,
+              color: sheetContext.pc.accent,
+            ),
+            title: 'New group',
+            chevron: true,
+            onTap: () {
+              Navigator.of(sheetContext).pop();
+              showCreateGroupSheet(context);
+            },
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _Body extends ConsumerWidget {
@@ -206,30 +279,55 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
     super.dispose();
   }
 
+  String? _error;
+  bool _busy = false;
+
   Future<void> _save() async {
     final amt = double.tryParse(_amount.text.replaceAll(',', ''));
-    if (amt == null ||
-        amt <= 0 ||
-        _title.text.trim().isEmpty ||
-        _with.isEmpty) {
+    final problem = _title.text.trim().isEmpty
+        ? 'Say what it was for.'
+        : (amt == null || amt <= 0)
+        ? 'Enter an amount above zero.'
+        : _with.isEmpty
+        ? 'Pick at least one person to split with.'
+        : null;
+    if (problem != null) {
+      setState(() => _error = problem);
       return;
     }
-    await ref
-        .read(repositoryProvider)
-        .addSplitExpense(
-          _group.id,
-          SplitExpense(
-            id: 'new${DateTime.now().microsecondsSinceEpoch}',
-            title: _title.text.trim(),
-            paidBy: 'me',
-            amount: amt,
-            participants: _with.toList(),
-            date: DateTime.now(),
-          ),
-        );
-    ref.read(analyticsProvider).track(AnalyticsEvent.splitExpenseAdded);
-    ref.invalidate(splitGroupsProvider);
-    if (mounted) Navigator.of(context).pop();
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref
+          .read(repositoryProvider)
+          .addSplitExpense(
+            _group.id,
+            SplitExpense(
+              id: 'new${DateTime.now().microsecondsSinceEpoch}',
+              title: _title.text.trim(),
+              paidBy: 'me',
+              amount: amt!,
+              participants: _with.toList(),
+              date: DateTime.now(),
+            ),
+          );
+      ref.read(analyticsProvider).track(AnalyticsEvent.splitExpenseAdded);
+      ref.invalidate(splitGroupsProvider);
+      if (mounted) Navigator.of(context).pop();
+    } catch (e, st) {
+      final msg = reportSplitsError(
+        ref,
+        mounted ? context : null,
+        SplitsAction.addExpense,
+        e,
+        st,
+      );
+      if (mounted) setState(() => _error = msg);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   @override
@@ -290,8 +388,16 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
               ),
           ],
         ),
+        if (_error != null) ...[
+          const SizedBox(height: Space.md),
+          Text(
+            _error!,
+            key: const Key('expense-error'),
+            style: context.tt.bodySmall!.copyWith(color: context.pc.negative),
+          ),
+        ],
         const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Add expense', onPressed: _save),
+        PrimaryButton(label: 'Add expense', loading: _busy, onPressed: _save),
       ],
     ),
   );
