@@ -77,11 +77,20 @@ void main() {
       findsWidgets,
     );
     expect(find.textContaining('automatic'), findsOneWidget);
+    // The cash-flow forecast is one page of the chart card.
+    final dot = find.byKey(const Key('chart-dot-forecast'));
     await tester.dragUntilVisible(
-      find.text('Cashflow'),
+      dot,
       find.byType(ListView).first,
       const Offset(0, -300),
     );
+    await Scrollable.ensureVisible(tester.element(dot), alignment: 0.4);
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tap(dot);
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(find.text('Cash-flow forecast'), findsOneWidget);
     expect(find.textContaining('Projected on'), findsOneWidget);
   });
 

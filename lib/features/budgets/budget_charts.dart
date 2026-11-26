@@ -11,7 +11,10 @@ import '../../data/providers.dart';
 /// Income against spending by month, the savings that fall out of it, and
 /// where the balance is heading by month end.
 class CashflowSection extends ConsumerWidget {
-  const CashflowSection({super.key});
+  const CashflowSection({super.key, this.showHeader = true});
+
+  /// False when the section sits inside a chart card that has its own title.
+  final bool showHeader;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,7 +29,7 @@ class CashflowSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Cashflow'),
+        if (showHeader) const SectionHeader('Cashflow'),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             Space.gutter,
@@ -83,7 +86,10 @@ class CashflowSection extends ConsumerWidget {
 
 /// Spend in one category over six months. Pick the category; tap a month.
 class CategoryTrendSection extends ConsumerStatefulWidget {
-  const CategoryTrendSection({super.key});
+  const CategoryTrendSection({super.key, this.showHeader = true});
+
+  /// False when the section sits inside a chart card that has its own title.
+  final bool showHeader;
   @override
   ConsumerState<CategoryTrendSection> createState() =>
       _CategoryTrendSectionState();
@@ -103,7 +109,7 @@ class _CategoryTrendSectionState extends ConsumerState<CategoryTrendSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader('Spend by category'),
+        if (widget.showHeader) const SectionHeader('Spend by category'),
         SizedBox(
           height: 60,
           child: ListView.separated(

@@ -11,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../cards/best_moves_strip.dart';
 import '../cards/card_widgets.dart';
+import '../discover/all_features_sheet.dart';
 import '../review/review_state.dart';
 import '../wallet/add_sheets.dart';
 import 'dashboard/dashboard_controller.dart';
@@ -78,6 +79,12 @@ class HomeScreen extends ConsumerWidget {
                           const SizedBox(width: Space.md),
                         ]
                       : [
+                          RoundIconButton(
+                            key: const Key('home-all-features'),
+                            icon: Icons.apps_rounded,
+                            label: 'All features',
+                            onTap: () => showAllFeaturesSheet(context),
+                          ),
                           if (!empty)
                             CoachTarget(
                               id: 'customise',

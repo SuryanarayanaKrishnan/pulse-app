@@ -138,6 +138,9 @@ void main() {
       await shot('budget-cover-overspend');
 
       await open('/budget');
+      await scrollTo(find.byKey(const Key('chart-dot-flow')), alignment: 0.4);
+      await tester.tap(find.byKey(const Key('chart-dot-flow')));
+      await tester.pump(const Duration(milliseconds: 900));
       await scrollTo(find.byKey(const Key('sankey_section')), alignment: 0.02);
       await shot('budget-sankey');
       final r = tester.getRect(find.byKey(const Key('sankey_canvas')));

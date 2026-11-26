@@ -52,6 +52,18 @@ Future<void> settle(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 700));
 }
 
+/// Opens one page of the Budget chart card (they are swiped, not stacked).
+Future<void> openChart(WidgetTester tester, String key) async {
+  final dot = find.byKey(Key('chart-dot-$key'));
+  await tester.scrollUntilVisible(dot, 200, scrollable: find.byType(Scrollable).first);
+  await Scrollable.ensureVisible(tester.element(dot), alignment: 0.4);
+  await tester.pump(const Duration(milliseconds: 400));
+  await tester.tap(dot);
+  for (var i = 0; i < 8; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 Future<void> reveal(WidgetTester tester, Finder f, {double alignment = 0.4}) async {
   await tester.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
   await Scrollable.ensureVisible(tester.element(f), alignment: alignment);
@@ -70,6 +82,7 @@ void main() {
       expect(find.textContaining('Non-monthly 2'), findsOneWidget);
       // Flexible is showing; the pool is described.
       expect(find.byKey(const Key('rows_flexible')), findsOneWidget);
+      await reveal(tester, find.textContaining('Fixed 2'));
       await tester.tap(find.textContaining('Fixed 2'));
       await settle(tester);
       expect(find.byKey(const Key('rows_fixed')), findsOneWidget);
@@ -79,6 +92,7 @@ void main() {
 
     testWidgets('Non-monthly shows sinking funds with the cycle glyph and what has been carried in', (tester) async {
       await pumpBudget(tester, Rec());
+      await reveal(tester, find.textContaining('Non-monthly 2'));
       await tester.tap(find.textContaining('Non-monthly 2'));
       await settle(tester);
       expect(find.byKey(const Key('rows_nonmonthly')), findsOneWidget);
@@ -98,13 +112,17 @@ void main() {
     testWidgets('switching to Categories reports only the mode, and back again', (tester) async {
       final rec = Rec();
       await pumpBudget(tester, rec);
-      await tester.tap(find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Categories')));
+      final cats = find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Categories'));
+      await reveal(tester, cats);
+      await tester.tap(cats);
       await settle(tester);
-      expect(find.text('Spent this month'), findsOneWidget);
+      expect(find.text('Spent this month', skipOffstage: false), findsOneWidget);
       expect(find.byKey(const Key('flex_hero')), findsNothing);
-      await tester.tap(find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Flex')));
+      final flexBtn = find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Flex'));
+      await reveal(tester, flexBtn);
+      await tester.tap(flexBtn);
       await settle(tester);
-      expect(find.byKey(const Key('flex_hero')), findsOneWidget);
+      expect(find.byKey(const Key('flex_hero'), skipOffstage: false), findsOneWidget);
       final sent = rec.events.where((e) => e.name == 'budget_mode_changed').toList();
       expect(sent.map((e) => e.properties), [
         {'mode': 'category'},
@@ -172,6 +190,7 @@ void main() {
 
     testWidgets('the category sheet turns a category Non-monthly with a yearly cost', (tester) async {
       await pumpBudget(tester, Rec());
+      await reveal(tester, find.byKey(const Key('plan_shopping')));
       await tester.tap(find.byKey(const Key('plan_shopping')));
       await settle(tester);
       await tester.tap(find.descendant(of: find.byKey(const Key('plan_group')), matching: find.text('Non-monthly')));
@@ -182,6 +201,7 @@ void main() {
       expect(find.textContaining('AED 100 a month'), findsOneWidget);
       await tester.tap(find.byKey(const Key('plan_save')));
       await settle(tester);
+      await reveal(tester, find.textContaining('Non-monthly 3'));
       await tester.tap(find.textContaining('Non-monthly 3'));
       await settle(tester);
       expect(find.byKey(const Key('plan_shopping')), findsOneWidget);
@@ -192,6 +212,7 @@ void main() {
   group('cash-flow Sankey', () {
     testWidgets('draws income into categories and what is left; tap a flow to see its payments; tap again to clear', (tester) async {
       await pumpBudget(tester, Rec());
+      await openChart(tester, 'flow');
       await reveal(tester, find.byKey(const Key('sankey_canvas')), alignment: 0.3);
       final r = tester.getRect(find.byKey(const Key('sankey_canvas')));
       expect(find.byKey(const Key('flow_detail')), findsNothing);
@@ -207,6 +228,7 @@ void main() {
 
     testWidgets('the month picker steps back, never past this month, and an empty month says so', (tester) async {
       await pumpBudget(tester, Rec());
+      await openChart(tester, 'flow');
       await reveal(tester, find.byKey(const Key('sankey_section')), alignment: 0.1);
       final section = find.byKey(const Key('sankey_section'));
       String label() => tester.widget<Text>(find.descendant(of: section, matching: find.byKey(const Key('month_switcher'))).evaluate().isEmpty

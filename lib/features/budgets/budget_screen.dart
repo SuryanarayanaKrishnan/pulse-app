@@ -11,12 +11,12 @@ import '../../core/widgets/widgets.dart';
 import '../../data/budget_plan_service.dart' show PlanRow;
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../discover/feature_shortcuts.dart';
 import '../household/joint_views.dart';
 import '../../core/household/household_engine.dart' show NwScope;
 import '../../household/household_providers.dart';
 import '../../data/local/budget_plan_store.dart' show BudgetMode;
-import 'budget_charts.dart';
-import 'cashflow_sankey.dart';
+import 'budget_chart_pager.dart';
 import 'flex_budget_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
@@ -129,6 +129,10 @@ class _Body extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        const TabTip(
+          tab: TipTab.budget,
+          child: FeatureShortcuts(ids: ['recurring', 'household']),
+        ),
         if (!flex)
           CoachTarget(
             id: 'hero',
@@ -179,6 +183,10 @@ class _Body extends ConsumerWidget {
                     ),
             ),
           ),
+        // Flex mode has no big hero above, so the key numbers stay on top as a
+        // compact strip; the charts come next, then the plan itself.
+        if (flex) _KeyNumbers(o),
+        BudgetChartPager(o),
         flex
             ? const CoachTarget(id: 'hero', child: FlexBudgetSection())
             : const FlexBudgetSection(),
@@ -192,23 +200,16 @@ class _Body extends ConsumerWidget {
         ],
         CoachTarget(
           id: 'categories',
-          child: TabTip(
-            tab: TipTab.budget,
-            child: flex
-                ? const SizedBox.shrink()
-                : SnapRail(
-                    height: 128,
-                    itemCount: lines.length,
-                    itemBuilder: (context, i) => _CategoryTile(
-                      lines[i],
-                      plan?.row(lines[i].category.id),
-                    ),
-                  ),
-          ),
+          child: flex
+              ? const SizedBox.shrink()
+              : SnapRail(
+                  // Grows with large text so the tile never clips.
+                  height: MediaQuery.textScalerOf(context).scale(128) + 24,
+                  itemCount: lines.length,
+                  itemBuilder: (context, i) =>
+                      _CategoryTile(lines[i], plan?.row(lines[i].category.id)),
+                ),
         ),
-        const CashflowSankeySection(),
-        const CashflowSection(),
-        const CategoryTrendSection(),
         _WhereItWent(o),
         const SectionHeader('Manage'),
         CoachTarget(
@@ -280,6 +281,58 @@ class _Body extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Spent, left and days left: the numbers that matter, always above the charts.
+class _KeyNumbers extends StatelessWidget {
+  const _KeyNumbers(this.o);
+  final BudgetOverview o;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    final noBudget = o.planned == 0;
+    Widget stat(String label, String value, {Color? color}) => Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
+          ),
+          const SizedBox(height: 2),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              value,
+              style: PulseTheme.amount(color ?? c.textPrimary),
+            ),
+          ),
+        ],
+      ),
+    );
+    return Padding(
+      key: const Key('budget_key_numbers'),
+      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          stat('Spent', Money.aed(o.spent, decimals: false)),
+          const SizedBox(width: Space.md),
+          stat(
+            o.remaining < 0 ? 'Over' : 'Left',
+            noBudget
+                ? 'No budget'
+                : Money.aed(o.remaining.abs(), decimals: false),
+            color: o.remaining < 0 ? c.negative : null,
+          ),
+          const SizedBox(width: Space.md),
+          stat('Days left', '${o.daysLeft}'),
+        ],
+      ),
     );
   }
 }
