@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart'
-    show ScaffoldMessenger, SnackBar, SnackBarBehavior;
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart'
+    show ScaffoldMessenger, SnackBar, SnackBarBehavior;
 import 'package:share_plus/share_plus.dart';
 
 import '../../data/providers.dart';
