@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -17,6 +16,7 @@ import '../net_worth/wealth_screen.dart' show ago;
 import '../../core/vault/vault_models.dart';
 import '../household/ownership_widgets.dart';
 import '../vault/held_at.dart';
+import 'cas_import_screen.dart';
 import 'wealth_widgets.dart';
 
 const fundCurrencies = ['INR', 'AED', 'USD', 'EUR', 'GBP'];
@@ -510,78 +510,6 @@ class _ValuePreview extends ConsumerWidget {
   }
 }
 
-/// Entry point for CAS statements. Reading a statement means handling the
-/// PAN-protected PDF and your holdings, which would have to be sent to a
-/// server; Pulse keeps that on the phone, and an on-device reader is not built
-/// yet. The file is not read and no password is asked for or stored.
-class CasImportSheet extends StatefulWidget {
-  const CasImportSheet({super.key});
-  @override
-  State<CasImportSheet> createState() => _CasImportSheetState();
-}
-
-class _CasImportSheetState extends State<CasImportSheet> {
-  String? _picked;
-
-  Future<void> _choose() async {
-    try {
-      final files = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: const ['pdf'],
-      );
-      final f = files.firstOrNull;
-      if (f != null && mounted) setState(() => _picked = f.name);
-    } on Object {
-      if (mounted) setState(() => _picked = '');
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) => SheetScaffold(
-    title: 'Import a CAS statement',
-    subtitle: 'CAMS and KFintech consolidated account statement (PDF).',
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PrimaryButton(
-          label: 'Choose the PDF',
-          icon: Icons.upload_file_outlined,
-          secondary: true,
-          onPressed: _choose,
-        ),
-        if (_picked != null) ...[
-          const SizedBox(height: Space.lg),
-          Container(
-            key: const Key('cas-coming-soon'),
-            padding: const EdgeInsets.all(Space.md),
-            decoration: BoxDecoration(
-              color: context.pc.surfaceElevated,
-              borderRadius: BorderRadius.circular(Radii.md),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Coming soon', style: context.tt.bodyLarge),
-                const SizedBox(height: Space.xs),
-                Text(
-                  'Reading CAS statements is not available yet. The file was not opened or sent anywhere, '
-                  'and no password was asked for or stored. For now, add each fund by search or by hand.',
-                  style: context.tt.bodySmall,
-                ),
-              ],
-            ),
-          ),
-        ],
-        const SizedBox(height: Space.lg),
-        Text(
-          'Your statement holds your PAN-linked holdings, so Pulse will only read it on this phone.',
-          style: context.tt.bodySmall!.copyWith(color: context.pc.textTertiary),
-        ),
-      ],
-    ),
-  );
-}
-
 class FundDetailScreen extends ConsumerStatefulWidget {
   const FundDetailScreen({super.key, required this.fundId});
   final String fundId;
@@ -694,7 +622,7 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
               dense: true,
               title: 'NAV',
               subtitle:
-                  '${f.navSource == 'market' ? 'Market' : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
+                  '${f.navSource == 'market' ? 'Market' : f.navSource == 'statement' ? 'From your statement' : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
               trailing: Text(
                 '${f.currency} ${f.nav.toStringAsFixed(4)}',
                 style: PulseTheme.amount(c.textPrimary, size: 15),
