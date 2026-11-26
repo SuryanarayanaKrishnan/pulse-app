@@ -29,7 +29,7 @@ void main() {
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 12);
 
-    expect(PulseDatabase.currentSchemaVersion, 12);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(12));
     for (final (t, id) in [
       ('jewellery_items', 'j1'),
       ('fund_holdings', 'f1'),

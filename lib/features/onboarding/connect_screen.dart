@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/analytics/analytics.dart';
-import '../../core/env/env.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../capture/capture_platform.dart';
@@ -90,8 +89,8 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
         (
           'apple_pay_shortcut',
           Icons.apple,
-          'Apple Pay Shortcut (iOS)',
-          'A one-time Shortcuts automation sends each tap-to-pay to ${Env.appName} instantly.',
+          'iPhone capture (required)',
+          'Four guided paths: Apple Pay, bank SMS, screenshots and Back Tap, and a nudge after shopping apps. You can skip and finish later.',
           _isIos ? 'Instant' : 'iOS only',
         ),
       (
@@ -163,7 +162,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
             const SizedBox(height: Space.md),
             Center(
               child: TextAction(
-                'I will do this later',
+                'Skip for now',
                 color: c.textSecondary,
                 onTap: () => ref.read(sessionProvider).finishConnect(),
               ),

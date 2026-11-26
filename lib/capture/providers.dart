@@ -11,6 +11,7 @@ import 'capture_config.dart';
 import 'capture_confirmation.dart';
 import 'capture_platform.dart';
 import 'capture_service.dart';
+import 'capture_source.dart';
 import 'ingest_queue.dart';
 import 'kv_store.dart';
 
@@ -55,6 +56,9 @@ final capturePlatformProvider = Provider<CapturePlatform>(
       : const UnsupportedCapturePlatform(),
 );
 
+/// Wall clock for capture and the setup "Test it" checks. Overridden in tests.
+final captureClockProvider = Provider<DateTime Function()>((_) => DateTime.now);
+
 final captureServiceProvider = Provider<CaptureService>((ref) {
   final s = CaptureService(
     platform: ref.watch(capturePlatformProvider),
@@ -62,6 +66,7 @@ final captureServiceProvider = Provider<CaptureService>((ref) {
     kv: ref.watch(kvStoreProvider),
     analytics: ref.watch(analyticsProvider),
     config: const CaptureConfig(),
+    clock: ref.watch(captureClockProvider),
   );
   ref.onDispose(s.dispose);
   return s;
@@ -70,3 +75,20 @@ final captureServiceProvider = Provider<CaptureService>((ref) {
 final ingestTokenStoreProvider = Provider<IngestTokenStore>(
   (ref) => IngestTokenStore(ref.watch(kvStoreProvider)),
 );
+
+/// True on iOS, where the four guided capture paths apply. Overridden in tests.
+final iosCaptureProvider = Provider<bool>(
+  (ref) => AppleInboxCapturePlatform.isAvailable,
+);
+
+/// Which of the four paths have delivered at least one event. Invalidate after
+/// a drain to refresh the Settings row and the Home nudge.
+final captureProgressProvider = FutureProvider.autoDispose<Set<CaptureSource>>((
+  ref,
+) async {
+  final svc = ref.watch(captureServiceProvider);
+  return {
+    for (final s in CaptureSource.values)
+      if (await svc.sourceFirstSeen(s) != null) s,
+  };
+});

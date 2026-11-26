@@ -220,6 +220,13 @@ abstract final class AnalyticsSchema {
 
     // ---- Splits ----
     EventSpec('split_expense_added', 'Shared expenses', 'You add a shared expense.'),
+    EventSpec('split_group_created', 'Shared expenses', 'You create a group to split bills.', props: {
+      'members': EnumProp('How many other people it starts with', ['none', 'few', 'many']),
+    }),
+    EventSpec('split_action_failed', 'Shared expenses', 'A Splits action does not finish. Only which action and a general reason are recorded.', props: {
+      'action': EnumProp('Which action', ['create_group', 'add_expense', 'add_people', 'settle', 'confirm']),
+      'reason': EnumProp('A general reason', ['not_supported', 'offline', 'invalid', 'storage', 'other']),
+    }),
     EventSpec('split_auto_settled', 'Shared expenses', 'Pulse marks a shared expense as paid back.', props: {
       'match': EnumProp('How sure the match was', ['phone', 'iban', 'exactName', 'fuzzyName']),
       'partial': BoolProp('Whether only part was paid'),

@@ -127,14 +127,20 @@ void main() {
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
-      expect(find.text('Open Shortcuts'), findsWidgets);
-      expect(find.textContaining('Record Payment'), findsWidgets);
-      await tester.scrollUntilVisible(find.text('Add Record Bank SMS'), 200);
+      expect(find.text('0 of 4 working'), findsOneWidget);
+      expect(find.textContaining('optional'), findsNothing);
+      expect(find.text('Apple Pay and Wallet cards'), findsOneWidget);
       await tester.scrollUntilVisible(
-        find.textContaining('Waiting for your first'),
+        find.text('Ask after shopping apps'),
         200,
       );
-      expect(find.textContaining('Waiting for your first'), findsOneWidget);
+      expect(find.text('Ask after shopping apps'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('Apple Pay and Wallet cards'),
+        -200,
+      );
+      expect(find.textContaining('When I tap any of my Wallet'), findsWidgets);
+      expect(find.textContaining('Run Immediately'), findsWidgets);
       await tester.pumpWidget(const SizedBox());
       session.dispose();
     },

@@ -13,6 +13,7 @@ import '../../features/backup/backup_setup_screen.dart';
 import '../../features/backup/restore_screen.dart';
 import '../../features/capture/apple_ingest_screen.dart';
 import '../../features/capture/apple_pay_setup_screen.dart';
+import '../../features/capture/bank_sms_setup_screen.dart';
 import '../../features/auth/sign_in_screen.dart';
 import '../../features/automations/automations_screen.dart';
 import '../../features/budgets/budget_screen.dart';
@@ -58,6 +59,7 @@ abstract class Routes {
   static const activity = '/activity';
   static const settings = '/settings';
   static const applePaySetup = '/apple-pay-setup';
+  static const bankSmsSetup = '/bank-sms-setup';
   static const appleIngest = '/apple-ingest';
   static const categories = '/categories';
   static const budgetSetup = '/budget-setup';
@@ -143,7 +145,11 @@ GoRouter buildRouter({
       if (!session.signedIn) return loc == Routes.signIn ? null : Routes.signIn;
       if (!session.connected) {
         // The Apple Pay guide is part of the connect step.
-        return {Routes.connect, Routes.applePaySetup}.contains(loc)
+        return {
+              Routes.connect,
+              Routes.applePaySetup,
+              Routes.bankSmsSetup,
+            }.contains(loc)
             ? null
             : Routes.connect;
       }
@@ -205,6 +211,11 @@ GoRouter buildRouter({
         path: Routes.applePaySetup,
         name: 'apple_pay_setup',
         builder: (c, s) => const ApplePaySetupScreen(),
+      ),
+      GoRoute(
+        path: Routes.bankSmsSetup,
+        name: 'bank_sms_setup',
+        builder: (c, s) => const BankSmsSetupScreen(),
       ),
       GoRoute(
         path: Routes.appleIngest,

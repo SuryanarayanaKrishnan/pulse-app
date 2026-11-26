@@ -1,13 +1,13 @@
 // On-device capture for iOS. UNCOMPILED: written without Xcode, review before shipping.
 //
-// iOS cannot read SMS or notifications, so a Shortcuts "Transaction"
-// automation (Wallet > a card > Transaction) runs the "Record Payment" action
+// iOS cannot read SMS or notifications, so a Shortcuts Wallet automation
+// ("When I tap any of my Wallet passes or payment cards") runs the "Record Payment" action
 // below every time a card is tapped. The action only appends the payment to a
 // small file inbox on this phone; no server is involved. Flutter drains the
 // inbox (channel `pulse/shortcut_inbox`) when the app starts or returns to the
 // foreground and feeds each item to the on-device pipeline.
 //
-// Setup is documented in the README ("iOS: Shortcuts automation").
+// Setup is documented in docs/SHORTCUT_LINKS.md and the in-app guided screens.
 
 import AppIntents
 import Flutter
@@ -75,12 +75,14 @@ enum ShortcutInbox {
 
   /// Appends text recognised on a screenshot. Only the text is kept.
   @discardableResult
-  static func appendOcr(text: String) throws -> String {
+  static func appendOcr(text: String, nudge: Bool = false) throws -> String {
     let id = UUID().uuidString
-    let item: [String: Any] = [
+    var item: [String: Any] = [
       "id": id, "kind": "ocr", "body": text,
       "ts": Int(Date().timeIntervalSince1970),
     ]
+    // Lets the setup screen tell the shopping-app nudge from Back Tap.
+    if nudge { item["src"] = "nudge" }
     let data = try JSONSerialization.data(withJSONObject: item)
     lock.lock()
     defer { lock.unlock() }
@@ -146,8 +148,9 @@ final class ShortcutInboxPlugin: NSObject, FlutterPlugin {
 
 // MARK: - App Intent
 
-/// The action a Shortcuts Transaction automation runs. It does not open the
-/// app and does not touch the network.
+/// The action a Shortcuts Wallet automation runs. It does not open the
+/// app and does not touch the network. Only Amount is needed; Merchant and
+/// Card are optional so the user maps as little as possible.
 @available(iOS 16.0, *)
 struct RecordPaymentIntent: AppIntent {
   static let title: LocalizedStringResource = "Record Payment"
@@ -155,10 +158,16 @@ struct RecordPaymentIntent: AppIntent {
     "Adds a card payment to Pulse on this phone. Nothing is sent to a server.")
   static let openAppWhenRun: Bool = false
 
+  static var parameterSummary: some ParameterSummary {
+    Summary("Record \(\.$amount) at \(\.$merchant)") {
+      \.$card
+    }
+  }
+
   @Parameter(title: "Amount")
   var amount: String
 
-  @Parameter(title: "Merchant")
+  @Parameter(title: "Merchant", default: "Apple Pay")
   var merchant: String
 
   @Parameter(title: "Card")
@@ -170,15 +179,25 @@ struct RecordPaymentIntent: AppIntent {
   }
 }
 
-/// The action a Shortcuts "Message" automation runs for a bank SMS.
+/// The action a Shortcuts "Message" automation runs for a bank SMS. Message
+/// connects to the previous action's output, which for the first action of an
+/// automation is the Shortcut Input, so the user maps nothing. Sender is
+/// optional: the bank is recognised from the text.
 @available(iOS 16.0, *)
 struct RecordBankSmsIntent: AppIntent {
   static let title: LocalizedStringResource = "Record Bank SMS"
   static let description = IntentDescription(
-    "Adds a bank text message to Pulse on this phone. Nothing is sent to a server.")
+    "Adds a bank text message to Pulse on this phone. Nothing is sent to a server.",
+    categoryName: "Capture")
   static let openAppWhenRun: Bool = false
 
-  @Parameter(title: "Message")
+  static var parameterSummary: some ParameterSummary {
+    Summary("Record bank text \(\.$message)") {
+      \.$sender
+    }
+  }
+
+  @Parameter(title: "Message", inputConnectionBehavior: .connectToPreviousIntentResult)
   var message: String
 
   @Parameter(title: "Sender")
@@ -190,54 +209,110 @@ struct RecordBankSmsIntent: AppIntent {
   }
 }
 
-/// "Capture to Pulse": reads a screenshot with Apple Vision on this phone and
-/// keeps only the recognised text. The image is never saved or sent anywhere.
-/// Bind a Shortcut (Take Screenshot, then this action) to Back Tap, or run it
-/// from the share sheet on an image.
+/// Reads a screenshot with Apple Vision on this phone and returns only the
+/// recognised text. The image is never saved or sent anywhere.
+@available(iOS 16.0, *)
+enum ScreenshotReader {
+  static func text(from file: IntentFile) throws -> String {
+    let request = VNRecognizeTextRequest()
+    request.recognitionLevel = .accurate
+    request.usesLanguageCorrection = false
+    let handler = VNImageRequestHandler(data: file.data, options: [:])
+    try handler.perform([request])
+    return (request.results ?? [])
+      .compactMap { $0.topCandidates(1).first?.string }
+      .joined(separator: "\n")
+  }
+}
+
+/// "Capture to Pulse". The screenshot connects to the previous action's
+/// output (Take Screenshot, or the image from the share sheet), so no field is
+/// mapped. An App Intent cannot take the screenshot itself: iOS offers no API
+/// for that, so the shortcut starts with Take Screenshot.
 @available(iOS 16.0, *)
 struct CaptureScreenshotIntent: AppIntent {
   static let title: LocalizedStringResource = "Capture to Pulse"
   static let description = IntentDescription(
-    "Reads a screenshot on this phone and adds the payment it shows to Pulse.")
+    "Reads a screenshot on this phone and adds the payment it shows to Pulse.",
+    categoryName: "Capture")
   static let openAppWhenRun: Bool = false
 
-  @Parameter(title: "Screenshot", supportedTypeIdentifiers: ["public.image"])
+  @Parameter(
+    title: "Screenshot", supportedTypeIdentifiers: ["public.image"],
+    inputConnectionBehavior: .connectToPreviousIntentResult)
   var screenshot: IntentFile
 
   func perform() async throws -> some IntentResult {
-    let request = VNRecognizeTextRequest()
-    request.recognitionLevel = .accurate
-    request.usesLanguageCorrection = false
-    let handler = VNImageRequestHandler(data: screenshot.data, options: [:])
-    try handler.perform([request])
-    let text = (request.results ?? [])
-      .compactMap { $0.topCandidates(1).first?.string }
-      .joined(separator: "\n")
+    let text = try ScreenshotReader.text(from: screenshot)
     if !text.isEmpty { try ShortcutInbox.appendOcr(text: text) }
     return .result()
   }
 }
 
+/// "Ask then Capture": the action behind the shopping-app nudge. It asks "Log
+/// that order?" itself, so the shortcut needs no Show Alert action: Get Latest
+/// Screenshots, then this. Cancel leaves nothing stored.
+@available(iOS 16.0, *)
+struct AskThenCaptureIntent: AppIntent {
+  static let title: LocalizedStringResource = "Ask then Capture"
+  static let description = IntentDescription(
+    "Asks to log the order you just screenshotted, then adds it to Pulse.",
+    categoryName: "Capture")
+  static let openAppWhenRun: Bool = false
+
+  @Parameter(
+    title: "Screenshot", supportedTypeIdentifiers: ["public.image"],
+    inputConnectionBehavior: .connectToPreviousIntentResult)
+  var screenshot: IntentFile
+
+  func perform() async throws -> some IntentResult {
+    // Throws when the user taps Cancel, which ends the run without storing.
+    try await requestConfirmation(result: .result(dialog: "Log that order?"))
+    let text = try ScreenshotReader.text(from: screenshot)
+    if !text.isEmpty { try ShortcutInbox.appendOcr(text: text, nudge: true) }
+    return .result()
+  }
+}
+
+/// Everything here appears automatically in Shortcuts, Spotlight, Siri and the
+/// Action Button picker, with no shortcut to build.
 @available(iOS 16.0, *)
 struct PulseShortcuts: AppShortcutsProvider {
+  static var shortcutTileColor: ShortcutTileColor = .teal
+
   static var appShortcuts: [AppShortcut] {
     AppShortcut(
       intent: RecordPaymentIntent(),
-      phrases: ["Record a payment in \(.applicationName)"],
+      phrases: [
+        "Record a payment in \(.applicationName)",
+        "Log a payment in \(.applicationName)",
+      ],
       shortTitle: "Record Payment",
       systemImageName: "creditcard"
     )
     AppShortcut(
       intent: RecordBankSmsIntent(),
-      phrases: ["Record a bank text in \(.applicationName)"],
+      phrases: [
+        "Record a bank text in \(.applicationName)",
+        "Add a bank SMS to \(.applicationName)",
+      ],
       shortTitle: "Record Bank SMS",
       systemImageName: "message"
     )
     AppShortcut(
       intent: CaptureScreenshotIntent(),
-      phrases: ["Capture a screenshot to \(.applicationName)"],
+      phrases: [
+        "Capture a screenshot to \(.applicationName)",
+        "Capture to \(.applicationName)",
+      ],
       shortTitle: "Capture to Pulse",
       systemImageName: "camera.viewfinder"
+    )
+    AppShortcut(
+      intent: AskThenCaptureIntent(),
+      phrases: ["Log my last order in \(.applicationName)"],
+      shortTitle: "Ask then Capture",
+      systemImageName: "questionmark.bubble"
     )
   }
 }

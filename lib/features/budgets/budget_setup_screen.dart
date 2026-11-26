@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -85,12 +87,14 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
       ref.read(analyticsProvider).track(AnalyticsEvent.budgetSuggested(history: _useHistory && _history.isNotEmpty));
       invalidateBudgetPlan(ref);
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Budget set for $n categories. Tap any to adjust.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Budget set for $n categories. Tap any to adjust.')));
       context.pop();
     } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Could not save the budget. Try again.')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Could not save the budget. Try again.')));
     }
   }
 
@@ -103,7 +107,10 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Build my budget'),
-        leading: IconButton(icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20), onPressed: () => context.pop()),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => context.pop(),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 120),
@@ -125,7 +132,13 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           ),
           const SizedBox(height: Space.xl),
           _Stepper(label: 'Adults', value: _adults, min: 1, max: 4, onChanged: (v) => setState(() => _adults = v)),
-          _Stepper(label: 'Children', value: _children, min: 0, max: 6, onChanged: (v) => setState(() => _children = v)),
+          _Stepper(
+            label: 'Children',
+            value: _children,
+            min: 0,
+            max: 6,
+            onChanged: (v) => setState(() => _children = v),
+          ),
           const SizedBox(height: Space.lg),
           Text('Home', style: context.tt.titleSmall),
           const SizedBox(height: Space.sm),
@@ -164,15 +177,7 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
               message: 'Enter what lands in your account each month and your budget appears here.',
             )
           else ...[
-            SurfaceCard(
-              child: Row(
-                children: [
-                  Expanded(child: _Figure('Planned', Money.aed(plan.spendMinor / 100, decimals: false))),
-                  Expanded(child: _Figure('Saved', Money.aed(plan.savingsMinor / 100, decimals: false))),
-                  Expanded(child: _Figure('Left over', Money.aed(plan.leftoverMinor / 100, decimals: false))),
-                ],
-              ),
-            ),
+            _SummaryStrip(plan: plan),
             const SizedBox(height: Space.lg),
             RowGroup(
               padding: EdgeInsets.zero,
@@ -211,21 +216,95 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   }
 }
 
+/// Planned / Saved / Left over. Three columns while there is room; at large
+/// Dynamic Type or very big amounts it becomes stacked label/value rows so no
+/// figure is clipped or shrunk. A negative left-over is shown in the negative
+/// colour and labelled "Over by", never silently as a small minus sign.
+class _SummaryStrip extends StatelessWidget {
+  const _SummaryStrip({required this.plan});
+  final SuggestedBudget plan;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    final over = plan.isOverBudget;
+    final left = Money.aed(plan.leftoverMinor.abs() / 100, decimals: false);
+    final figures = [
+      ('Planned', Money.aed(plan.spendMinor / 100, decimals: false), null),
+      ('Saved', Money.aed(plan.savingsMinor / 100, decimals: false), null),
+      (over ? 'Over by' : 'Left over', left, over ? c.negative : null),
+    ];
+    return SurfaceCard(
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final scale = MediaQuery.textScalerOf(context).scale(1);
+          final longest = figures.map((f) => f.$2.length).reduce((a, b) => a > b ? a : b);
+          // Roughly 0.6em per glyph for titleMedium; stack when a column cannot hold it.
+          final need = longest * 0.62 * 16 * scale;
+          final stacked = scale > 1.3 || need > box.maxWidth / 3;
+          if (stacked) {
+            return Column(
+              key: const Key('setup_summary_stacked'),
+              children: [
+                for (final f in figures)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: Row(
+                      children: [
+                        Text(f.$1, style: context.tt.bodySmall!.copyWith(color: c.textSecondary)),
+                        const SizedBox(width: Space.md),
+                        Expanded(
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(f.$2, maxLines: 1, style: context.tt.titleMedium!.copyWith(color: f.$3)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          }
+          return Row(
+            key: const Key('setup_summary_row'),
+            children: [for (final f in figures) Expanded(child: _Figure(f.$1, f.$2, f.$3))],
+          );
+        },
+      ),
+    );
+  }
+}
+
 class _Figure extends StatelessWidget {
-  const _Figure(this.label, this.value);
+  const _Figure(this.label, this.value, this.color);
   final String label, value;
+  final Color? color;
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Text(value, style: context.tt.titleMedium, maxLines: 1),
+      FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(value, style: context.tt.titleMedium!.copyWith(color: color), maxLines: 1),
+      ),
       const SizedBox(height: 2),
-      Text(label, style: context.tt.bodySmall!.copyWith(color: context.pc.textSecondary)),
+      Text(
+        label,
+        style: context.tt.bodySmall!.copyWith(color: context.pc.textSecondary),
+        textAlign: TextAlign.center,
+      ),
     ],
   );
 }
 
 class _Stepper extends StatelessWidget {
-  const _Stepper({required this.label, required this.value, required this.min, required this.max, required this.onChanged});
+  const _Stepper({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
   final String label;
   final int value, min, max;
   final ValueChanged<int> onChanged;
@@ -238,7 +317,10 @@ class _Stepper extends StatelessWidget {
         onPressed: value > min ? () => onChanged(value - 1) : null,
         icon: const Icon(Icons.remove_circle_outline_rounded),
       ),
-      SizedBox(width: 28, child: Text('$value', textAlign: TextAlign.center, style: context.tt.titleMedium)),
+      SizedBox(
+        width: 28,
+        child: Text('$value', textAlign: TextAlign.center, style: context.tt.titleMedium),
+      ),
       IconButton(
         tooltip: 'More ${label.toLowerCase()}',
         onPressed: value < max ? () => onChanged(value + 1) : null,
@@ -251,7 +333,13 @@ class _Stepper extends StatelessWidget {
 /// One budget line: name, an amount you can type, and a slider. Changes are
 /// live; nothing to confirm per line.
 class _LineEditor extends StatefulWidget {
-  const _LineEditor({super.key, required this.category, required this.line, required this.max, required this.onChanged});
+  const _LineEditor({
+    super.key,
+    required this.category,
+    required this.line,
+    required this.max,
+    required this.onChanged,
+  });
   final SpendCategory category;
   final SuggestedLine line;
   final int max;
@@ -274,6 +362,21 @@ class _LineEditorState extends State<_LineEditor> {
 
   bool _hasFocus = false;
 
+  /// The field is as wide as "AED " plus its digits (and a little for the
+  /// caret), never narrower than the old 104. When that is more than ~45% of the screen the field moves under the name,
+  /// so a value like 125,000 is shown in full at any text scale.
+  double _fieldWidth(BuildContext context) {
+    final style = (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).merge(context.tt.bodyLarge);
+    final tp = TextPainter(
+      text: TextSpan(text: 'AED ${_ctl.text.isEmpty ? '0' : _ctl.text}', style: style),
+      textDirection: TextDirection.ltr,
+      textScaler: MediaQuery.textScalerOf(context),
+    )..layout();
+    final w = tp.width + 4 * 2 + 12;
+    tp.dispose();
+    return math.max(104.0, w);
+  }
+
   @override
   void dispose() {
     _ctl.dispose();
@@ -284,40 +387,68 @@ class _LineEditorState extends State<_LineEditor> {
   Widget build(BuildContext context) {
     final c = context.pc;
     final value = widget.line.amountMinor.clamp(0, widget.max).toDouble();
+    final screenW = MediaQuery.sizeOf(context).width;
+    final fieldW = _fieldWidth(context);
+    // Big figures or big text: the field gets its own line under the name
+    // instead of squeezing the name or clipping its digits.
+    final stacked = fieldW > screenW * 0.45;
+    final label = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(widget.category.label, style: context.tt.bodyLarge),
+        Text(widget.line.basis.label, style: context.tt.bodySmall!.copyWith(color: c.textTertiary)),
+      ],
+    );
+    final field = Focus(
+      onFocusChange: (f) => _hasFocus = f,
+      child: TextField(
+        key: Key('amount_${widget.line.categoryId}'),
+        controller: _ctl,
+        textAlign: TextAlign.end,
+        keyboardType: TextInputType.number,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: const InputDecoration(
+          prefixText: 'AED ',
+          isDense: true,
+          contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 14),
+        ),
+        onChanged: (t) {
+          setState(() {}); // re-measure so the field grows with the digits
+          widget.onChanged((int.tryParse(t) ?? 0) * 100);
+        },
+      ),
+    );
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Space.sm),
       child: Column(
         children: [
-          Row(
-            children: [
-              CategoryIcon.well(widget.category),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          if (stacked)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
                   children: [
-                    Text(widget.category.label, style: context.tt.bodyLarge),
-                    Text(widget.line.basis.label, style: context.tt.bodySmall!.copyWith(color: c.textTertiary)),
+                    CategoryIcon.well(widget.category),
+                    const SizedBox(width: Space.md),
+                    Expanded(child: label),
                   ],
                 ),
-              ),
-              SizedBox(
-                width: 104,
-                child: Focus(
-                  onFocusChange: (f) => _hasFocus = f,
-                  child: TextField(
-                    key: Key('amount_${widget.line.categoryId}'),
-                    controller: _ctl,
-                    textAlign: TextAlign.end,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    decoration: const InputDecoration(prefixText: 'AED ', isDense: true),
-                    onChanged: (t) => widget.onChanged((int.tryParse(t) ?? 0) * 100),
-                  ),
+                const SizedBox(height: Space.xs),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: SizedBox(width: math.min(fieldW, screenW - 2 * Space.gutter), child: field),
                 ),
-              ),
-            ],
-          ),
+              ],
+            )
+          else
+            Row(
+              children: [
+                CategoryIcon.well(widget.category),
+                const SizedBox(width: Space.md),
+                Expanded(child: label),
+                SizedBox(width: fieldW, child: field),
+              ],
+            ),
           Slider(
             value: value,
             max: widget.max.toDouble(),

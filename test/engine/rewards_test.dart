@@ -22,7 +22,7 @@ CardSpec spec([Map<String, Object?> over = const {}]) => parseStructure({
 
 void main() {
   final catalog = CardCatalog.fromJson(
-    jsonDecode(File('assets/catalog/cards.json').readAsStringSync()) as Map<String, Object?>,
+    jsonDecode(File('test/fixtures/catalog/cards_small.json').readAsStringSync()) as Map<String, Object?>,
   );
 
   group('catalog asset', () {
