@@ -1,3 +1,5 @@
+import '../discover/feature_shortcuts.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -71,6 +73,7 @@ class WealthScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+              const FeatureShortcuts(ids: ['goals', 'household']),
               if (joint != null)
                 ScopeToggle(
                   value: scope,

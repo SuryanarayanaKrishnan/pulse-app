@@ -142,7 +142,9 @@ GoRouter buildRouter({
       if (loc == Routes.restore && !session.connected) return null;
       if (!session.onboarded)
         return loc == Routes.onboarding ? null : Routes.onboarding;
-      if (!session.signedIn) return loc == Routes.signIn ? null : Routes.signIn;
+      if (session.requireSignIn && !session.signedIn) {
+        return loc == Routes.signIn ? null : Routes.signIn;
+      }
       if (!session.connected) {
         // The Apple Pay guide is part of the connect step.
         return {
@@ -153,8 +155,9 @@ GoRouter buildRouter({
             ? null
             : Routes.connect;
       }
-      if ({Routes.onboarding, Routes.signIn, Routes.connect}.contains(loc))
+      if ({Routes.onboarding, Routes.signIn, Routes.connect}.contains(loc)) {
         return Routes.home;
+      }
       return null;
     },
     routes: [

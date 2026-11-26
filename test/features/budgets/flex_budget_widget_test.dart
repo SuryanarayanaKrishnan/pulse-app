@@ -172,6 +172,7 @@ void main() {
 
     testWidgets('the category sheet turns a category Non-monthly with a yearly cost', (tester) async {
       await pumpBudget(tester, Rec());
+      await reveal(tester, find.byKey(const Key('plan_shopping')));
       await tester.tap(find.byKey(const Key('plan_shopping')));
       await settle(tester);
       await tester.tap(find.descendant(of: find.byKey(const Key('plan_group')), matching: find.text('Non-monthly')));

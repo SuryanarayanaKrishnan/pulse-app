@@ -166,7 +166,7 @@ void main() {
   });
 
   testWidgets('onboarding: tour first on a fresh install, then the intro '
-      'with Restore from backup', (tester) async {
+      'with sample data or a fresh start', (tester) async {
     _phone(tester);
     final kv = MemoryKvStore();
     await tester.pumpWidget(
@@ -177,7 +177,8 @@ void main() {
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
     expect(find.text('Budgets that build themselves'), findsOneWidget);
-    expect(find.textContaining('Restore from backup'), findsOneWidget);
+    expect(find.textContaining('Restore it'), findsOneWidget);
+    expect(find.text('Try with sample data'), findsOneWidget);
     // One page of value, no further intro pages.
     expect(find.text('Continue'), findsNothing);
     expect(find.textContaining('Start fresh'), findsOneWidget);
