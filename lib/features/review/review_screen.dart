@@ -117,6 +117,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     await _move(_width * 1.2);
     await ref.read(repositoryProvider).setReviewed([tx.id], true);
     unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, tx.category));
+    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), tx, tx.category));
     ref.read(analyticsProvider).track(AnalyticsEvent.reviewSwiped('right'));
     _finish(tx, _Dir.right);
   }
@@ -151,6 +152,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     final analytics = ref.read(analyticsProvider);
     await ref.read(repositoryProvider).recategorise(tx.id, picked);
     unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, picked));
+    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), tx, picked, fix: true));
     analytics.track(
       AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: picked.name),
     );

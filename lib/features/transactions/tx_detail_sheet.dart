@@ -84,6 +84,19 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
     }
   }
 
+  bool _forgot = false;
+
+  /// Stops Pulse using this choice for future payments from the merchant.
+  /// This payment keeps its category; change it above if that is wrong.
+  Future<void> _forget() async {
+    await ref.read(merchantMemoryProvider).forget(widget.tx.merchant);
+    if (!mounted) return;
+    setState(() => _forgot = true);
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text('Forgotten. Future ${widget.tx.merchant} will be sorted by default.')),
+    );
+  }
+
   Future<void> _pick() async {
     final picked = await pickCategory(context, selected: _cat);
     if (picked == null || picked == _cat || !mounted) return;
@@ -99,6 +112,7 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
     }
     await ref.read(repositoryProvider).recategorise(widget.tx.id, picked);
     unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), widget.tx, picked));
+    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), widget.tx, picked, fix: true));
     ref
         .read(analyticsProvider)
         .track(
@@ -172,6 +186,19 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 title: 'Account',
                 trailing: Text(tx.accountLabel, style: context.tt.bodyMedium),
               ),
+              if (tx.learned && !_forgot && _cat == tx.category)
+                ListRow(
+                  key: const Key('tx_learned_row'),
+                  dense: true,
+                  leading: Icon(Icons.auto_awesome_outlined, size: 22, color: c.accent),
+                  title: 'Learned from your choice',
+                  subtitle: 'You put ${tx.merchant} here before. Only on this phone.',
+                  trailing: TextButton(
+                    key: const Key('tx_learned_forget'),
+                    onPressed: _forget,
+                    child: const Text('Forget'),
+                  ),
+                ),
               OwnerRow(table: 'transactions', id: tx.id, title: tx.merchant),
               ListRow(
                 dense: true,

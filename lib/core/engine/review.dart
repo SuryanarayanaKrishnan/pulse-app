@@ -18,9 +18,11 @@ double categoryConfidence({
   bool isOther = false,
   bool ruleApplied = false,
   bool fromStatement = false,
+  bool learned = false,
 }) {
   if (!hasCategory || isOther) return 0.25;
   if (ruleApplied) return 0.95;
+  if (learned) return 0.8;
   if (fromStatement) return 0.85;
   return 0.7;
 }

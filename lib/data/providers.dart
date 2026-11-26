@@ -154,7 +154,11 @@ final catalogServiceProvider = Provider<CatalogService?>((ref) {
 final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (db == null) return null;
-  final p = IngestPipeline(db, globalMap: ref.watch(globalMerchantMapProvider));
+  final p = IngestPipeline(
+    db,
+    globalMap: ref.watch(globalMerchantMapProvider),
+    memory: ref.read(merchantMemoryProvider),
+  );
   ref.onDispose(p.dispose);
   return p;
 });

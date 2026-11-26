@@ -116,11 +116,14 @@ Future<bool> recategoriseWithScope(
       ) ??
       RecategoriseScope.once;
 
+  final memory = container.read(merchantMemoryProvider);
+  final memoryBefore = memory.snapshot(tx.merchant);
   final undo = await recat.recategoriseScoped(tx.id, to, scope);
   analytics.track(AnalyticsEvent.recategoriseScope(scope.analyticsValue));
   // "Just this payment" is an exception, not a statement about the merchant.
   if (scope != RecategoriseScope.once) {
     unawaited(recordConfirmedCategory(container.read(learningControllerProvider), tx, to));
+    unawaited(rememberCategoryChoice(memory, tx, to, fix: true));
   }
   analytics.track(
     AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: to.name),
@@ -141,6 +144,7 @@ Future<bool> recategoriseWithScope(
         label: 'Undo',
         onPressed: () async {
           await recat.undoRecategorise(undo);
+          await memory.restore(tx.merchant, memoryBefore);
           invalidateLedgerIn(container);
           container.invalidate(rulesProvider);
         },

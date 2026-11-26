@@ -155,7 +155,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         isOther: t.categoryId == 'other',
         ruleApplied: t.appliedRuleId != null,
         fromStatement: t.statementLocked,
+        learned: t.tags.contains('"${eng.learnedTag}"'),
       ),
+      learned: t.tags.contains('"${eng.learnedTag}"'),
     );
   }
 
