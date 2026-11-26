@@ -12,6 +12,7 @@ import '../../core/engine/institutions.dart';
 import '../digit_suggestion.dart';
 import '../../core/engine/merchants.dart';
 import '../../core/learning/global_merchant_map.dart';
+import '../../core/learning/merchant_memory.dart';
 import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart';
 import '../../core/engine/salary.dart';
@@ -189,7 +190,7 @@ class IngestOutcome {
 /// categorise, store and work out what the card earned. Mirrors the
 /// backend's `process_raw_ingest`, with every step running on the phone.
 class IngestPipeline {
-  IngestPipeline(this.db, {ParserRegistry? registry, DateTime Function()? clock, this.globalMap})
+  IngestPipeline(this.db, {ParserRegistry? registry, DateTime Function()? clock, this.globalMap, this.memory})
     : registry = registry ?? defaultParserRegistry,
       _clock = clock ?? DateTime.now;
 
@@ -198,6 +199,9 @@ class IngestPipeline {
   /// Default categories for common merchants; used after the user's rules and
   /// the built-in dictionary.
   final GlobalMerchantMap? globalMap;
+
+  /// The person's own earlier category choices (on this phone only).
+  final MerchantMemory? memory;
   final ParserRegistry registry;
   final DateTime Function() _clock;
   final _results = StreamController<IngestOutcome>.broadcast();
@@ -613,8 +617,8 @@ class IngestPipeline {
       return IngestOutcome(IngestStatus.merged, transactionId: dupe.id);
     }
 
-    // Categorise: the user's rules first, then the merchant dictionary, then
-    // the global merchant map.
+    // Categorise: the user's rules first, then what they confirmed before,
+    // then the merchant dictionary, then the global merchant map.
     final enrichment = await _resolver().then(
       (r) => r.enrich(
         p.merchantRaw,
@@ -691,7 +695,7 @@ class IngestPipeline {
       for (final c in cats)
         if (c.slug != null) c.slug!: c.id,
     };
-    return CategoryResolver(compiled, system, globalMap: globalMap);
+    return CategoryResolver(compiled, system, globalMap: globalMap, memory: memory);
   }
 
   Future<RewardOutcome?> _reward(

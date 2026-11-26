@@ -4,8 +4,12 @@
 library;
 
 import '../learning/global_merchant_map.dart';
+import '../learning/merchant_memory.dart';
 import 'merchants.dart';
 import 'types.dart';
+
+/// Tag on a payment whose category came from the person's own earlier choice.
+const learnedTag = 'learned';
 
 const maxRegexLen = 200;
 const maxSubjectLen = 500;
@@ -239,7 +243,7 @@ class Enrichment {
   final String? merchantNormalized;
   final String? categoryId;
 
-  /// `rule`, `dictionary` or null.
+  /// `rule`, `memory`, `dictionary`, `global_map` or null.
   final String? source;
   final bool excludeFromBudget;
   final List<String> tags;
@@ -254,7 +258,12 @@ class CategoryResolver {
     List<CompiledRule> rules,
     this.systemCategories, {
     this.globalMap,
+    this.memory,
   }) : rules = byPriority(rules);
+
+  /// What this person has confirmed before. Consulted after their explicit
+  /// rules and before the built-in dictionary: their own choice beats a default.
+  final MerchantMemory? memory;
 
   /// Consulted after the user's rules and the built-in dictionary, before
   /// giving up (see `GlobalMerchantMap`).
@@ -273,6 +282,18 @@ class CategoryResolver {
       category = systemCategories['transfer'];
     }
     String? source = category != null && outcome != null ? 'rule' : null;
+    var learned = false;
+    if (category == null && outcome?.markTransfer != true) {
+      final hit = memory?.lookup(normalized);
+      final memoryCat = hit == null
+          ? null
+          : (systemCategories[hit.category] ?? (systemCategories.containsValue(hit.category) ? hit.category : null));
+      if (memoryCat != null) {
+        category = memoryCat;
+        source = 'memory';
+        learned = true;
+      }
+    }
     if (category == null &&
         dictionarySlug != null &&
         systemCategories.containsKey(dictionarySlug)) {
@@ -291,6 +312,7 @@ class CategoryResolver {
         merchantNormalized: normalized,
         categoryId: category,
         source: source,
+        tags: learned ? const [learnedTag] : const [],
       );
     }
     return Enrichment(
@@ -298,7 +320,7 @@ class CategoryResolver {
       categoryId: category,
       source: source,
       excludeFromBudget: outcome.excludeFromBudget || outcome.markTransfer,
-      tags: List.of(outcome.tags),
+      tags: [...outcome.tags, if (learned) learnedTag],
       ruleId: outcome.firstRuleId,
       matchedRuleIds: List.of(outcome.ruleIds),
     );

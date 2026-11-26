@@ -9,6 +9,7 @@ import '../engine/merchants.dart' show merchantKey, normalizeMerchant;
 import 'contribution.dart';
 import 'contribution_transport.dart';
 import 'global_merchant_map.dart';
+import 'merchant_memory.dart';
 import 'privacy_filter.dart';
 
 /// "Help improve categories": the person's choice, the queue of confirmed
@@ -161,4 +162,10 @@ final learningControllerProvider = Provider<LearningController>(
 /// loaded one.
 final globalMerchantMapProvider = Provider<GlobalMerchantMap>(
   (ref) => GlobalMerchantMap.empty,
+);
+
+/// The person's own merchant choices, on this phone. Empty in tests and
+/// previews; the app overrides it with the loaded one.
+final merchantMemoryProvider = Provider<MerchantMemory>(
+  (ref) => MerchantMemory(MemoryKvStore()),
 );

@@ -217,10 +217,15 @@ class Transaction {
     this.receiptRef,
     this.pendingHold = false,
     this.note,
+    this.learned = false,
   });
 
   final String id;
   final String merchant;
+
+  /// The category was filled in from this person's own earlier choice for the
+  /// same merchant (not a rule, not a default).
+  final bool learned;
 
   /// Your own note on this payment. Null when there is none.
   final String? note;

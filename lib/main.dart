@@ -2,6 +2,7 @@ import 'core/learning/contribution_transport.dart';
 import 'core/learning/http_learning.dart';
 import 'core/learning/global_merchant_map_loader.dart';
 import 'core/learning/learning_controller.dart';
+import 'core/learning/merchant_memory.dart';
 
 import 'dart:async';
 
@@ -56,6 +57,9 @@ Future<void> main() async {
         : HttpContributionTransport(learningDio),
   );
   await learning.load();
+  // What this person confirmed before; stays on this phone.
+  final merchantMemory = MerchantMemory(learningKv);
+  await merchantMemory.load();
   // The shared map improves with everyone's confirmations; a newer one applies next launch.
   if (learningDio != null) {
     unawaited(
@@ -136,6 +140,7 @@ Future<void> main() async {
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
+        merchantMemoryProvider.overrideWithValue(merchantMemory),
         analyticsProvider.overrideWithValue(
           LoggingAnalytics(analytics, BugLog.instance),
         ),
