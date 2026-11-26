@@ -1,3 +1,5 @@
+import 'wealth_icons.dart';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -58,13 +60,14 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
   /// [auto] is the quiet refresh when the section first shows: no spinner,
   /// and the throttle applies. The button forces one.
   Future<void> _refresh({bool auto = false}) async {
+    if (!mounted) return;
     if (!auto) setState(() => _refreshing = true);
     try {
-      final n = await ref.read(investingServiceProvider).refreshPrices();
-      final live = await ref
-          .read(livePriceServiceProvider)
-          .refresh(force: !auto);
-      if (n > 0 || live.anyUpdated) invalidateWealth(ref);
+      final investing = ref.read(investingServiceProvider);
+      final prices = ref.read(livePriceServiceProvider);
+      final n = await investing.refreshPrices();
+      final live = await prices.refresh(force: !auto);
+      if (mounted && (n > 0 || live.anyUpdated)) invalidateWealth(ref);
     } finally {
       if (mounted) setState(() => _refreshing = false);
     }
@@ -133,7 +136,7 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
           children: [
             for (final v in list)
               ListRow(
-                leading: IconWell(Icons.show_chart_rounded, color: c.accent),
+                leading: const WealthIcon(WealthKind.stock, size: 32),
                 title: v.holding.title,
                 subtitle: _holdingLine(v),
                 chevron: true,
@@ -273,9 +276,9 @@ class InvestingPlanSection extends ConsumerWidget {
           children: [
             for (final v in rules)
               ListRow(
-                leading: IconWell(
-                  Icons.autorenew_rounded,
-                  color: v.rule.active ? c.accent : c.textTertiary,
+                leading: Opacity(
+                  opacity: v.rule.active ? 1 : 0.5,
+                  child: const WealthIcon(WealthKind.investingRule, size: 32),
                 ),
                 title:
                     '${_ccy(v.rule.currency, v.rule.amountMinor / 100, decimals: v.rule.amountMinor % 100 != 0)} into ${v.rule.label}',

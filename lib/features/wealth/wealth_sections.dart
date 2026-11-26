@@ -19,6 +19,7 @@ import 'live_widgets.dart';
 import 'fund_screens.dart';
 import 'investing_screens.dart';
 import 'jewellery_screens.dart';
+import 'wealth_icons.dart';
 import 'wealth_widgets.dart';
 
 /// What can be added from Wealth.
@@ -43,7 +44,8 @@ Future<void> showWealthAddMenu(
           ListRow(
             leading: IconWell(Icons.document_scanner_outlined, color: c.accent),
             title: 'Scan a bill or portfolio',
-            subtitle: 'Gold bill, stock or fund screenshot. Or just describe it',
+            subtitle:
+                'Gold bill, stock or fund screenshot. Or just describe it',
             chevron: true,
             onTap: () {
               Navigator.of(sheet).pop();
@@ -51,28 +53,28 @@ Future<void> showWealthAddMenu(
             },
           ),
           ListRow(
-            leading: IconWell(Icons.show_chart_rounded, color: c.accent),
+            leading: const WealthIcon(WealthKind.stock, size: 32),
             title: 'Stock or ETF',
             subtitle: 'Live price and profit, in AED',
             chevron: true,
             onTap: () => open((_) => const AddHoldingSheet()),
           ),
           ListRow(
-            leading: IconWell(Icons.autorenew_rounded, color: c.accent),
+            leading: const WealthIcon(WealthKind.investingRule, size: 32),
             title: 'Investing rule',
             subtitle: 'Like "buy \$200 of VOO monthly"',
             chevron: true,
             onTap: () => open((_) => const AddRuleSheet()),
           ),
           ListRow(
-            leading: IconWell(Icons.diamond_outlined, color: c.accent),
+            leading: const WealthIcon(WealthKind.gold, size: 32),
             title: 'Gold or jewellery',
             subtitle: 'Photo, weight and karat. Valued from the gold price',
             chevron: true,
             onTap: () => open((_) => const AddJewellerySheet()),
           ),
           ListRow(
-            leading: IconWell(Icons.pie_chart_outline_rounded, color: c.accent),
+            leading: const WealthIcon(WealthKind.fund, size: 32),
             title: 'Mutual fund',
             subtitle: 'Search by name or enter by hand',
             chevron: true,
@@ -86,10 +88,7 @@ Future<void> showWealthAddMenu(
             onTap: () => open((_) => const AddDocumentSheet()),
           ),
           ListRow(
-            leading: IconWell(
-              Icons.account_balance_wallet_outlined,
-              color: c.accent,
-            ),
+            leading: const WealthIcon(WealthKind.property, size: 32),
             title: 'Other asset or loan',
             subtitle: 'Property, deposits, debts',
             chevron: true,
@@ -119,7 +118,7 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     await svc.refreshNavs();
     final live = await ref.read(livePriceServiceProvider).refresh(force: true);
     await svc.recordValuations();
-    invalidateWealth(ref);
+    if (mounted) invalidateWealth(ref);
     if (mounted) {
       setState(() => _busy = false);
       if (svc.prices.lastError != null || live.errors.isNotEmpty) {
@@ -289,7 +288,7 @@ class JewellerySection extends ConsumerWidget {
               ListRow(
                 leading: _Thumb(
                   v.item.photoPaths.firstOrNull,
-                  Icons.diamond_outlined,
+                  const WealthIcon(WealthKind.jewellery),
                 ),
                 title: v.item.name,
                 subtitle:
@@ -373,6 +372,7 @@ class FundsSection extends ConsumerWidget {
           children: [
             for (final v in list)
               ListRow(
+                leading: const WealthIcon(WealthKind.fund),
                 title: v.holding.name,
                 subtitle:
                     '${_units(v.holding.units)} units · NAV ${v.holding.currency} ${v.holding.nav.toStringAsFixed(2)}'
@@ -425,6 +425,7 @@ class DocumentsSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.pc;
     final docs = ref.watch(documentsProvider).value ?? const [];
     void add() => showPulseSheet<void>(
       context,
@@ -458,7 +459,7 @@ class DocumentsSection extends ConsumerWidget {
                 dense: true,
                 leading: _Thumb(
                   d.filePaths.firstOrNull,
-                  docIcon(d.category),
+                  IconWell(docIcon(d.category), color: c.accent, size: 40),
                   document: true,
                 ),
                 title: d.title,
@@ -485,12 +486,12 @@ class DocumentsSection extends ConsumerWidget {
 class _Thumb extends StatelessWidget {
   const _Thumb(this.path, this.fallback, {this.document = false});
   final String? path;
-  final IconData fallback;
+  final Widget fallback;
   final bool document;
 
   @override
   Widget build(BuildContext context) => path == null
-      ? IconWell(fallback, color: context.pc.accent, size: 40)
+      ? fallback
       : ClipRRect(
           borderRadius: BorderRadius.circular(Radii.sm),
           child: SizedBox(
