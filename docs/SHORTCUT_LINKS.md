@@ -112,3 +112,15 @@ UI copy must never promise otherwise.
   Shortcuts automation hands the text or transaction to the app.
 - A Message automation may not fire for texts you send to yourself; the test
   hint says to have someone else send it if it fails.
+
+## Merchant hold / settlement emails (EV charging, hotels, car rental)
+
+A merchant such as Regeny blocks AED 100 on the card, then settles the real charge (say AED 14.85) and
+releases the rest. Pulse reads those emails (`lib/core/engine/holds.dart`) and the bank's own alerts so the
+100 is never counted next to the 14.85: one row, pending while only a hold, the final amount once settled,
+removed if released or never settled within 7 days.
+
+On iPhone, with no Google sign-in: Shortcuts > Automation > New > **Email** > Sender `regeny.ae` (add other
+merchants the same way) > Run **Pulse Bank SMS** with the email's content. The text goes through the same
+ingest as a bank SMS; nothing else in the inbox is read. On Android and with Gmail connected the same text
+arrives from the mail source.

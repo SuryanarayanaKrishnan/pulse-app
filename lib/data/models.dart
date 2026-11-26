@@ -215,10 +215,15 @@ class Transaction {
     this.confidence = 1,
     this.receiptNotes,
     this.receiptRef,
+    this.pendingHold = false,
   });
 
   final String id;
   final String merchant;
+
+  /// A card pre-authorisation still waiting for its final charge or release.
+  /// Shown as pending and left out of budgets until it settles.
+  final bool pendingHold;
 
   /// Item-level notes taken from a matched email receipt (extracted fields
   /// only), and the id of that email. Null when no receipt was matched.
@@ -272,6 +277,7 @@ class Transaction {
     confidence: confidence ?? this.confidence,
     receiptNotes: receiptNotes,
     receiptRef: receiptRef,
+    pendingHold: pendingHold,
   );
 }
 
