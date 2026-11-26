@@ -16,7 +16,7 @@ import '../support/fake_adapter.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import '../drift/generated/schema.dart';
 
-String bundled() => File('assets/catalog/cards.json').readAsStringSync();
+String bundled() => File('test/fixtures/catalog/cards_small.json').readAsStringSync();
 
 PulseDatabase memory() => PulseDatabase(NativeDatabase.memory());
 

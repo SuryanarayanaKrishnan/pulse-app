@@ -7,7 +7,11 @@ import 'apple_shortcut.dart';
 /// banner or an order screen). Conservative: if no clear amount is found it
 /// returns null and the screenshot text is dropped, so nothing guesses.
 /// The image itself never leaves the Shortcuts action that read it.
-ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
+ShortcutTransaction? parseScreenshotText(
+  String text, {
+  DateTime? now,
+  bool nudge = false,
+}) {
   final t = text.replaceAll('\r', '');
   if (t.trim().isEmpty || isOtpMessage(t)) return null;
   final tabby = TabbyParser().parse(t, receivedAt: now);
@@ -23,7 +27,7 @@ ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
         },
       ),
       now: now,
-    )?.asScreenshot();
+    )?.asScreenshot(nudge: nudge);
   }
   final lines = [
     for (final l in t.split('\n'))
@@ -83,5 +87,5 @@ ShortcutTransaction? parseScreenshotText(String text, {DateTime? now}) {
     ),
     now: now,
   );
-  return tx?.asScreenshot();
+  return tx?.asScreenshot(nudge: nudge);
 }

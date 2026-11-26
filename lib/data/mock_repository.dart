@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'card_util.dart';
 import 'goal_service.dart';
 import 'local/goal_store.dart';
+import 'local/splits_store.dart' show NewGroupMember;
 import 'insights.dart';
 import 'models.dart';
 import 'phone.dart';
@@ -1201,6 +1202,32 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
       (g) => g.copyWith(expenses: [expense, ...g.expenses]),
     );
     return _d(expense);
+  }
+
+  @override
+  Future<SplitGroup> createSplitGroup({
+    required String name,
+    String emoji = '👥',
+    List<NewGroupMember> members = const [],
+  }) {
+    final g = SplitGroup(
+      id: _id('g'),
+      name: name.trim(),
+      emoji: emoji,
+      members: [
+        const Member('me', 'You', Color(0xFF5BC2A8), onPulse: true),
+        for (final m in members)
+          Member(
+            _id('m'),
+            m.name.trim(),
+            const Color(0xFF5BC2A8),
+            phone: m.phone == null ? null : toE164(m.phone!),
+          ),
+      ],
+      expenses: const [],
+    );
+    _groups = [g, ..._groups];
+    return _d(g);
   }
 
   /// Numbers of people who already use Pulse (demo).

@@ -49,6 +49,9 @@ void main() {
 
     test('network on the art matches the catalog network', () {
       for (final c in catalog.cards) {
+        // Many backend cards have no network on record (null); their art
+        // carries a best-guess network. Only a known network must agree.
+        if (c.network == null) continue;
         expect(c.art!.network.name, c.network, reason: c.id);
       }
     });

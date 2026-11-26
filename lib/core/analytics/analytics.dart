@@ -149,6 +149,15 @@ class AnalyticsEvent {
   factory AnalyticsEvent.permissionDenied(String permission) =>
       AnalyticsEvent._('permission_denied', {'permission': permission});
   static const splitExpenseAdded = AnalyticsEvent._('split_expense_added');
+
+  /// `members`: none | few | many (people other than you).
+  factory AnalyticsEvent.splitGroupCreated({required String members}) =>
+      AnalyticsEvent._('split_group_created', {'members': members});
+
+  /// `action`: create_group | add_expense | add_people | settle | confirm.
+  /// `reason`: not_supported | offline | invalid | storage | other.
+  factory AnalyticsEvent.splitActionFailed({required String action, required String reason}) =>
+      AnalyticsEvent._('split_action_failed', {'action': action, 'reason': reason});
   factory AnalyticsEvent.splitAutoSettled({required String match, required bool partial, required String direction}) =>
       AnalyticsEvent._('split_auto_settled', {'match': match, 'partial': partial, 'direction': direction});
   static const splitSettleUndone = AnalyticsEvent._('split_settle_undone');

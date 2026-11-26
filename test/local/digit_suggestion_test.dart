@@ -15,7 +15,7 @@ Future<(LocalPulseRepository, IngestPipeline)> _rig() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
+  final catalog = CatalogService(db: db, bundled: () async => File('test/fixtures/catalog/cards_small.json').readAsStringSync());
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db, clock: () => _now);
   addTearDown(pipeline.dispose);

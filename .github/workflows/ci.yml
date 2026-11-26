@@ -13,9 +13,11 @@ on:
 permissions:
   contents: read
 
+# Superseded pull-request runs are cancelled; runs on main are not, otherwise
+# back-to-back merges cancel each other and the tester release never publishes.
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   check:
