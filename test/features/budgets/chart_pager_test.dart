@@ -129,7 +129,10 @@ void main() {
     await _pumpMs(tester);
     expect(_title(tester), 'Month trend');
     expect(kv.data[budgetChartPageKey], 'trend');
-    await tester.tap(find.byKey(const Key('chart-dot-flow')));
+    final dot = find.byKey(const Key('chart-dot-flow'));
+    await Scrollable.ensureVisible(tester.element(dot), alignment: 0.4);
+    await _pumpMs(tester);
+    await tester.tap(dot);
     await _pumpMs(tester, 900);
     expect(_title(tester), 'Where the money flows');
     expect(find.byKey(const Key('sankey_section')), findsOneWidget);

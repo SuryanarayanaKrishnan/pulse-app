@@ -112,13 +112,17 @@ void main() {
     testWidgets('switching to Categories reports only the mode, and back again', (tester) async {
       final rec = Rec();
       await pumpBudget(tester, rec);
-      await tester.tap(find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Categories')));
+      final cats = find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Categories'));
+      await reveal(tester, cats);
+      await tester.tap(cats);
       await settle(tester);
-      expect(find.text('Spent this month'), findsOneWidget);
+      expect(find.text('Spent this month', skipOffstage: false), findsOneWidget);
       expect(find.byKey(const Key('flex_hero')), findsNothing);
-      await tester.tap(find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Flex')));
+      final flexBtn = find.descendant(of: find.byKey(const Key('budget_mode')), matching: find.text('Flex'));
+      await reveal(tester, flexBtn);
+      await tester.tap(flexBtn);
       await settle(tester);
-      expect(find.byKey(const Key('flex_hero')), findsOneWidget);
+      expect(find.byKey(const Key('flex_hero'), skipOffstage: false), findsOneWidget);
       final sent = rec.events.where((e) => e.name == 'budget_mode_changed').toList();
       expect(sent.map((e) => e.properties), [
         {'mode': 'category'},
