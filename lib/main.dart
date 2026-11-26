@@ -1,5 +1,6 @@
 import 'core/learning/global_merchant_map_loader.dart';
 import 'core/learning/learning_controller.dart';
+
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -21,6 +22,8 @@ import 'backup/background.dart';
 import 'data/local/database.dart';
 import 'data/local/open.dart';
 import 'data/providers.dart';
+import 'features/auth/session.dart';
+import 'features/onboarding/start_choice.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,17 +89,35 @@ Future<void> main() async {
     }
   }
 
+  // Remembered first-launch steps and the sample/fresh choice: a returning
+  // person goes straight in.
+  final kv = SharedPrefsKvStore();
+  final session = await SessionController.load(kv);
+  String? choice;
+  try {
+    choice = await kv.read(startChoiceKey);
+  } catch (_) {}
+  final sample = StartChoice.parse(choice) == StartChoice.sample;
+
   runApp(
     ProviderScope(
       overrides: [
+        sessionProvider.overrideWith((ref) {
+          ref.onDispose(session.dispose);
+          return session;
+        }),
         remoteConfigProvider.overrideWithValue(remoteConfig),
         contentPacksProvider.overrideWithValue(packs),
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
-        analyticsProvider.overrideWithValue(LoggingAnalytics(analytics, BugLog.instance)),
+        analyticsProvider.overrideWithValue(
+          LoggingAnalytics(analytics, BugLog.instance),
+        ),
         if (db != null)
-          databaseHolderProvider.overrideWith(() => DatabaseHolder(db)),
+          databaseHolderProvider.overrideWith(
+            () => DatabaseHolder(sample ? null : db, db),
+          ),
       ],
       child: const PulseApp(),
     ),

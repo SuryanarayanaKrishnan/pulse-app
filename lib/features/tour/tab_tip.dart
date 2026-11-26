@@ -9,7 +9,7 @@ import 'tour_progress.dart';
 /// The one line of copy for each tab's first-visit tip.
 const tabTipCopy = {
   TipTab.home: 'Tap your number to see exactly how it is worked out.',
-  TipTab.budget: 'Swipe the categories. The ones closest to their limit lead.',
+  TipTab.budget: 'Recurring bills and Household are one tap under the title.',
   TipTab.cards: 'Tap the bolt before you pay and we name the best card.',
   TipTab.splits: 'Add an expense in a few taps. Settling up is one more.',
   TipTab.wealth: 'Add gold, funds, property or loans. It all counts here.',
