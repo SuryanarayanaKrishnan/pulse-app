@@ -1,3 +1,5 @@
+import '../wealth/wealth_icons.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -331,6 +333,7 @@ class _Body extends ConsumerWidget {
                   a,
                   ListRow(
                     key: Key('asset_${a.id}'),
+                    leading: WealthIcon(WealthKind.forAsset(a.kind), size: 36),
                     title: a.name,
                     subtitle: _subtitle(joint, a),
                     onTap: a.editable

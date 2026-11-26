@@ -1,3 +1,5 @@
+import 'wealth_icons.dart';
+
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -125,7 +127,7 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
           children: [
             for (final v in list)
               ListRow(
-                leading: IconWell(Icons.show_chart_rounded, color: c.accent),
+                leading: const WealthIcon(WealthKind.stock, size: 32),
                 title: v.holding.title,
                 subtitle: _holdingLine(v),
                 chevron: true,
@@ -255,9 +257,9 @@ class InvestingPlanSection extends ConsumerWidget {
           children: [
             for (final v in rules)
               ListRow(
-                leading: IconWell(
-                  Icons.autorenew_rounded,
-                  color: v.rule.active ? c.accent : c.textTertiary,
+                leading: Opacity(
+                  opacity: v.rule.active ? 1 : 0.5,
+                  child: const WealthIcon(WealthKind.investingRule, size: 32),
                 ),
                 title:
                     '${_ccy(v.rule.currency, v.rule.amountMinor / 100, decimals: v.rule.amountMinor % 100 != 0)} into ${v.rule.label}',
@@ -370,7 +372,9 @@ class _PendingCard extends ConsumerWidget {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Not yet. I will ask again tomorrow morning.'),
+                      content: Text(
+                        'Not yet. I will ask again tomorrow morning.',
+                      ),
                     ),
                   );
                 }
@@ -578,7 +582,8 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
       existing: _vaultEntry,
     );
     if (problem != null && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(problem)));
     }
   }
 
@@ -852,10 +857,13 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
     });
     try {
       final r = await ref.read(wealthServiceProvider).searchFunds(q);
-      if (mounted && q == _fundQuery.text) setState(() => _hits = r.take(6).toList());
+      if (mounted && q == _fundQuery.text)
+        setState(() => _hits = r.take(6).toList());
     } on Object {
       if (mounted) {
-        setState(() => _searchError = 'Fund search is not reachable right now.');
+        setState(
+          () => _searchError = 'Fund search is not reachable right now.',
+        );
       }
     } finally {
       if (mounted) setState(() => _searching = false);
@@ -864,7 +872,8 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
 
   void _fromSentence(String t) {
     final lower = t.toLowerCase();
-    if (RegExp(r'\bsip\b|mutual fund|\bfund\b|flexi|\belss\b|\bnifty\b|₹').hasMatch(lower)) {
+    if (RegExp(r'\bsip\b|mutual fund|\bfund\b|flexi|\belss\b|\bnifty\b|₹')
+        .hasMatch(lower)) {
       final s = parseSipText(t);
       if (s != null) {
         setState(() {
@@ -938,9 +947,7 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
   List<Widget> _fundPicker(BuildContext context) {
     final c = context.pc;
     if (_editing) {
-      return [
-        Text(widget.initial!.label, style: context.tt.titleSmall),
-      ];
+      return [Text(widget.initial!.label, style: context.tt.titleSmall)];
     }
     return [
       TextField(
@@ -1028,13 +1035,18 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             ),
           ],
           const SizedBox(height: Space.md),
-          if (_fundMode) ..._fundPicker(context) else TextField(
-            controller: _symbol,
-            enabled: !_editing,
-            textCapitalization: TextCapitalization.characters,
-            decoration: const InputDecoration(hintText: 'Ticker, e.g. VOO or RELIANCE.NS'),
-            onChanged: (_) => setState(() {}),
-          ),
+          if (_fundMode)
+            ..._fundPicker(context)
+          else
+            TextField(
+              controller: _symbol,
+              enabled: !_editing,
+              textCapitalization: TextCapitalization.characters,
+              decoration: const InputDecoration(
+                hintText: 'Ticker, e.g. VOO or RELIANCE.NS',
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _amount,

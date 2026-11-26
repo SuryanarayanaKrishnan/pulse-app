@@ -1,3 +1,5 @@
+import 'wealth_icons.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -78,7 +80,15 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
 
   @override
   void dispose() {
-    for (final c in [_name, _weight, _price, _making, _notes, _fineness, _heldAt]) {
+    for (final c in [
+      _name,
+      _weight,
+      _price,
+      _making,
+      _notes,
+      _fineness,
+      _heldAt,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -139,7 +149,8 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
       );
       invalidateWealth(ref);
       if (problem != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(problem)));
       }
       if (mounted) Navigator.of(context).pop(item.id);
     } on Object {
@@ -429,7 +440,19 @@ class JewelleryDetailScreen extends ConsumerWidget {
     final book = ref.watch(priceBookProvider).value;
     return Scaffold(
       appBar: AppBar(
-        title: Text(view?.item.name ?? ''),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const WealthIcon(WealthKind.jewellery, size: 28),
+            const SizedBox(width: Space.sm),
+            Flexible(
+              child: Text(
+                view?.item.name ?? '',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),

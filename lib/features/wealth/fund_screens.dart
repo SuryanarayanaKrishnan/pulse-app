@@ -1,3 +1,5 @@
+import 'wealth_icons.dart';
+
 import 'dart:async';
 
 import 'package:file_picker/file_picker.dart';
@@ -91,7 +93,16 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
   @override
   void dispose() {
     _debounce?.cancel();
-    for (final c in [_query, _name, _units, _nav, _cost, _sip, _sipDay, _heldAt]) {
+    for (final c in [
+      _query,
+      _name,
+      _units,
+      _nav,
+      _cost,
+      _sip,
+      _sipDay,
+      _heldAt,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -212,7 +223,8 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
         existing: _heldEntry,
       );
       if (problem != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(problem)));
       }
       invalidateWealth(ref);
       if (mounted) Navigator.of(context).pop(f.id);
@@ -621,7 +633,19 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
     final svc = ref.watch(wealthServiceProvider);
     return Scaffold(
       appBar: AppBar(
-        title: Text(view?.holding.name ?? '', overflow: TextOverflow.ellipsis),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const WealthIcon(WealthKind.fund, size: 28),
+            const SizedBox(width: Space.sm),
+            Flexible(
+              child: Text(
+                view?.holding.name ?? '',
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
         leading: IconButton(
           tooltip: 'Back',
           icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),

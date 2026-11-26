@@ -43,7 +43,14 @@ class ChartReadout extends StatelessWidget {
                   children: [
                     Dot(color, size: 7),
                     const SizedBox(width: 6),
-                    Text(name, style: context.tt.bodySmall),
+                    Flexible(
+                      child: Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.tt.bodySmall,
+                      ),
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       value,

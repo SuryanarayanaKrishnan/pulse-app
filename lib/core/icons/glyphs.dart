@@ -653,6 +653,53 @@ final _percent = Glyph('percent', 'Interest', [
   _s(_circle(16.4, 16.4, 2.4)),
 ]);
 
+// ---- wealth glyphs (not in the category picker) -------------------------------
+
+/// Stacked gold bars.
+final _goldBars = Glyph('gold', 'Gold', [
+  _f(_pl([7.5, 11, 16.5, 11, 18.5, 16, 5.5, 16], close: true)),
+  _s(_pl([3.5, 20, 11, 20, 12.5, 16, 5, 16], close: true)),
+  _s(_pl([12.5, 20, 20.5, 20, 19, 16, 12, 16], close: true)),
+]);
+
+/// A cut gem for jewellery.
+final _gem = Glyph('jewellery', 'Jewellery', [
+  _f(_pl([7.5, 5, 16.5, 5, 20.5, 10, 12, 19.5, 3.5, 10], close: true)),
+  _s(_pl([3.5, 10, 20.5, 10])),
+  _s(_pl([9.5, 5, 8.2, 10, 12, 19.5])),
+  _s(_pl([14.5, 5, 15.8, 10, 12, 19.5])),
+]);
+
+/// A pie with a slice pulled out, for funds.
+final _pie = Glyph('fund', 'Fund', [
+  _f(_p((p) => p
+    ..moveTo(11, 6)
+    ..arcTo(Rect.fromCircle(center: const Offset(11, 13), radius: 7), -math.pi / 2, -3 * math.pi / 2, false)
+    ..lineTo(11, 13)
+    ..close())),
+  _s(_p((p) => p
+    ..moveTo(14, 4.5)
+    ..arcTo(Rect.fromCircle(center: const Offset(14, 10), radius: 5.5), -math.pi / 2, math.pi / 2, false)
+    ..lineTo(14, 10)
+    ..close())),
+]);
+
+/// A tower and a lower block, for property.
+final _building = Glyph('property', 'Property', [
+  _f(_rr(5, 4.5, 14, 20, 1.5)),
+  _s(_pl([14, 10, 19, 10, 19, 20])),
+  _s(_pl([3.5, 20, 20.5, 20])),
+  _s(_dot(8.2, 8.2)),
+  _s(_dot(10.8, 8.2)),
+  _s(_dot(8.2, 11.6)),
+  _s(_dot(10.8, 11.6)),
+  _s(_pl([8.5, 20, 8.5, 16.5, 10.5, 16.5, 10.5, 20])),
+]);
+
+/// Glyphs for what a person owns. Looked up by key like the others, but not
+/// offered in the category picker.
+final List<Glyph> wealthGlyphs = [_goldBars, _gem, _pie, _building];
+
 /// Glyphs a user can pick for a custom category, in picker order.
 final List<Glyph> customGlyphs = [
   _coffee, _paw, _dumbbell, _book, _music, _camera, //
@@ -670,7 +717,7 @@ final List<Glyph> defaultGlyphs = [
 ];
 
 final Map<String, Glyph> glyphsByKey = {
-  for (final g in [...defaultGlyphs, ...customGlyphs]) g.key: g,
+  for (final g in [...defaultGlyphs, ...customGlyphs, ...wealthGlyphs]) g.key: g,
 };
 
 /// The fallback glyph.
