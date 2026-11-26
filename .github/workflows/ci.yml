@@ -81,14 +81,19 @@ jobs:
           } >> ~/.gradle/gradle.properties
 
       # Stable beta signing key so testers can update in place (see android/app/build.gradle.kts).
-      - name: Decode beta signing key
-        run: base64 -d android/app/pulse-beta.keystore.b64 > android/app/pulse-beta.keystore
+      - name: Decode beta signing key (secret; skipped when not available)
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: |
+          if [ -n "$KS" ]; then printf '%s' "$KS" | base64 -d > android/app/pulse-beta.keystore; else echo "::notice::No ANDROID_KEYSTORE_B64 secret; signing with the debug key"; fi
 
       # Compiles the Kotlin capture code (SMS receiver, notification listener).
       # The release build is signed with the debug keystore (android/app/build.gradle.kts),
       # so the APK installs directly on a phone with "install unknown apps" allowed.
       - name: Build release APK (debug-keystore signed)
         timeout-minutes: 25
+        env:
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
         run: flutter build apk --release --dart-define-from-file=deploy/app.defines.json --build-number ${{ github.run_number }}
 
       - uses: actions/upload-artifact@v4
