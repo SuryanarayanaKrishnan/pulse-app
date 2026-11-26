@@ -68,7 +68,7 @@ const _currencies =
 
 final _placeholders = <String, String>{
   '{AMT}':
-      '(?<cur>$_currencies|Dhs?\\.?)\\s?(?<amt>\\d[\\d,]*(?:\\.\\d{1,3})?)',
+      '(?<cur>$_currencies|Dhs?\\.?)\\s?(?<amt>\\d[\\d,]*(?:\\.\\d{1,3})?|\\.\\d{1,3})',
   '{L4}': r'(?:(?:x|X|\*|•){1,}\s?)?(?<last4>\d{4})\b',
   '{M}':
       r"(?<merchant>[A-Za-z0-9&'.\-*/+@ ]{2,60}?)"
@@ -89,7 +89,8 @@ final _ws = RegExp(r'\s+');
 
 /// True for one-time-password style messages. These are never parsed, stored
 /// or queued anywhere.
-bool isOtpMessage(String text) => _otp.hasMatch(text) || _otpLoose.hasMatch(text);
+bool isOtpMessage(String text) =>
+    _otp.hasMatch(text) || _otpLoose.hasMatch(text);
 
 class Template {
   const Template(this.pattern, this.direction);
@@ -137,7 +138,10 @@ final List<Template> commonTemplates = [
     _cr,
   ),
   tpl(r'(?:salary|refund) (?:of )?{AMT}[^.]{0,40}?{L4}', _cr),
-  tpl(r'payment of {AMT} (?:has been )?(?:received|credited)[^.]{0,40}?{L4}', _cr),
+  tpl(
+    r'payment of {AMT} (?:has been )?(?:received|credited)[^.]{0,40}?{L4}',
+    _cr,
+  ),
 ];
 
 final _creditWords = RegExp(
@@ -419,7 +423,9 @@ final SmsParser adibParser = SmsParser(
   'adib',
   [
     tpl(r'cr\. card {L4} was used for {AMT} at {M}'),
-    tpl(r'purchase transaction of {AMT} on card ending {L4} at {M} was successful'),
+    tpl(
+      r'purchase transaction of {AMT} on card ending {L4} at {M} was successful',
+    ),
     tpl(r'{AMT} deposited (?:in|into) your account {L4}', _cr),
   ],
   nameHints: const ['ADIB', 'Abu Dhabi Islamic Bank'],
@@ -443,6 +449,24 @@ final SmsParser mashreqParser = SmsParser(
     ),
     tpl(r'{AMT} spent using mashreq (?:credit|debit) card {L4} at {M}'),
     tpl(r'{AMT} is credited to your account {L4}', _cr),
+    // Card alerts by email: "Your Mashreq Cashback Card ending with 9333 was used for a purchase of
+    // EUR .93 at ORACLE IRELAND 3531 IE on 25-NOV-2026". Foreign amounts stay in their currency.
+    tpl(r'card ending (?:with )?{L4} was used for a purchase of {AMT} at {M}'),
+    // Mashreq NEO account emails ("Transaction notification on your Mashreq NEO Account").
+    tpl(
+      r"(?:ac|a/c) no[:.]? ?{L4} is debited with {AMT} (?:for|as) (?<merchant>[A-Za-z0-9&' \-]+?)(?= \(|\.|\s+login|\s+to view|$)",
+    ),
+    tpl(
+      r"(?:ac|a/c) no[:.]? ?{L4} is credited with {AMT} (?:for|as) (?<merchant>[A-Za-z0-9&' \-]+?)(?= \(|\.|\s+login|\s+to view|$)",
+      _cr,
+    ),
+    tpl(
+      r"(?:an )?amount of {AMT} has been credited to your mashreq (?:a/c|account)(?: no)?[:.]? ?{L4} (?:for|as) (?<merchant>[A-Za-z0-9&' \-]+?)(?= \(|\.|\s+login|\s+to view|$)",
+      _cr,
+    ),
+    tpl(
+      r"(?:an )?amount of {AMT} has been debited from your mashreq (?:a/c|account)(?: no)?[:.]? ?{L4} (?:for|as) (?<merchant>[A-Za-z0-9&' \-]+?)(?= \(|\.|\s+login|\s+to view|$)",
+    ),
   ],
   nameHints: const ['Mashreq'],
 );

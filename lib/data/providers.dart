@@ -518,6 +518,10 @@ final Provider<LocalStatementService?> localStatementServiceProvider =
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
+/// The salary typed in by hand (amount + payday), if any.
+final manualSalaryProvider = FutureProvider<ManualSalary?>(
+  (ref) => ref.watch(repositoryProvider).manualSalary(),
+);
 final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
   (ref) => ref.watch(repositoryProvider).emailConnections(),
 );

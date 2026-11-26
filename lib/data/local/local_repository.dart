@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:material_ui/material_ui.dart' show Color, DateUtils;
@@ -146,6 +147,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       pendingHold: t.tags.contains('pending_hold'),
       reviewed: t.reviewed,
       receiptNotes: t.receiptNotes,
+      note: t.notes,
       receiptRef: t.receiptRef,
       confidence: categoryConfidence(
         hasCategory: t.categoryId != null,
@@ -165,7 +167,12 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     );
   }
 
-  Future<List<TxRow>> _txRows({DateTime? since}) => (db.select(db.transactions)
+  Future<List<TxRow>> _txRows({DateTime? since}) async {
+    await _planSalary();
+    return _txRowsQuery(since: since);
+  }
+
+  Future<List<TxRow>> _txRowsQuery({DateTime? since}) => (db.select(db.transactions)
         ..where((t) => t.deletedAt.isNull() & (since == null ? const Constant(true) : t.postedAt.isBiggerOrEqualValue(since)))
         ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)]))
       .get();
@@ -192,6 +199,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   @override
   Future<TxPage> transactionsPage({String? cursor, int limit = 50}) async {
+    if (cursor == null) await _planSalary();
     final q = db.select(db.transactions)
       ..where((t) => t.deletedAt.isNull())
       ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)])
@@ -385,6 +393,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     required String merchant,
     required double amount,
     required SpendCategory category,
+    DateTime? date,
+    String? note,
   }) async {
     final acct = await _cashAccount();
     final catId = await _categoryId(category);
@@ -399,13 +409,106 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         categoryId: Value(catId),
         merchantRaw: Value(name),
         merchantNormalized: Value(name),
-        postedAt: _clock().toUtc(),
+        notes: Value(note == null || note.trim().isEmpty ? null : note.trim()),
+        postedAt: (date ?? _clock()).toUtc(),
         source: 'manual',
         sources: const Value('["manual"]'),
         reviewed: const Value(true),
       ),
     );
     return _txById(id);
+  }
+
+  @override
+  Future<void> setTransactionNote(String txId, String? note) async {
+    final n = note?.trim();
+    await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
+      TransactionsCompanion(notes: Value(n == null || n.isEmpty ? null : n)),
+    );
+  }
+
+  @override
+  Future<void> deleteTransaction(String txId) async {
+    await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
+      TransactionsCompanion(deletedAt: Value(_clock().toUtc())),
+    );
+  }
+
+  // ---- manual salary ------------------------------------------------------
+
+  static const _salaryKey = 'salary.manual';
+
+  @override
+  Future<ManualSalary?> manualSalary() async {
+    final raw = await db.setting(_salaryKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final m = jsonDecode(raw) as Map;
+      final a = m['amountMinor'] as int, d = m['day'] as int;
+      return a > 0 && d >= 1 && d <= 31 ? ManualSalary(amountMinor: a, day: d) : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> setManualSalary(ManualSalary? salary) async {
+    await db.putSetting(
+      _salaryKey,
+      salary == null ? '' : jsonEncode({'amountMinor': salary.amountMinor, 'day': salary.day}),
+    );
+    await _planSalary();
+  }
+
+  /// Keeps this month's salary credit in step with the salary you entered:
+  /// a planned credit appears on payday, and gives way to the real one the
+  /// moment a salary credit is detected (which also updates the amount).
+  Future<void> _planSalary() async {
+    final s = await manualSalary();
+    final today = _today;
+    final monthStart = DateTime.utc(today.year, today.month, 1).subtract(const Duration(hours: 4));
+    final planId = 'salary-plan-${today.year}-${today.month.toString().padLeft(2, '0')}';
+    final plan = await (db.select(db.transactions)..where((t) => t.id.equals(planId))).getSingleOrNull();
+    if (s == null) {
+      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
+      return;
+    }
+    final real = await (db.select(db.transactions)
+          ..where((t) =>
+              t.categoryId.equals('salary') &
+              t.direction.equals('credit') &
+              t.deletedAt.isNull() &
+              t.postedAt.isBiggerOrEqualValue(monthStart) &
+              t.id.equals(planId).not())
+          ..limit(1))
+        .getSingleOrNull();
+    if (real != null) {
+      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
+      if (real.amountMinor != s.amountMinor && real.amountMinor >= 50000 && real.currency == 'AED') {
+        await db.putSetting(_salaryKey, jsonEncode({'amountMinor': real.amountMinor, 'day': s.day}));
+      }
+      return;
+    }
+    if (plan != null) return;
+    final day = math.min(s.day, DateUtils.getDaysInMonth(today.year, today.month));
+    if (today.day < day) return;
+    final acct = await _cashAccount();
+    await db.into(db.transactions).insert(
+      TransactionsCompanion.insert(
+        id: planId,
+        accountId: acct.id,
+        amountMinor: s.amountMinor,
+        direction: 'credit',
+        categoryId: Value(await _categoryId(SpendCategory.salary)),
+        merchantRaw: const Value('Salary'),
+        merchantNormalized: const Value('Salary'),
+        notes: const Value('Added from the salary you entered. Replaced when the real credit arrives.'),
+        postedAt: DateTime.utc(today.year, today.month, day, 4),
+        source: 'manual',
+        sources: const Value('["salary_plan"]'),
+        reviewed: const Value(true),
+      ),
+    );
   }
 
   @override

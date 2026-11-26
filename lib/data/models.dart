@@ -216,10 +216,14 @@ class Transaction {
     this.receiptNotes,
     this.receiptRef,
     this.pendingHold = false,
+    this.note,
   });
 
   final String id;
   final String merchant;
+
+  /// Your own note on this payment. Null when there is none.
+  final String? note;
 
   /// A card pre-authorisation still waiting for its final charge or release.
   /// Shown as pending and left out of budgets until it settles.
@@ -261,6 +265,8 @@ class Transaction {
     bool? excluded,
     bool? reviewed,
     double? confidence,
+    String? note,
+    bool clearNote = false,
   }) => Transaction(
     id: id,
     merchant: merchant ?? this.merchant,
@@ -278,7 +284,17 @@ class Transaction {
     receiptNotes: receiptNotes,
     receiptRef: receiptRef,
     pendingHold: pendingHold,
+    note: clearNote ? null : (note ?? this.note),
   );
+}
+
+/// A salary the user typed in: the amount and the day of the month it lands.
+class ManualSalary {
+  const ManualSalary({required this.amountMinor, required this.day});
+  final int amountMinor;
+
+  /// 1 to 31; shorter months use their last day.
+  final int day;
 }
 
 /// One page of a cursor-paginated transaction listing.

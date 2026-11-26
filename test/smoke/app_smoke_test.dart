@@ -203,6 +203,8 @@ void main() {
     final pos = tester.state<ScrollableState>(find.byType(Scrollable).first).position;
     pos.jumpTo(0);
     await settle();
+    await tester.scrollUntilVisible(privacyRow, 300, scrollable: find.byType(Scrollable).first);
+    await settle();
     pos.jumpTo(pos.pixels + tester.getCenter(privacyRow).dy - 420);
     await settle();
     await tester.tap(privacyRow);

@@ -3,6 +3,7 @@ import 'dart:io' show Platform;
 import '../../core/network/cloud_access.dart';
 
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'salary_sheet.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,7 @@ import '../../core/env/env.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/theme_mode.dart';
 import '../../core/theme/tokens.dart';
+import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
@@ -36,6 +38,8 @@ import '../onboarding/start_choice.dart';
 import '../tour/tour_progress.dart';
 
 bool get _android => !kIsWeb && Platform.isAndroid;
+
+String _ordinal(int d) => (d % 100 >= 11 && d % 100 <= 13) ? 'th' : switch (d % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', _ => 'th' };
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -144,6 +148,20 @@ class SettingsScreen extends ConsumerWidget {
                 title: 'Categories & budgets',
                 chevron: true,
                 onTap: () => context.push(Routes.categories),
+              ),
+              ListRow(
+                key: const Key('settings_salary'),
+                leading: const IconWell(Icons.payments_outlined),
+                title: 'Salary',
+                subtitle: switch (ref.watch(manualSalaryProvider).value) {
+                  final s? => '${Money.aed(s.amountMinor / 100, decimals: s.amountMinor % 100 != 0)} on the ${s.day}${_ordinal(s.day)}',
+                  null => 'Set it by hand, or we find it in your bank alerts',
+                },
+                chevron: true,
+                onTap: () => showPulseSheet<void>(
+                  context,
+                  builder: (_) => SalarySheet(current: ref.read(manualSalaryProvider).value),
+                ),
               ),
               ListRow(
                 leading: const IconWell(Icons.auto_mode_rounded),
