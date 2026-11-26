@@ -83,6 +83,11 @@ void main() {
       await tester.tap(find.text('Month end'));
       await tester.pumpAndSettle();
       expect(find.text('Safe to spend today'), findsNothing);
+      await tester.dragUntilVisible(
+        find.text('Cash flow'),
+        find.byType(ListView).first,
+        const Offset(0, -300),
+      );
       expect(find.text('Cash flow'), findsOneWidget);
       expect(stored().activeId, 'month_end');
     },
@@ -160,7 +165,10 @@ void main() {
     await tester.tap(find.bySemanticsLabel(RegExp('^Safe to spend size')));
     await tester.pumpAndSettle();
     expect(stored().active.widgets.first.size, WidgetSize.compact);
-    expect(find.text('Compact'), findsNWidgets(4)); // + net worth, splits, goals
+    expect(
+      find.text('Compact'),
+      findsNWidgets(4),
+    ); // + net worth, splits, goals
     await tester.tap(find.bySemanticsLabel(RegExp('^Safe to spend size')));
     await tester.pumpAndSettle();
     expect(stored().active.widgets.first.size, WidgetSize.regular);

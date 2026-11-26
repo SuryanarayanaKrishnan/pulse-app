@@ -42,6 +42,11 @@ void main() {
     await _pump(tester);
     expect(find.text('Safe to spend today'), findsOneWidget);
     expect(find.text('Which card should I use?'), findsOneWidget);
+    await tester.dragUntilVisible(
+      find.textContaining('Financial health'),
+      find.byType(ListView).first,
+      const Offset(0, -300),
+    );
     expect(find.textContaining('Financial health'), findsOneWidget);
     await tester.dragUntilVisible(
       find.text('Recent'),
@@ -156,6 +161,9 @@ void main() {
     );
     await tester.tap(find.text('Family vault'));
     await tester.pumpAndSettle();
-    expect(find.text('A calm place for the things your family would need to find.'), findsOneWidget);
+    expect(
+      find.text('A calm place for the things your family would need to find.'),
+      findsOneWidget,
+    );
   });
 }
