@@ -1,3 +1,5 @@
+import 'core/learning/contribution_transport.dart';
+import 'core/learning/http_learning.dart';
 import 'core/learning/global_merchant_map_loader.dart';
 import 'core/learning/learning_controller.dart';
 
@@ -42,11 +44,24 @@ Future<void> main() async {
   final privacy = PrivacyController(SharedPrefsKvStore());
   await privacy.load();
   // "Help improve categories": off until chosen; no upload endpoint is
-  // configured in this build, so nothing is sent (docs/LEARNING.md).
+  // configured without a backend, so nothing is sent (docs/LEARNING.md).
   final learningKv = SharedPrefsKvStore();
   final merchantMap = await GlobalMerchantMapLoader(kv: learningKv).load();
-  final learning = LearningController(learningKv, map: merchantMap);
+  final learningDio = Env.useApi ? anonymousClient(Env.apiBaseUrl) : null;
+  final learning = LearningController(
+    learningKv,
+    map: merchantMap,
+    transport: learningDio == null
+        ? const DisabledContributionTransport()
+        : HttpContributionTransport(learningDio),
+  );
   await learning.load();
+  // The shared map improves with everyone's confirmations; a newer one applies next launch.
+  if (learningDio != null) {
+    unawaited(
+      refreshMerchantMap(learningDio, kv: learningKv, current: merchantMap),
+    );
+  }
   final analytics = GatedAnalytics(buildAnalytics(), privacy);
   try {
     await analytics.init();
