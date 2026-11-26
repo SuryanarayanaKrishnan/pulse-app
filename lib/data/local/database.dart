@@ -46,6 +46,10 @@ part 'database.g.dart';
     InvestmentHoldings,
     InvestingRules,
     InvestingOccurrences,
+    SplitGroups,
+    SplitMembers,
+    SplitExpenses,
+    SplitSettlements,
   ],
 )
 class PulseDatabase extends _$PulseDatabase {
@@ -53,7 +57,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 12;
+  static const currentSchemaVersion = 13;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -187,6 +191,14 @@ class PulseDatabase extends _$PulseDatabase {
         await schema.database.customStatement(
           'UPDATE fund_holdings SET is_private = 1',
         );
+      },
+      // v13: the splits ledger on the phone (groups, members, expenses,
+      // settlements). Purely additive, so Splits works with no backend.
+      from12To13: (m, schema) async {
+        await m.createTable(schema.splitGroups);
+        await m.createTable(schema.splitMembers);
+        await m.createTable(schema.splitExpenses);
+        await m.createTable(schema.splitSettlements);
       },
     ),
     beforeOpen: (details) async {
