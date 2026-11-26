@@ -57,8 +57,10 @@ void main() {
       now: DateTime(2026, 11, 30),
     );
 
-    test('Tabby via SIB Cashback is at the top and carries an estimate', () {
-      final top = combos.first;
+    test('combos with a figure come first, Tabby via SIB Cashback among them with its estimate', () {
+      // The Reddit stack has the bigger figure; Tabby via SIB follows it.
+      expect(combos.first.id, 'reddit-liv-df-sib-tabby-stack');
+      final top = combos[1];
       expect(top.id, 'sib-cashback-tabby-wallet-only');
       expect(top.isWarning, isTrue);
       expect(top.hasSaving, isTrue);
@@ -75,7 +77,7 @@ void main() {
       const wallet = 0.10, typed = 0.005, cap = 300.0;
       final walletEarn = (monthly * wallet).clamp(0, cap);
       final annual = (walletEarn - monthly * typed) * 12;
-      expect(combos.first.annualSavingAed, closeTo(annual, 0.5));
+      expect(combos[1].annualSavingAed, closeTo(annual, 0.5));
       expect(annual.round(), 798);
     });
   });
