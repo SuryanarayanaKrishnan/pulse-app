@@ -118,7 +118,7 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
     await svc.refreshNavs();
     final live = await ref.read(livePriceServiceProvider).refresh(force: true);
     await svc.recordValuations();
-    invalidateWealth(ref);
+    if (mounted) invalidateWealth(ref);
     if (mounted) {
       setState(() => _busy = false);
       if (svc.prices.lastError != null || live.errors.isNotEmpty) {

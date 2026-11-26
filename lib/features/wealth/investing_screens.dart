@@ -60,13 +60,14 @@ class _InvestmentsSectionState extends ConsumerState<InvestmentsSection> {
   /// [auto] is the quiet refresh when the section first shows: no spinner,
   /// and the throttle applies. The button forces one.
   Future<void> _refresh({bool auto = false}) async {
+    if (!mounted) return;
     if (!auto) setState(() => _refreshing = true);
     try {
-      final n = await ref.read(investingServiceProvider).refreshPrices();
-      final live = await ref
-          .read(livePriceServiceProvider)
-          .refresh(force: !auto);
-      if (n > 0 || live.anyUpdated) invalidateWealth(ref);
+      final investing = ref.read(investingServiceProvider);
+      final prices = ref.read(livePriceServiceProvider);
+      final n = await investing.refreshPrices();
+      final live = await prices.refresh(force: !auto);
+      if (mounted && (n > 0 || live.anyUpdated)) invalidateWealth(ref);
     } finally {
       if (mounted) setState(() => _refreshing = false);
     }
