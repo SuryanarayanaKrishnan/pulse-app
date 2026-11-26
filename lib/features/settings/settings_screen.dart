@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import '../../core/network/cloud_access.dart';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -78,7 +80,10 @@ class SettingsScreen extends ConsumerWidget {
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: IconWell(Icons.workspace_premium_outlined, color: context.pc.accent),
+                leading: IconWell(
+                  Icons.workspace_premium_outlined,
+                  color: context.pc.accent,
+                ),
                 title: 'Pulse Plus',
                 subtitle: ref.watch(entitlementProvider).isPlus
                     ? 'On (test billing)'
@@ -93,7 +98,8 @@ class SettingsScreen extends ConsumerWidget {
             RowGroup(
               indent: ListRow.leadingInset,
               children: [
-                for (final d in ref.watch(dismissedDigitsProvider).toList()..sort())
+                for (final d
+                    in ref.watch(dismissedDigitsProvider).toList()..sort())
                   ListRow(
                     leading: const IconWell(Icons.undo_rounded),
                     title: 'Ask again about ••$d',
@@ -221,7 +227,9 @@ class SettingsScreen extends ConsumerWidget {
               ListRow(
                 leading: const IconWell(Icons.mail_outline_rounded),
                 title: 'Gmail statements',
-                subtitle: connected == null
+                subtitle: !ref.watch(cloudAccessProvider).isReady
+                    ? needsSignInTitle
+                    : connected == null
                     ? 'Not connected'
                     : 'Connected · ${connected.email}',
                 trailing: connected == null
@@ -310,7 +318,9 @@ class SettingsScreen extends ConsumerWidget {
                   if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Walkthroughs will show again on each screen'),
+                      content: Text(
+                        'Walkthroughs will show again on each screen',
+                      ),
                     ),
                   );
                 },

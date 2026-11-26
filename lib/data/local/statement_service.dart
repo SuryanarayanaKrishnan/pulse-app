@@ -7,7 +7,9 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
 
+import '../../core/engine/sheet_import.dart' show parseCsv, readXlsx;
 import '../../core/engine/split_settle.dart';
+import '../../core/engine/statement_import.dart';
 import '../../core/engine/statement_parser.dart';
 import '../../core/engine/statement_transfers.dart';
 import '../../core/engine/types.dart';
@@ -163,7 +165,10 @@ class LocalStatementService {
   /// Offers each transfer line to auto-settle exactly once: lines already
   /// offered (re-reads, overlapping statements) and lines a live capture
   /// (SMS, notification) already saw are skipped.
-  Future<void> _settleTransfers(String statementId, ParsedStatement parsed) async {
+  Future<void> _settleTransfers(
+    String statementId,
+    ParsedStatement parsed,
+  ) async {
     final cb = onTransfer;
     if (cb == null) return;
     Set<String> handled;
@@ -174,9 +179,11 @@ class LocalStatementService {
     } catch (_) {
       handled = {};
     }
-    final captured = await (db.select(db.transactions)
-          ..where((t) => t.deletedAt.isNull() & t.source.equals('statement').not()))
-        .get();
+    final captured =
+        await (db.select(db.transactions)..where(
+              (t) => t.deletedAt.isNull() & t.source.equals('statement').not(),
+            ))
+            .get();
     var changed = false;
     for (final l in parsed.lines) {
       final c = transferCounterparty(l.description, l.direction);
@@ -208,24 +215,54 @@ class LocalStatementService {
       ...saved.where((s) => s.institution == institution),
       ...saved.where((s) => s.institution != institution),
     ];
-    return [
-      for (final s in ordered)
-        ?await passwords.read(s.institution),
-    ];
+    return [for (final s in ordered) ?await passwords.read(s.institution)];
   }
 
+  /// Reads a statement file of any supported kind (PDF, CSV, Excel .xlsx,
+  /// text). Throws [StatementImportException] with a specific reason and next
+  /// step when it cannot; a locked PDF is kept (still encrypted) and the
+  /// exception carries its `statementId` so the screen can ask for the
+  /// password and retry.
   Future<StatementUpload> upload({
     required Uint8List bytes,
     required String filename,
     String? institution,
+    StatementColumns? columns,
+    List<List<String>>? rows,
   }) async {
+    if (bytes.isEmpty)
+      throw StatementImportException.empty.copyWith(filename: filename);
+    final format = sniffFormat(bytes, filename);
     institution ??= _detectFromFilename(filename);
+    if (format == StatementFormat.xls ||
+        format == StatementFormat.image ||
+        format == StatementFormat.unknown) {
+      throw StatementImportException.wrongFormat(format)
+          .copyWith(filename: filename);
+    }
     final sha = sha256.convert(bytes).toString();
     final dup =
         await (db.select(db.statements)
               ..where((t) => t.fileSha256.equals(sha) & t.deletedAt.isNull()))
             .getSingleOrNull();
     if (dup != null) return StatementUpload(dup.id, duplicate: true);
+
+    // Tables and text are read before anything is stored, so a failure leaves
+    // no half-imported row behind.
+    ParsedStatement? parsed;
+    if (format != StatementFormat.pdf) {
+      try {
+        parsed = _readNonPdf(
+          format,
+          bytes,
+          institution,
+          columns: columns,
+          rows: rows,
+        );
+      } on StatementImportException catch (e) {
+        throw e.copyWith(filename: filename);
+      }
+    }
     final id = newId();
     await db
         .into(db.statements)
@@ -238,8 +275,95 @@ class LocalStatementService {
             source: const Value('upload'),
           ),
         );
-    await _process(id, bytes, institution);
+    if (parsed != null) {
+      await _store(id, parsed, parsed.institution ?? institution);
+      return StatementUpload(id);
+    }
+    final problem = await _process(id, bytes, institution);
+    if (problem != null) {
+      if (problem.problem != StatementProblem.passwordNeeded &&
+          problem.problem != StatementProblem.wrongPassword) {
+        // Nothing worth keeping: the message is shown right away.
+        await (db.delete(db.statements)..where((t) => t.id.equals(id))).go();
+        throw problem.copyWith(filename: filename);
+      }
+      throw problem.copyWith(statementId: id, filename: filename);
+    }
     return StatementUpload(id);
+  }
+
+  ParsedStatement _readNonPdf(
+    StatementFormat format,
+    Uint8List bytes,
+    String? institution, {
+    StatementColumns? columns,
+    List<List<String>>? rows,
+  }) {
+    ParsedStatement fromRows(List<List<String>> r) {
+      if (columns == null)
+        return readStatementTable(r, institution: institution);
+      final p = parseStatementTable(r, columns, institution: institution);
+      if (p == null) {
+        throw StatementImportException(
+          StatementProblem.unrecognisedLayout,
+          'No transactions were found with those columns.',
+          nextStep: 'Check which column is the date and which is the amount.',
+          rows: r,
+          institution: institution,
+        );
+      }
+      return p;
+    }
+
+    switch (format) {
+      case StatementFormat.csv:
+        return fromRows(rows ?? parseCsv(decodeText(bytes)));
+      case StatementFormat.xlsx:
+        final Map<String, List<List<String>>> sheets;
+        try {
+          sheets = readXlsx(bytes);
+        } on FormatException {
+          throw StatementImportException.wrongFormat(StatementFormat.unknown);
+        }
+        if (sheets.values.every(
+          (s) => s.every((r) => r.every((c) => c.trim().isEmpty)),
+        )) {
+          throw StatementImportException.empty;
+        }
+        if (rows != null) return fromRows(rows);
+        StatementImportException? last;
+        List<List<String>>? biggest;
+        for (final sheet in sheets.values) {
+          if (biggest == null || sheet.length > biggest.length) biggest = sheet;
+          try {
+            return fromRows(sheet);
+          } on StatementImportException catch (e) {
+            last = e;
+          }
+        }
+        throw last == null
+            ? StatementImportException.empty
+            : StatementImportException(
+                last.problem,
+                last.message,
+                nextStep: last.nextStep,
+                rows: biggest,
+                institution: institution,
+              );
+      case StatementFormat.text:
+        final text = decodeText(bytes);
+        if (text.trim().isEmpty) throw StatementImportException.empty;
+        final inst = institution ?? _detect(text);
+        final p = parseStatement(text, institution: inst);
+        if (p != null) return p;
+        try {
+          return fromRows(parseCsv(text));
+        } on StatementImportException {
+          throw StatementImportException.unsupported(institution: inst);
+        }
+      default:
+        throw StatementImportException.wrongFormat(format);
+    }
   }
 
   /// Re-reads a locked statement (after a password was saved).
@@ -272,7 +396,13 @@ class LocalStatementService {
     return opened;
   }
 
-  Future<void> _process(String id, Uint8List bytes, String? institution) async {
+  /// Reads a stored PDF. Returns why it could not be read, or null when its
+  /// lines were stored.
+  Future<StatementImportException?> _process(
+    String id,
+    Uint8List bytes,
+    String? institution,
+  ) async {
     Future<void> setStatus(String status, {String? error}) =>
         (db.update(db.statements)..where((t) => t.id.equals(id))).write(
           StatementsCompanion(
@@ -280,30 +410,49 @@ class LocalStatementService {
             parseError: Value(error),
           ),
         );
+    Future<StatementImportException> fail(StatementImportException e) async {
+      await setStatus('failed', error: '${e.message} ${e.nextStep}'.trim());
+      return e;
+    }
 
-    final read = await _extractor.extract(
-      bytes,
-      await _candidates(institution),
-    );
+    final candidates = await _candidates(institution);
+    final read = await _extractor.extract(bytes, candidates);
     switch (read.status) {
       case PdfReadStatus.needsPassword:
         await _locked.put(id, bytes);
-        return setStatus('needs_password');
+        await setStatus('needs_password');
+        return candidates.isEmpty
+            ? StatementImportException(
+                StatementProblem.passwordNeeded,
+                'This statement is locked with a password.',
+                nextStep: 'Enter it once. It stays on this phone and Pulse reads the statement again.',
+                institution: institution,
+              )
+            : StatementImportException(
+                StatementProblem.wrongPassword,
+                'The saved password did not open this statement.',
+                nextStep: 'Check it and enter it again.',
+                institution: institution,
+              );
       case PdfReadStatus.failed:
         await _locked.remove(id);
-        return setStatus('failed', error: read.error);
+        return fail(StatementImportException.damaged);
       case PdfReadStatus.read:
         break;
     }
     await _locked.remove(id);
+    if (looksScanned(read.text)) return fail(StatementImportException.scanned);
     final inst = institution ?? _detect(read.text);
     final parsed = parseStatement(read.text, institution: inst);
     if (parsed == null) {
-      return setStatus(
-        'failed',
-        error: 'No transactions found in this statement.',
-      );
+      return fail(StatementImportException.unsupported(institution: inst));
     }
+    await _store(id, parsed, inst);
+    return null;
+  }
+
+  /// Writes a parsed statement's lines and summary.
+  Future<void> _store(String id, ParsedStatement parsed, String? inst) async {
     final recon = reconcile(parsed);
     await db.transaction(() async {
       await (db.delete(
@@ -349,6 +498,89 @@ class LocalStatementService {
       );
     });
     await _settleTransfers(id, parsed);
+  }
+
+  /// What the reconciliation sheet shows: the statement's balances and how its
+  /// lines compare with what Pulse captured in the same period.
+  Future<Reconciliation> reconciliation(String statementId) async {
+    final row = await (db.select(
+      db.statements,
+    )..where((t) => t.id.equals(statementId))).getSingle();
+    final lines =
+        await (db.select(db.statementLines)
+              ..where((t) => t.statementId.equals(statementId))
+              ..orderBy([(t) => OrderingTerm.asc(t.lineNo)]))
+            .get();
+    final captured =
+        await (db.select(db.transactions)..where(
+              (t) => t.deletedAt.isNull() & t.source.equals('statement').not(),
+            ))
+            .get();
+    final a = _day(row.periodStart), b = _day(row.periodEnd);
+    final inPeriod = captured.where((t) {
+      if (a == null || b == null) return false;
+      final d = DateTime.utc(t.postedAt.year, t.postedAt.month, t.postedAt.day);
+      return !d.isBefore(DateTime.utc(a.year, a.month, a.day)) &&
+          !d.isAfter(DateTime.utc(b.year, b.month, b.day));
+    }).toList();
+    final used = <String>{};
+    var linked = 0;
+    final only = <ReconLine>[];
+    for (final l in lines) {
+      final day = DateTime.parse(l.postedOn).toUtc();
+      final hit = inPeriod.where((t) {
+        if (used.contains(t.id)) return false;
+        return t.amountMinor == l.amountMinor &&
+            t.direction == l.direction &&
+            t.postedAt.toUtc().difference(day).inDays.abs() <= 1;
+      }).firstOrNull;
+      if (hit != null) {
+        used.add(hit.id);
+        linked++;
+      } else {
+        only.add(
+          ReconLine(
+            date: DateTime.parse(l.postedOn),
+            description: l.description,
+            amount: l.amountMinor / 100,
+            credit: l.direction == 'credit',
+          ),
+        );
+      }
+    }
+    final missing = [
+      for (final t in inPeriod)
+        if (!used.contains(t.id))
+          ReconLine(
+            date: t.postedAt,
+            description: t.merchantNormalized ?? t.merchantRaw ?? 'Transaction',
+            amount: t.amountMinor / 100,
+            credit: t.direction == 'credit',
+          ),
+    ];
+    final diff = row.diffMinor;
+    final closing = row.closingBalanceMinor;
+    return Reconciliation(
+      statementId: statementId,
+      status: ReconStatus.fromWire(row.reconciliationStatus),
+      opening: row.openingBalanceMinor == null
+          ? null
+          : row.openingBalanceMinor! / 100,
+      closing: closing == null ? null : closing / 100,
+      computedClosing: closing == null || diff == null
+          ? null
+          : (closing - diff) / 100,
+      diff: diff == null ? null : diff / 100,
+      linked: linked,
+      statementOnly: only,
+      capturedOnly: missing,
+      warnings: [
+        for (final w
+            in (jsonDecode(row.summary ?? '{}') as Map)['warnings'] as List? ??
+                const [])
+          '$w',
+      ],
+    );
   }
 
   Future<List<Statement>> statements() async {

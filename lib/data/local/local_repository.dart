@@ -1494,7 +1494,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<T> _needsServer<T>(String what, Future<T> Function(PulseRepository s) call) {
     final s = shared;
     if (s == null) {
-      return Future.error(ApiException(message: '$what needs a Pulse account and a connection.', code: 'not_supported'));
+      return Future.error(NeedsSignInException(what));
     }
     return call(s);
   }
@@ -1544,7 +1544,10 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
-  Future<Reconciliation> reconciliation(String statementId) => _needsServer('Statements', (s) => s.reconciliation(statementId));
+  Future<Reconciliation> reconciliation(String statementId) {
+    final svc = statementService;
+    return svc != null ? svc.reconciliation(statementId) : _needsServer('Statements', (s) => s.reconciliation(statementId));
+  }
 
   @override
   Future<UploadResult> uploadStatement({required Uint8List bytes, required String filename, String? institution}) async {

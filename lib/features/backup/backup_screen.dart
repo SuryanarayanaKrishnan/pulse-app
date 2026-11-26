@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../core/network/cloud_access.dart';
+
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
@@ -234,7 +237,7 @@ class _Enabled extends ConsumerWidget {
               title: 'Pulse cloud',
               subtitle: ctl.cloudAvailable
                   ? 'Encrypted, in your private storage'
-                  : 'Needs sign-in to be set up',
+                  : needsSignInTitle,
               selected: s.destination == BackupDestination.cloud,
               onTap: ctl.cloudAvailable
                   ? () => _setDestination(context, ctl, BackupDestination.cloud)
