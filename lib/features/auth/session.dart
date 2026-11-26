@@ -26,6 +26,13 @@ class SessionController extends ChangeNotifier {
   /// device with no backend the app never asks for an account.
   final bool requireSignIn;
 
+  /// A feature that needs an account asked for one while on device.
+  bool _signInRequested = false;
+
+  /// Sign-in blocks the app only when a backend needs it, or when a feature
+  /// that needs an account asked for it.
+  bool get mustSignIn => !signedIn && (requireSignIn || _signInRequested);
+
   /// Where the three steps are remembered, so a returning person is not taken
   /// through them again. Null in tests and previews.
   final KvStore? _store;
@@ -70,6 +77,7 @@ class SessionController extends ChangeNotifier {
 
   void signIn() {
     signedIn = true;
+    _signInRequested = false;
     _remember(_kSignedIn, true);
     notifyListeners();
   }
@@ -78,6 +86,7 @@ class SessionController extends ChangeNotifier {
   /// Pulse account). Keeps the connect step done, so signing in returns home.
   void requestSignIn() {
     signedIn = false;
+    _signInRequested = true;
     notifyListeners();
   }
 

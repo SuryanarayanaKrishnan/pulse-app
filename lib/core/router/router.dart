@@ -142,7 +142,7 @@ GoRouter buildRouter({
       if (loc == Routes.restore && !session.connected) return null;
       if (!session.onboarded)
         return loc == Routes.onboarding ? null : Routes.onboarding;
-      if (session.requireSignIn && !session.signedIn) {
+      if (session.mustSignIn) {
         return loc == Routes.signIn ? null : Routes.signIn;
       }
       if (!session.connected) {

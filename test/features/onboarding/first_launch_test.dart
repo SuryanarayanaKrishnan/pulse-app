@@ -115,6 +115,23 @@ void main() {
     expect(signInText, findsNothing);
   });
 
+  testWidgets('a feature that needs an account can still ask for sign-in', (
+    tester,
+  ) async {
+    final session = SessionController(
+      onboarded: true,
+      connected: true,
+      requireSignIn: false,
+    );
+    await _pump(tester, session: session);
+    expect(find.text('Safe to spend today'), findsOneWidget);
+    session.requestSignIn();
+    for (var i = 0; i < 15; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.text('Email me a code'), findsOneWidget);
+  });
+
   testWidgets('with a backend, sign-in still comes after the intro', (
     tester,
   ) async {
