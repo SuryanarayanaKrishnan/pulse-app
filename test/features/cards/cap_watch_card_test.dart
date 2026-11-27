@@ -93,6 +93,17 @@ void main() {
     expect(find.byKey(const Key('cap_next_best')), findsNothing);
   });
 
+  testWidgets('sits inside the screen gutters like the other home cards', (
+    tester,
+  ) async {
+    await _pump(tester, [_status(260)], null);
+    final rect = tester.getRect(find.byKey(const Key('cap_watch')));
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(rect.left, Space.gutter);
+    expect(rect.right, screen.width - Space.gutter);
+    expect(rect.top, Space.md);
+  });
+
   for (final b in Brightness.values) {
     testWidgets(
       'cap hit shows the reason and the caveat (${b.name}, 360px, 1.5x)',

@@ -29,7 +29,7 @@ class CapWatchCard extends ConsumerWidget {
     final plan = anyHit ? ref.watch(nextBestProvider).value : null;
     final c = context.pc;
     return Padding(
-      padding: const EdgeInsets.only(bottom: Space.md),
+      padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, 0),
       child: SurfaceCard(
         key: const Key('cap_watch'),
         padding: const EdgeInsets.all(Space.md),

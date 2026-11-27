@@ -52,6 +52,9 @@ class HomeScreen extends ConsumerWidget {
       screen: CoachScreen.home,
       child: Scaffold(
         body: SafeArea(
+          // Content scrolls under the status bar instead of being sliced off
+          // at the safe-area line (it clipped the dashboard chips).
+          top: false,
           bottom: false,
           child: RefreshIndicator(
             color: c.accent,
@@ -64,7 +67,10 @@ class HomeScreen extends ConsumerWidget {
               invalidateLedger(ref);
             },
             child: ListView(
-              padding: const EdgeInsets.only(bottom: 120),
+              padding: EdgeInsets.only(
+                top: MediaQuery.paddingOf(context).top,
+                bottom: 120,
+              ),
               children: [
                 ScreenHeader(
                   greeting,
@@ -123,7 +129,6 @@ class HomeScreen extends ConsumerWidget {
                       // the user has put it.
                       if (i == 0) ...[
                         const _WhichCard(),
-                        const CapWatchCard(),
                         const CapWatchCard(),
                         const BestMovesStrip(),
                         const _ReviewCard(),
