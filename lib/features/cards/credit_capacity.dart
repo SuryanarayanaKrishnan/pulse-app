@@ -67,11 +67,12 @@ class CreditCapacitySection extends ConsumerWidget {
               const SizedBox(height: Space.sm),
               for (final s in r.cards)
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(child: Text(s.name, style: context.tt.bodyMedium, overflow: TextOverflow.ellipsis)),
-                      Text('${aed(s.limitMinor)}  ·  ${s.sharePct.round()}%', style: context.tt.bodySmall),
+                      Text(s.name, style: context.tt.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
+                      Text('${aed(s.limitMinor)}  ·  ${s.sharePct.round()}% of your limit', style: context.tt.bodySmall),
                     ],
                   ),
                 ),
