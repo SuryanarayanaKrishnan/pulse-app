@@ -365,19 +365,6 @@ class SettingsScreen extends ConsumerWidget {
                   ref.read(moodPreferenceProvider.notifier).set(m),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.sm,
-              Space.gutter,
-              0,
-            ),
-            child: Text(
-              'Auto eases to the quieter Stone palette when little of the month '
-              'is left to spend, and back to Sage when it recovers.',
-              style: context.tt.bodySmall,
-            ),
-          ),
           const SectionHeader('Explore'),
           RowGroup(
             indent: ListRow.leadingInset,
