@@ -8,6 +8,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/card_upsell_providers.dart';
 import '../../data/models.dart';
 import 'card_widgets.dart' show cardName;
+import 'credit_capacity.dart';
 import 'quick_pick_sheet.dart';
 
 const _surface = 'which_card';
@@ -78,6 +79,7 @@ class _UpsellRowState extends ConsumerState<UpsellRow> {
               );
             },
           ),
+          const DbrNewCardNote(),
           Align(
             alignment: Alignment.centerRight,
             child: TextAction(
