@@ -179,7 +179,7 @@ void main() {
         for (var i = 0; i < 12; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
-        expect(find.textContaining('Four cards, one job each'), findsOneWidget);
+        expect(find.textContaining('A chain of three cards'), findsOneWidget);
         expect(
           find.textContaining(
             'Potential saving: up to AED 3,041 a year (estimate)',
@@ -188,7 +188,7 @@ void main() {
         );
         expect(
           find.textContaining(
-            'Estimate, not a promise. Worked out from the bundled catalog',
+            'Estimate, not a promise. Worked out on the app',
           ),
           findsOneWidget,
         );
