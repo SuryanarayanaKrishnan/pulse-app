@@ -127,7 +127,8 @@ class ComboDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     // Long notes (the savings working) scroll rather than overflow the sheet.
-    return SingleChildScrollView(
+    return _OpaqueSheet(
+      child: SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.fromLTRB(
           Space.gutter,
@@ -182,6 +183,46 @@ class ComboDetailSheet extends StatelessWidget {
           ],
         ),
       ),
+      ),
+    );
+  }
+}
+
+/// Opaque rounded surface for a bottom sheet whose route is transparent, with
+/// a grabber and room under the home indicator / floating tab bar.
+class _OpaqueSheet extends StatelessWidget {
+  const _OpaqueSheet({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.isDark ? c.surface : c.bg,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(Radii.lg),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        top: Space.sm,
+        bottom: MediaQuery.viewPaddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 5,
+            margin: const EdgeInsets.only(bottom: Space.md),
+            decoration: BoxDecoration(
+              color: c.border,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          Flexible(child: child),
+        ],
+      ),
     );
   }
 }
@@ -217,15 +258,18 @@ class _AllCombosSheetState extends ConsumerState<AllCombosSheet> {
   Widget build(BuildContext context) {
     final combos = ref.watch(cardCombosProvider).value ?? const [];
     final names = _catalogNames(ref);
-    return ListView(
-      padding: const EdgeInsets.only(bottom: Space.xxxl),
-      children: [
-        const SectionHeader('Card combos', top: Space.md),
-        RowGroup(
-          indent: ListRow.leadingInset,
-          children: [for (final k in combos) ComboRow(k, names: names)],
-        ),
-      ],
+    return _OpaqueSheet(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        children: [
+          const SectionHeader('Card combos', top: Space.md),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [for (final k in combos) ComboRow(k, names: names)],
+          ),
+        ],
+      ),
     );
   }
 }
