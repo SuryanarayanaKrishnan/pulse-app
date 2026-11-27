@@ -364,10 +364,9 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
         TextField(
           controller: _amount,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(
-            hintText: 'Amount',
-            prefixText: 'AED  ',
-          ),
+          // Not prefixText: Flutter hides it until the field is focused, which
+          // left a blank gap before the hint.
+          decoration: const InputDecoration(hintText: 'Amount in AED'),
         ),
         const SizedBox(height: Space.xl),
         Text('Split between', style: context.tt.bodySmall),
