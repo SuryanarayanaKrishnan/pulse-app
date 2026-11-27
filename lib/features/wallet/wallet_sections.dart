@@ -14,6 +14,7 @@ import '../cards/card_widgets.dart';
 import '../transactions/tx_detail_sheet.dart';
 import '../transactions/tx_tile.dart';
 import 'wallet_detail.dart';
+import 'add_sheets.dart' show EditCardSheet;
 
 /// Three small figures side by side.
 class FigureRow extends StatelessWidget {
@@ -182,10 +183,10 @@ class CardDetailBody extends ConsumerWidget {
           ),
           ('Earned this month', Money.aed(earned), c.positive),
         ]),
-        if (card.last4 == '----')
-          RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
+        RowGroup(
+          indent: ListRow.leadingInset,
+          children: [
+            if (card.last4 == '----')
               ListRow(
                 leading: IconWell(Icons.pin_outlined, color: c.accent),
                 title: 'Add the last four digits',
@@ -193,8 +194,16 @@ class CardDetailBody extends ConsumerWidget {
                 chevron: true,
                 onTap: () => showAddDigits(context, card.id),
               ),
-            ],
-          ),
+            ListRow(
+              key: const Key('edit_card_details'),
+              leading: IconWell(Icons.tune_rounded, color: c.accent),
+              title: 'Edit details',
+              subtitle: 'Limit, statement day, due day, last 4 digits',
+              chevron: true,
+              onTap: () => showPulseSheet<void>(context, builder: (_) => EditCardSheet(card: card)),
+            ),
+          ],
+        ),
         CardValueSection(card.id),
         const SectionHeader('Payment'),
         PaymentDetails(card),

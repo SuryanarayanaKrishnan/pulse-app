@@ -696,3 +696,120 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
     );
   }
 }
+
+/// Change a card's last four digits, limit, statement day and due day. Empty
+/// fields are filled from the next statement.
+class EditCardSheet extends ConsumerStatefulWidget {
+  const EditCardSheet({super.key, required this.card});
+  final CreditCard card;
+  @override
+  ConsumerState<EditCardSheet> createState() => _EditCardSheetState();
+}
+
+class _EditCardSheetState extends ConsumerState<EditCardSheet> {
+  late final _last4 = TextEditingController(text: widget.card.last4 == '----' ? '' : widget.card.last4);
+  late final _limit = TextEditingController(text: widget.card.limit > 0 ? widget.card.limit.toStringAsFixed(0) : '');
+  late final _statement = TextEditingController(text: widget.card.statementDay?.toString() ?? '');
+  late final _due = TextEditingController(text: widget.card.dueDay?.toString() ?? '');
+  bool _busy = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    for (final c in [_last4, _limit, _statement, _due]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final digits = _last4.text.trim();
+    if (digits.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(digits)) {
+      setState(() => _error = 'Enter all four digits, or leave this empty.');
+      return;
+    }
+    if ((_statement.text.trim().isNotEmpty && _parseDay(_statement.text) == null) ||
+        (_due.text.trim().isNotEmpty && _parseDay(_due.text) == null)) {
+      setState(() => _error = 'Statement day and due day are a day of the month, 1 to 31.');
+      return;
+    }
+    if (_limit.text.trim().isNotEmpty && _parseAmount(_limit.text) == null) {
+      setState(() => _error = 'Enter the credit limit as a number.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(repositoryProvider).updateCardDetails(
+        widget.card.id,
+        last4: digits,
+        limit: _parseAmount(_limit.text),
+        statementDay: _parseDay(_statement.text),
+        dueDay: _parseDay(_due.text),
+      );
+      invalidateWallet(ref);
+      if (mounted) Navigator.of(context).pop();
+    } on Object catch (e) {
+      if (mounted) setState(() => _error = e is ApiException ? e.message : 'That did not work. Try again.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => SheetScaffold(
+    title: 'Edit ${widget.card.issuer} ${widget.card.name}',
+    subtitle: 'Leave a field empty and your next statement will fill it.',
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          key: const Key('edit_card_last4'),
+          controller: _last4,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+          decoration: const InputDecoration(labelText: 'Last 4 digits', hintText: '1234'),
+        ),
+        const SizedBox(height: Space.md),
+        TextField(
+          key: const Key('edit_card_limit'),
+          controller: _limit,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: const InputDecoration(labelText: 'Credit limit', prefixIcon: CurrencyPrefix('AED'), prefixIconConstraints: kCurrencyPrefixConstraints),
+        ),
+        const SizedBox(height: Space.md),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                key: const Key('edit_card_statement_day'),
+                controller: _statement,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
+                decoration: const InputDecoration(labelText: 'Statement day', hintText: '1 to 31'),
+              ),
+            ),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: TextField(
+                key: const Key('edit_card_due_day'),
+                controller: _due,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
+                decoration: const InputDecoration(labelText: 'Due day', hintText: '1 to 31'),
+              ),
+            ),
+          ],
+        ),
+        if (_error != null) ...[
+          const SizedBox(height: Space.md),
+          Text(_error!, key: const Key('edit_card_error'), style: context.tt.bodyMedium?.copyWith(color: context.pc.negative)),
+        ],
+        const SizedBox(height: Space.xl),
+        PrimaryButton(key: const Key('edit_card_save'), label: 'Save', loading: _busy, onPressed: _save),
+      ],
+    ),
+  );
+}
