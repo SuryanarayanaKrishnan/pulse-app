@@ -90,6 +90,8 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
   final _due = TextEditingController();
   String _query = '';
   bool _busy = false;
+  bool _manual = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -99,25 +101,43 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     super.dispose();
   }
 
-  bool get _valid => RegExp(r'^\d{4}$').hasMatch(_last4.text.trim());
-
   Future<void> _save() async {
     final card = _picked;
-    if (card == null || !_valid) return;
-    setState(() => _busy = true);
+    if (card == null) return;
+    final digits = _last4.text.trim();
+    if (digits.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(digits)) {
+      setState(() => _error = 'Enter all four digits, or leave this empty.');
+      return;
+    }
+    final day =
+        (_statement.text.trim().isNotEmpty && _parseDay(_statement.text) == null) ||
+        (_due.text.trim().isNotEmpty && _parseDay(_due.text) == null);
+    if (day) {
+      setState(() => _error = 'Statement day and due day are a day of the month, 1 to 31.');
+      return;
+    }
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
     try {
-      await ref.read(repositoryProvider).addCard(
-        catalogId: card.id,
-        last4: _last4.text.trim(),
-        limit: _parseAmount(_limit.text),
-        owed: _parseAmount(_owed.text) ?? 0,
-        statementDay: _parseDay(_statement.text),
-        dueDay: _parseDay(_due.text),
-      );
+      await ref
+          .read(repositoryProvider)
+          .addCard(
+            catalogId: card.id,
+            last4: digits,
+            limit: _parseAmount(_limit.text),
+            owed: _parseAmount(_owed.text) ?? 0,
+            statementDay: _parseDay(_statement.text),
+            dueDay: _parseDay(_due.text),
+          );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object catch (e) {
-      if (mounted) _fail(context, e);
+      // Shown in the sheet: a snackbar would sit behind it and look like nothing happened.
+      if (mounted) {
+        setState(() => _error = e is ApiException ? e.message : 'That did not work. Try again.');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -149,11 +169,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                     if (_query.isEmpty || '${k.issuer} ${k.name}'.toLowerCase().contains(_query)) k,
                 ];
                 if (shown.isEmpty) {
-                  return const EmptyState(
-                    icon: Icons.search_off_rounded,
-                    title: 'No match',
-                    message: 'Try the bank name, like "Mashreq".',
-                  );
+                  return const EmptyState(icon: Icons.search_off_rounded, title: 'No match', message: 'Try the bank name, like "Mashreq".');
                 }
                 return RowGroup(
                   padding: EdgeInsets.zero,
@@ -177,52 +193,91 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     }
     return SheetScaffold(
       title: '${picked.issuer} ${picked.name}',
-      subtitle: 'Only the last four digits are kept.',
+      subtitle: 'Only the last four digits are kept, and they are optional.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           TextField(
+            key: const Key('add_card_last4'),
             controller: _last4,
             autofocus: true,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-            decoration: const InputDecoration(hintText: 'Last 4 digits'),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: Space.md),
-          TextField(
-            controller: _limit,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Credit limit (optional)', prefixText: 'AED  '),
-          ),
-          const SizedBox(height: Space.md),
-          TextField(
-            controller: _owed,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Owed today (optional)', prefixText: 'AED  '),
+            decoration: const InputDecoration(labelText: 'Last 4 digits (optional)', hintText: '1234'),
+            onChanged: (_) => setState(() => _error = null),
           ),
           const SizedBox(height: Space.md),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Icon(Icons.auto_awesome_outlined, size: 18, color: context.pc.accent),
+              const SizedBox(width: Space.sm),
               Expanded(
-                child: TextField(
-                  controller: _statement,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Statement day'),
-                ),
-              ),
-              const SizedBox(width: Space.md),
-              Expanded(
-                child: TextField(
-                  controller: _due,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(hintText: 'Due day'),
+                child: Text(
+                  "We'll fill the credit limit, statement day and due day from your next statement. You can change them any time.",
+                  style: context.tt.bodySmall,
                 ),
               ),
             ],
           ),
+          if (_manual) ...[
+            const SizedBox(height: Space.md),
+            TextField(
+              key: const Key('add_card_limit'),
+              controller: _limit,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Credit limit', prefixText: 'AED  '),
+            ),
+            const SizedBox(height: Space.md),
+            TextField(
+              key: const Key('add_card_owed'),
+              controller: _owed,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Owed today', prefixText: 'AED  '),
+            ),
+            const SizedBox(height: Space.md),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    key: const Key('add_card_statement_day'),
+                    controller: _statement,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
+                    decoration: const InputDecoration(labelText: 'Statement day', hintText: '1 to 31'),
+                  ),
+                ),
+                const SizedBox(width: Space.md),
+                Expanded(
+                  child: TextField(
+                    key: const Key('add_card_due_day'),
+                    controller: _due,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
+                    decoration: const InputDecoration(labelText: 'Due day', hintText: '1 to 31'),
+                  ),
+                ),
+              ],
+            ),
+          ] else
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                key: const Key('add_card_manual'),
+                onPressed: () => setState(() => _manual = true),
+                child: const Text('Enter limit and dates myself'),
+              ),
+            ),
+          if (_error != null) ...[
+            const SizedBox(height: Space.md),
+            Text(
+              _error!,
+              key: const Key('add_card_error'),
+              style: context.tt.bodyMedium?.copyWith(color: context.pc.negative),
+            ),
+          ],
           const SizedBox(height: Space.xl),
-          PrimaryButton(label: 'Add card', loading: _busy, onPressed: _valid ? _save : null),
+          PrimaryButton(key: const Key('add_card_save'), label: 'Add card', loading: _busy, onPressed: _save),
           const SizedBox(height: Space.sm),
           PrimaryButton(label: 'Choose another', secondary: true, onPressed: () => setState(() => _picked = null)),
         ],
@@ -263,13 +318,15 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
     if (bank.isEmpty) return;
     setState(() => _busy = true);
     try {
-      await ref.read(repositoryProvider).addBankAccount(
-        bank: _isCash ? '' : bank,
-        name: _name.text.trim().isEmpty ? _kind.label : _name.text.trim(),
-        kind: _kind,
-        last4: _last4.text.trim().isEmpty ? null : _last4.text.trim(),
-        balance: double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
-      );
+      await ref
+          .read(repositoryProvider)
+          .addBankAccount(
+            bank: _isCash ? '' : bank,
+            name: _name.text.trim().isEmpty ? _kind.label : _name.text.trim(),
+            kind: _kind,
+            last4: _last4.text.trim().isEmpty ? null : _last4.text.trim(),
+            balance: double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
+          );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object catch (e) {
@@ -303,11 +360,7 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
             runSpacing: Space.sm,
             children: [
               for (final b in _banks)
-                ChoiceChip(
-                  label: Text(b),
-                  selected: _bank.text == b,
-                  onSelected: (_) => setState(() => _bank.text = b),
-                ),
+                ChoiceChip(label: Text(b), selected: _bank.text == b, onSelected: (_) => setState(() => _bank.text = b)),
             ],
           ),
           const SizedBox(height: Space.md),
@@ -333,11 +386,7 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
           decoration: const InputDecoration(hintText: 'Balance today', prefixText: 'AED  '),
         ),
         const SizedBox(height: Space.xl),
-        PrimaryButton(
-          label: 'Add account',
-          loading: _busy,
-          onPressed: (_isCash || _bank.text.trim().isNotEmpty) ? _save : null,
-        ),
+        PrimaryButton(label: 'Add account', loading: _busy, onPressed: (_isCash || _bank.text.trim().isNotEmpty) ? _save : null),
       ],
     ),
   );
@@ -372,7 +421,9 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     if (v == null) return;
     setState(() => _busy = true);
     try {
-      final a = await ref.read(repositoryProvider).addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
+      final a = await ref
+          .read(repositoryProvider)
+          .addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
       final problem = await saveHeldAt(
         ref,
         sourceRef: '${_kind == AssetKind.liability ? 'liability' : 'asset'}:${a.id}',
@@ -439,11 +490,7 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           },
         ),
         const SizedBox(height: Space.xl),
-        PrimaryButton(
-          label: 'Add',
-          loading: _busy,
-          onPressed: _parseAmount(_value.text) != null ? _save : null,
-        ),
+        PrimaryButton(label: 'Add', loading: _busy, onPressed: _parseAmount(_value.text) != null ? _save : null),
         if (_parseAmount(_value.text) != null) ...[
           const SizedBox(height: Space.sm),
           Text(Money.aed(_parseAmount(_value.text)!, decimals: false), style: context.tt.bodySmall, textAlign: TextAlign.center),
@@ -465,9 +512,7 @@ Future<bool> confirmDeleteAsset(BuildContext context, WidgetRef ref, Asset asset
     builder: (ctx) => AlertDialog(
       title: Text('Delete ${asset.name}?'),
       content: Text(
-        asset.id.startsWith('account:')
-            ? 'It leaves your net worth. Its transactions stay in Activity.'
-            : 'It leaves your net worth.',
+        asset.id.startsWith('account:') ? 'It leaves your net worth. Its transactions stay in Activity.' : 'It leaves your net worth.',
       ),
       actions: [
         TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
@@ -553,7 +598,10 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
             key: const Key('edit_asset_value'),
             controller: _value,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'), prefixText: 'AED  '),
+            decoration: InputDecoration(
+              hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'),
+              prefixText: 'AED  ',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),

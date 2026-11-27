@@ -393,15 +393,15 @@ class CreditCard {
   double get utilisation => limit == 0 ? 0 : balance / limit;
   double get totalDue => statementBalance ?? balance;
 
-  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate}) =>
+  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate, String? last4, double? limit, bool? owned}) =>
       CreditCard(
         id: id,
         issuer: issuer,
         name: name,
-        last4: last4,
+        last4: last4 ?? this.last4,
         network: network,
         gradient: gradient,
-        limit: limit,
+        limit: limit ?? this.limit,
         balance: balance ?? this.balance,
         dueDate: dueDate,
         minDue: minDue,
@@ -410,7 +410,7 @@ class CreditCard {
         rewardValueAed: rewardValueAed,
         categoryRates: categoryRates,
         annualFee: annualFee,
-        owned: owned,
+        owned: owned ?? this.owned,
         highlight: highlight,
         statementDate: statementDate,
         statementBalance: statementBalance,
