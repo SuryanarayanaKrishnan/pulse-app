@@ -1,39 +1,7 @@
 {
+ "generated_by": "pulse scripts/export_app_combos.py: do not edit by hand",
  "as_of": "2026-11-25",
  "items": [
-  {
-   "id": "reddit-liv-df-sib-tabby-stack",
-   "kind": "combo",
-   "title": "The Reddit stack: pay with Tabby, repay with SIB, settle with another card",
-   "body": "A chain of three cards. Pay your spending with the Tabby card. Pay the Tabby bill with the SIB Cashback card through Apple Pay or Google Pay: a flat 10% back, up to AED 300 a month (about AED 3,000 of repayments), less the fee Tabby charges to repay by credit card, reported as about 1%. Then pay the SIB bill with another credit card such as Liv Cashback or Dubai First, which may earn that card's cashback as well. Check the first repayment: paying with the card number instead of a wallet reportedly earns only 0.5%, and Tabby's merchant code is not always the same. The extra cashback from paying the SIB bill with another card is not in the saving figure, because the catalog lists credit card payments as excluded on Liv and Dubai First; if your bank counts it, it is a bonus. Tabby earns no cashback itself.",
-   "severity": "info",
-   "tier": "free",
-   "confidence": "reported",
-   "annual_saving_aed": 3041,
-   "saving_note": "Estimate, not a promise. Worked out on the app's typical month of AED 5,150. The chain alone: AED 3,000 a month goes on the Tabby card and is repaid by SIB at 10%, which is AED 300 a month (the cap), AED 3,600 a year. Less about 1% Tabby repayment fee (a community report), AED 30 a month, AED 360 a year, so AED 3,240. Less the AED 199 SIB annual fee (waived from year two with AED 10,000 of retail spend): about AED 3,041 a year. On top, not counted: your bills and the rest of your spending stay on Liv or Dubai First as before, and paying the SIB bill with another card may earn that card's cashback too (catalog marks credit card payments excluded on Liv and Dubai First). Assumes you repay Tabby through a wallet, that rates and caps hold, and that Tabby earns nothing; the catalog marks Tabby unverified.",
-   "card_ids": [
-    "liv-cashback",
-    "dubai-first-cashback",
-    "sib-cashback",
-    "tabby-card"
-   ],
-   "owned_card_ids": [],
-   "missing_card_ids": [
-    "liv-cashback",
-    "dubai-first-cashback",
-    "sib-cashback",
-    "tabby-card"
-   ],
-   "valid_until": null,
-   "last_confirmed": "2026-11-25",
-   "sources": [
-    "https://www.liv.me/en/liv-credit-card",
-    "https://kredit.ae/credit-cards/dubai-first-cashback-credit-card/details",
-    "https://sib.ae/en/cashback-card-faqs",
-    "https://kredit.ae/credit-cards/tabby-card/details",
-    "https://www.reddit.com/r/UAEcreditcards/comments/1xicy5u/"
-   ]
-  },
   {
    "id": "amazon-prime-or-online-cash",
    "kind": "combo",
@@ -81,6 +49,146 @@
    ]
   },
   {
+   "id": "reddit-tabby-sib-chain",
+   "kind": "combo",
+   "title": "The Reddit stack: Tabby card, repaid by SIB Cashback, SIB paid by another card",
+   "body": "Spend with the Tabby card, repay Tabby from the SIB Cashback card through Apple Pay or Google Pay so the repayment earns SIB's online rate, then pay the SIB bill with a card that may add its own cashback. Only the first two steps are counted in the figure. The repayment rate and Tabby's repayment fee both come from community reports; check the cashback line after your first repayment.",
+   "severity": "info",
+   "tier": "free",
+   "confidence": "reported",
+   "card_ids": [
+    "tabby-card",
+    "sib-cashback",
+    "liv-cashback",
+    "dubai-first-cashback"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "tabby-card",
+    "sib-cashback",
+    "liv-cashback",
+    "dubai-first-cashback"
+   ],
+   "valid_until": null,
+   "last_confirmed": "2026-11-27",
+   "sources": [
+    "https://sib.ae/en/cashback-card-faqs",
+    "https://www.reddit.com/r/UAEcreditcards/comments/1xvwqu3/",
+    "surya relaying r/UAECreditCards, 2026-11-27"
+   ],
+   "confidence_label": "Based on community reports, not confirmed by the bank",
+   "steps": [
+    {
+     "id": "s1",
+     "text": "Pay your everyday spending with the Tabby card.",
+     "card_id": "tabby-card",
+     "counted": true
+    },
+    {
+     "id": "s2",
+     "text": "Pay the Tabby bill with the SIB Cashback card through Apple Pay or Google Pay (not by typing the card number), up to the point where the monthly cap is used.",
+     "card_id": "sib-cashback",
+     "counted": true
+    },
+    {
+     "id": "s3",
+     "text": "Pay the SIB Cashback bill with another credit card such as Liv Cashback or Dubai First, which may earn that card's cashback too.",
+     "card_id": "liv-cashback",
+     "counted": false,
+     "why_not_counted": "Paying the SIB Cashback bill with another credit card (Liv, Dubai First) may earn that card's cashback. Not shown to work: the catalog lists credit card payments as excluded from earning on those cards, and neither bank's page says otherwise.",
+     "confidence": "unverified"
+    }
+   ],
+   "breakdown": [
+    {
+     "kind": "earn",
+     "label": "SIB Cashback Credit Card cashback: 10% on AED 3,000, capped at AED 300 a month",
+     "monthly_aed": 300.0,
+     "claims": [
+      "sib.online_wallet_rate",
+      "sib.monthly_cap",
+      "sib.tabby_wallet_repayment_earns_10pct"
+     ],
+     "rule": "Online and wallet spend",
+     "yearly_aed": 3600.0,
+     "confidence": "community"
+    },
+    {
+     "kind": "fee",
+     "label": "Fee to repay by card: 1% of AED 3,000",
+     "monthly_aed": -30.0,
+     "claims": [
+      "tabby.card_repayment_fee"
+     ],
+     "yearly_aed": -360.0,
+     "confidence": "community"
+    },
+    {
+     "kind": "annual_fee",
+     "label": "SIB Cashback annual fee (waived from year two with AED 10,000 of retail spend; not assumed here)",
+     "monthly_aed": -16.5833,
+     "yearly_aed": -199.0,
+     "claims": [
+      "sib.annual_fee"
+     ],
+     "note": null,
+     "confidence": "reported"
+    }
+   ],
+   "annual_saving_aed": 3041.0,
+   "saving_note": "Estimate, not a promise. + AED 3,600 a year: SIB Cashback Credit Card cashback: 10% on AED 3,000, capped at AED 300 a month; - AED 360 a year: Fee to repay by card: 1% of AED 3,000; - AED 199 a year: SIB Cashback annual fee (waived from year two with AED 10,000 of retail spend; not assumed here). Net about AED 3,041 a year. Assumes: The app's typical month of spending: AED 5,150, of which AED 4,650 is not bills (groceries 1,500, dining 900, transport 600, shopping 700, travel 400, entertainment 250, health 300) and AED 500 is utilities. Our own assumption, not a fact about any card.",
+   "claims": [
+    {
+     "id": "app.typical_month_nonbill_spend",
+     "statement": "The app's typical month of spending: AED 5,150, of which AED 4,650 is not bills (groceries 1,500, dining 900, transport 600, shopping 700, travel 400, entertainment 250, health 300) and AED 500 is utilities. Our own assumption, not a fact about any card.",
+     "confidence": "unverified",
+     "evidence": "assumption",
+     "source_url": "https://github.com/SuryanarayanaKrishnan/pulse-app/blob/main/lib/core/engine/card_upsell.dart",
+     "checked_on": "2026-11-27"
+    },
+    {
+     "id": "sib.online_wallet_rate",
+     "statement": "SIB Cashback pays 10% on online and Apple Pay / Samsung Pay spend, except utilities, telecom, government, supermarket, hypermarket and education.",
+     "confidence": "verified",
+     "evidence": "official",
+     "source_url": "https://sib.ae/en/cashback-card-faqs",
+     "checked_on": "2026-11-27"
+    },
+    {
+     "id": "sib.monthly_cap",
+     "statement": "The 10% category is capped at AED 300 of cashback per calendar month per customer. The FAQ calls them 'accelerated categories' without listing them, so the cap's exact scope is not published.",
+     "confidence": "verified",
+     "evidence": "official",
+     "source_url": "https://sib.ae/en/cashback-card-faqs",
+     "checked_on": "2026-11-27"
+    },
+    {
+     "id": "sib.tabby_wallet_repayment_earns_10pct",
+     "statement": "Paying the Tabby bill with SIB Cashback through Apple Pay or Google Pay earns the 10% rate; typing in the card number earns 0.5%. Based on statement screenshots posted by members of r/UAECreditCards in Oct and Nov 2026. SIB's own pages do not mention Tabby. Merchant codes can change, so it may stop working.",
+     "confidence": "community",
+     "evidence": "community",
+     "source_url": "https://www.reddit.com/r/UAEcreditcards/comments/1xvwqu3/",
+     "checked_on": "2026-11-27"
+    },
+    {
+     "id": "tabby.card_repayment_fee",
+     "statement": "Tabby may charge up to about 1% to repay by credit card. Community report only: Tabby's own card page and help centre (read 2026-11-27) state no fee for repaying by card, so the real fee may be zero or different.",
+     "confidence": "community",
+     "evidence": "community",
+     "source_url": "https://tabby.ai/en-AE/card",
+     "checked_on": "2026-11-27"
+    },
+    {
+     "id": "sib.annual_fee",
+     "statement": "SIB Cashback annual fee is AED 199 (comparison site). The official FAQ does not state the amount and points to the key fact statement, which could not be read on 2026-11-27.",
+     "confidence": "reported",
+     "evidence": "aggregator",
+     "source_url": "https://kredit.ae/credit-cards/sib-cashback-credit-card/details",
+     "checked_on": "2026-11-27"
+    }
+   ]
+  },
+  {
    "id": "talabat-first-ten-then-dining",
    "kind": "combo",
    "title": "Talabat: ADCB for the first ten orders, a dining card for the rest",
@@ -104,10 +212,33 @@
    ]
   },
   {
+   "id": "white-friday-2026-noon-stack",
+   "kind": "combo",
+   "title": "White Friday: ENBD noon One stacks with noon grocery offer",
+   "body": "From a community deals thread: noon groceries had a 40% discount (up to AED 25) on any Visa from 23 to 27 Nov, and the ENBD noon card adds 10% cashback on top, for roughly 50% off. ADIB cards had a 30% noon discount (max AED 150) from 19 to 27 Nov. Offers end 27 Nov.",
+   "severity": "info",
+   "tier": "plus",
+   "confidence": "reported",
+   "card_ids": [
+    "enbd-noon-one",
+    "adib-cashback-covered"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [
+    "enbd-noon-one",
+    "adib-cashback-covered"
+   ],
+   "valid_until": "2026-11-27",
+   "last_confirmed": "2026-11-25",
+   "sources": [
+    "https://www.reddit.com/r/UAECreditCards/comments/1xzp9x8/"
+   ]
+  },
+  {
    "id": "wio-card-bill-pairing",
    "kind": "combo",
    "title": "Pair Wio with your other cards' bills",
-   "body": "Wio's credit card reportedly earns cashback when you pay other UAE banks' card bills, but only with AED 5,000 of Wio retail spend that cycle, not on the Standard plan, capped at 0.5% of the Wio credit limit a month. Sources disagree on the fees, so check Wio's current key facts first.",
+   "body": "Wio says its credit card earns up to 0.5% cashback, up to AED 2,500 a month, when you pay your other credit cards with it, terms apply. A comparison site adds that you need AED 5,000 of Wio retail spend that cycle, are not on the Standard plan, and are capped at 0.5% of your Wio credit limit; Wio's own pages do not show those conditions and its key fact statement could not be read. Check Wio's current terms first.",
    "severity": "warn",
    "tier": "plus",
    "confidence": "reported",
@@ -119,40 +250,59 @@
     "wio-credit"
    ],
    "valid_until": null,
+   "last_confirmed": "2026-11-27",
+   "sources": [
+    "https://wio.io/personal-credit",
+    "https://kredit.ae/blog/how-to-get-extra-cashback-pairing-uae-credit-cards.md"
+   ]
+  },
+  {
+   "id": "ei-switch-min-spend-4000",
+   "kind": "offer_change",
+   "title": "EI Switch Cashback: minimum spend rises to AED 4,000",
+   "body": "The minimum monthly spend for Emirates Islamic Switch Cashback rises from AED 2,500 to AED 4,000 per statement cycle from 10 January 2027. Other terms are reported unchanged.",
+   "severity": "warn",
+   "tier": "plus",
+   "confidence": "corroborated",
+   "card_ids": [
+    "ei-switch-cashback"
+   ],
+   "owned_card_ids": [],
+   "missing_card_ids": [],
+   "valid_until": "2027-01-10",
    "last_confirmed": "2026-11-25",
    "sources": [
-    "https://kredit.ae/blog/how-to-get-extra-cashback-pairing-uae-credit-cards.md"
+    "https://www.reddit.com/r/UAECreditCards/comments/1xpb512/"
    ]
   },
   {
    "id": "mashreq-noon-credit-rate-drop",
    "kind": "offer_change",
    "title": "Mashreq noon: credit rate drops in 2027",
-   "body": "Per the card notes, the noon-credit rate falls from 23 Jan 2027 and a monthly cap arrives on 7 Mar 2027. Plan big noon purchases before then.",
+   "body": "Mashreq's noon card page says the 0.33% rate on government, utilities, education, charity, fuel, rental and telecom falls to 0.15% from 23 Jan 2027, and that from 7 Mar 2027 total cashback is capped at AED 1,000 per statement cycle. Cashback is paid as noon credits. Plan big spend before then.",
    "severity": "warn",
    "tier": "plus",
-   "confidence": "reported",
+   "confidence": "verified",
    "card_ids": [
     "mashreq-noon"
    ],
    "owned_card_ids": [],
    "missing_card_ids": [],
    "valid_until": "2027-03-07",
-   "last_confirmed": "2026-11-25",
+   "last_confirmed": "2026-11-27",
    "sources": [
+    "https://www.mashreq.com/en/uae/neo/cards/credit-cards/noon-credit-card/",
     "https://kredit.ae/credit-cards/noon"
    ]
   },
   {
    "id": "sib-cashback-tabby-wallet-only",
    "kind": "caveat",
-   "title": "Paying Tabby with the SIB Cashback card",
-   "body": "Community reports say the 10% online rate on the SIB Cashback card only applies to Tabby repayments made through Apple Pay or Google Pay. Paying by typing the card number reportedly earns the low 0.5% tier. Tabby can also charge up to about 1% to repay by card, so a 0.5% repayment can lose money. Check the cashback line after the first repayment.",
+   "title": "Paying Tabby with the SIB Cashback card: use Apple/Google/Samsung Pay",
+   "body": "Statement evidence shared on r/UAECreditCards: a Tabby repayment paid with the card details (merchant shows as 'TABBY 800 ...') earned 0.5%, while the same repayment through Apple Pay (merchant 'TABBY FZ LLC' / 'TABBYDUBAI') earned 10% on the September statement. Several members confirmed 10% through Apple Pay or Google Pay in October, and one says a SIB call confirmed it as eligible. SIB care also told another member that MCC 5999 earns only 0.5%, and Tabby's merchant code is not consistent, so it may change again. Tip from the thread: pre-check the MCC by paying Tabby with a prepaid card that shows it. Tabby can also charge up to about 1% to repay by card. Check the cashback line after the first repayment.",
    "severity": "warn",
    "tier": "plus",
-   "confidence": "reported",
-   "annual_saving_aed": 798,
-   "saving_note": "Estimate, not a promise: AED 700 a month of Tabby repayments (the app's typical shopping spend) earns 10% via Apple Pay or Google Pay on the SIB Cashback card (catalog: 10% online and wallet, AED 300 monthly cap, so 700 is under the cap) against the reported 0.5% when the card number is typed in, a gap of AED 66.50 a month. Depends on the community report holding and on how much you repay through Tabby.",
+   "confidence": "corroborated",
    "card_ids": [
     "sib-cashback",
     "tabby-card"
@@ -162,7 +312,8 @@
    "valid_until": null,
    "last_confirmed": "2026-11-25",
    "sources": [
-    "surya, 2026-11-25 (relaying r/UAECreditCards)",
+    "https://www.reddit.com/r/UAEcreditcards/comments/1xicy5u/",
+    "https://www.reddit.com/r/UAEcreditcards/comments/1xvwqu3/",
     "https://kredit.ae/blog/sib-tabby-cashback.md"
    ]
   }

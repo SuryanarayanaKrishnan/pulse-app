@@ -6,6 +6,52 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// A default stacking combo or tip from the bundled card-intel set
 /// (`assets/catalog/combos.json`, exported from the backend). Works offline
 /// and without any cards.
+/// One numbered step of how a money-flow combo works.
+class ComboStep {
+  const ComboStep({
+    required this.text,
+    required this.counted,
+    this.whyNotCounted,
+  });
+  final String text;
+
+  /// False when the step is shown but left out of the saving figure.
+  final bool counted;
+  final String? whyNotCounted;
+
+  factory ComboStep.fromJson(Map<String, dynamic> j) => ComboStep(
+    text: j['text'] as String,
+    counted: j['counted'] as bool? ?? true,
+    whyNotCounted: j['why_not_counted'] as String?,
+  );
+}
+
+/// One line of a saving's working: what it earns or costs in a year, and how
+/// sure we are of it.
+class BreakdownLine {
+  const BreakdownLine({
+    required this.label,
+    required this.yearlyAed,
+    required this.kind,
+    required this.confidence,
+  });
+  final String label;
+
+  /// Positive earns, negative costs.
+  final double yearlyAed;
+  final String kind;
+
+  /// verified | reported | community | unverified.
+  final String confidence;
+
+  factory BreakdownLine.fromJson(Map<String, dynamic> j) => BreakdownLine(
+    label: j['label'] as String,
+    yearlyAed: (j['yearly_aed'] as num).toDouble(),
+    kind: j['kind'] as String? ?? 'earn',
+    confidence: j['confidence'] as String? ?? 'unverified',
+  );
+}
+
 class CardCombo {
   const CardCombo({
     required this.id,
@@ -19,6 +65,9 @@ class CardCombo {
     this.validUntil,
     this.annualSavingAed,
     this.savingNote,
+    this.confidenceText,
+    this.steps = const [],
+    this.breakdown = const [],
   });
 
   final String id;
@@ -40,17 +89,29 @@ class CardCombo {
   /// How [annualSavingAed] was worked out and what it assumes.
   final String? savingNote;
 
+  /// The server's own wording for how well the figures are backed, when the
+  /// combo is a worked money flow.
+  final String? confidenceText;
+
+  /// Numbered steps of a money-flow combo, empty for plain tips.
+  final List<ComboStep> steps;
+
+  /// The saving's working, line by line. The figure is the sum of these.
+  final List<BreakdownLine> breakdown;
+
   bool get hasSaving => annualSavingAed != null && annualSavingAed! > 0;
 
   bool get isPlus => tier == 'plus';
   bool get isWarning => severity == 'warn';
 
   /// Plain wording for how sure we are. Never overstates a single report.
-  String get confidenceLabel => switch (confidence) {
-    'verified' => 'Verified',
-    'corroborated' => 'Reported by several people',
-    _ => 'Community report, not verified',
-  };
+  String get confidenceLabel =>
+      confidenceText ??
+      switch (confidence) {
+        'verified' => 'Verified',
+        'corroborated' => 'Reported by several people',
+        _ => 'Community report, not verified',
+      };
 
   /// First sentence, for the locked teaser and list subtitles.
   String get headline {
@@ -72,6 +133,15 @@ class CardCombo {
     validUntil: DateTime.tryParse(j['valid_until'] as String? ?? ''),
     annualSavingAed: (j['annual_saving_aed'] as num?)?.toDouble(),
     savingNote: j['saving_note'] as String?,
+    confidenceText: j['confidence_label'] as String?,
+    steps: [
+      for (final s in (j['steps'] as List? ?? const []))
+        ComboStep.fromJson(s as Map<String, dynamic>),
+    ],
+    breakdown: [
+      for (final b in (j['breakdown'] as List? ?? const []))
+        BreakdownLine.fromJson(b as Map<String, dynamic>),
+    ],
   );
 }
 
