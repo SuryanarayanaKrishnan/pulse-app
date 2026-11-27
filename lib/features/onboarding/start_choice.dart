@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/env/env.dart';
 import '../../data/providers.dart';
 import '../tour/tour_progress.dart';
 
@@ -43,6 +44,7 @@ class StartChoiceController extends Notifier<StartChoice?> {
   /// Returns false only when "fresh" was chosen but there is no on-device
   /// ledger to show (previews, web): the app keeps showing sample data.
   Future<bool> choose(StartChoice c) async {
+    if (c == StartChoice.sample && !Env.sampleAllowed) c = StartChoice.fresh;
     state = c;
     final holder = ref.read(databaseHolderProvider.notifier);
     var ok = true;

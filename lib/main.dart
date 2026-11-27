@@ -113,7 +113,7 @@ Future<void> main() async {
       await initBackgroundBackup();
     } catch (e, s) {
       debugPrint('Local database failed to open: $e\n$s');
-      runApp(_StartupError(message: '$e'));
+      runApp(_StartupError(message: '$e', onRetry: main));
       return;
     }
   }
@@ -126,7 +126,15 @@ Future<void> main() async {
   try {
     choice = await kv.read(startChoiceKey);
   } catch (_) {}
-  final sample = StartChoice.parse(choice) == StartChoice.sample;
+  var sample = StartChoice.parse(choice) == StartChoice.sample;
+  if (sample && !Env.sampleAllowed) {
+    // Release builds never run on sample data: move earlier testers who
+    // picked it onto their own ledger.
+    sample = false;
+    try {
+      await kv.write(startChoiceKey, StartChoice.fresh.name);
+    } catch (_) {}
+  }
 
   runApp(
     ProviderScope(
@@ -155,8 +163,9 @@ Future<void> main() async {
 }
 
 class _StartupError extends StatelessWidget {
-  const _StartupError({required this.message});
+  const _StartupError({required this.message, required this.onRetry});
   final String message;
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -181,6 +190,8 @@ class _StartupError extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(message, style: const TextStyle(fontSize: 12)),
+              const SizedBox(height: 24),
+              FilledButton(onPressed: onRetry, child: const Text('Try again')),
             ],
           ),
         ),
