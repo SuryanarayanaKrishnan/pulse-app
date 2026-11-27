@@ -147,13 +147,41 @@ class ComboDetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: Space.lg),
             Text(combo.body, style: context.tt.bodyLarge),
+            if (combo.steps.isNotEmpty) ...[
+              const SizedBox(height: Space.md),
+              Text('How it works', style: context.tt.titleSmall),
+              const SizedBox(height: Space.xs),
+              for (final (i, s) in combo.steps.indexed)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: Space.xs),
+                  child: Text(
+                    s.counted
+                        ? '${i + 1}. ${s.text}'
+                        : '${i + 1}. ${s.text} Not counted in the figure: ${s.whyNotCounted ?? 'unproven'}',
+                    style: context.tt.bodyMedium!.copyWith(
+                      color: s.counted ? null : c.textSecondary,
+                    ),
+                  ),
+                ),
+            ],
             if (combo.hasSaving) ...[
               const SizedBox(height: Space.md),
               Text(
                 'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
                 style: context.tt.titleSmall!.copyWith(color: c.positive),
               ),
-              if (combo.savingNote != null)
+              if (combo.breakdown.isNotEmpty)
+                for (final b in combo.breakdown)
+                  Padding(
+                    padding: const EdgeInsets.only(top: Space.xs),
+                    child: Text(
+                      '${b.yearlyAed >= 0 ? '+' : '-'} ${Money.aed(b.yearlyAed.abs(), decimals: false)} a year: ${b.label}',
+                      style: context.tt.bodySmall!.copyWith(
+                        color: c.textSecondary,
+                      ),
+                    ),
+                  )
+              else if (combo.savingNote != null)
                 Text(
                   combo.savingNote!,
                   style: context.tt.bodySmall!.copyWith(color: c.textSecondary),

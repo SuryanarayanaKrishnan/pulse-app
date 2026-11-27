@@ -988,6 +988,33 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
+  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) async {
+    final i = issuer.trim(), n = name.trim();
+    if (i.isEmpty || n.isEmpty) {
+      throw const ApiException(message: 'Enter the bank and the card name.', code: 'invalid_card');
+    }
+    final id = 'custom-${newId()}';
+    const structure = {
+      'unit': 'cashback',
+      'point_value_aed': 1,
+      'base_rate': 0,
+      'rules': <Object>[],
+      'excluded_categories': ['fees', 'cc_payment', 'transfer'],
+    };
+    await db.into(db.catalogCards).insert(
+      CatalogCardsCompanion.insert(
+        id: id,
+        issuer: i,
+        name: n,
+        rewardStructure: Value(jsonEncode(structure)),
+        perks: Value(jsonEncode({'notes': 'Added by you. Pulse does not know this card\'s rewards, so it tracks spending only.'})),
+      ),
+    );
+    final row = await (db.select(db.catalogCards)..where((c) => c.id.equals(id))).getSingle();
+    return _cardModel(id: id, issuer: i, name: n, last4: '----', cat: row, spec: parseStructure(structure), index: 0, owned: false);
+  }
+
+  @override
   Future<CreditCard> addCard({
     required String catalogId,
     required String last4,

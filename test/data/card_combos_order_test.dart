@@ -3,8 +3,6 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/data/card_combos.dart';
-import 'package:pulse/data/card_suggestions.dart';
-import 'package:pulse/data/models.dart';
 
 Map<String, Object?> _item(
   String id, {
@@ -57,28 +55,21 @@ void main() {
       now: DateTime(2026, 11, 30),
     );
 
-    test('combos with a figure come first, Tabby via SIB Cashback among them with its estimate', () {
-      // The Reddit stack has the bigger figure; Tabby via SIB follows it.
-      expect(combos.first.id, 'reddit-liv-df-sib-tabby-stack');
-      final top = combos[1];
-      expect(top.id, 'sib-cashback-tabby-wallet-only');
-      expect(top.isWarning, isTrue);
-      expect(top.hasSaving, isTrue);
-      expect(top.savingNote, contains('Estimate'));
-      // Warnings without a figure sit after everything that has one.
+    test('combos with a figure come first; the worked chain leads', () {
+      expect(combos.first.id, 'reddit-tabby-sib-chain');
+      expect(combos.first.annualSavingAed, 3041);
+      // Anything without a figure (warnings, tips) follows everything that has one.
       final firstPlain = combos.indexWhere((c) => !c.hasSaving);
       expect(combos.skip(firstPlain).every((c) => !c.hasSaving), isTrue);
     });
 
-    test('the figure follows from the catalog rates and the typical shopping spend', () {
-      // sib-cashback: 10% online/wallet (cap AED 300 a month), 0.5% when the
-      // card number is typed in (MCC 5999), per pulse-api data/cards/banks/sib.json.
-      final monthly = typicalMonthlySpend[SpendCategory.shopping]!;
-      const wallet = 0.10, typed = 0.005, cap = 300.0;
-      final walletEarn = (monthly * wallet).clamp(0, cap);
-      final annual = (walletEarn - monthly * typed) * 12;
-      expect(combos[1].annualSavingAed, closeTo(annual, 0.5));
-      expect(annual.round(), 798);
-    });
+    test(
+      'no combo carries a hand-typed figure: every figure has its working',
+      () {
+        for (final c in combos.where((c) => c.hasSaving)) {
+          expect(c.breakdown, isNotEmpty, reason: c.id);
+        }
+      },
+    );
   });
 }

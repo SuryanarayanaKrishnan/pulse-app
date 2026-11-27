@@ -38,13 +38,45 @@ class CatalogService {
   Future<int> currentVersion() async => int.tryParse(await db.setting(versionKey) ?? '') ?? 0;
 
   /// Loads the bundled catalog when it is newer than what the database has
-  /// (first run, or an app update that ships a newer catalog).
+  /// (first run, or an app update that ships a newer catalog), and ALWAYS
+  /// fills in any bundled card the database lacks. A newer remote catalog used
+  /// to block the bundled one for good, so cards the server did not list (HSBC,
+  /// Tabby) never reached the phone.
   Future<CardCatalog> loadBundled() async {
     final catalog = CardCatalog.fromJson(jsonDecode(await _bundled()) as Map<String, Object?>);
     if (catalog.version > await currentVersion() || await _isEmpty()) {
       await apply(catalog);
+    } else {
+      await _addMissing(catalog);
     }
     return catalog;
+  }
+
+  /// Inserts bundled cards whose id is not stored yet. Never touches a stored
+  /// card, so a newer remote version of a card wins over the bundled one.
+  Future<void> _addMissing(CardCatalog catalog) async {
+    final have = {for (final r in await db.select(db.catalogCards).get()) r.id};
+    final missing = [for (final c in catalog.cards) if (!have.contains(c.id)) c];
+    if (missing.isEmpty) return;
+    await db.transaction(() async {
+      for (final c in missing) {
+        await db.into(db.catalogCards).insert(
+          CatalogCardsCompanion.insert(
+            id: c.id,
+            issuer: c.issuer,
+            name: c.name,
+            network: Value(c.network),
+            annualFeeMinor: Value(c.annualFeeMinor),
+            minSalaryMinor: Value(c.minSalaryMinor),
+            rewardStructure: Value(jsonEncode(c.rewardStructure)),
+            perks: Value(jsonEncode(c.perks)),
+            verifiedOn: Value(c.verifiedOn?.toIso8601String().substring(0, 10)),
+            source: Value(c.source),
+            catalogVersion: Value(catalog.version),
+          ),
+        );
+      }
+    });
   }
 
   Future<bool> _isEmpty() async =>
