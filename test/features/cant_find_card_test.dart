@@ -75,6 +75,6 @@ void main() {
       await tester.pump(const Duration(milliseconds: 250));
     }
     expect(find.textContaining('Some Bank Gold'), findsWidgets);
-    expect(find.text('Last 4 digits'), findsOneWidget); // on to the digits step
+    expect(find.text('Last 4 digits (optional)'), findsOneWidget); // on to the digits step
   });
 }

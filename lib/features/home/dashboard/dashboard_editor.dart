@@ -18,7 +18,9 @@ class DashboardChips extends ConsumerWidget {
     final l = s.layout;
     if (l.dashboards.length < 2 && !s.editing) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(bottom: Space.md),
+      // Same vertical rhythm as every home block: Space.md above and below,
+      // so the chips never sit flush against a banner above them.
+      padding: const EdgeInsets.symmetric(vertical: Space.md),
       child: SizedBox(
         height: 36,
         child: ListView(

@@ -43,10 +43,11 @@ class _AllFeaturesSheetState extends State<AllFeaturesSheet> {
     return SheetScaffold(
       title: 'All features',
       subtitle: 'Everything in one place. Try "repeat" or "joint".',
-      child: Flexible(
-        child: ListView(
-          shrinkWrap: true,
-          children: [
+      // SheetScaffold already scrolls; a nested ListView here fought it and
+      // made the sheet bounce back up.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
             TextField(
               key: const Key('features-search'),
               onChanged: (v) => setState(() => _q = v),
@@ -96,8 +97,7 @@ class _AllFeaturesSheetState extends State<AllFeaturesSheet> {
               ),
             ],
             const SizedBox(height: Space.lg),
-          ],
-        ),
+        ],
       ),
     );
   }

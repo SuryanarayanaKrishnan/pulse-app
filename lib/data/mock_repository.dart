@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:material_ui/material_ui.dart';
 
+import 'api/api_exception.dart';
 import 'card_util.dart';
 import 'goal_service.dart';
 import 'local/goal_store.dart';
@@ -256,6 +257,27 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
 
   @override
   Future<List<CreditCard>> myCards() => _d(List.of(_owned));
+
+  @override
+  Future<CreditCard> addCard({
+    required String catalogId,
+    required String last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+    double owed = 0,
+  }) async {
+    final cat = _catalog.where((c) => c.id == catalogId).firstOrNull;
+    if (cat == null) throw const ApiException(message: 'That card is not in the catalog.', code: 'unknown_card');
+    final card = cat.copyWith(
+      last4: last4.isEmpty ? '----' : last4,
+      limit: limit ?? 0,
+      balance: owed,
+      owned: true,
+    );
+    _owned = [..._owned.where((c) => c.id != catalogId), card];
+    return _d(card);
+  }
   @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
   @override
