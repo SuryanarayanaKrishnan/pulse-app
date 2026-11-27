@@ -59,6 +59,10 @@ class Env {
   /// (screenshots, demos): `--dart-define=DEMO_DATA=true`.
   static const demoData = bool.fromEnvironment('DEMO_DATA');
 
+  /// Sample data is for preview/debug builds only. A release build always
+  /// runs on the person's own on-device ledger, never on made-up data.
+  static bool get sampleAllowed => demoData || !kReleaseMode;
+
   /// Beta builds enable shake-to-report by default. Pass
   /// `--dart-define=BETA_BUILD=false` for a store build.
   static const betaBuild = bool.fromEnvironment(
