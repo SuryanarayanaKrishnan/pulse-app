@@ -1,5 +1,8 @@
+import 'core/learning/contribution_transport.dart';
+import 'core/learning/http_learning.dart';
 import 'core/learning/global_merchant_map_loader.dart';
 import 'core/learning/learning_controller.dart';
+import 'core/learning/merchant_memory.dart';
 
 import 'dart:async';
 
@@ -15,7 +18,9 @@ import 'core/analytics/gated_analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/network/api_client.dart';
+import 'core/engine/sms_parser.dart' show defaultParserRegistry;
 import 'core/packs/content_packs.dart';
+import 'core/packs/parser_rules.dart';
 import 'core/remote_config/remote_config.dart';
 import 'data/local/catalog_service.dart';
 import 'backup/background.dart';
@@ -40,11 +45,27 @@ Future<void> main() async {
   final privacy = PrivacyController(SharedPrefsKvStore());
   await privacy.load();
   // "Help improve categories": off until chosen; no upload endpoint is
-  // configured in this build, so nothing is sent (docs/LEARNING.md).
+  // configured without a backend, so nothing is sent (docs/LEARNING.md).
   final learningKv = SharedPrefsKvStore();
   final merchantMap = await GlobalMerchantMapLoader(kv: learningKv).load();
-  final learning = LearningController(learningKv, map: merchantMap);
+  final learningDio = Env.useApi ? anonymousClient(Env.apiBaseUrl) : null;
+  final learning = LearningController(
+    learningKv,
+    map: merchantMap,
+    transport: learningDio == null
+        ? const DisabledContributionTransport()
+        : HttpContributionTransport(learningDio),
+  );
   await learning.load();
+  // What this person confirmed before; stays on this phone.
+  final merchantMemory = MerchantMemory(learningKv);
+  await merchantMemory.load();
+  // The shared map improves with everyone's confirmations; a newer one applies next launch.
+  if (learningDio != null) {
+    unawaited(
+      refreshMerchantMap(learningDio, kv: learningKv, current: merchantMap),
+    );
+  }
   final analytics = GatedAnalytics(buildAnalytics(), privacy);
   try {
     await analytics.init();
@@ -65,7 +86,15 @@ Future<void> main() async {
     dio: Env.useApi ? buildApiClient() : null,
   );
   await packs.load(const ['tips', 'walkthrough', 'parser_rules']);
-  unawaited(remoteConfig.refresh().then((_) => packs.refresh()));
+  // Bank-text wordings from the pack (bundled or last verified download).
+  applyParserRules(defaultParserRegistry, packs.pack('parser_rules'));
+  unawaited(
+    remoteConfig.refresh().then((_) => packs.refresh()).then((changed) {
+      if (changed.contains('parser_rules')) {
+        applyParserRules(defaultParserRegistry, packs.pack('parser_rules'));
+      }
+    }),
+  );
 
   // The ledger lives in an encrypted database on this phone. Without it the
   // app must not pretend to work, so a failure stops here.
@@ -119,6 +148,7 @@ Future<void> main() async {
         privacyControllerProvider.overrideWithValue(privacy),
         learningControllerProvider.overrideWithValue(learning),
         globalMerchantMapProvider.overrideWithValue(merchantMap),
+        merchantMemoryProvider.overrideWithValue(merchantMemory),
         analyticsProvider.overrideWithValue(
           LoggingAnalytics(analytics, BugLog.instance),
         ),

@@ -33,6 +33,69 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
   AutomationRule? _suggestion;
   bool _ruleSaved = false;
   bool _saving = false;
+  late final _note = TextEditingController(text: widget.tx.note ?? '');
+  late final FocusNode _noteFocus = FocusNode()..addListener(() {
+    if (!_noteFocus.hasFocus) _saveNote();
+  });
+  late String _savedNote = widget.tx.note ?? '';
+
+  @override
+  void dispose() {
+    _note.dispose();
+    _noteFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveNote() async {
+    final text = _note.text.trim();
+    if (text == _savedNote.trim() || !mounted) return;
+    _savedNote = text;
+    try {
+      await ref.read(repositoryProvider).setTransactionNote(widget.tx.id, text);
+      if (mounted) invalidateLedger(ref);
+    } on Object {
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save the note.')));
+      }
+    }
+  }
+
+  Future<void> _delete() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete this payment?'),
+        content: const Text('It is removed from your totals, budgets and cash flow.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
+          TextButton(key: const Key('tx_delete_confirm'), onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      await ref.read(repositoryProvider).deleteTransaction(widget.tx.id);
+      invalidateLedger(ref);
+      if (mounted) Navigator.of(context).pop();
+    } on Object {
+      if (mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not delete that payment.')));
+      }
+    }
+  }
+
+  bool _forgot = false;
+
+  /// Stops Pulse using this choice for future payments from the merchant.
+  /// This payment keeps its category; change it above if that is wrong.
+  Future<void> _forget() async {
+    await ref.read(merchantMemoryProvider).forget(widget.tx.merchant);
+    if (!mounted) return;
+    setState(() => _forgot = true);
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text('Forgotten. Future ${widget.tx.merchant} will be sorted by default.')),
+    );
+  }
 
   Future<void> _pick() async {
     final picked = await pickCategory(context, selected: _cat);
@@ -49,6 +112,7 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
     }
     await ref.read(repositoryProvider).recategorise(widget.tx.id, picked);
     unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), widget.tx, picked));
+    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), widget.tx, picked, fix: true));
     ref
         .read(analyticsProvider)
         .track(
@@ -122,6 +186,19 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 title: 'Account',
                 trailing: Text(tx.accountLabel, style: context.tt.bodyMedium),
               ),
+              if (tx.learned && !_forgot && _cat == tx.category)
+                ListRow(
+                  key: const Key('tx_learned_row'),
+                  dense: true,
+                  leading: Icon(Icons.auto_awesome_outlined, size: 22, color: c.accent),
+                  title: 'Learned from your choice',
+                  subtitle: 'You put ${tx.merchant} here before. Only on this phone.',
+                  trailing: TextButton(
+                    key: const Key('tx_learned_forget'),
+                    onPressed: _forget,
+                    child: const Text('Forget'),
+                  ),
+                ),
               OwnerRow(table: 'transactions', id: tx.id, title: tx.merchant),
               ListRow(
                 dense: true,
@@ -144,6 +221,17 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                   ),
                 ),
             ],
+          ),
+          const SizedBox(height: Space.md),
+          TextField(
+            key: const Key('tx_note'),
+            controller: _note,
+            focusNode: _noteFocus,
+            minLines: 1,
+            maxLines: 4,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(hintText: 'Add a note'),
+            onSubmitted: (_) => _saveNote(),
           ),
           if (tx.receiptNotes != null || tx.receiptRef != null) ...[
             const SizedBox(height: Space.xl),
@@ -248,7 +336,19 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
           PrimaryButton(
             label: 'Done',
             secondary: true,
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () async {
+              await _saveNote();
+              if (context.mounted) Navigator.of(context).pop();
+            },
+          ),
+          const SizedBox(height: Space.sm),
+          Center(
+            child: TextAction(
+              'Delete payment',
+              key: const Key('tx_delete'),
+              color: c.negative,
+              onTap: _delete,
+            ),
           ),
         ],
       ),
@@ -256,9 +356,10 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
   }
 }
 
-/// Secondary, deliberately low-key manual entry.
+/// Add a payment by hand: an expense or income, on any day, with a note.
 class AddManualTxSheet extends ConsumerStatefulWidget {
   const AddManualTxSheet({super.key});
+
   @override
   ConsumerState<AddManualTxSheet> createState() => _AddManualTxSheetState();
 }
@@ -266,10 +367,13 @@ class AddManualTxSheet extends ConsumerStatefulWidget {
 class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
   final _merchant = TextEditingController();
   final _amount = TextEditingController();
+  final _note = TextEditingController();
   SpendCategory _cat = SpendCategory.dining;
+  bool _income = false;
+  DateTime _date = DateTime.now();
   bool _busy = false;
 
-  /// One-tap categories for everyday cash spending; "More" opens the full list.
+  /// One-tap categories for everyday spending; "More" opens the full list.
   static const _quick = [
     SpendCategory.dining,
     SpendCategory.groceries,
@@ -282,6 +386,7 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
   void dispose() {
     _merchant.dispose();
     _amount.dispose();
+    _note.dispose();
     super.dispose();
   }
 
@@ -290,18 +395,41 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
     return (a == null || a <= 0 || !a.isFinite) ? null : a;
   }
 
+  void _setIncome(bool income) {
+    if (income == _income) return;
+    setState(() {
+      _income = income;
+      _cat = income ? SpendCategory.salary : SpendCategory.dining;
+    });
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(now.year - 2),
+      lastDate: now,
+    );
+    if (d != null) setState(() => _date = d);
+  }
+
   Future<void> _save() async {
     final amt = _parsed;
     if (amt == null || _busy) return;
     setState(() => _busy = true);
     try {
+      final now = DateTime.now();
+      final today = _date.year == now.year && _date.month == now.month && _date.day == now.day;
       await ref
           .read(repositoryProvider)
           .addManualTransaction(
-            // The note is optional: the category names the expense.
+            // The name is optional: the category names the payment.
             merchant: _merchant.text.trim().isEmpty ? _cat.label : _merchant.text.trim(),
             amount: amt,
             category: _cat,
+            date: today ? null : DateTime(_date.year, _date.month, _date.day, 12),
+            note: _note.text,
           );
       ref.read(analyticsProvider).track(AnalyticsEvent.manualTransactionAdded(category: _cat.name));
       invalidateLedger(ref);
@@ -309,7 +437,7 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
     } on Object {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save that expense. Try again.')));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save that payment. Try again.')));
       }
     }
   }
@@ -318,11 +446,19 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
   Widget build(BuildContext context) {
     final inQuick = _quick.any((q) => q.id == _cat.id);
     return SheetScaffold(
-      title: 'Add a cash expense',
-      subtitle: 'Most spending is captured automatically. Use this only for cash or things we could not see.',
+      title: 'Add a payment',
+      subtitle: 'Most spending is captured automatically. Add cash, or anything we could not see.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          Wrap(
+            spacing: Space.sm,
+            children: [
+              ChoiceChip(label: const Text('Expense'), selected: !_income, onSelected: (_) => _setIncome(false)),
+              ChoiceChip(label: const Text('Income'), selected: _income, onSelected: (_) => _setIncome(true)),
+            ],
+          ),
+          const SizedBox(height: Space.md),
           TextField(
             controller: _amount,
             autofocus: true,
@@ -336,12 +472,16 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
             spacing: Space.sm,
             runSpacing: Space.sm,
             children: [
-              for (final q in [..._quick, if (!inQuick) _cat])
-                ChoiceChip(label: Text(q.label), selected: _cat.id == q.id, onSelected: (_) => setState(() => _cat = q)),
+              if (_income)
+                ChoiceChip(label: Text(SpendCategory.salary.label), selected: _cat.id == SpendCategory.salary.id, onSelected: (_) => setState(() => _cat = SpendCategory.salary))
+              else
+                for (final q in [..._quick, if (!inQuick) _cat])
+                  ChoiceChip(label: Text(q.label), selected: _cat.id == q.id, onSelected: (_) => setState(() => _cat = q)),
+              if (_income && _cat.id != SpendCategory.salary.id) ChoiceChip(label: Text(_cat.label), selected: true, onSelected: (_) {}),
               ActionChip(
                 label: const Text('More'),
                 onPressed: () async {
-                  final c = await pickCategory(context, selected: _cat, includeIncome: false);
+                  final c = await pickCategory(context, selected: _cat, includeIncome: _income);
                   if (c != null) setState(() => _cat = c);
                 },
               ),
@@ -350,6 +490,22 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
           const SizedBox(height: Space.md),
           TextField(
             controller: _merchant,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(hintText: _income ? 'From (optional)' : 'Paid to (optional)'),
+          ),
+          const SizedBox(height: Space.md),
+          ListRow(
+            key: const Key('manual_date'),
+            dense: true,
+            title: 'Date',
+            trailing: Text(DateFormat('EEE d MMM yyyy').format(_date), style: context.tt.bodyMedium),
+            chevron: true,
+            onTap: _pickDate,
+          ),
+          const SizedBox(height: Space.sm),
+          TextField(
+            key: const Key('manual_note'),
+            controller: _note,
             textInputAction: TextInputAction.done,
             decoration: const InputDecoration(hintText: 'Note (optional)'),
             onSubmitted: (_) => _save(),

@@ -1,4 +1,5 @@
 import '../core/learning/learning_controller.dart';
+import '../core/learning/merchant_memory.dart';
 import 'models.dart';
 
 /// The person confirmed [category] for [tx] (recategorise or a Review swipe).
@@ -17,6 +18,25 @@ Future<void> recordConfirmedCategory(
       merchant: tx.merchant,
       categoryId: category.id,
     );
+  } on Object {
+    // ignore
+  }
+}
+
+/// Remembers a category choice for this merchant on this phone, so the next
+/// payment from it (or a near-identical spelling) starts in the right place.
+/// [fix] is a deliberate change, which counts more than a "yes, that is
+/// right". "Other" and income are never learned: they say nothing about the
+/// merchant. Errors are swallowed; learning must never get in the way.
+Future<void> rememberCategoryChoice(
+  MerchantMemory memory,
+  Transaction tx,
+  SpendCategory category, {
+  bool fix = false,
+}) async {
+  try {
+    if (category.id == SpendCategory.other.id || tx.isIncome) return;
+    await memory.confirm(tx.merchant, category.id, weight: fix ? fixWeight : confirmWeight);
   } on Object {
     // ignore
   }

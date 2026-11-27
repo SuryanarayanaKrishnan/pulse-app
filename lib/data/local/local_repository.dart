@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:drift/drift.dart';
 import 'package:material_ui/material_ui.dart' show Color, DateUtils;
@@ -20,7 +21,9 @@ import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart' as eng;
 import '../../core/engine/types.dart' show Direction, TxnSource;
 import '../api/api_exception.dart';
+import '../../core/network/cloud_access.dart';
 import '../api/dto.dart';
+import '../cap_snapshot.dart';
 import '../insights.dart';
 import '../models.dart';
 import '../wealth_service.dart';
@@ -63,7 +66,7 @@ String _monthKey(int year, int month) => '$year-${month.toString().padLeft(2, '0
 /// (splits with other people, family sharing, statement parsing, Gmail) go
 /// to [shared] when a backend is configured and report "not supported"
 /// otherwise.
-class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource {
+class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource, CapSource {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -72,7 +75,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     this.wealth,
     this.statementService,
     DateTime Function()? clock,
-  }) : _clock = clock ?? DateTime.now;
+    bool Function()? cloudReady,
+  }) : _clock = clock ?? DateTime.now,
+       _cloudReady = cloudReady ?? (() => currentCloudAccess().isReady);
 
   /// Statement PDFs read on this device; without it uploads need the server.
   final LocalStatementService? statementService;
@@ -87,6 +92,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   final IngestPipeline pipeline;
   final PulseRepository? shared;
   final DateTime Function() _clock;
+
+  /// Whether a Pulse sign-in exists for the backend (overridden in tests).
+  final bool Function() _cloudReady;
 
   CalDate get _today => toDubaiDate(_clock());
 
@@ -137,15 +145,19 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       accountLabel: acct == null ? 'Account' : _label(acct),
       isIncome: income,
       excluded: t.excludeFromBudget,
+      pendingHold: t.tags.contains('pending_hold'),
       reviewed: t.reviewed,
       receiptNotes: t.receiptNotes,
+      note: t.notes,
       receiptRef: t.receiptRef,
       confidence: categoryConfidence(
         hasCategory: t.categoryId != null,
         isOther: t.categoryId == 'other',
         ruleApplied: t.appliedRuleId != null,
         fromStatement: t.statementLocked,
+        learned: t.tags.contains('"${eng.learnedTag}"'),
       ),
+      learned: t.tags.contains('"${eng.learnedTag}"'),
     );
   }
 
@@ -158,7 +170,12 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     );
   }
 
-  Future<List<TxRow>> _txRows({DateTime? since}) => (db.select(db.transactions)
+  Future<List<TxRow>> _txRows({DateTime? since}) async {
+    await _planSalary();
+    return _txRowsQuery(since: since);
+  }
+
+  Future<List<TxRow>> _txRowsQuery({DateTime? since}) => (db.select(db.transactions)
         ..where((t) => t.deletedAt.isNull() & (since == null ? const Constant(true) : t.postedAt.isBiggerOrEqualValue(since)))
         ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)]))
       .get();
@@ -185,6 +202,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   @override
   Future<TxPage> transactionsPage({String? cursor, int limit = 50}) async {
+    if (cursor == null) await _planSalary();
     final q = db.select(db.transactions)
       ..where((t) => t.deletedAt.isNull())
       ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)])
@@ -378,6 +396,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     required String merchant,
     required double amount,
     required SpendCategory category,
+    DateTime? date,
+    String? note,
   }) async {
     final acct = await _cashAccount();
     final catId = await _categoryId(category);
@@ -392,13 +412,106 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         categoryId: Value(catId),
         merchantRaw: Value(name),
         merchantNormalized: Value(name),
-        postedAt: _clock().toUtc(),
+        notes: Value(note == null || note.trim().isEmpty ? null : note.trim()),
+        postedAt: (date ?? _clock()).toUtc(),
         source: 'manual',
         sources: const Value('["manual"]'),
         reviewed: const Value(true),
       ),
     );
     return _txById(id);
+  }
+
+  @override
+  Future<void> setTransactionNote(String txId, String? note) async {
+    final n = note?.trim();
+    await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
+      TransactionsCompanion(notes: Value(n == null || n.isEmpty ? null : n)),
+    );
+  }
+
+  @override
+  Future<void> deleteTransaction(String txId) async {
+    await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
+      TransactionsCompanion(deletedAt: Value(_clock().toUtc())),
+    );
+  }
+
+  // ---- manual salary ------------------------------------------------------
+
+  static const _salaryKey = 'salary.manual';
+
+  @override
+  Future<ManualSalary?> manualSalary() async {
+    final raw = await db.setting(_salaryKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final m = jsonDecode(raw) as Map;
+      final a = m['amountMinor'] as int, d = m['day'] as int;
+      return a > 0 && d >= 1 && d <= 31 ? ManualSalary(amountMinor: a, day: d) : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> setManualSalary(ManualSalary? salary) async {
+    await db.putSetting(
+      _salaryKey,
+      salary == null ? '' : jsonEncode({'amountMinor': salary.amountMinor, 'day': salary.day}),
+    );
+    await _planSalary();
+  }
+
+  /// Keeps this month's salary credit in step with the salary you entered:
+  /// a planned credit appears on payday, and gives way to the real one the
+  /// moment a salary credit is detected (which also updates the amount).
+  Future<void> _planSalary() async {
+    final s = await manualSalary();
+    final today = _today;
+    final monthStart = DateTime.utc(today.year, today.month, 1).subtract(const Duration(hours: 4));
+    final planId = 'salary-plan-${today.year}-${today.month.toString().padLeft(2, '0')}';
+    final plan = await (db.select(db.transactions)..where((t) => t.id.equals(planId))).getSingleOrNull();
+    if (s == null) {
+      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
+      return;
+    }
+    final real = await (db.select(db.transactions)
+          ..where((t) =>
+              t.categoryId.equals('salary') &
+              t.direction.equals('credit') &
+              t.deletedAt.isNull() &
+              t.postedAt.isBiggerOrEqualValue(monthStart) &
+              t.id.equals(planId).not())
+          ..limit(1))
+        .getSingleOrNull();
+    if (real != null) {
+      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
+      if (real.amountMinor != s.amountMinor && real.amountMinor >= 50000 && real.currency == 'AED') {
+        await db.putSetting(_salaryKey, jsonEncode({'amountMinor': real.amountMinor, 'day': s.day}));
+      }
+      return;
+    }
+    if (plan != null) return;
+    final day = math.min(s.day, DateUtils.getDaysInMonth(today.year, today.month));
+    if (today.day < day) return;
+    final acct = await _cashAccount();
+    await db.into(db.transactions).insert(
+      TransactionsCompanion.insert(
+        id: planId,
+        accountId: acct.id,
+        amountMinor: s.amountMinor,
+        direction: 'credit',
+        categoryId: Value(await _categoryId(SpendCategory.salary)),
+        merchantRaw: const Value('Salary'),
+        merchantNormalized: const Value('Salary'),
+        notes: const Value('Added from the salary you entered. Replaced when the real credit arrives.'),
+        postedAt: DateTime.utc(today.year, today.month, day, 4),
+        source: 'manual',
+        sources: const Value('["salary_plan"]'),
+        reviewed: const Value(true),
+      ),
+    );
   }
 
   @override
@@ -838,6 +951,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       dueDate: due,
       statementDate: stmt,
       cycle: cycle,
+    );
+  }
+
+  @override
+  Future<CapSnapshot> capSnapshot() async {
+    final today = _today;
+    final cards = await loadOwnedCards(db);
+    return CapSnapshot(
+      today: today,
+      cards: await capStatuses(db, cards, today),
+      held: await rankables(db, cards, today),
+      history: await spendHistory(db, today),
     );
   }
 
@@ -1529,7 +1654,23 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     required String name,
     String emoji = '👥',
     List<NewGroupMember> members = const [],
-  }) => _splits.createGroup(name: name, emoji: emoji, members: members);
+  }) async {
+    // Signed in to the backend: make a shared group on the server, so people
+    // added by phone number who use Pulse see it too. Offline, signed out, or
+    // a server problem: keep it on this phone (it still works, just unshared).
+    final s = shared;
+    if (s != null && _cloudReady()) {
+      try {
+        return await s.createSplitGroup(name: name, emoji: emoji, members: members);
+      } on ApiException catch (e) {
+        // A rejected request (bad phone number, ...) is the person's to fix.
+        if (e.isPermanent) rethrow;
+      } on Object {
+        // Offline or unavailable: fall through to a group on this phone.
+      }
+    }
+    return _splits.createGroup(name: name, emoji: emoji, members: members);
+  }
 
   @override
   Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) async {

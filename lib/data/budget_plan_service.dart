@@ -1,4 +1,5 @@
 import '../core/engine/budget_moves.dart';
+import '../core/engine/budget_overrun.dart';
 import '../core/engine/flex_budget.dart';
 import 'local/budget_plan_store.dart';
 import 'local/ids.dart';
@@ -57,6 +58,30 @@ class BudgetPlanView {
   PlanRow? row(String id) => rows.where((r) => r.id == id).firstOrNull;
   int get plannedMinor => rows.fold(0, (a, r) => a + r.plannedMinor);
   int get spentMinor => rows.fold(0, (a, r) => a + r.spentMinor);
+}
+
+/// One category that is over plan now, with everything the screen needs.
+class OverrunItem {
+  const OverrunItem(this.overrun, this.category, this.funding);
+  final CategoryOverrun overrun;
+  final SpendCategory category;
+
+  /// Where a suggested raise could come from. Null unless a raise is suggested.
+  final FundingHint? funding;
+}
+
+class OverrunReport {
+  const OverrunReport(this.items);
+  static const empty = OverrunReport([]);
+  final List<OverrunItem> items;
+
+  /// Names for the funding sentence.
+  String labelOf(String id) {
+    for (final i in items) {
+      if (i.category.id == id) return i.category.label;
+    }
+    return SpendCategory.byId(id)?.label ?? 'another category';
+  }
 }
 
 /// Works out the flex budget from the stored plan and the ledger. The maths
@@ -213,6 +238,83 @@ class BudgetPlanService {
           if (m.month == key && m.scope == MoveScope.mine) m,
       ],
     );
+  }
+
+  /// Which categories are over plan this month, one-off or recurring, from
+  /// the last six months of plan against spend. [marked] holds the months the
+  /// person called a one-off, by category id. Non-monthly (sinking fund)
+  /// categories are left out: they are meant to swing.
+  Future<OverrunReport> overruns({Map<String, Set<String>> marked = const {}}) async {
+    final key = monthKeyFor(_clock());
+    final (cats, limits, moves, txs) = await (store.categories(), store.limits(), store.moves(), transactions()).wait;
+    final spend = spendByMonth(txs);
+    final firstLimit = <String, String>{};
+    for (final l in limits) {
+      final cur = firstLimit[l.categoryId];
+      if (cur == null || l.month.compareTo(cur) < 0) firstLimit[l.categoryId] = l.month;
+    }
+    final here = monthIndex(key);
+    final keys = [for (var i = overrunLookback; i >= 0; i--) monthKeyOf(here - i)];
+    final planned = {
+      for (final m in keys)
+        m: applyMoves(
+          {
+            for (final c in cats)
+              if (c.isExpense && !c.hidden && c.group != BudgetGroup.nonMonthly)
+                c.id: basePlanned(c, limits, m, c.rolloverStart ?? firstLimit[c.id] ?? key),
+          },
+          moves,
+          month: m,
+          scope: MoveScope.mine,
+        ),
+    };
+    final window = keys.toSet();
+    // Months before the first payment on record say nothing: a budget set long
+    // ago with no ledger behind it is not "normal months".
+    String? firstSeen;
+    for (final t in txs) {
+      final tm = monthKeyFor(t.date);
+      if (firstSeen == null || tm.compareTo(firstSeen) < 0) firstSeen = tm;
+    }
+    final catOf = <String, SpendCategory>{};
+    final txsBy = <String, List<OverrunTx>>{};
+    for (final t in txs) {
+      if (t.isIncome || t.excluded || t.pendingHold || t.category.isTransfer || t.category.isIncome) continue;
+      final m = monthKeyFor(t.date);
+      if (!window.contains(m)) continue;
+      catOf[t.category.id] = t.category;
+      txsBy.putIfAbsent(t.category.id, () => []).add(
+        OverrunTx(id: t.id, month: m, merchant: t.merchant, amountMinor: (t.amount * 100).round()),
+      );
+    }
+    final inputs = <OverrunInput>[];
+    final slack = <Slack>[];
+    for (final c in cats) {
+      if (!c.isExpense || c.hidden || c.group == BudgetGroup.nonMonthly) continue;
+      final months = [
+        for (final m in keys)
+          if (firstSeen != null && m.compareTo(firstSeen) >= 0) MonthAmount(m, planned[m]?[c.id] ?? 0, spend[c.id]?[m] ?? 0),
+      ];
+      inputs.add(OverrunInput(categoryId: c.id, months: months, txs: txsBy[c.id] ?? const [], markedOneOff: marked[c.id] ?? const {}));
+      if (months.isEmpty || months.last.month != key) continue;
+      final now = months.last;
+      if (c.group == BudgetGroup.flexible && now.plannedMinor > now.spentMinor) {
+        slack.add(Slack(c.id, now.plannedMinor - now.spentMinor));
+      }
+    }
+    final found = analyseOverruns(inputs, currentMonth: key);
+    final report = OverrunReport([
+      for (final o in found)
+        if (catOf[o.categoryId] != null)
+          OverrunItem(
+            o,
+            catOf[o.categoryId]!,
+            o.suggestedCeilingMinor == null
+                ? null
+                : fundingHint(extraMinor: o.suggestedCeilingMinor! - o.plannedMinor, slack: slack, exceptId: o.categoryId),
+          ),
+    ]);
+    return report;
   }
 
   /// Moves [amountMinor] of [month]'s plan from one category to another.

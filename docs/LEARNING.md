@@ -2,6 +2,19 @@
 
 Opt-in, privacy-first, all logic on the phone. Two parts: a **global merchant map** that makes categorisation better out of the box, and an optional **contribution** ("Help improve categories") that lets people send back which merchants they confirmed. Code: `lib/core/learning/`. Free: no new packages, no paid services.
 
+## 0. Your own merchant memory (on this phone, always on)
+
+Separate from the shared map and from contribution: every "yes, that is
+right" swipe and every deliberate category fix votes for a category under the
+merchant's normalised key (`lib/core/learning/merchant_memory.dart`). It is
+stored in local preferences and is never uploaded. A deliberate fix (or two
+agreeing confirmations) is enough to apply it; contradicting yourself lowers
+confidence so a mixed merchant stops guessing. Order of precedence at capture:
+your explicit rules, then this memory, then the built-in dictionary, then the
+shared map. Payments filled this way carry the `learned` tag and the detail
+sheet says so, with a one-tap Forget. "Just this one" is treated as an
+exception and is not learned.
+
 ## 1. Global merchant map
 
 `assets/merchant_map.json`: `{version, schema, updated, entries: {merchant key: category key}}`. Seeded with a few hundred common UAE merchants and spelling variants (public knowledge, no user data; regenerate with `python3 tool/gen_merchant_map.py` and bump `VERSION`). Keys are normalised (lower case, single spaced); categories are the default category keys (never `custom`). Invalid entries are skipped on load, a file with no valid version is rejected.
@@ -42,7 +55,7 @@ Settings > Privacy > **Help improve categories**. A separate switch from "Share 
 
 ## 3. Transport and endpoint contract
 
-`ContributionTransport` (`contribution_transport.dart`): `enabled` and `send(batch) -> bool`. This build ships only `DisabledContributionTransport` (`enabled == false`: nothing is ever sent, the preview says so) and `MemoryContributionTransport` for tests. **The backend endpoint does not exist yet.** Contract for whoever builds it:
+`ContributionTransport` (`contribution_transport.dart`): `enabled` and `send(batch) -> bool`. This build ships only `DisabledContributionTransport` (`enabled == false`: nothing is ever sent, the preview says so) and `MemoryContributionTransport` for tests. **The backend endpoint now exists** (pulse PR "Learning: anonymous category contributions": `POST /v1/category-contributions`, `GET /v1/merchant-map`) and `HttpContributionTransport` (`http_learning.dart`) is used whenever the build has an API base URL. Contract:
 
 ```
 POST <base>/v1/category-contributions
@@ -59,7 +72,7 @@ Server expectations: validate `format`, keys and category keys against the same 
 
 ## Limits
 
-- Not sent anywhere yet (no endpoint); the HTTP transport and the map refresh fetch are not written or tested against a server.
+- The HTTP transport and the map refresh are covered by unit tests with a fake server only; promoting aggregates into `data/learning/merchant_map.json` is a manual review step on the backend repo.
 - The "looks like a business" and "person-like" checks are heuristics. A person's name that is not in the built-in list, written with a business word, could pass ("Zubair Trading"); known-merchant keys are the safe path, and the 2-confirmation threshold and review of promotions on the server are the backstops. Non-Latin names are rejected by the character rule unless they are in the map.
 - Randomised leave-out gives plausible deniability per pair, not formal differential privacy; there is no budget across weeks.
 - Only merchants whose normalised name differs from the raw descriptor are affected by normalisation; the key is the normalised merchant name the app already shows.

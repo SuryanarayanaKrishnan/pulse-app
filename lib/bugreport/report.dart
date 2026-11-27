@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'redactor.dart';
@@ -23,6 +24,7 @@ class DeviceSnapshot {
     required this.build,
     required this.platform,
     required this.osVersion,
+    this.model = 'unknown',
     required this.locale,
     required this.theme,
     required this.route,
@@ -32,6 +34,9 @@ class DeviceSnapshot {
   final String build;
   final String platform;
   final String osVersion;
+
+  /// Hardware identifier (iOS: `iPhone16,2`; Android: maker and model).
+  final String model;
   final String locale;
   final String theme;
   final String route;
@@ -58,11 +63,24 @@ class DeviceSnapshot {
     } on Object {
       os = defaultTargetPlatform.name;
     }
+    var model = 'unknown';
+    try {
+      final info = DeviceInfoPlugin();
+      if (Platform.isIOS) {
+        model = (await info.iosInfo).utsname.machine;
+      } else if (Platform.isAndroid) {
+        final a = await info.androidInfo;
+        model = '${a.manufacturer} ${a.model}';
+      }
+    } on Object {
+      // No plugin (tests, desktop): leave unknown.
+    }
     return DeviceSnapshot(
       appVersion: version,
       build: build,
       platform: os,
       osVersion: osVersion,
+      model: model,
       locale: locale.toLanguageTag(),
       theme: brightness == Brightness.dark ? 'dark' : 'light',
       route: route ?? 'unknown',
@@ -74,6 +92,7 @@ class DeviceSnapshot {
     'build': build,
     'platform': platform,
     'os_version': osVersion,
+    'model': model,
     'locale': locale,
     'theme': theme,
     'screen': route,

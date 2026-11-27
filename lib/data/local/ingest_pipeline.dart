@@ -7,10 +7,12 @@ import 'package:flutter/foundation.dart';
 import '../../core/engine/card_value.dart';
 import '../../core/engine/dates.dart';
 import '../../core/engine/dedupe.dart';
+import '../../core/engine/holds.dart';
 import '../../core/engine/institutions.dart';
 import '../digit_suggestion.dart';
 import '../../core/engine/merchants.dart';
 import '../../core/learning/global_merchant_map.dart';
+import '../../core/learning/merchant_memory.dart';
 import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart';
 import '../../core/engine/salary.dart';
@@ -136,6 +138,10 @@ enum IngestStatus {
 
   /// Not a transaction (OTP, promotion, unknown format). Nothing is stored.
   ignored,
+
+  /// A merchant's pre-authorisation notice (hold, settlement or release) was
+  /// applied to a held transaction, or remembered for the bank's own alert.
+  holdUpdated,
 }
 
 /// What the card earned for a captured purchase.
@@ -184,7 +190,7 @@ class IngestOutcome {
 /// categorise, store and work out what the card earned. Mirrors the
 /// backend's `process_raw_ingest`, with every step running on the phone.
 class IngestPipeline {
-  IngestPipeline(this.db, {ParserRegistry? registry, DateTime Function()? clock, this.globalMap})
+  IngestPipeline(this.db, {ParserRegistry? registry, DateTime Function()? clock, this.globalMap, this.memory})
     : registry = registry ?? defaultParserRegistry,
       _clock = clock ?? DateTime.now;
 
@@ -193,6 +199,9 @@ class IngestPipeline {
   /// Default categories for common merchants; used after the user's rules and
   /// the built-in dictionary.
   final GlobalMerchantMap? globalMap;
+
+  /// The person's own earlier category choices (on this phone only).
+  final MerchantMemory? memory;
   final ParserRegistry registry;
   final DateTime Function() _clock;
   final _results = StreamController<IngestOutcome>.broadcast();
@@ -209,8 +218,12 @@ class IngestPipeline {
     if (input.fields == null && (isOtpMessage(text) || isOtpMessage(input.title ?? ''))) {
       return const IngestOutcome(IngestStatus.ignored, reason: 'otp');
     }
-    final parsed = _parse(input);
-    if (parsed == null) {
+    await voidExpiredHolds();
+    final notice = input.fields == null
+        ? parseHoldNotice(text, sender: input.sender, subject: input.title)
+        : null;
+    final parsed = notice == null ? _parse(input) : null;
+    if (notice == null && parsed == null) {
       return const IngestOutcome(IngestStatus.ignored, reason: 'not_a_transaction');
     }
     final hash = computeExternalHash(
@@ -235,9 +248,143 @@ class IngestPipeline {
         parseStatus: const Value('pending'),
       ),
     );
-    final outcome = await _process(rawId, input, parsed, text);
+    if (notice != null) {
+      final txId = await applyHoldNotice(notice, at: input.receivedAt ?? _clock());
+      await _markRaw(rawId, 'parsed', txId: txId);
+      return IngestOutcome(IngestStatus.holdUpdated, transactionId: txId, reason: notice.kind.name);
+    }
+    final outcome = await _process(rawId, input, parsed!, text);
     if (outcome.isNew) _results.add(outcome);
     return outcome;
+  }
+
+  // ---- pre-authorisation holds -------------------------------------------
+
+  static const _noticesKey = 'holds.notices';
+
+  Future<List<Map<String, Object?>>> _notices() async {
+    final raw = await db.setting(_noticesKey);
+    if (raw == null || raw.isEmpty) return [];
+    try {
+      return [for (final e in jsonDecode(raw) as List) Map<String, Object?>.from(e as Map)];
+    } on Object {
+      return [];
+    }
+  }
+
+  Future<void> _saveNotice(HoldNotice n, DateTime at) async {
+    final cutoff = _clock().subtract(holdExpiry * 2);
+    final kept = [
+      for (final e in await _notices())
+        if (DateTime.tryParse('${e['at']}')?.isAfter(cutoff) ?? false) e,
+      {
+        'kind': n.kind.name,
+        'merchant': n.merchant,
+        'hold': n.holdMinor,
+        'final': n.finalMinor,
+        'at': at.toUtc().toIso8601String(),
+      },
+    ];
+    await db.putSetting(_noticesKey, jsonEncode(kept));
+  }
+
+  /// True when a settlement or release notice already closed a hold of this
+  /// size at this merchant, so a late bank alert for the hold is not spend.
+  Future<bool> _holdAlreadyClosed(String? merchant, int amountMinor) async {
+    final cutoff = _clock().subtract(holdExpiry);
+    for (final e in await _notices()) {
+      if (e['kind'] == HoldNoticeKind.hold.name || e['hold'] != amountMinor) continue;
+      if ((DateTime.tryParse('${e['at']}') ?? cutoff).isBefore(cutoff)) continue;
+      if (sameHoldMerchant('${e['merchant']}', merchant)) return true;
+    }
+    return false;
+  }
+
+  bool _hasTag(TxRow t, String tag) => (jsonDecode(t.tags) as List).contains(tag);
+
+  Future<void> _settle(TxRow hold, int finalMinor, {String? channel}) async {
+    final tags = [for (final x in jsonDecode(hold.tags) as List) '$x']..remove(holdTag);
+    final sources = {...[for (final x in jsonDecode(hold.sources) as List) '$x'], ?channel}.toList();
+    await (db.update(db.transactions)..where((t) => t.id.equals(hold.id))).write(
+      TransactionsCompanion(
+        amountMinor: Value(finalMinor),
+        excludeFromBudget: const Value(false),
+        tags: Value(jsonEncode(tags)),
+        sources: Value(jsonEncode(sources)),
+      ),
+    );
+  }
+
+  Future<void> _void(TxRow t) => (db.update(db.transactions)..where((x) => x.id.equals(t.id))).write(
+    TransactionsCompanion(deletedAt: Value(_clock().toUtc())),
+  );
+
+  /// Applies a merchant's hold / settlement / release email. Returns the id of
+  /// the transaction it changed, if any. Notices are also remembered so the
+  /// bank's own alert, which may arrive before or after, is read correctly.
+  Future<String?> applyHoldNotice(HoldNotice n, {DateTime? at}) async {
+    final now = at ?? _clock();
+    await _saveNotice(n, now);
+    final day = const Duration(days: 1);
+    final recent = await (db.select(db.transactions)
+          ..where(
+            (t) =>
+                t.deletedAt.isNull() &
+                t.direction.equals('debit') &
+                t.postedAt.isBetweenValues(now.subtract(holdExpiry), now.add(day)),
+          ))
+        .get();
+    final sameShop = [for (final t in recent) if (sameHoldMerchant(n.merchant, t.merchantNormalized ?? t.merchantRaw)) t];
+    final holds = [for (final t in sameShop) if (_hasTag(t, holdTag)) t];
+    // The row for the blocked amount, held or not yet recognised as a hold.
+    TxRow? blocked;
+    for (final t in sameShop) {
+      if (t.amountMinor == n.holdMinor && (blocked == null || t.postedAt.isAfter(blocked.postedAt))) blocked = t;
+    }
+    switch (n.kind) {
+      case HoldNoticeKind.hold:
+        if (blocked != null && !_hasTag(blocked, holdTag)) {
+          final tags = [for (final x in jsonDecode(blocked.tags) as List) '$x', holdTag];
+          await (db.update(db.transactions)..where((t) => t.id.equals(blocked!.id))).write(
+            TransactionsCompanion(tags: Value(jsonEncode(tags)), excludeFromBudget: const Value(true)),
+          );
+        }
+        return blocked?.id;
+      case HoldNoticeKind.settlement:
+        final fin = n.finalMinor!;
+        // The real charge may already be a row of its own (its bank alert came first).
+        final real = [for (final t in sameShop) if (t.amountMinor == fin && !_hasTag(t, holdTag)) t];
+        if (blocked != null && real.isNotEmpty) {
+          await _void(blocked); // the hold row is redundant: the charge is already there
+          return real.first.id;
+        }
+        if (blocked != null) {
+          await _settle(blocked, fin);
+          return blocked.id;
+        }
+        return real.isEmpty ? null : real.first.id;
+      case HoldNoticeKind.release:
+        for (final h in holds.where((h) => h.amountMinor == n.holdMinor)) {
+          await _void(h);
+        }
+        return null;
+    }
+  }
+
+  /// Holds the bank never settled are released by the bank: stop counting them.
+  Future<int> voidExpiredHolds() async {
+    final cutoff = _clock().subtract(holdExpiry);
+    final rows = await (db.select(db.transactions)
+          ..where((t) => t.deletedAt.isNull() & t.postedAt.isSmallerThanValue(cutoff)))
+        .get();
+    var n = 0;
+    for (final t in rows) {
+      if (_hasTag(t, holdTag)) {
+        await _void(t);
+        n++;
+      }
+    }
+    return n;
   }
 
   /// Retries messages that had no matching account (after the user added a
@@ -413,6 +560,34 @@ class IngestPipeline {
           claimedByMessage: claimed.contains(t.id),
         ),
     ];
+    // Pre-authorisation holds: a smaller charge settles an open hold; a round
+    // amount at a pre-authorising merchant is itself a hold, not spend.
+    var asHold = false;
+    if (direction == Direction.debit) {
+      final open = [
+        for (final t in nearby)
+          if (t.deletedAt == null &&
+              _hasTag(t, holdTag) &&
+              t.direction == 'debit' &&
+              sameHoldMerchant(p.merchantRaw, t.merchantNormalized ?? t.merchantRaw) &&
+              t.amountMinor > p.amountMinor &&
+              postedAt.difference(t.postedAt).abs() <= settleWindow)
+            t,
+      ];
+      if (open.isNotEmpty) {
+        open.sort((a, b) => b.postedAt.compareTo(a.postedAt));
+        await _settle(open.first, p.amountMinor, channel: channel.wire);
+        await _markRaw(rawId, 'parsed', txId: open.first.id);
+        return IngestOutcome(IngestStatus.merged, transactionId: open.first.id, reason: 'hold_settled');
+      }
+      if (looksLikeHold(p.merchantRaw, p.amountMinor, direction)) {
+        if (await _holdAlreadyClosed(p.merchantRaw, p.amountMinor)) {
+          await _markRaw(rawId, 'parsed');
+          return const IngestOutcome(IngestStatus.ignored, reason: 'hold_already_released');
+        }
+        asHold = true;
+      }
+    }
     final dupe =
         findStatementTransaction(
           stored,
@@ -442,8 +617,8 @@ class IngestPipeline {
       return IngestOutcome(IngestStatus.merged, transactionId: dupe.id);
     }
 
-    // Categorise: the user's rules first, then the merchant dictionary, then
-    // the global merchant map.
+    // Categorise: the user's rules first, then what they confirmed before,
+    // then the merchant dictionary, then the global merchant map.
     final enrichment = await _resolver().then(
       (r) => r.enrich(
         p.merchantRaw,
@@ -472,8 +647,8 @@ class IngestPipeline {
         postedAt: postedAt,
         source: channel.wire,
         externalHash: const Value.absent(),
-        excludeFromBudget: Value(enrichment.excludeFromBudget),
-        tags: Value(jsonEncode(enrichment.tags)),
+        excludeFromBudget: Value(enrichment.excludeFromBudget || asHold),
+        tags: Value(jsonEncode([...enrichment.tags, if (asHold) holdTag])),
         sources: Value(jsonEncode([channel.wire])),
         appliedRuleId: Value(enrichment.ruleId),
       ),
@@ -495,7 +670,7 @@ class IngestPipeline {
     await _markRaw(rawId, 'parsed', txId: txId);
 
     RewardOutcome? reward;
-    if (direction == Direction.debit && p.currency == 'AED' && account.type == 'credit_card') {
+    if (!asHold && direction == Direction.debit && p.currency == 'AED' && account.type == 'credit_card') {
       try {
         reward = await _reward(account, txId, categoryId, enrichment.merchantNormalized ?? p.merchantRaw, p.amountMinor, postedAt);
       } on Object catch (e) {
@@ -520,7 +695,7 @@ class IngestPipeline {
       for (final c in cats)
         if (c.slug != null) c.slug!: c.id,
     };
-    return CategoryResolver(compiled, system, globalMap: globalMap);
+    return CategoryResolver(compiled, system, globalMap: globalMap, memory: memory);
   }
 
   Future<RewardOutcome?> _reward(

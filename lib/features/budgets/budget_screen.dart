@@ -11,6 +11,7 @@ import '../../core/widgets/widgets.dart';
 import '../../data/budget_plan_service.dart' show PlanRow;
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'export_action.dart';
 import '../discover/feature_shortcuts.dart';
 import '../household/joint_views.dart';
 import '../../core/household/household_engine.dart' show NwScope;
@@ -18,6 +19,7 @@ import '../../household/household_providers.dart';
 import '../../data/local/budget_plan_store.dart' show BudgetMode;
 import 'budget_chart_pager.dart';
 import 'flex_budget_section.dart';
+import 'overrun_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 import '../coach/coach.dart';
@@ -190,6 +192,7 @@ class _Body extends ConsumerWidget {
         flex
             ? const CoachTarget(id: 'hero', child: FlexBudgetSection())
             : const FlexBudgetSection(),
+        if (o.planned > 0) const OverrunSection(),
         if (!flex) ...[
           SectionHeader(
             'Categories',
@@ -232,6 +235,22 @@ class _Body extends ConsumerWidget {
                 subtitle: 'Excel, Google Sheets or CSV',
                 chevron: true,
                 onTap: () => context.push(Routes.budgetImport),
+              ),
+              ListRow(
+                key: const Key('manage_export'),
+                leading: const IconWell(Icons.ios_share_rounded),
+                title: 'Export to Excel',
+                subtitle: 'Budget and every payment, all columns',
+                chevron: true,
+                onTap: () => exportSpreadsheet(context, ref, ExportFormat.xlsx),
+              ),
+              ListRow(
+                key: const Key('manage_export_csv'),
+                leading: const IconWell(Icons.table_chart_outlined),
+                title: 'Export as CSV',
+                subtitle: 'For Google Sheets (File, Import)',
+                chevron: true,
+                onTap: () => exportSpreadsheet(context, ref, ExportFormat.csv),
               ),
               ListRow(
                 leading: const IconWell(Icons.category_outlined),

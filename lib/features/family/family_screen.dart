@@ -1,31 +1,94 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/router/router.dart';
-import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
-import '../../data/api/api_exception.dart';
-import '../../data/insights.dart';
+import '../../data/household_service.dart';
 import '../../data/phone.dart';
-import '../../data/providers.dart';
+import '../../household/household_providers.dart';
+import '../household/household_common.dart';
+import 'pending_invites.dart';
 
 void _toast(BuildContext context, String text) =>
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-/// A household: who is in it, what each person chooses to share, and what
-/// you share with them.
+/// Invites still waiting for the person to join. Invites that the joined
+/// members answer are dropped here, so the list never lies.
+final pendingInviteListProvider = FutureProvider<List<PendingInvite>>((
+  ref,
+) async {
+  final j = await ref.watch(jointDataProvider.future);
+  final store = ref.watch(pendingInvitesProvider);
+  if (j != null) {
+    await store.dropJoined([
+      for (final m in j.members)
+        if (m.id != j.me) m.name,
+    ]);
+  }
+  return store.all();
+});
+
+/// What goes into the message: the household code and how to use it. The
+/// code is the key to the household, so it only ever travels through the app
+/// you pick (WhatsApp, Messages), never through Pulse's servers.
+String inviteMessage({required String name, required String code}) =>
+    'Hi $name, I would like us to plan money together on Pulse. '
+    'Install Pulse, open Settings > Household > Join with a code, and paste this:\n\n'
+    '$code\n\n'
+    'It opens what we share, so keep it between us.';
+
+/// The code for this phone's household, creating the household first when
+/// there is none. Null when this phone has no key (restored from a backup).
+Future<String?> _codeFor(WidgetRef ref, {String? myName}) async {
+  final svc = ref.read(householdServiceProvider);
+  if (await svc.config() == null) {
+    await svc.create(householdName: 'Our household', myName: myName ?? 'Me');
+    invalidateHousehold(ref);
+  }
+  return svc.inviteCode();
+}
+
+Future<void> _shareInvite({
+  required String name,
+  required String code,
+  String? phone,
+  bool whatsapp = false,
+}) async {
+  final text = inviteMessage(name: name, code: code);
+  if (whatsapp && phone != null) {
+    final uri = Uri.parse(
+      'https://wa.me/${phone.replaceFirst('+', '')}?text=${Uri.encodeComponent(text)}',
+    );
+    try {
+      if (await launchUrl(uri, mode: LaunchMode.externalApplication)) return;
+    } on Object {
+      // fall through to the share sheet
+    }
+  }
+  await SharePlus.instance.share(
+    ShareParams(text: text, subject: 'Join my Pulse household'),
+  );
+}
+
+/// Members of your household and the people you have invited.
 class FamilyScreen extends ConsumerWidget {
   const FamilyScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final house = ref.watch(householdProvider);
-    void invite() =>
-        showPulseSheet<void>(context, builder: (_) => const InviteSheet());
+    final joint = ref.watch(jointDataProvider);
+    final pending = ref.watch(pendingInviteListProvider).value ?? const [];
+    void invite() => showPulseSheet<void>(
+      context,
+      builder: (_) => InviteSheet(hasHousehold: joint.value != null),
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text('Family'),
@@ -41,248 +104,175 @@ class FamilyScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: AsyncView<Household>(
-        value: house,
-        onRetry: () => ref.invalidate(householdProvider),
-        builder: (h) {
-          final you = h.members.where((m) => m.isYou).firstOrNull;
-          final others = h.members.where((m) => !m.isYou).toList();
-          return ListView(
-            padding: const EdgeInsets.only(bottom: Space.xxxl),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.gutter,
-                  Space.sm,
-                  Space.gutter,
-                  0,
-                ),
-                child: Text(
-                  '${h.name}. Each person decides what the others see.',
-                  style: context.tt.bodyMedium,
-                ),
-              ),
-              const SectionHeader('Members'),
-              RowGroup(
-                indent: ListRow.leadingInset,
-                children: [
-                  if (you != null) _MemberRow(you),
-                  for (final m in others) _MemberRow(m),
-                  ListRow(
-                    leading: IconWell(
-                      Icons.add_rounded,
-                      color: context.pc.accent,
-                    ),
-                    title: 'Invite by phone',
-                    titleStyle: context.tt.bodyLarge!.copyWith(
-                      color: context.pc.accent,
-                    ),
-                    onTap: invite,
-                  ),
-                ],
-              ),
-              if (you != null) ...[
-                const SectionHeader('What you share'),
-                _SharingPicker(you),
-              ],
-              const SectionHeader('Planning ahead'),
-              RowGroup(
-                indent: ListRow.leadingInset,
-                children: [
-                  ListRow(
-                    leading: const IconWell(Icons.shield_outlined),
-                    title: 'Family vault',
-                    subtitle:
-                        'Where things are, for the people who would need them',
-                    chevron: true,
-                    onTap: () => context.push(Routes.legacy),
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _Avatar extends StatelessWidget {
-  const _Avatar(this.m);
-  final FamilyMember m;
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    return Container(
-      width: 32,
-      height: 32,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: m.isYou ? c.accent : c.surfaceElevated,
-        shape: BoxShape.circle,
-      ),
-      child: Text(
-        m.name.isEmpty ? '?' : m.name[0],
-        style: context.tt.labelLarge!.copyWith(
-          color: m.isYou ? c.onAccent : c.textPrimary,
+      body: AsyncView<JointData?>(
+        value: joint,
+        onRetry: () => ref.invalidate(jointDataProvider),
+        builder: (j) => _Body(
+          joint: j,
+          pending: pending,
+          onInvite: () => showPulseSheet<void>(
+            context,
+            builder: (_) => InviteSheet(hasHousehold: j != null),
+          ),
         ),
       ),
     );
   }
 }
 
-class _MemberRow extends StatelessWidget {
-  const _MemberRow(this.m);
-  final FamilyMember m;
+class _Body extends ConsumerWidget {
+  const _Body({
+    required this.joint,
+    required this.pending,
+    required this.onInvite,
+  });
+  final JointData? joint;
+  final List<PendingInvite> pending;
+  final VoidCallback onInvite;
 
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    final shows = m.isYou || m.sharing != SharingLevel.nothing;
-    final String subtitle;
-    if (m.invited) {
-      subtitle = '${m.relation} · invitation sent';
-    } else if (m.isYou) {
-      subtitle = 'Sharing ${m.sharing.label.toLowerCase()}';
-    } else {
-      subtitle = '${m.relation} · shares ${m.sharing.label.toLowerCase()}';
+  Future<void> _again(
+    BuildContext context,
+    WidgetRef ref,
+    PendingInvite p,
+  ) async {
+    final code = await ref.read(householdServiceProvider).inviteCode();
+    if (!context.mounted) return;
+    if (code == null) {
+      _toast(context, 'This phone needs a new household code first.');
+      return;
     }
-    return ListRow(
-      leading: _Avatar(m),
-      title: m.isYou ? '${m.name} (you)' : m.name,
-      subtitle: subtitle,
-      subtitleColor: m.invited ? c.warning : null,
-      trailing: m.invited || !shows
-          ? Text(m.invited ? '' : 'Private', style: context.tt.bodySmall)
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  Money.aed(m.spent, decimals: false),
-                  style: PulseTheme.amount(c.textPrimary),
-                ),
-                if (m.budget > 0)
-                  Text(
-                    'of ${Money.aed(m.budget, decimals: false)}',
-                    style: context.tt.bodySmall,
-                  ),
-              ],
-            ),
-      chevron: !m.invited,
-      onTap: m.invited
-          ? null
-          : () =>
-                showPulseSheet<void>(context, builder: (_) => _MemberSheet(m)),
-    );
+    await _shareInvite(name: p.name, code: code, phone: p.phone);
   }
-}
 
-class _MemberSheet extends StatelessWidget {
-  const _MemberSheet(this.m);
-  final FamilyMember m;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.pc;
-    final level = m.isYou ? SharingLevel.full : m.sharing;
-    final cats = m.byCategory.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final p = m.budget == 0 ? 0.0 : m.spent / m.budget;
-    return SheetScaffold(
-      title: m.isYou ? 'You' : m.name,
-      subtitle: m.isYou
-          ? 'What others see depends on what you share'
-          : '${m.relation} · shares ${m.sharing.label.toLowerCase()}',
-      child: level == SharingLevel.nothing
-          ? Text(
-              '${m.name} keeps their spending private. You can see that they are part of the household, nothing more.',
-              style: context.tt.bodyMedium,
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text('This month', style: context.tt.bodyMedium),
-                const SizedBox(height: Space.xs),
-                AmountText(m.spent, size: 32, weight: FontWeight.w700),
-                if (m.budget > 0) ...[
-                  const SizedBox(height: Space.md),
-                  Meter(value: p, color: c.forProgress(p)),
-                  const SizedBox(height: 6),
-                  Text(
-                    '${PulseColors.statusLabel(p)} · budget ${Money.aed(m.budget, decimals: false)}',
-                    style: context.tt.bodySmall,
-                  ),
-                ],
-                if (level.index >= SharingLevel.categories.index &&
-                    cats.isNotEmpty) ...[
-                  const SizedBox(height: Space.xl),
-                  RowGroup(
-                    padding: EdgeInsets.zero,
-                    indent: ListRow.leadingInset,
-                    children: [
-                      for (final e in cats)
-                        ListRow(
-                          dense: true,
-                          leading: CategoryIcon.well(e.key),
-                          title: e.key.label,
-                          trailing: Text(
-                            Money.aed(e.value, decimals: false),
-                            style: PulseTheme.amount(c.textPrimary),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
-                if (level == SharingLevel.totals) ...[
-                  const SizedBox(height: Space.lg),
-                  Text(
-                    '${m.name} shares totals only.',
-                    style: context.tt.bodySmall,
-                  ),
-                ],
-              ],
-            ),
-    );
+  Future<void> _cancel(WidgetRef ref, PendingInvite p) async {
+    await ref.read(pendingInvitesProvider).cancel(p.id);
+    ref.invalidate(pendingInviteListProvider);
   }
-}
-
-class _SharingPicker extends ConsumerWidget {
-  const _SharingPicker(this.you);
-  final FamilyMember you;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    return RowGroup(
+    final j = joint;
+    return ListView(
+      padding: const EdgeInsets.only(bottom: Space.xxxl),
       children: [
-        for (final l in SharingLevel.values)
-          ListRow(
-            dense: true,
-            title: l.label,
-            subtitle: l.description,
-            trailing: AnimatedOpacity(
-              duration: Motion.fast,
-              opacity: l == you.sharing ? 1 : 0,
-              child: Icon(Icons.check_rounded, color: c.accent, size: 20),
-            ),
-            onTap: () async {
-              Haptics.tap();
-              try {
-                await ref.read(repositoryProvider).setSharing(you.id, l);
-                ref.invalidate(householdProvider);
-              } on ApiException catch (e) {
-                if (context.mounted) _toast(context, e.message);
-              }
-            },
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            0,
           ),
+          child: Text(
+            'Invite someone by sending them a code yourself, on WhatsApp or '
+            'Messages. Each person decides what they share.',
+            style: context.tt.bodyMedium,
+          ),
+        ),
+        const SectionHeader('Members'),
+        RowGroup(
+          indent: ListRow.leadingInset,
+          children: [
+            if (j == null)
+              ListRow(
+                key: const Key('family_just_you'),
+                leading: const MemberAvatar('You', me: true),
+                title: 'Just you so far',
+                subtitle: 'Invite someone to share a budget',
+              )
+            else
+              for (final m in j.members)
+                ListRow(
+                  key: Key('family_member_${m.name}'),
+                  leading: MemberAvatar(m.name, me: m.id == j.me),
+                  title: m.id == j.me ? '${m.name} (you)' : m.name,
+                  subtitle: m.id == j.me ? 'In your household' : 'Joined',
+                ),
+            ListRow(
+              key: const Key('family_invite'),
+              leading: IconWell(Icons.add_rounded, color: c.accent),
+              title: 'Invite someone',
+              titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
+              onTap: onInvite,
+            ),
+          ],
+        ),
+        if (pending.isNotEmpty) ...[
+          const SectionHeader('Waiting to join'),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [
+              for (final p in pending)
+                ListRow(
+                  key: Key('pending_${p.id}'),
+                  leading: MemberAvatar(p.name),
+                  title: p.name,
+                  subtitle: '${p.relation} · code shared, not joined yet',
+                  subtitleColor: c.warning,
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TextAction(
+                        'Share again',
+                        key: Key('pending_again_${p.id}'),
+                        onTap: () => unawaited(_again(context, ref, p)),
+                      ),
+                      const SizedBox(width: Space.md),
+                      TextAction(
+                        'Cancel',
+                        key: Key('pending_cancel_${p.id}'),
+                        color: c.textTertiary,
+                        onTap: () => unawaited(_cancel(ref, p)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
+            child: Text(
+              'Pulse cannot see who opened your message. Cancel removes the '
+              'note here; to stop a code working, change the household code.',
+              style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+            ),
+          ),
+        ],
+        const SectionHeader('More'),
+        RowGroup(
+          indent: ListRow.leadingInset,
+          children: [
+            ListRow(
+              leading: const IconWell(Icons.home_outlined),
+              title: 'Household',
+              subtitle: 'What you share, shared bills, change the code',
+              chevron: true,
+              onTap: () => context.push(Routes.household),
+            ),
+            ListRow(
+              leading: const IconWell(Icons.shield_outlined),
+              title: 'Family vault',
+              subtitle: 'Where things are, for the people who would need them',
+              chevron: true,
+              onTap: () => context.push(Routes.legacy),
+            ),
+          ],
+        ),
       ],
     );
   }
 }
 
-/// Invite someone to the household by phone number.
+/// Invite someone: pick the app to send it with, and Pulse notes who is
+/// waiting. Sending the same person twice does not add a second row.
 class InviteSheet extends ConsumerStatefulWidget {
-  const InviteSheet({super.key});
+  const InviteSheet({super.key, required this.hasHousehold});
+  final bool hasHousehold;
   @override
   ConsumerState<InviteSheet> createState() => _InviteSheetState();
 }
@@ -290,6 +280,7 @@ class InviteSheet extends ConsumerStatefulWidget {
 class _InviteSheetState extends ConsumerState<InviteSheet> {
   final _name = TextEditingController();
   final _phone = TextEditingController();
+  final _me = TextEditingController();
   String _relation = 'Partner';
   bool _busy = false;
   static const _relations = ['Partner', 'Parent', 'Child', 'Sibling', 'Other'];
@@ -298,30 +289,43 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
   void dispose() {
     _name.dispose();
     _phone.dispose();
+    _me.dispose();
     super.dispose();
   }
 
+  bool get _phoneOk => _phone.text.trim().isNotEmpty && toE164(_phone.text) != null;
   bool get _valid =>
-      _name.text.trim().isNotEmpty && toE164(_phone.text) != null;
+      _name.text.trim().isNotEmpty &&
+      (_phone.text.trim().isEmpty || _phoneOk) &&
+      (widget.hasHousehold || _me.text.trim().isNotEmpty);
 
-  Future<void> _send() async {
+  Future<void> _send({required bool whatsapp}) async {
     setState(() => _busy = true);
+    final name = _name.text.trim();
     try {
-      await ref
-          .read(repositoryProvider)
-          .inviteFamilyMember(
-            name: _name.text.trim(),
-            phone: _phone.text,
-            relation: _relation,
-          );
-      ref.invalidate(householdProvider);
-      Haptics.success();
-      if (mounted) {
-        Navigator.of(context).pop();
-        _toast(context, 'Invitation sent to ${_name.text.trim()}');
+      final code = await _codeFor(ref, myName: _me.text.trim());
+      if (!mounted) return;
+      if (code == null) {
+        _toast(context, 'This phone needs a new household code first. Open Household.');
+        return;
       }
-    } on ApiException catch (e) {
-      if (mounted) _toast(context, e.message);
+      final r = await ref
+          .read(pendingInvitesProvider)
+          .add(name: name, relation: _relation, phoneInput: _phone.text);
+      ref.invalidate(pendingInviteListProvider);
+      Haptics.success();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final phone = r.invite.phone;
+      Navigator.of(context).pop();
+      if (r.alreadyPending) {
+        messenger.showSnackBar(
+          SnackBar(content: Text('${r.invite.name} is already invited. Sharing the code again.')),
+        );
+      }
+      await _shareInvite(name: r.invite.name, code: code, phone: phone, whatsapp: whatsapp);
+    } on Object catch (e) {
+      if (mounted) _toast(context, 'Could not prepare the invite. $e');
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -331,25 +335,37 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
   Widget build(BuildContext context) {
     return SheetScaffold(
       title: 'Invite to household',
-      subtitle: 'They choose what to share once they join',
+      subtitle: 'You send the code yourself. They choose what to share once they join.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          if (!widget.hasHousehold) ...[
+            TextField(
+              key: const Key('invite_myname'),
+              controller: _me,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(hintText: 'Your first name'),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: Space.md),
+          ],
           TextField(
+            key: const Key('invite_name'),
             controller: _name,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(hintText: 'Name'),
+            decoration: const InputDecoration(hintText: 'Their name'),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
+            key: const Key('invite_phone'),
             controller: _phone,
             keyboardType: TextInputType.phone,
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'[0-9+ ]')),
             ],
             decoration: const InputDecoration(
-              hintText: 'Mobile, e.g. 050 123 4567',
+              hintText: 'Mobile, to open WhatsApp (optional)',
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -368,10 +384,21 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
           ),
           const SizedBox(height: Space.xl),
           PrimaryButton(
-            label: 'Send invite',
+            key: const Key('invite_share'),
+            label: 'Share invite',
+            icon: Icons.ios_share_rounded,
             loading: _busy,
-            onPressed: _valid ? _send : null,
+            onPressed: _valid ? () => _send(whatsapp: false) : null,
           ),
+          if (_phoneOk) ...[
+            const SizedBox(height: Space.sm),
+            PrimaryButton(
+              key: const Key('invite_whatsapp'),
+              label: 'Send on WhatsApp',
+              secondary: true,
+              onPressed: _valid && !_busy ? () => _send(whatsapp: true) : null,
+            ),
+          ],
         ],
       ),
     );

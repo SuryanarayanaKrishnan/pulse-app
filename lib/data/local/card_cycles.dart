@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import '../../core/engine/cap_tracker.dart';
 import '../../core/engine/dates.dart';
 import '../../core/engine/merchants.dart';
+import '../../core/engine/next_best.dart' show LedgerSpend;
 import '../../core/engine/rewards.dart';
 import 'database.dart';
 
@@ -48,15 +50,15 @@ Future<List<OwnedCard>> loadOwnedCards(PulseDatabase db) async {
   return out;
 }
 
-/// Reward cycle state of [card]: spends of the cycle around [today], in
-/// chronological order. [excludeTxId] leaves one transaction out ("before").
-Future<CycleResult> cycleState(
+/// One card's spends in the reward cycle around [today], oldest first, with
+/// the cycle's dates and basis (calendar or statement, see [resolveCycle]).
+Future<({List<Spend> spends, CalDate start, CalDate end, CycleBasis basis})> cycleSpends(
   PulseDatabase db,
   OwnedCard card,
   CalDate today, {
   String? excludeTxId,
 }) async {
-  final (from, to) = cycleBounds(today, card.account.statementDay);
+  final (from, to, basis) = resolveCycle(card.spec, today, card.account.statementDay);
   final start = atDate(from).subtract(const Duration(hours: 12));
   final end = atDate(to).add(const Duration(hours: 12));
   final rows = await (db.select(db.transactions)
@@ -71,11 +73,65 @@ Future<CycleResult> cycleState(
         )
         ..orderBy([(t) => OrderingTerm.asc(t.postedAt), (t) => OrderingTerm.asc(t.id)]))
       .get();
-  return computeCycle(card.spec, [
+  return (
+    spends: [
+      for (final t in rows)
+        if (t.id != excludeTxId)
+          Spend(t.amountMinor, rewardSlug(t.categoryId), merchantKey(t.merchantNormalized ?? t.merchantRaw)),
+    ],
+    start: from,
+    end: to,
+    basis: basis,
+  );
+}
+
+/// Reward cycle state of [card]: spends of the cycle around [today], in
+/// chronological order. [excludeTxId] leaves one transaction out ("before").
+Future<CycleResult> cycleState(
+  PulseDatabase db,
+  OwnedCard card,
+  CalDate today, {
+  String? excludeTxId,
+}) async => computeCycle(card.spec, (await cycleSpends(db, card, today, excludeTxId: excludeTxId)).spends);
+
+/// Cap status of every owned card for the cycle around [today].
+Future<List<CardCapStatus>> capStatuses(PulseDatabase db, List<OwnedCard> cards, CalDate today) async => [
+  for (final c in cards)
+    await () async {
+      final cy = await cycleSpends(db, c, today);
+      return cardCapStatus(
+        cardId: c.account.id,
+        catalogId: c.catalog.id,
+        title: c.title,
+        spec: c.spec,
+        spends: cy.spends,
+        cycleStart: cy.start,
+        cycleEnd: cy.end,
+        basis: cy.basis,
+      );
+    }(),
+];
+
+/// Every AED expense of the last [months] months, any account, as the
+/// forecast's history. Transfers, card payments and fees are not spend.
+Future<List<LedgerSpend>> spendHistory(PulseDatabase db, CalDate today, {int months = 7}) async {
+  final since = atDate(CalDate(today.year, today.month, 1).addDays(-31 * months));
+  final rows = await (db.select(db.transactions)
+        ..where(
+          (t) =>
+              t.deletedAt.isNull() &
+              t.direction.equals('debit') &
+              t.currency.equals('AED') &
+              t.excludeFromBudget.equals(false) &
+              t.postedAt.isBiggerOrEqualValue(since),
+        ))
+      .get();
+  const notSpend = {'cc_payment', 'transfer', 'fees', 'savings', 'family'};
+  return [
     for (final t in rows)
-      if (t.id != excludeTxId)
-        Spend(t.amountMinor, rewardSlug(t.categoryId), merchantKey(t.merchantNormalized ?? t.merchantRaw)),
-  ]);
+      if (!notSpend.contains(rewardSlug(t.categoryId)))
+        LedgerSpend(toDubaiDate(t.postedAt), t.amountMinor, rewardSlug(t.categoryId)),
+  ];
 }
 
 /// All owned cards with their current cycle, ready to rank. With

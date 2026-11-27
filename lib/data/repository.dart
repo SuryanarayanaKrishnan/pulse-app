@@ -35,7 +35,22 @@ abstract class PulseRepository {
     required String merchant,
     required double amount,
     required SpendCategory category,
+    DateTime? date,
+    String? note,
   });
+
+  /// Saves (or clears, when empty) your note on a payment.
+  Future<void> setTransactionNote(String txId, String? note);
+
+  /// Removes a payment from every total. Only on-device ledgers delete.
+  Future<void> deleteTransaction(String txId);
+
+  /// The salary you entered by hand, if any. It feeds cash flow until a
+  /// salary credit is detected, which then confirms or updates it.
+  Future<ManualSalary?> manualSalary();
+
+  /// Sets (or clears, with null) the manual salary.
+  Future<void> setManualSalary(ManualSalary? salary);
 
   /// Adds dated payments from an imported sheet. Ones already imported
   /// (same day, amount, name and category) are skipped, so importing the same
@@ -240,6 +255,18 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}
+
+  @override
+  Future<void> setTransactionNote(String txId, String? note) => _unsupported('Notes');
+
+  @override
+  Future<void> deleteTransaction(String txId) => _unsupported('Deleting payments');
+
+  @override
+  Future<ManualSalary?> manualSalary() async => null;
+
+  @override
+  Future<void> setManualSalary(ManualSalary? salary) => _unsupported('Setting a salary');
 
   @override
   Future<CreditCard> addCard({

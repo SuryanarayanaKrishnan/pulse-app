@@ -681,6 +681,8 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     required String merchant,
     required double amount,
     required SpendCategory category,
+    DateTime? date,
+    String? note,
   }) async {
     final tx = applyRules(
       Transaction(
@@ -688,8 +690,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
         merchant: merchant,
         amount: amount,
         category: category,
-        date: DateTime.now(),
+        date: date ?? DateTime.now(),
         source: TxSource.manual,
+        note: note?.trim().isEmpty ?? true ? null : note!.trim(),
         cardId: 'cash',
         accountLabel: 'Cash',
         isIncome: category.isIncome,
@@ -698,6 +701,20 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     );
     _tx = [tx, ..._tx];
     return _d(tx);
+  }
+
+  @override
+  Future<void> setTransactionNote(String txId, String? note) async {
+    final n = note?.trim();
+    _tx = [
+      for (final t in _tx)
+        if (t.id == txId) t.copyWith(note: n, clearNote: n == null || n.isEmpty) else t,
+    ];
+  }
+
+  @override
+  Future<void> deleteTransaction(String txId) async {
+    _tx = [for (final t in _tx) if (t.id != txId) t];
   }
 
   // ---- Budget ------------------------------------------------------------

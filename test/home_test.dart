@@ -161,8 +161,9 @@ void main() {
     tester,
   ) async {
     await _pump(tester, location: '/family');
-    expect(find.text('What you share'), findsOneWidget);
-    expect(find.text('Invite by phone'), findsOneWidget);
+    expect(find.text('Just you so far'), findsOneWidget);
+    expect(find.text('Khalid'), findsNothing);
+    expect(find.text('Invite someone'), findsOneWidget);
     await tester.dragUntilVisible(
       find.text('Family vault'),
       find.byType(ListView).first,

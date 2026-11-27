@@ -1,5 +1,6 @@
 import '../capture/kv_store.dart';
 import '../core/packs/content_packs.dart';
+import '../core/packs/tips.dart';
 import '../core/remote_config/remote_config.dart';
 import '../core/engine/receipts/receipt_source.dart';
 import '../features/splits/auto_settle.dart';
@@ -89,6 +90,12 @@ final contentPacksProvider = Provider<ContentPackService>((ref) {
   );
 });
 
+/// Tips and warnings from the Pulse team (the `tips` pack): the downloaded
+/// copy when newer, else the bundled one.
+final packTipsProvider = Provider.autoDispose<List<PackTip>>(
+  (ref) => tipsFromPack(ref.watch(contentPacksProvider).pack('tips')),
+);
+
 /// True when [flag] is on for this phone.
 final featureFlagProvider = Provider.family<bool, String>(
   (ref, flag) => ref.watch(remoteConfigProvider).isOn(flag),
@@ -147,7 +154,11 @@ final catalogServiceProvider = Provider<CatalogService?>((ref) {
 final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
   final db = ref.watch(localDatabaseProvider);
   if (db == null) return null;
-  final p = IngestPipeline(db, globalMap: ref.watch(globalMerchantMapProvider));
+  final p = IngestPipeline(
+    db,
+    globalMap: ref.watch(globalMerchantMapProvider),
+    memory: ref.read(merchantMemoryProvider),
+  );
   ref.onDispose(p.dispose);
   return p;
 });
@@ -510,6 +521,10 @@ final Provider<LocalStatementService?> localStatementServiceProvider =
     });
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
+);
+/// The salary typed in by hand (amount + payday), if any.
+final manualSalaryProvider = FutureProvider<ManualSalary?>(
+  (ref) => ref.watch(repositoryProvider).manualSalary(),
 );
 final emailConnectionsProvider = FutureProvider<List<EmailConnection>>(
   (ref) => ref.watch(repositoryProvider).emailConnections(),
