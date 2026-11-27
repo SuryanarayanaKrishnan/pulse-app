@@ -182,7 +182,8 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: '0', prefixText: 'AED  '),
+          decoration: const InputDecoration(hintText: '0', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
         ),
         if (widget.category.custom) ...[
           const SizedBox(height: Space.lg),
@@ -292,7 +293,8 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
                     ),
                     decoration: const InputDecoration(
                       hintText: 'Monthly budget (optional)',
-                      prefixText: 'AED  ',
+                      prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
                     ),
                   ),
                 )

@@ -334,6 +334,11 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   Widget build(BuildContext context) => SheetScaffold(
     title: 'Add expense',
     subtitle: 'You paid. Split equally.',
+    footer: PrimaryButton(
+      label: 'Add expense',
+      loading: _busy,
+      onPressed: _save,
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -366,7 +371,8 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
             hintText: 'Amount',
-            prefixText: 'AED  ',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
           ),
         ),
         const SizedBox(height: Space.xl),
@@ -396,8 +402,6 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
             style: context.tt.bodySmall!.copyWith(color: context.pc.negative),
           ),
         ],
-        const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Add expense', loading: _busy, onPressed: _save),
       ],
     ),
   );
