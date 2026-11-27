@@ -89,6 +89,10 @@ abstract class PulseRepository {
   Future<List<CreditCard>> myCards();
   Future<List<CreditCard>> cardCatalog();
 
+  /// Creates a card the catalog does not list ("I can't find my card"), on
+  /// this device only. Its rewards are not tracked (no earn rates are known).
+  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name});
+
   /// Adds a card from the catalog to the wallet. On-device only.
   Future<CreditCard> addCard({
     required String catalogId,

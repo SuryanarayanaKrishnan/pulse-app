@@ -5,6 +5,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import '../wallet/add_sheets.dart' show AddCardSheet;
 
 /// Tick every card you hold, add them all at once. No per-card popup: last
 /// digits, limit and due dates can be added later from the card.
@@ -93,6 +94,17 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
                     ),
                     onTap: () => setState(() => _picked.contains(k.id) ? _picked.remove(k.id) : _picked.add(k.id)),
                   ),
+                ListRow(
+                  key: const Key('cant_find_card'),
+                  leading: IconWell(Icons.add_card_outlined, color: c.accent),
+                  title: "I can't find my card",
+                  subtitle: 'Add it yourself',
+                  chevron: true,
+                  onTap: () async {
+                    await showPulseSheet<void>(context, full: true, builder: (_) => const AddCardSheet(startCustom: true));
+                    ref.invalidate(catalogProvider);
+                  },
+                ),
               ],
             ),
           ),

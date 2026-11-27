@@ -73,7 +73,10 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
 
 /// Pick a card from the catalog, then say which one it is.
 class AddCardSheet extends ConsumerStatefulWidget {
-  const AddCardSheet({super.key, this.initial});
+  const AddCardSheet({super.key, this.initial, this.startCustom = false});
+
+  /// Open straight on the "add it yourself" form.
+  final bool startCustom;
 
   /// A card already chosen (from the Discover list).
   final CreditCard? initial;
@@ -92,13 +95,31 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
   bool _busy = false;
   bool _manual = false;
   String? _error;
+  late bool _custom = widget.startCustom;
+  final _customIssuer = TextEditingController();
+  final _customName = TextEditingController();
 
   @override
   void dispose() {
-    for (final c in [_last4, _limit, _owed, _statement, _due]) {
+    for (final c in [_last4, _limit, _owed, _statement, _due, _customIssuer, _customName]) {
       c.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _createCustom() async {
+    setState(() => _busy = true);
+    try {
+      final card = await ref.read(repositoryProvider).addCustomCatalogCard(
+        issuer: _customIssuer.text,
+        name: _customName.text,
+      );
+      if (mounted) setState(() => _picked = card);
+    } on Object catch (e) {
+      if (mounted) _fail(context, e);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _save() async {
@@ -146,6 +167,38 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
   @override
   Widget build(BuildContext context) {
     final picked = _picked;
+    if (picked == null && _custom) {
+      return SheetScaffold(
+        title: 'Add your card',
+        subtitle: 'Pulse will track what you spend on it. It does not know this card\'s rewards.',
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              key: const Key('custom_card_issuer'),
+              controller: _customIssuer,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(hintText: 'Bank, like HSBC'),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: Space.md),
+            TextField(
+              key: const Key('custom_card_name'),
+              controller: _customName,
+              textCapitalization: TextCapitalization.words,
+              decoration: const InputDecoration(hintText: 'Card name, like Platinum'),
+              onChanged: (_) => setState(() {}),
+            ),
+            const SizedBox(height: Space.lg),
+            PrimaryButton(
+              label: 'Continue',
+              onPressed: _busy || _customIssuer.text.trim().isEmpty || _customName.text.trim().isEmpty ? null : _createCustom,
+            ),
+            TextButton(onPressed: () => setState(() => _custom = false), child: const Text('Back to the list')),
+          ],
+        ),
+      );
+    }
     if (picked == null) {
       final catalog = ref.watch(catalogProvider);
       return SheetScaffold(
@@ -168,8 +221,25 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                   for (final k in list)
                     if (_query.isEmpty || '${k.issuer} ${k.name}'.toLowerCase().contains(_query)) k,
                 ];
+                final cantFind = ListRow(
+                  key: const Key('cant_find_card'),
+                  leading: IconWell(Icons.add_card_outlined, color: context.pc.accent),
+                  title: "I can't find my card",
+                  subtitle: 'Add it yourself',
+                  chevron: true,
+                  onTap: () => setState(() => _custom = true),
+                );
                 if (shown.isEmpty) {
-                  return const EmptyState(icon: Icons.search_off_rounded, title: 'No match', message: 'Try the bank name, like "Mashreq".');
+                  return Column(
+                    children: [
+                      const EmptyState(
+                        icon: Icons.search_off_rounded,
+                        title: 'No match',
+                        message: 'Try the bank name, like "Mashreq".',
+                      ),
+                      RowGroup(padding: EdgeInsets.zero, children: [cantFind]),
+                    ],
+                  );
                 }
                 return RowGroup(
                   padding: EdgeInsets.zero,
@@ -183,6 +253,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                         chevron: true,
                         onTap: () => setState(() => _picked = k),
                       ),
+                    cantFind,
                   ],
                 );
               },

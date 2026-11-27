@@ -280,6 +280,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   }
   @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
+  @override
+  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) =>
+      throw UnimplementedError('The demo catalog is fixed');
 
   @override
   Future<List<BankAccount>> bankAccounts() {
