@@ -220,7 +220,8 @@ class _MoveState extends ConsumerState<MoveMoneySheet> {
             key: const Key('move_amount'),
             controller: _amount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: 'AED  '),
+            decoration: const InputDecoration(hintText: 'Amount', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
             onChanged: (_) => setState(() => _error = null),
           ),
           if (src != null) ...[

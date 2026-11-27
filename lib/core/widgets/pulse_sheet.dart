@@ -41,10 +41,15 @@ class SheetScaffold extends StatelessWidget {
     required this.title,
     required this.child,
     this.subtitle,
+    this.footer,
   });
   final String title;
   final String? subtitle;
   final Widget child;
+
+  /// Pinned under the scrolling content, so the main action is always in
+  /// reach whatever the content height or keyboard.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -60,10 +65,19 @@ class SheetScaffold extends StatelessWidget {
         Space.gutter,
         Space.sm,
         Space.gutter,
-        MediaQuery.viewInsetsOf(context).bottom + Space.xl,
+        // The keyboard, or else the home indicator, plus breathing room.
+        (MediaQuery.viewInsetsOf(context).bottom > 0
+                ? MediaQuery.viewInsetsOf(context).bottom
+                : MediaQuery.viewPaddingOf(context).bottom) +
+            Space.xl,
       ),
-      child: SingleChildScrollView(
-        child: Column(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -87,6 +101,10 @@ class SheetScaffold extends StatelessWidget {
             child,
           ],
         ),
+            ),
+          ),
+          if (footer != null) ...[const SizedBox(height: Space.lg), footer!],
+        ],
       ),
     );
   }

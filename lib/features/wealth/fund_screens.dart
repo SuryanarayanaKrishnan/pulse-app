@@ -406,8 +406,8 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Current NAV per unit',
-                prefixText:
-                    '${_mode == _Mode.search && _hasPick ? 'INR' : _currency}  ',
+                prefixIcon: CurrencyPrefix(_mode == _Mode.search && _hasPick ? 'INR' : _currency),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -419,8 +419,8 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Average cost per unit (optional)',
-                prefixText:
-                    '${_mode == _Mode.search && _hasPick ? 'INR' : _currency}  ',
+                prefixIcon: CurrencyPrefix(_mode == _Mode.search && _hasPick ? 'INR' : _currency),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),

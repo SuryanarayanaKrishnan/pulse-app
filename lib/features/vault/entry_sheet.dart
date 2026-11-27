@@ -249,7 +249,8 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
               hintText: 'Rough value',
-              prefixText: 'AED  ',
+              prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           GuardNote(_issues),
