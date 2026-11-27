@@ -4,6 +4,10 @@ import 'package:material_ui/material_ui.dart';
 /// palette (see [PulseColors.tabAccent]).
 enum PulseTab { home, budget, cards, splits, wealth }
 
+/// The two palettes. Sage when cash flow is comfortable, Stone when it is
+/// tight (see `moodProvider`).
+enum PulseMood { sage, stone }
+
 /// Semantic colour tokens exposed as a [ThemeExtension].
 ///
 /// One accent for interaction. Positive / negative / warning describe money
@@ -23,6 +27,7 @@ class PulseColors extends ThemeExtension<PulseColors> {
     required this.positive,
     required this.negative,
     required this.warning,
+    required this.tabs,
     required this.isDark,
   });
 
@@ -45,6 +50,10 @@ class PulseColors extends ThemeExtension<PulseColors> {
   final Color positive;
   final Color negative;
   final Color warning;
+
+  /// One hue per [PulseTab], in tab order. Muted and close to the accent
+  /// family so the five tabs read as one calm palette.
+  final List<Color> tabs;
   final bool isDark;
 
   /// Ink for titles and section headers: the primary text colour pulled a
@@ -55,7 +64,7 @@ class PulseColors extends ThemeExtension<PulseColors> {
   /// The accent hue that belongs to [t]: Home teal-green, Budget slate blue,
   /// Cards terracotta, Splits indigo, Wealth bronze, all muted. Light values are all >= 4.5:1 on
   /// the page background; dark values are bright and >= 8:1.
-  Color tabAccent(PulseTab t) => (isDark ? _tabDark : _tabLight)[t.index];
+  Color tabAccent(PulseTab t) => tabs[t.index];
 
   /// Header and hero ink for [t]: the tab hue pulled slightly toward the
   /// primary text colour so large type stays rich but never neon.
@@ -70,56 +79,117 @@ class PulseColors extends ThemeExtension<PulseColors> {
 
   /// Low-saturation wash for hero areas of [t].
   Color tabWash(PulseTab t) =>
-      tabAccent(t).withValues(alpha: isDark ? 0.10 : 0.09);
+      tabAccent(t).withValues(alpha: isDark ? 0.06 : 0.05);
 
-  static const _tabLight = [
-    Color(0xFF1F6F5C), // home: deep teal-green
-    Color(0xFF1B6F85), // budget: slate teal-blue
-    Color(0xFFA9482F), // cards: terracotta
-    Color(0xFF4A52B0), // splits: indigo
-    Color(0xFF8F5A12), // wealth: bronze
-  ];
-  static const _tabDark = [
-    Color(0xFF7DBBA8),
-    Color(0xFF7DB8D4),
-    Color(0xFFE8998A),
-    Color(0xFFA9AEEB),
-    Color(0xFFE0BC6A),
-  ];
-
-  /// Dark: warm graphite, not black; a soft teal accent.
-  static const dark = PulseColors(
-    bg: Color(0xFF0F1211),
-    surface: Color(0xFF181C1B),
-    surfaceElevated: Color(0xFF232927),
-    border: Color(0xFF2F3633),
-    textPrimary: Color(0xFFEDEFEC),
-    textSecondary: Color(0xFF9DA59F),
-    textTertiary: Color(0xFF68716C),
-    accent: Color(0xFF7DBBA8),
-    onAccent: Color(0xFF0C241E),
-    positive: Color(0xFF7FBE98),
-    negative: Color(0xFFE5846F),
-    warning: Color(0xFFE6B450),
+  /// Sage, dark: warm graphite with a muted green-grey accent.
+  static const sageDark = PulseColors(
+    bg: Color(0xFF121211),
+    surface: Color(0xFF1B1B19),
+    surfaceElevated: Color(0xFF262624),
+    border: Color(0xFF34342F),
+    textPrimary: Color(0xFFECEBE7),
+    textSecondary: Color(0xFF9A9B95),
+    textTertiary: Color(0xFF6B6C67),
+    accent: Color(0xFF8FB0A3),
+    onAccent: Color(0xFF10201B),
+    positive: Color(0xFF86B596),
+    negative: Color(0xFFE0907C),
+    warning: Color(0xFFDDB867),
+    tabs: [
+      Color(0xFF8FB0A3),
+      Color(0xFF92AABB),
+      Color(0xFFC69E92),
+      Color(0xFFA3A6C9),
+      Color(0xFFC8B48A),
+    ],
     isDark: true,
   );
 
-  /// Light: warm paper neutrals; the accent darkens to keep 4.5:1 on white.
-  static const light = PulseColors(
-    bg: Color(0xFFF6F5F1),
-    surface: Color(0xFFFFFFFF),
-    surfaceElevated: Color(0xFFECEAE4),
-    border: Color(0xFFDDDAD2),
-    textPrimary: Color(0xFF1A1E1C),
-    textSecondary: Color(0xFF5C645F),
-    textTertiary: Color(0xFF959B96),
-    accent: Color(0xFF1F6F5C),
+  /// Sage, light: warm paper with a deep green-grey accent.
+  static const sageLight = PulseColors(
+    bg: Color(0xFFF4F3F0),
+    surface: Color(0xFFFBFBF9),
+    surfaceElevated: Color(0xFFE8E6E1),
+    border: Color(0xFFD9D6CF),
+    textPrimary: Color(0xFF1C1D1B),
+    textSecondary: Color(0xFF5F625D),
+    textTertiary: Color(0xFF8F918B),
+    accent: Color(0xFF3E6A5D),
     onAccent: Color(0xFFFFFFFF),
-    positive: Color(0xFF357F58),
-    negative: Color(0xFFC0533D),
-    warning: Color(0xFFA86F0C),
+    positive: Color(0xFF3B7A55),
+    negative: Color(0xFFB5503B),
+    warning: Color(0xFF8F600B),
+    tabs: [
+      Color(0xFF3E6A5D),
+      Color(0xFF3D5F73),
+      Color(0xFF8A5646),
+      Color(0xFF4F5380),
+      Color(0xFF7A5C20),
+    ],
     isDark: false,
   );
+
+  /// Stone, dark: the same surfaces; the accent is warm stone, near
+  /// monochrome. Used when cash flow is tight.
+  static const stoneDark = PulseColors(
+    bg: Color(0xFF121211),
+    surface: Color(0xFF1B1B19),
+    surfaceElevated: Color(0xFF262624),
+    border: Color(0xFF34342F),
+    textPrimary: Color(0xFFECEBE7),
+    textSecondary: Color(0xFF9A9B95),
+    textTertiary: Color(0xFF6B6C67),
+    accent: Color(0xFFD9D4C7),
+    onAccent: Color(0xFF1A1A17),
+    positive: Color(0xFF86B596),
+    negative: Color(0xFFE0907C),
+    warning: Color(0xFFDDB867),
+    tabs: [
+      Color(0xFFD9D4C7),
+      Color(0xFFC9CFD4),
+      Color(0xFFD8C3B8),
+      Color(0xFFC8C8DC),
+      Color(0xFFDACBA3),
+    ],
+    isDark: true,
+  );
+
+  /// Stone, light: the accent is ink.
+  static const stoneLight = PulseColors(
+    bg: Color(0xFFF4F3F0),
+    surface: Color(0xFFFBFBF9),
+    surfaceElevated: Color(0xFFE8E6E1),
+    border: Color(0xFFD9D6CF),
+    textPrimary: Color(0xFF1C1D1B),
+    textSecondary: Color(0xFF5F625D),
+    textTertiary: Color(0xFF8F918B),
+    accent: Color(0xFF2A2C29),
+    onAccent: Color(0xFFFFFFFF),
+    positive: Color(0xFF3B7A55),
+    negative: Color(0xFFB5503B),
+    warning: Color(0xFF8F600B),
+    tabs: [
+      Color(0xFF4A4D48),
+      Color(0xFF46535C),
+      Color(0xFF6B4E43),
+      Color(0xFF4D4F66),
+      Color(0xFF6B5B38),
+    ],
+    isDark: false,
+  );
+
+  /// Default palettes (Sage).
+  static const dark = sageDark;
+  static const light = sageLight;
+
+  /// The palette for a [mood] in the given brightness.
+  static PulseColors of(PulseMood mood, {required bool dark}) =>
+      switch ((mood, dark)) {
+        (PulseMood.sage, true) => sageDark,
+        (PulseMood.sage, false) => sageLight,
+        (PulseMood.stone, true) => stoneDark,
+        (PulseMood.stone, false) => stoneLight,
+      };
 
   @override
   PulseColors copyWith({Color? bg, Color? surface, Color? accent}) =>
@@ -136,6 +206,7 @@ class PulseColors extends ThemeExtension<PulseColors> {
         positive: positive,
         negative: negative,
         warning: warning,
+        tabs: tabs,
         isDark: isDark,
       );
 
@@ -156,14 +227,19 @@ class PulseColors extends ThemeExtension<PulseColors> {
       positive: l(positive, other.positive),
       negative: l(negative, other.negative),
       warning: l(warning, other.warning),
+      tabs: [for (var i = 0; i < tabs.length; i++) l(tabs[i], other.tabs[i])],
       isDark: t < 0.5 ? isDark : other.isDark,
     );
   }
 
+  /// Quiet fill for things that are fine: on-track bars and rings. Sits
+  /// between the tertiary text and the accent so it never shouts.
+  Color get calm => Color.lerp(textTertiary, accent, 0.45)!;
+
   /// Status colour for a budget-style ratio: on track (accent), nearing the
   /// limit (amber, from 85%), over (coral).
   Color forProgress(double p) =>
-      p > 1 ? negative : (p >= 0.85 ? warning : accent);
+      p > 1 ? negative : (p >= 0.85 ? warning : calm);
 
   /// The words that go with [forProgress].
   static String statusLabel(double p) =>

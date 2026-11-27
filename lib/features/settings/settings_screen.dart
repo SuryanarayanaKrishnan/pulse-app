@@ -19,6 +19,7 @@ import '../../core/analytics/privacy_controller.dart';
 import '../../core/entitlement/entitlement.dart';
 import '../../core/env/env.dart';
 import '../../core/router/router.dart';
+import '../../core/theme/mood.dart';
 import '../../core/theme/theme_mode.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
@@ -343,6 +344,38 @@ class SettingsScreen extends ConsumerWidget {
               },
               value: ref.watch(themeModeProvider),
               onChanged: (m) => ref.read(themeModeProvider.notifier).set(m),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.md,
+              Space.gutter,
+              0,
+            ),
+            child: Segmented<MoodPreference>(
+              key: const Key('settings_mood'),
+              segments: const {
+                MoodPreference.auto: 'Auto',
+                MoodPreference.sage: 'Sage',
+                MoodPreference.stone: 'Stone',
+              },
+              value: ref.watch(moodPreferenceProvider),
+              onChanged: (m) =>
+                  ref.read(moodPreferenceProvider.notifier).set(m),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
+            child: Text(
+              'Auto eases to the quieter Stone palette when little of the month '
+              'is left to spend, and back to Sage when it recovers.',
+              style: context.tt.bodySmall,
             ),
           ),
           const SectionHeader('Explore'),
