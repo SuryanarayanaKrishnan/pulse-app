@@ -67,7 +67,8 @@ class _ContributionSheetState extends ConsumerState<ContributionSheet> {
             controller: _amount,
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Amount', prefixText: 'AED  '),
+            decoration: const InputDecoration(hintText: 'Amount', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
             onChanged: (_) => setState(() {}),
           ),
           if (tooMuch)

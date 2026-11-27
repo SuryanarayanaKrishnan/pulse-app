@@ -481,7 +481,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
             hintText: 'What you paid (optional)',
-            prefixText: 'AED  ',
+            prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
           ),
         ),
         const SizedBox(height: Space.sm),
@@ -585,7 +586,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: InputDecoration(
                     hintText: 'Avg cost',
-                    prefixText: '${h.draft.currency}  ',
+                    prefixIcon: CurrencyPrefix(h.draft.currency),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),
@@ -664,7 +666,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Invested',
-                    prefixText: '₹  ',
+                    prefixIcon: CurrencyPrefix('₹'),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),
@@ -681,7 +684,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: const InputDecoration(
                     hintText: 'SIP (optional)',
-                    prefixText: '₹  ',
+                    prefixIcon: CurrencyPrefix('₹'),
+ prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),

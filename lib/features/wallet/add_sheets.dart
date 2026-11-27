@@ -193,13 +193,15 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
           TextField(
             controller: _limit,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Credit limit (optional)', prefixText: 'AED  '),
+            decoration: const InputDecoration(hintText: 'Credit limit (optional)', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _owed,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Owed today (optional)', prefixText: 'AED  '),
+            decoration: const InputDecoration(hintText: 'Owed today (optional)', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
           ),
           const SizedBox(height: Space.md),
           Row(
@@ -330,7 +332,8 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
         TextField(
           controller: _balance,
           keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-          decoration: const InputDecoration(hintText: 'Balance today', prefixText: 'AED  '),
+          decoration: const InputDecoration(hintText: 'Balance today', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
         ),
         const SizedBox(height: Space.xl),
         PrimaryButton(
@@ -425,7 +428,8 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           controller: _value,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixText: 'AED  '),
+          decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.md),
@@ -553,7 +557,8 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
             key: const Key('edit_asset_value'),
             controller: _value,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'), prefixText: 'AED  '),
+            decoration: InputDecoration(hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'), prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),

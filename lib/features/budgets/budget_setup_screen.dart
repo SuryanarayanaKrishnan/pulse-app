@@ -127,7 +127,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             controller: _income,
             keyboardType: TextInputType.number,
             inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]'))],
-            decoration: const InputDecoration(prefixText: 'AED ', hintText: 'After tax and deductions'),
+            decoration: const InputDecoration(prefixIcon: CurrencyPrefix('AED'),
+ prefixIconConstraints: kCurrencyPrefixConstraints, hintText: 'After tax and deductions'),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),
@@ -408,6 +409,8 @@ class _LineEditorState extends State<_LineEditor> {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: const InputDecoration(
+          // Always holds a number, so (unlike an empty amount field) the
+          // prefix text is never hidden here.
           prefixText: 'AED ',
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 14),
