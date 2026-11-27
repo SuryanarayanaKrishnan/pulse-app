@@ -339,7 +339,8 @@ class SettingsScreen extends ConsumerWidget {
                 chevron: true,
                 onTap: () => showAllFeaturesSheet(context),
               ),
-              if (ref.watch(startChoiceProvider) == StartChoice.sample)
+              if (Env.sampleAllowed &&
+                  ref.watch(startChoiceProvider) == StartChoice.sample)
                 ListRow(
                   key: const Key('settings_sample_off'),
                   leading: const IconWell(Icons.auto_awesome_rounded),
