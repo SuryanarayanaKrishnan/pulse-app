@@ -498,6 +498,69 @@ class LocalStatementService {
       );
     });
     await _settleTransfers(id, parsed);
+    await _fillCardFromStatement(parsed, inst);
+  }
+
+  /// A card added with only its name gets its limit, statement day and due
+  /// day from the first statement that names it. Only empty fields are filled,
+  /// so anything the person typed stays. The card is the one with the same last
+  /// four digits, or the only card of that bank still without digits.
+  Future<void> _fillCardFromStatement(
+    ParsedStatement parsed,
+    String? inst,
+  ) async {
+    if (parsed.kind != StatementKind.creditCard) return;
+    final cards = await (db.select(
+      db.accounts,
+    )..where((a) => a.type.equals('credit_card') & a.deletedAt.isNull())).get();
+    AccountRow? target;
+    final digits = parsed.last4;
+    if (digits != null) {
+      target = cards.where((c) => c.last4 == digits).firstOrNull;
+    }
+    if (target == null && inst != null) {
+      // Statements carry a short bank code ("enbd") and the card a display name
+      // ("Emirates NBD"): the code's letters appear in order in the name.
+      bool isSubsequence(String code, String name) {
+        var i = 0;
+        for (final ch in name.split('')) {
+          if (i < code.length && ch == code[i]) i++;
+        }
+        return i == code.length;
+      }
+
+      String key(String v) =>
+          v.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final bank = key(inst);
+      final same = [
+        for (final c in cards)
+          if (c.last4 == null &&
+              bank.isNotEmpty &&
+              isSubsequence(bank, key(c.institution ?? '')))
+            c,
+      ];
+      if (same.length == 1) target = same.single;
+    }
+    if (target == null) return;
+    final stmtDay = parsed.statementDate?.day;
+    final dueDay = parsed.dueDate?.day;
+    await (db.update(db.accounts)..where((a) => a.id.equals(target!.id))).write(
+      AccountsCompanion(
+        last4: target.last4 == null && digits != null
+            ? Value(digits)
+            : const Value.absent(),
+        creditLimitMinor:
+            target.creditLimitMinor == null && parsed.creditLimitMinor != null
+            ? Value(parsed.creditLimitMinor)
+            : const Value.absent(),
+        statementDay: target.statementDay == null && stmtDay != null
+            ? Value(stmtDay)
+            : const Value.absent(),
+        dueDay: target.dueDay == null && dueDay != null
+            ? Value(dueDay)
+            : const Value.absent(),
+      ),
+    );
   }
 
   /// What the reconciliation sheet shows: the statement's balances and how its
