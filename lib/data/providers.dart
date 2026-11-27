@@ -440,6 +440,9 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
     return MockPulseRepository(
       wealth: wealth,
       goals: ref.watch(goalStoreProvider),
+      // Sample data on a phone (the "look around" choice) must not show made-up
+      // friends: only the DEMO_DATA preview build seeds split groups.
+      seedGroups: Env.demoData,
     );
   }
   return LocalPulseRepository(
