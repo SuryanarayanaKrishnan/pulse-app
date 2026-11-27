@@ -492,7 +492,8 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
             controller: _amount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              hintText: 'Amount invested (${r.currency})',
+              hintText: 'Amount invested',
+              prefixText: '${r.currency}  ',
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -710,7 +711,8 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             controller: _avg,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              hintText: 'Average cost per share (optional, $_currency)',
+              hintText: 'Average cost per share (optional)',
+              prefixText: '$_currency  ',
             ),
           ),
           const SizedBox(height: Space.md),
@@ -719,8 +721,9 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               hintText: _market.livePrice
-                  ? 'Price in $_currency (blank = fetch live)'
-                  : 'Current price in $_currency',
+                  ? 'Price (blank = fetch live)'
+                  : 'Current price',
+              prefixText: '$_currency  ',
             ),
           ),
           const FieldLabel('Currency'),
@@ -1068,7 +1071,8 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             controller: _amount,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              hintText: 'Amount each time ($_currency)',
+              hintText: 'Amount each time',
+              prefixText: '$_currency  ',
             ),
             onChanged: (_) => setState(() {}),
           ),
