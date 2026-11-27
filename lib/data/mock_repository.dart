@@ -30,9 +30,10 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     DateTime? now,
     this.wealth,
     this.goals,
+    bool seedGroups = true,
   }) : _now = now ?? DateTime.now() {
     _tx = [for (final t in _seedTransactions()) applyRules(t, _rules)];
-    _groups = _seedGroups();
+    _groups = seedGroups ? _seedGroups() : [];
     _statements = _seedStatements();
   }
 
@@ -257,6 +258,9 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
   Future<List<CreditCard>> myCards() => _d(List.of(_owned));
   @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
+  @override
+  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) =>
+      throw UnimplementedError('The demo catalog is fixed');
 
   @override
   Future<List<BankAccount>> bankAccounts() {
@@ -1228,7 +1232,7 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     List<NewGroupMember> members = const [],
   }) {
     final g = SplitGroup(
-      id: _id('g'),
+      id: _id('newgroup'),
       name: name.trim(),
       emoji: emoji,
       members: [

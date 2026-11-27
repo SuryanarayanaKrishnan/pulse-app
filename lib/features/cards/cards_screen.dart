@@ -18,6 +18,7 @@ import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
 import 'combo_widgets.dart';
+import 'credit_capacity.dart';
 import 'digit_widgets.dart';
 import 'quick_pick_sheet.dart';
 import 'suggestion_widgets.dart';
@@ -254,6 +255,7 @@ class _CardsView extends ConsumerWidget {
             ),
             const SectionHeader('Utilisation'),
             UtilisationChart(list),
+            const CreditCapacitySection(),
             const CardSuggestionsSection(),
             const CardCombosSection(limit: 3),
             AsyncView<List<CreditCard>>(

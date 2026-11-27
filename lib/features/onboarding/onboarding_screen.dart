@@ -116,22 +116,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                             label: 'Start fresh with ${Env.appName}',
                             onPressed: () => _start(StartChoice.fresh),
                           ),
-                          const SizedBox(height: Space.md),
-                          PrimaryButton(
-                            key: const Key('try-sample'),
-                            label: 'Try with sample data',
-                            icon: Icons.auto_awesome_rounded,
-                            secondary: true,
-                            onPressed: () => _start(StartChoice.sample),
-                          ),
-                          const SizedBox(height: Space.sm),
-                          Text(
-                            'Sample data is made up and can be switched off in Settings.',
-                            textAlign: TextAlign.center,
-                            style: context.tt.bodySmall!.copyWith(
-                              color: c.textTertiary,
+                          if (Env.sampleAllowed) ...[
+                            const SizedBox(height: Space.md),
+                            PrimaryButton(
+                              key: const Key('try-sample'),
+                              label: 'Try with sample data',
+                              icon: Icons.auto_awesome_rounded,
+                              secondary: true,
+                              onPressed: () => _start(StartChoice.sample),
                             ),
-                          ),
+                            const SizedBox(height: Space.sm),
+                            Text(
+                              'Sample data is made up and can be switched off in Settings.',
+                              textAlign: TextAlign.center,
+                              style: context.tt.bodySmall!.copyWith(
+                                color: c.textTertiary,
+                              ),
+                            ),
+                          ],
                           if (!Env.demoData) ...[
                             const SizedBox(height: Space.sm),
                             TextAction(

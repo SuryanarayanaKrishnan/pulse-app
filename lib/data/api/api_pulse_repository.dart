@@ -555,6 +555,9 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
   /// TODO(api): the backend has no card catalog / suggestion endpoint yet.
   @override
   Future<List<CreditCard>> cardCatalog() async => const [];
+  @override
+  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) =>
+      throw UnimplementedError('Custom cards are on-device only');
 
   static const _accountGradients = [
     [Color(0xFF1B2433), Color(0xFF2E3B50)],

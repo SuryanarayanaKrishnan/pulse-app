@@ -82,3 +82,12 @@ rather than "Reconciled", because there is nothing to check them against.
 
 The iOS file picker, security-scoped access and pdfrx on a real iPhone
 cannot be exercised in CI; see the PR description for what to check by hand.
+
+## Card and combo data
+
+`assets/catalog/cards.json` and `assets/catalog/combos.json` are generated from the backend (`pulse` repo:
+`tool/sync_catalog.py`, `scripts/export_app_combos.py`). Never edit them by hand: fix the data in
+`pulse/data/cards/` and regenerate. Combos with a saving figure carry their steps and a line-by-line
+breakdown computed by the backend from sourced claims (see `pulse/docs/CARD_DATA_GUARDS.md`). The app's
+`combo_data_guard_test.dart` checks that every figure is the sum of its shown working, and the weekly
+`catalog-drift` workflow fails when the bundles differ from what the backend would generate.
