@@ -49,11 +49,11 @@ class PulseColors extends ThemeExtension<PulseColors> {
 
   /// Ink for titles and section headers: the primary text colour pulled a
   /// little toward the accent so headers read as deep green-black (light) or
-  /// soft mint-white (dark) instead of flat black. Contrast stays above 12:1.
+  /// soft sage-white (dark) instead of flat black. Contrast stays above 12:1.
   Color get ink => Color.lerp(textPrimary, accent, isDark ? 0.14 : 0.38)!;
 
-  /// The accent hue that belongs to [t]: Home green, Budget teal-blue, Cards
-  /// coral, Splits violet-blue, Wealth gold. Light values are all >= 4.5:1 on
+  /// The accent hue that belongs to [t]: Home teal-green, Budget slate blue,
+  /// Cards terracotta, Splits indigo, Wealth bronze, all muted. Light values are all >= 4.5:1 on
   /// the page background; dark values are bright and >= 8:1.
   Color tabAccent(PulseTab t) => (isDark ? _tabDark : _tabLight)[t.index];
 
@@ -70,21 +70,21 @@ class PulseColors extends ThemeExtension<PulseColors> {
 
   /// Low-saturation wash for hero areas of [t].
   Color tabWash(PulseTab t) =>
-      tabAccent(t).withValues(alpha: isDark ? 0.16 : 0.13);
+      tabAccent(t).withValues(alpha: isDark ? 0.10 : 0.09);
 
   static const _tabLight = [
-    Color(0xFF0E7F55), // home: emerald
-    Color(0xFF0A7893), // budget: teal-blue
-    Color(0xFFBE4626), // cards: coral
-    Color(0xFF4F56CF), // splits: violet-blue
-    Color(0xFFA05B00), // wealth: gold
+    Color(0xFF1F6F5C), // home: deep teal-green
+    Color(0xFF1B6F85), // budget: slate teal-blue
+    Color(0xFFA9482F), // cards: terracotta
+    Color(0xFF4A52B0), // splits: indigo
+    Color(0xFF8F5A12), // wealth: bronze
   ];
   static const _tabDark = [
-    Color(0xFF4FD9AE),
-    Color(0xFF5CC9F2),
-    Color(0xFFFF907A),
-    Color(0xFFA3A9FF),
-    Color(0xFFF2C14E),
+    Color(0xFF7DBBA8),
+    Color(0xFF7DB8D4),
+    Color(0xFFE8998A),
+    Color(0xFFA9AEEB),
+    Color(0xFFE0BC6A),
   ];
 
   /// Dark: warm graphite, not black; a soft teal accent.
@@ -96,9 +96,9 @@ class PulseColors extends ThemeExtension<PulseColors> {
     textPrimary: Color(0xFFEDEFEC),
     textSecondary: Color(0xFF9DA59F),
     textTertiary: Color(0xFF68716C),
-    accent: Color(0xFF4FD9AE),
-    onAccent: Color(0xFF04261D),
-    positive: Color(0xFF72C990),
+    accent: Color(0xFF7DBBA8),
+    onAccent: Color(0xFF0C241E),
+    positive: Color(0xFF7FBE98),
     negative: Color(0xFFE5846F),
     warning: Color(0xFFE6B450),
     isDark: true,
@@ -113,9 +113,9 @@ class PulseColors extends ThemeExtension<PulseColors> {
     textPrimary: Color(0xFF1A1E1C),
     textSecondary: Color(0xFF5C645F),
     textTertiary: Color(0xFF959B96),
-    accent: Color(0xFF0E7F55),
+    accent: Color(0xFF1F6F5C),
     onAccent: Color(0xFFFFFFFF),
-    positive: Color(0xFF2E8452),
+    positive: Color(0xFF357F58),
     negative: Color(0xFFC0533D),
     warning: Color(0xFFA86F0C),
     isDark: false,
