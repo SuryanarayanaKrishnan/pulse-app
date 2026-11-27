@@ -48,9 +48,10 @@ class StackEstimate {
   final double livMonthlyAed;
   final double monthlySpendAed;
 
-  double get grossYearlyAed => (stackMonthlyAed - livAloneMonthlyAed) * 12;
+  double get grossYearlyAed => (sibMonthlyAed - tabbyFeeMonthlyAed) * 12;
 
-  /// Yearly gain over Liv alone, after the SIB annual fee.
+  /// Yearly gain from the Tabby + SIB chain alone (SIB cashback less the Tabby
+  /// repayment fee), after the SIB annual fee. Other cards come on top.
   double get netYearlyAed => grossYearlyAed - annualFeesAed;
 }
 

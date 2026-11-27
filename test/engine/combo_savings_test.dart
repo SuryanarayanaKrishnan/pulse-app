@@ -27,9 +27,9 @@ void main() {
     expect(e.livMonthlyAed, closeTo(12.875, 1e-9));
     // Only SIB's AED 199 annual fee, read from annual_fee_minor.
     expect(e.annualFeesAed, closeTo(199, 1e-9));
-    expect(e.grossYearlyAed, closeTo(2551.5, 1e-9));
-    expect(e.netYearlyAed, closeTo(2352.5, 1e-9));
-    expect(e.netYearlyAed.round(), 2353);
+    expect(e.grossYearlyAed, closeTo(3240, 1e-9));
+    expect(e.netYearlyAed, closeTo(3041, 1e-9));
+    expect(e.netYearlyAed.round(), 3041);
   });
 
   test('caps bite: heavy spend never earns past the catalog caps', () {
@@ -58,7 +58,7 @@ void main() {
     final e = estimateRedditStack(catalog);
     expect(item['annual_saving_aed'], e.netYearlyAed.round());
     expect(item['saving_note'], startsWith('Estimate, not a promise'));
-    expect(item['saving_note'], contains('about AED 2,353 a year'));
+    expect(item['saving_note'], contains('about AED 3,041 a year'));
     final ids = {for (final c in (catalog['cards'] as List)) (c as Map)['id']};
     for (final id in (item['card_ids'] as List)) {
       expect(ids, contains(id), reason: '$id is in the catalog');

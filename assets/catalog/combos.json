@@ -9,8 +9,8 @@
    "severity": "info",
    "tier": "free",
    "confidence": "reported",
-   "annual_saving_aed": 2353,
-   "saving_note": "Estimate, not a promise. Worked out from the bundled catalog on the app's typical month of AED 5,150 (groceries 1,500, dining 900, transport 600, shopping 700, travel 400, entertainment 250, health 300, utilities 500). Using Liv alone earns about AED 70.25 a month (1.5% tier on AED 4,650, 0.1% on AED 500 of bills). In the chain: AED 3,000 of non-bill spend goes on the Tabby card and is repaid by SIB at 10%, which is AED 300 (the cap), less about AED 30 of Tabby repayment fee (1%, a community report), so AED 270. Liv keeps the AED 500 of bills and the AED 1,650 the cap cannot take, at its 0.75% tier, AED 12.88. That is AED 282.88 a month against AED 70.25: about AED 212.63 more, AED 2,551.50 a year, less AED 199 SIB annual fee (waived from year two with AED 10,000 of retail spend) is about AED 2,353 a year. Not counted: cashback on paying the SIB bill with another card (catalog marks credit card payments excluded on Liv and Dubai First). Assumes you repay Tabby through a wallet, that rates and caps hold, and that Tabby earns nothing; the catalog marks Tabby unverified.",
+   "annual_saving_aed": 3041,
+   "saving_note": "Estimate, not a promise. Worked out on the app's typical month of AED 5,150. The chain alone: AED 3,000 a month goes on the Tabby card and is repaid by SIB at 10%, which is AED 300 a month (the cap), AED 3,600 a year. Less about 1% Tabby repayment fee (a community report), AED 30 a month, AED 360 a year, so AED 3,240. Less the AED 199 SIB annual fee (waived from year two with AED 10,000 of retail spend): about AED 3,041 a year. On top, not counted: your bills and the rest of your spending stay on Liv or Dubai First as before, and paying the SIB bill with another card may earn that card's cashback too (catalog marks credit card payments excluded on Liv and Dubai First). Assumes you repay Tabby through a wallet, that rates and caps hold, and that Tabby earns nothing; the catalog marks Tabby unverified.",
    "card_ids": [
     "liv-cashback",
     "dubai-first-cashback",
