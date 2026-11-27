@@ -17,16 +17,19 @@ void main() {
     expect(e.monthlySpendAed, 5150);
     // Liv alone: 1.5% tier on AED 4,650, 0.1% on AED 500 of bills.
     expect(e.livAloneMonthlyAed, closeTo(70.25, 1e-9));
-    // Dubai First 5% on groceries and dining, both under their AED 150 caps.
-    expect(e.dubaiFirstMonthlyAed, closeTo(120, 1e-9));
-    // SIB 10% on AED 1,350 of shopping, entertainment and travel, under AED 300.
-    expect(e.sibMonthlyAed, closeTo(135, 1e-9));
-    // Liv drops to its 0.75% tier on the AED 900 left, plus 0.1% on bills.
-    expect(e.livMonthlyAed, closeTo(7.25, 1e-9));
-    // Dubai First AED 418.95 + SIB AED 199, read from annual_fee_minor.
-    expect(e.annualFeesAed, closeTo(617.95, 1e-9));
-    expect(e.grossYearlyAed, closeTo(2304, 1e-9));
-    expect(e.netYearlyAed.round(), 1686);
+    // Chain: non-bill spend (AED 4,650) is capped at what AED 300 pays 10% on.
+    expect(e.chainMonthlyAed, closeTo(3000, 1e-9));
+    // SIB 10% on AED 3,000 is AED 300, the monthly cap.
+    expect(e.sibMonthlyAed, closeTo(300, 1e-9));
+    // Tabby's 1% repayment fee on AED 3,000.
+    expect(e.tabbyFeeMonthlyAed, closeTo(30, 1e-9));
+    // Liv keeps AED 500 of bills (0.1%) and AED 1,650 at its 0.75% tier.
+    expect(e.livMonthlyAed, closeTo(12.875, 1e-9));
+    // Only SIB's AED 199 annual fee, read from annual_fee_minor.
+    expect(e.annualFeesAed, closeTo(199, 1e-9));
+    expect(e.grossYearlyAed, closeTo(2551.5, 1e-9));
+    expect(e.netYearlyAed, closeTo(2352.5, 1e-9));
+    expect(e.netYearlyAed.round(), 2353);
   });
 
   test('caps bite: heavy spend never earns past the catalog caps', () {
@@ -43,7 +46,7 @@ void main() {
         'utilities': 0,
       },
     );
-    expect(e.dubaiFirstMonthlyAed, 300); // 150 + 150
+    expect(e.chainMonthlyAed, 3000); // AED 300 cap / 10%
     expect(e.sibMonthlyAed, 300);
   });
 
@@ -55,7 +58,7 @@ void main() {
     final e = estimateRedditStack(catalog);
     expect(item['annual_saving_aed'], e.netYearlyAed.round());
     expect(item['saving_note'], startsWith('Estimate, not a promise'));
-    expect(item['saving_note'], contains('about AED 1,686 a year'));
+    expect(item['saving_note'], contains('about AED 2,353 a year'));
     final ids = {for (final c in (catalog['cards'] as List)) (c as Map)['id']};
     for (final id in (item['card_ids'] as List)) {
       expect(ids, contains(id), reason: '$id is in the catalog');

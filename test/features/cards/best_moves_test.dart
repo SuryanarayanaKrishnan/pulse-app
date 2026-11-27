@@ -68,7 +68,7 @@ void main() {
       final moves = pickBestMoves(combos);
       expect(moves, hasLength(3));
       expect(moves.first.id, 'reddit-liv-df-sib-tabby-stack');
-      expect(moves.first.annualSavingAed, 1686);
+      expect(moves.first.annualSavingAed, 2353);
       expect(moves.skip(1).every((c) => !c.isPlus && !c.isWarning), isTrue);
     });
   });
@@ -145,7 +145,7 @@ void main() {
         expect(
           find.descendant(
             of: card,
-            matching: find.text('Up to AED 1,686 a year'),
+            matching: find.text('Up to AED 2,353 a year'),
           ),
           findsOneWidget,
         );
@@ -182,7 +182,7 @@ void main() {
         expect(find.textContaining('Four cards, one job each'), findsOneWidget);
         expect(
           find.textContaining(
-            'Potential saving: up to AED 1,686 a year (estimate)',
+            'Potential saving: up to AED 2,353 a year (estimate)',
           ),
           findsOneWidget,
         );

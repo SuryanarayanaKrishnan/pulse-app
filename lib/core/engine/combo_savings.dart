@@ -1,46 +1,56 @@
-/// Savings estimate for the "Reddit stack" combo: Liv Cashback, Dubai First
-/// Cashback, SIB Cashback and Tabby together.
+/// Savings estimate for the "Reddit stack" chain: Tabby, SIB Cashback and a
+/// second credit card (Liv Cashback or Dubai First) used in that order.
+///
+/// How the chain works (reported by community members, confirmed by surya):
+///   1. Pay everything with the Tabby card.
+///   2. Pay the Tabby bill with the SIB Cashback card through Apple Pay or
+///      Google Pay: a flat 10% back, up to the card's AED 300 monthly cap, less
+///      the fee Tabby charges to repay by credit card (reported as about 1%).
+///   3. Pay the SIB bill with another credit card, which may earn that card's
+///      cashback on top. The estimate does not count step 3: the catalog lists
+///      credit card payments (`cc_payment`) as excluded on Liv and Dubai First,
+///      so it is shown as possible extra, not as a promise.
 ///
 /// Everything comes from the bundled catalog (`assets/catalog/cards.json`):
 /// the rates, caps, tiers and annual fees below are read from it, never typed
-/// in. The only assumption is the month of spending, the app's own typical
-/// month (`typicalMonthlySpendMinorByCategory` in `card_upsell.dart`).
+/// in. The assumptions are the month of spending, the app's own typical month
+/// (`typicalMonthlySpendMinorByCategory` in `card_upsell.dart`), and Tabby's
+/// repayment fee, which the catalog does not hold.
 /// The result is an estimate against using Liv Cashback alone, not a promise.
 library;
 
 import 'card_upsell.dart' show typicalMonthlySpendMinorByCategory;
 
-/// Which stack card takes which typical-month category.
-///
-/// * Dubai First: supermarkets and dining (5% rules, capped per rule).
-/// * SIB Cashback: shopping, entertainment and travel, which the catalog
-///   lists under its 10% online and wallet rule (shared monthly cap).
-/// * Liv Cashback: everything else.
-/// * Tabby earns nothing itself (catalog base rate 0), so it adds no figure.
-const stackDubaiFirstCategories = ['groceries', 'dining'];
-const stackSibCategories = ['shopping', 'entertainment', 'travel'];
+/// Fee Tabby may charge to repay by credit card (community report, "up to
+/// about 1%"). Not in the catalog, so it is the one rate typed here.
+const tabbyCardRepaymentFeeRate = 0.01;
 
 class StackEstimate {
   const StackEstimate({
     required this.stackMonthlyAed,
     required this.livAloneMonthlyAed,
     required this.annualFeesAed,
-    required this.dubaiFirstMonthlyAed,
+    required this.chainMonthlyAed,
     required this.sibMonthlyAed,
+    required this.tabbyFeeMonthlyAed,
     required this.livMonthlyAed,
     required this.monthlySpendAed,
   });
   final double stackMonthlyAed;
   final double livAloneMonthlyAed;
   final double annualFeesAed;
-  final double dubaiFirstMonthlyAed;
+
+  /// Spend routed through Tabby, repaid by SIB (held to what the AED 300 cap
+  /// can pay 10% on).
+  final double chainMonthlyAed;
   final double sibMonthlyAed;
+  final double tabbyFeeMonthlyAed;
   final double livMonthlyAed;
   final double monthlySpendAed;
 
   double get grossYearlyAed => (stackMonthlyAed - livAloneMonthlyAed) * 12;
 
-  /// Yearly gain over Liv alone, after the Dubai First and SIB annual fees.
+  /// Yearly gain over Liv alone, after the SIB annual fee.
   double get netYearlyAed => grossYearlyAed - annualFeesAed;
 }
 
@@ -87,8 +97,6 @@ StackEstimate estimateRedditStack(
   Map<String, int> typicalMinor = typicalMonthlySpendMinorByCategory,
 }) {
   final liv = _reward(_card(catalog, 'liv-cashback'));
-  final dfCard = _card(catalog, 'dubai-first-cashback');
-  final df = _reward(dfCard);
   final sibCard = _card(catalog, 'sib-cashback');
   final sib = _reward(sibCard);
 
@@ -114,39 +122,38 @@ StackEstimate estimateRedditStack(
 
   final livAlone = livMonthly(all);
 
-  var dfMonthly = 0.0;
-  for (final k in stackDubaiFirstCategories) {
-    final r = _rule(df, k);
-    final cap = (r['monthly_cap_units'] as num).toDouble();
-    final earned = spend(k) * (r['rate'] as num).toDouble();
-    dfMonthly += earned < cap ? earned : cap;
-  }
+  // Bills stay on Liv: SIB pays only 0.5% on them and Tabby repays do not suit
+  // utilities. Everything else can go through the chain.
+  final bills = all.where(billCats.contains).fold<double>(
+    0,
+    (a, k) => a + spend(k),
+  );
+  final nonBill = total - bills;
 
-  final sibRule = _rule(sib, stackSibCategories.first);
+  final sibRule = _rule(sib, 'shopping');
+  final sibRate = (sibRule['rate'] as num).toDouble();
   final sibCap = (sibRule['monthly_cap_units'] as num).toDouble();
-  final sibEarned =
-      stackSibCategories.fold<double>(0, (a, k) => a + spend(k)) *
-      (sibRule['rate'] as num).toDouble();
+  // Spend the AED 300 cap can pay 10% on; more than this earns nothing extra.
+  final chainMax = sibCap / sibRate;
+  final chain = nonBill < chainMax ? nonBill : chainMax;
+  final sibEarned = chain * sibRate;
   final sibMonthly = sibEarned < sibCap ? sibEarned : sibCap;
+  final tabbyFee = chain * tabbyCardRepaymentFeeRate;
 
-  final rest = [
-    for (final k in all)
-      if (!stackDubaiFirstCategories.contains(k) &&
-          !stackSibCategories.contains(k))
-        k,
-  ];
-  final livStack = livMonthly(rest);
+  // What stays on Liv: the bills and whatever the chain could not take.
+  final left = total - chain;
+  final leftRate = _livRate(liv, left);
+  final livLeft = (nonBill - chain) * leftRate + bills * billsRate;
+  final livStack = livLeft < livCap ? livLeft : livCap;
 
-  final fees =
-      ((dfCard['annual_fee_minor'] as num) +
-          (sibCard['annual_fee_minor'] as num)) /
-      100;
+  final fees = (sibCard['annual_fee_minor'] as num) / 100;
   return StackEstimate(
-    stackMonthlyAed: dfMonthly + sibMonthly + livStack,
+    stackMonthlyAed: sibMonthly - tabbyFee + livStack,
     livAloneMonthlyAed: livAlone,
-    annualFeesAed: fees,
-    dubaiFirstMonthlyAed: dfMonthly,
+    annualFeesAed: fees.toDouble(),
+    chainMonthlyAed: chain,
     sibMonthlyAed: sibMonthly,
+    tabbyFeeMonthlyAed: tabbyFee,
     livMonthlyAed: livStack,
     monthlySpendAed: total,
   );

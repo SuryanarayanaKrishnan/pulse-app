@@ -4,13 +4,13 @@
   {
    "id": "reddit-liv-df-sib-tabby-stack",
    "kind": "combo",
-   "title": "The Reddit stack: Liv + Dubai First + SIB Cashback + Tabby",
-   "body": "Four cards, one job each: Liv for everyday spend, Dubai First for supermarkets and dining, SIB Cashback for online and wallet spend, Tabby to split big purchases. Liv Cashback earns a flat 0.75% a month under AED 5,000 of spend, 1.5% from AED 5,000 and 2% from AED 10,000 on everything (bills only 0.1%), capped at AED 750 a month, with no annual fee. Dubai First pays 5% on supermarkets, dining and fuel, capped at AED 150 a month for each, and 0.5% elsewhere. SIB Cashback pays 10% on online and Apple Pay or Samsung Wallet spend, capped at AED 300 a month, and only 0.5% on supermarkets and bills. Tabby earns no cashback itself; use it to spread a purchase, and note the community report that Tabby repayments on SIB may earn 0.5% instead of 10%. They stack because each cap fills on its own spend, so use one card per kind of spend rather than one for all. Moving spend off Liv can drop it to a lower tier, which the estimate already allows for.",
+   "title": "The Reddit stack: pay with Tabby, repay with SIB, settle with another card",
+   "body": "A chain of three cards. Pay your spending with the Tabby card. Pay the Tabby bill with the SIB Cashback card through Apple Pay or Google Pay: a flat 10% back, up to AED 300 a month (about AED 3,000 of repayments), less the fee Tabby charges to repay by credit card, reported as about 1%. Then pay the SIB bill with another credit card such as Liv Cashback or Dubai First, which may earn that card's cashback as well. Check the first repayment: paying with the card number instead of a wallet reportedly earns only 0.5%, and Tabby's merchant code is not always the same. The extra cashback from paying the SIB bill with another card is not in the saving figure, because the catalog lists credit card payments as excluded on Liv and Dubai First; if your bank counts it, it is a bonus. Tabby earns no cashback itself.",
    "severity": "info",
    "tier": "free",
    "confidence": "reported",
-   "annual_saving_aed": 1686,
-   "saving_note": "Estimate, not a promise. Worked out from the bundled catalog on the app's typical month of AED 5,150 (groceries 1,500, dining 900, transport 600, shopping 700, travel 400, entertainment 250, health 300, utilities 500). Using Liv alone earns about AED 70.25 a month (1.5% tier on AED 4,650, 0.1% on AED 500 of bills). In the stack: Dubai First 5% on groceries and dining is AED 120 (under its AED 150 caps), SIB 10% on shopping, entertainment and travel (AED 1,350, paid online or by wallet) is AED 135 (under its AED 300 cap), and Liv keeps transport and health (AED 900) at 0.75% and bills (AED 500) at 0.1%, AED 7.25, so AED 262.25 a month. That is AED 192 a month more, AED 2,304 a year, less AED 617.95 in annual fees (Dubai First AED 418.95, SIB AED 199; SIB waives it from year two with AED 10,000 of retail spend, Liv has none) is about AED 1,686 a year. Assumes in-store spend in the SIB categories goes through a wallet, fuel is not moved to Dubai First, Tabby earns nothing, and that rates and caps hold; the catalog holds Dubai First figures from aggregators only and marks Tabby unverified.",
+   "annual_saving_aed": 2353,
+   "saving_note": "Estimate, not a promise. Worked out from the bundled catalog on the app's typical month of AED 5,150 (groceries 1,500, dining 900, transport 600, shopping 700, travel 400, entertainment 250, health 300, utilities 500). Using Liv alone earns about AED 70.25 a month (1.5% tier on AED 4,650, 0.1% on AED 500 of bills). In the chain: AED 3,000 of non-bill spend goes on the Tabby card and is repaid by SIB at 10%, which is AED 300 (the cap), less about AED 30 of Tabby repayment fee (1%, a community report), so AED 270. Liv keeps the AED 500 of bills and the AED 1,650 the cap cannot take, at its 0.75% tier, AED 12.88. That is AED 282.88 a month against AED 70.25: about AED 212.63 more, AED 2,551.50 a year, less AED 199 SIB annual fee (waived from year two with AED 10,000 of retail spend) is about AED 2,353 a year. Not counted: cashback on paying the SIB bill with another card (catalog marks credit card payments excluded on Liv and Dubai First). Assumes you repay Tabby through a wallet, that rates and caps hold, and that Tabby earns nothing; the catalog marks Tabby unverified.",
    "card_ids": [
     "liv-cashback",
     "dubai-first-cashback",
@@ -30,7 +30,8 @@
     "https://www.liv.me/en/liv-credit-card",
     "https://kredit.ae/credit-cards/dubai-first-cashback-credit-card/details",
     "https://sib.ae/en/cashback-card-faqs",
-    "https://kredit.ae/credit-cards/tabby-card/details"
+    "https://kredit.ae/credit-cards/tabby-card/details",
+    "https://www.reddit.com/r/UAEcreditcards/comments/1xicy5u/"
    ]
   },
   {
