@@ -334,6 +334,11 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   Widget build(BuildContext context) => SheetScaffold(
     title: 'Add expense',
     subtitle: 'You paid. Split equally.',
+    footer: PrimaryButton(
+      label: 'Add expense',
+      loading: _busy,
+      onPressed: _save,
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -398,11 +403,6 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
           ),
         ],
       ],
-    ),
-    footer: PrimaryButton(
-      label: 'Add expense',
-      loading: _busy,
-      onPressed: _save,
     ),
   );
 }
