@@ -268,9 +268,7 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
       builder: (ctx) => SheetScaffold(
         title: m.label.label,
         subtitle: 'Where should this go?',
-        child: Flexible(
-          child: ListView(
-            shrinkWrap: true,
+        child: Column(
             children: [
               ListRow(
                 leading: const IconWell(Icons.add_circle_outline_rounded),
@@ -290,7 +288,6 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
                   onTap: () => Navigator.pop(ctx, ExistingTarget(c)),
                 ),
             ],
-          ),
         ),
       ),
     );
