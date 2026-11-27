@@ -272,8 +272,7 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             controller: _price,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              hintText: 'Total paid',
-              prefixText: 'AED  ',
+              hintText: 'Total paid (AED)',
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -282,8 +281,7 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             controller: _making,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: const InputDecoration(
-              hintText: 'Making charges (included above)',
-              prefixText: 'AED  ',
+              hintText: 'Making charges (included above) (AED)',
             ),
           ),
           const SizedBox(height: Space.md),

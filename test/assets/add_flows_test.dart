@@ -120,7 +120,7 @@ void main() {
       expect(await rig.store.jewellery(), isEmpty);
 
       await tester.enterText(find.widgetWithText(TextField, 'Name, like "Wedding necklace"'), 'Gold chain');
-      await tester.enterText(find.widgetWithText(TextField, 'Total paid'), '3200');
+      await tester.enterText(find.widgetWithText(TextField, 'Total paid (AED)'), '3200');
       await tester.pump();
       expect(find.textContaining('vs paid'), findsWidgets);
       await tester.ensureVisible(save);
@@ -223,8 +223,8 @@ void main() {
 
       await tester.enterText(find.widgetWithText(TextField, 'Fund name'), 'Gulf Income Fund');
       await tester.enterText(find.widgetWithText(TextField, 'Units held'), '100');
-      await tester.enterText(find.widgetWithText(TextField, 'Current NAV per unit'), '12.5');
-      await tester.enterText(find.widgetWithText(TextField, 'Average cost per unit (optional)'), '10');
+      await tester.enterText(_hintStarting('Current NAV per unit'), '12.5');
+      await tester.enterText(_hintStarting('Average cost per unit (optional)'), '10');
       await tester.enterText(find.widgetWithText(TextField, 'Amount'), '500');
       await tester.enterText(find.widgetWithText(TextField, 'Day (1-31)'), '5');
       await tester.pump();
@@ -325,3 +325,7 @@ void main() {
     });
   });
 }
+
+Finder _hintStarting(String start) => find.byWidgetPredicate(
+  (w) => w is TextField && (w.decoration?.hintText ?? '').startsWith(start),
+);
