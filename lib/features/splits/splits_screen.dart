@@ -396,9 +396,12 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
             style: context.tt.bodySmall!.copyWith(color: context.pc.negative),
           ),
         ],
-        const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Add expense', loading: _busy, onPressed: _save),
       ],
+    ),
+    footer: PrimaryButton(
+      label: 'Add expense',
+      loading: _busy,
+      onPressed: _save,
     ),
   );
 }
