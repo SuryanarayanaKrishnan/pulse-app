@@ -233,6 +233,13 @@ void main() {
     final review = find.byKey(const ValueKey('review-card-home'));
     expect(review, findsOneWidget, reason: 'Review card on Home');
     await tester.ensureVisible(review);
+    // Lift it clear of the floating tab bar before tapping.
+    final reviewY = tester.getCenter(review).dy;
+    final viewH = tester.view.physicalSize.height / tester.view.devicePixelRatio;
+    if (reviewY > viewH * 0.6) {
+      await tester.drag(find.byType(Scrollable).first, Offset(0, viewH * 0.6 - reviewY));
+      await settle();
+    }
     await tester.tap(review, warnIfMissed: false);
     await settle(8);
     expect(review, findsNothing, reason: 'Review screen opened');
