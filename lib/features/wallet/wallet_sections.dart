@@ -187,7 +187,7 @@ class CardDetailBody extends ConsumerWidget {
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: IconWell(Icons.pin_outlined, color: c.accent),
+                leading: IconWell(Icons.pin_outlined, color: c.calm),
                 title: 'Add the last four digits',
                 subtitle: 'So bank alerts land on this card',
                 chevron: true,

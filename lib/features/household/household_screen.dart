@@ -205,7 +205,7 @@ class _Home extends ConsumerWidget {
             if (!keyMissing && !removedMe)
               ListRow(
                 key: const Key('household_invite'),
-                leading: IconWell(Icons.add_rounded, color: c.accent),
+                leading: IconWell(Icons.add_rounded, color: c.calm),
                 title: 'Invite someone',
                 titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
                 onTap: () => showPulseSheet<void>(context, full: true, builder: (_) => const InviteSheet()),
@@ -213,7 +213,7 @@ class _Home extends ConsumerWidget {
             if (!keyMissing && !removedMe)
               ListRow(
                 key: const Key('household_rotate'),
-                leading: IconWell(Icons.key_rounded, color: c.accent),
+                leading: IconWell(Icons.key_rounded, color: c.calm),
                 title: 'Change household code',
                 subtitle: 'After someone left, or if a code may have leaked.',
                 onTap: () => _confirmRotate(context, ref),

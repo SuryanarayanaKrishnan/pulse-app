@@ -86,7 +86,7 @@ class _AllFeaturesSheetState extends State<AllFeaturesSheet> {
                   for (final f in hits.where((f) => f.group == g))
                     ListRow(
                       key: Key('feature-${f.id}'),
-                      leading: IconWell(f.icon, color: c.accent),
+                      leading: IconWell(f.icon, color: c.calm),
                       title: f.title,
                       subtitle: f.subtitle,
                       chevron: true,

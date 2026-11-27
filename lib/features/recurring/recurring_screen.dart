@@ -148,7 +148,7 @@ class _Body extends ConsumerWidget {
               '${Money.aed(m.leftMinor / 100, decimals: false)} still to come',
           footer: Padding(
             padding: const EdgeInsets.only(top: Space.sm),
-            child: Meter(value: progress.clamp(0, 1).toDouble(), color: c.accent),
+            child: Meter(value: progress.clamp(0, 1).toDouble(), color: c.calm),
           ),
         ),
         Padding(

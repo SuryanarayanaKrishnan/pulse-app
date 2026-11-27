@@ -148,7 +148,7 @@ class _Body extends ConsumerWidget {
           children: [
             for (final m in others) memberRow(m),
             ListRow(
-              leading: IconWell(Icons.person_add_alt_outlined, color: c.accent),
+              leading: IconWell(Icons.person_add_alt_outlined, color: c.calm),
               title: 'Add people',
               titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
               onTap: () => showPulseSheet<void>(

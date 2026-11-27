@@ -195,7 +195,7 @@ class Meter extends StatelessWidget {
               FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor: x,
-                child: ColoredBox(color: color ?? c.accent),
+                child: ColoredBox(color: color ?? c.calm),
               ),
             ],
           ),

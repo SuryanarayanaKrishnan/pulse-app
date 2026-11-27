@@ -144,7 +144,7 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     final color = selected
-        ? c.tabAccent(PulseTab.values[index])
+        ? c.textPrimary
         : c.textTertiary;
     return Semantics(
       button: true,
