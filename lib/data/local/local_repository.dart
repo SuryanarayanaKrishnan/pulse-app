@@ -197,6 +197,7 @@ class LocalPulseRepository
               learned: t.tags.contains('"${eng.learnedTag}"'),
             ),
       learned: t.tags.contains('"${eng.learnedTag}"'),
+      guess: t.tags.contains('"guess_category"'),
       transferKind: _transferKind(t),
     );
   }

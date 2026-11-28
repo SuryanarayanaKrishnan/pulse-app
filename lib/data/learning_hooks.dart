@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import '../core/engine/superapps.dart';
 import '../core/learning/learning_controller.dart';
 import '../core/learning/merchant_memory.dart';
 import 'models.dart';
@@ -36,6 +39,22 @@ Future<void> rememberCategoryChoice(
 }) async {
   try {
     if (category.id == SpendCategory.other.id || tx.isIncome) return;
+    final sa = superAppFor(tx.merchant);
+    if (sa != null) {
+      // A silently applied category the person then changed.
+      if (fix && tx.learned && tx.category.id != category.id) {
+        unawaited(memory.bump(autoCorrected: 1));
+      }
+      // Super-apps sell many things: learn by size and time, not by name.
+      await memory.confirmHabit(
+        sa.key,
+        (tx.amount * 100).round(),
+        tx.date,
+        category.id,
+        weight: fix ? fixWeight : confirmWeight,
+      );
+      return;
+    }
     await memory.confirm(
       tx.merchant,
       category.id,
