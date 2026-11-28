@@ -851,6 +851,10 @@ class IngestPipeline {
     );
   }
 
+  /// The categoriser (rules, memory, dictionary), for importers that store
+  /// transactions of their own, like a statement.
+  Future<CategoryResolver> categoryResolver() => _resolver();
+
   Future<CategoryResolver> _resolver() async {
     final rows = await (db.select(
       db.merchantRules,
