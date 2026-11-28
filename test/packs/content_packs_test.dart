@@ -115,4 +115,63 @@ void main() {
     expect(await s.refresh(), isEmpty);
     expect(s.pack('tips')!['version'], 1);
   });
+
+  Map<String, Object?> entry(int v, {int pct = 100, int? maxV, bool killed = false, int minBuild = 0}) => {
+    'version': v,
+    'rollout_pct': pct,
+    'max_version': maxV,
+    'killed': killed,
+    'min_build': minBuild,
+  };
+
+  test('rollout 0 holds a new version back; 100 takes it', () async {
+    final routes = <String, Object>{
+      '/v1/packs': env({'packs': {'tips': entry(2, pct: 0)}}),
+      '/v1/packs/tips': env({'version': 2}),
+    };
+    final s = svc(routes, bundledTips: '{"version":1}');
+    await s.load(['tips']);
+    expect(await s.refresh(), isEmpty);
+    routes['/v1/packs'] = env({'packs': {'tips': entry(2)}});
+    expect(await s.refresh(), ['tips']);
+  });
+
+  test('min_build above this app skips the pack', () async {
+    final routes = <String, Object>{
+      '/v1/packs': env({'packs': {'tips': entry(2, minBuild: 99)}}),
+      '/v1/packs/tips': env({'version': 2}),
+    };
+    final s = svc(routes, bundledTips: '{"version":1}');
+    await s.load(['tips']);
+    expect(await s.refresh(), isEmpty);
+  });
+
+  test('kill switch drops the download and returns to bundled', () async {
+    final routes = <String, Object>{
+      '/v1/packs': env({'packs': {'tips': entry(2)}}),
+      '/v1/packs/tips': env({'version': 2}),
+    };
+    final s = svc(routes, bundledTips: '{"version":1}');
+    await s.load(['tips']);
+    await s.refresh();
+    expect(s.pack('tips')!['version'], 2);
+    routes['/v1/packs'] = env({'packs': {'tips': entry(2, killed: true)}});
+    expect(await s.refresh(), ['tips']);
+    expect(s.pack('tips')!['version'], 1);
+    expect(await kv.read('pack.tips'), isNull);
+  });
+
+  test('rollback ceiling drops a newer version and refuses to redownload it', () async {
+    final routes = <String, Object>{
+      '/v1/packs': env({'packs': {'tips': entry(3)}}),
+      '/v1/packs/tips': env({'version': 3}),
+    };
+    final s = svc(routes, bundledTips: '{"version":1}');
+    await s.load(['tips']);
+    await s.refresh();
+    routes['/v1/packs'] = env({'packs': {'tips': entry(3, maxV: 2)}});
+    expect(await s.refresh(), ['tips']);
+    expect(s.pack('tips')!['version'], 1);
+    expect(await s.refresh(), isEmpty);
+  });
 }
