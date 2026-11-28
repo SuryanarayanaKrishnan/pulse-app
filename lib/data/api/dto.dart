@@ -640,6 +640,7 @@ class StatementDto {
       source: (j['source'] as String?) ?? 'upload',
       filename: j['original_filename'] as String?,
       parseError: j['parse_error'] as String?,
+      fileSha256: j['file_sha256'] as String?,
       summary: Map<String, Object?>.from(j['summary'] as Map? ?? const {}),
     );
   }

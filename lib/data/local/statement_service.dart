@@ -254,6 +254,7 @@ class LocalStatementService {
     String? institution,
     StatementColumns? columns,
     List<List<String>>? rows,
+    String source = 'upload',
   }) async {
     if (bytes.isEmpty)
       throw StatementImportException.empty.copyWith(filename: filename);
@@ -297,7 +298,7 @@ class LocalStatementService {
             institution: Value(institution),
             originalFilename: Value(filename),
             fileSha256: Value(sha),
-            source: const Value('upload'),
+            source: Value(source),
           ),
         );
     if (parsed != null) {

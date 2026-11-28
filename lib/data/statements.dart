@@ -103,6 +103,7 @@ class Statement {
     this.source = 'upload',
     this.filename,
     this.parseError,
+    this.fileSha256,
     this.summary = const {},
   });
 
@@ -127,6 +128,9 @@ class Statement {
   final String source;
   final String? filename;
   final String? parseError;
+
+  /// Hash of the original file, so a copy already on this phone is not fetched again.
+  final String? fileSha256;
 
   CloseState get state => switch (parse) {
     ParseStatus.needsPassword => CloseState.needsPassword,
