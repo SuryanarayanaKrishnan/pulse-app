@@ -4,13 +4,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/engine/review.dart';
 import '../../core/router/router.dart';
+import '../../core/utils/money.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/models.dart';
+import '../../data/card_util.dart';
 import '../../data/cap_providers.dart';
 import '../../data/overrun_providers.dart';
 import '../../data/providers.dart';
 import '../budgets/overrun_section.dart';
 import '../cards/cap_watch_card.dart';
+import '../cards/card_widgets.dart';
 import '../review/review_state.dart';
 import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_layout.dart';
@@ -43,7 +47,7 @@ class ReviewTile extends ConsumerWidget {
           children: [
             IconWell(
               n > 0 ? Icons.layers_outlined : Icons.check_rounded,
-              color: n > 0 ? c.accent : c.textSecondary,
+              color: c.textSecondary,
             ),
             const SizedBox(width: Space.md),
             Expanded(
@@ -79,7 +83,7 @@ class HealthTile extends ConsumerWidget {
     final h = ref.watch(healthScoreProvider).value;
     if (h == null || h.insufficient) return const SizedBox.shrink();
     final tone = h.score >= 60
-        ? c.accent
+        ? c.calm
         : h.score >= 40
         ? c.warning
         : c.negative;
@@ -155,8 +159,75 @@ class CloseTile extends ConsumerWidget {
   }
 }
 
+/// The card payment most worth acting on: overdue or due within five days.
+/// Pure, so the ranking is tested without a widget.
+DueInfo? urgentBill(Iterable<CreditCard> cards, {DateTime? today}) {
+  final dues =
+      [
+          for (final k in cards)
+            if (k.totalDue > 0 && k.hasDueDate) dueInfo(k, today: today),
+        ].where((d) => d.urgent).toList()
+        ..sort((a, b) => a.daysLeft.compareTo(b.daysLeft));
+  return dues.isEmpty ? null : dues.first;
+}
+
+/// One line for a bill that is due soon. Neutral icon, warning or negative
+/// colour only on the date.
+class BillDueLine extends StatelessWidget {
+  const BillDueLine(this.info, {super.key});
+  final DueInfo info;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    final tone = info.overdue ? c.negative : c.warning;
+    final when = info.overdue
+        ? 'overdue'
+        : (info.daysLeft == 0
+              ? 'due today'
+              : 'due in ${info.daysLeft} ${info.daysLeft == 1 ? 'day' : 'days'}');
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        Space.gutter,
+        Space.md,
+        Space.gutter,
+        0,
+      ),
+      child: SurfaceCard(
+        key: const ValueKey('bill-due-home'),
+        padding: const EdgeInsets.symmetric(
+          horizontal: Space.lg,
+          vertical: Space.md + 2,
+        ),
+        onTap: () => context.go(Routes.cards),
+        child: Row(
+          children: [
+            IconWell(Icons.event_outlined, color: c.textSecondary),
+            const SizedBox(width: Space.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${cardName(info.card)} $when',
+                    style: context.tt.titleSmall,
+                  ),
+                  Text(
+                    'Full ${Money.aed(info.totalDue, decimals: false)}',
+                    style: context.tt.bodySmall?.copyWith(color: tone),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: c.textTertiary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// The one thing worth knowing right now. Home shows a single insight, picked
-/// in this order: a budget overrun, a reward cap, then items to review. Each
+/// in this order: a bill due within five days, a budget overrun, a reward cap, then items to review. Each
 /// of these is also a Home widget a person can add, and then it is not
 /// repeated here.
 class TopInsight extends ConsumerWidget {
@@ -167,6 +238,9 @@ class TopInsight extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final cards = ref.watch(myCardsProvider).value;
+    final bill = cards == null ? null : urgentBill(cards);
+    if (bill != null) return BillDueLine(bill);
     final overrun = skip.contains(DashKind.overrun)
         ? null
         : ref.watch(overrunReportProvider).value;

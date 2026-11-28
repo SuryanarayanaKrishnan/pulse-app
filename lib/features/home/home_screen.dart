@@ -185,15 +185,7 @@ class _WhichCard extends ConsumerWidget {
         onTap: () => showWhichCard(context, ref),
         child: Row(
           children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                color: c.accent,
-                borderRadius: BorderRadius.circular(Radii.sm),
-              ),
-              child: Icon(Icons.bolt_rounded, size: 20, color: c.onAccent),
-            ),
+            IconWell(Icons.bolt_rounded, color: c.textSecondary),
             const SizedBox(width: Space.md),
             Expanded(
               child: Column(
