@@ -61,9 +61,6 @@ class Env {
 
   /// Sample data is for preview/debug builds only. A release build always
   /// runs on the person's own on-device ledger, never on made-up data.
-<<<<<<< HEAD
-  static bool get sampleAllowed => demoData || !kReleaseMode;
-=======
   static bool get sampleAllowed =>
       debugReleaseOverride != null ? !debugReleaseOverride! : (demoData || !kReleaseMode);
 
@@ -71,7 +68,6 @@ class Env {
   /// sample data out of release builds can be exercised. Null in production.
   @visibleForTesting
   static bool? debugReleaseOverride;
->>>>>>> origin/main
 
   /// Beta builds enable shake-to-report by default. Pass
   /// `--dart-define=BETA_BUILD=false` for a store build.
