@@ -22,6 +22,7 @@ class ContentPackService {
     this.dio,
     this.bundled,
     this.basePath = '/v1/packs',
+    this.buildNumber = 0,
   });
 
   final KvStore kv;
@@ -29,6 +30,9 @@ class ContentPackService {
   final Dio? dio;
   final Future<String?> Function(String name)? bundled;
   final String basePath;
+
+  /// This app's build number, compared with a pack's `min_build`.
+  final int buildNumber;
 
   final _packs = <String, Map<String, Object?>>{};
 
@@ -83,21 +87,37 @@ class ContentPackService {
         (manifest?['packs'] as Map?) ?? const {},
       );
       for (final e in listed.entries) {
-        final remoteVersion = (e.value as Map)['version'];
-        final have = _packs[e.key];
-        if (remoteVersion is! int ||
-            (have != null && remoteVersion <= _v(have)))
+        final c = Map<String, Object?>.from(e.value as Map);
+        final name = e.key;
+        final remoteVersion = c['version'];
+        final maxVersion = c['max_version'];
+        final have = _packs[name];
+
+        // Kill switch (from the pack or the config) or a rollback ceiling:
+        // forget the downloaded copy and go back to the bundled one.
+        final killed = c['killed'] == true || config.isKilled('pack:$name');
+        final tooNew = maxVersion is int && have != null && _v(have) > maxVersion;
+        if (killed || tooNew) {
+          if (await _dropDownloaded(name)) changed.add(name);
           continue;
+        }
+
+        if (remoteVersion is! int) continue;
+        if (maxVersion is int && remoteVersion > maxVersion) continue;
+        if (have != null && remoteVersion <= _v(have)) continue;
+        if (((c['min_build'] as num?)?.toInt() ?? 0) > buildNumber) continue;
+        final pct = (c['rollout_pct'] as num?)?.toInt() ?? 100;
+        if (!config.inRollout('pack:$name', pct)) continue;
         try {
-          final r = await client.get<Object?>('$basePath/${e.key}');
+          final r = await client.get<Object?>('$basePath/$name');
           if (r.data is! Map) continue;
           final body = await config.verifyEnvelope(
             Map<String, Object?>.from(r.data! as Map),
           );
           if (body == null || body['version'] is! int) continue;
-          await kv.write('pack.${e.key}', jsonEncode(body));
-          _packs[e.key] = body;
-          changed.add(e.key);
+          await kv.write('pack.$name', jsonEncode(body));
+          _packs[name] = body;
+          changed.add(name);
         } on Object {
           continue;
         }
@@ -106,5 +126,20 @@ class ContentPackService {
       return changed;
     }
     return changed;
+  }
+
+  /// Removes the downloaded copy of [name] and reloads the bundled one.
+  /// True when the pack in use changed.
+  Future<bool> _dropDownloaded(String name) async {
+    if (await kv.read('pack.$name') == null) return false;
+    await kv.remove('pack.$name');
+    final before = _packs[name];
+    final bundledCopy = _decode(await _bundled(name));
+    if (bundledCopy == null) {
+      _packs.remove(name);
+    } else {
+      _packs[name] = bundledCopy;
+    }
+    return before != _packs[name];
   }
 }

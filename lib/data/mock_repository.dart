@@ -55,6 +55,9 @@ class MockPulseRepository
   var _seq = 0;
   String _id(String prefix) => '$prefix${_seq++}';
 
+  /// Adds a ready-made line (a card bill payment, say) for tests.
+  void seedTransaction(Transaction t) => _tx = [t, ..._tx];
+
   Future<T> _d<T>(T v) async {
     if (latency > Duration.zero) await Future<void>.delayed(latency);
     return v;
@@ -748,6 +751,16 @@ class MockPulseRepository
       await saveRule(suggestMerchantRule(_tx[i], category));
     }
     return _d(_tx[i]);
+  }
+
+  @override
+  Future<void> resolveTransfer(String txId, {required bool isTransfer}) async {
+    _tx = [
+      for (final t in _tx)
+        t.id == txId
+            ? t.copyWith(reviewed: true, clearTransfer: !isTransfer)
+            : t,
+    ];
   }
 
   @override

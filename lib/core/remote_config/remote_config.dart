@@ -134,6 +134,12 @@ class RemoteConfigService {
   String _installId = '';
   RemoteConfig get config => _config;
 
+  /// Whether [name] is switched off by a kill switch (`name` itself or `pack:name`).
+  bool isKilled(String name) => _config.killSwitches.contains(name);
+
+  /// True when this phone is inside [pct] percent for [key] (stable per phone).
+  bool inRollout(String key, int pct) => pct >= 100 || (pct > 0 && rolloutBucket(_installId, key) < pct);
+
   /// Loads cached or bundled config. Call once at startup; never throws.
   Future<void> load() async {
     _installId = await kv.read(_idKey) ?? '';

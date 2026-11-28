@@ -171,10 +171,17 @@ class Transaction {
     this.note,
     this.learned = false,
     this.guess = false,
+    this.transferKind,
   });
 
   final String id;
   final String merchant;
+
+  /// `card_bill` or `own_account` when this line is money moving between your
+  /// own accounts (paying a card, moving cash): not spending, kept out of
+  /// budgets, and waiting for one tap to confirm. Null for ordinary lines.
+  final String? transferKind;
+  bool get isOwnTransfer => transferKind != null;
 
   /// The category was filled in from this person's own earlier choice for the
   /// same merchant (not a rule, not a default).
@@ -229,6 +236,7 @@ class Transaction {
     double? confidence,
     String? note,
     bool clearNote = false,
+    bool clearTransfer = false,
   }) => Transaction(
     id: id,
     merchant: merchant ?? this.merchant,
@@ -246,9 +254,10 @@ class Transaction {
     receiptNotes: receiptNotes,
     receiptRef: receiptRef,
     pendingHold: pendingHold,
-    learned: learned,
     guess: guess,
     note: clearNote ? null : (note ?? this.note),
+    learned: learned,
+    transferKind: clearTransfer ? null : transferKind,
   );
 }
 

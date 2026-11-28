@@ -6,8 +6,10 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/haptics.dart';
 import '../../core/widgets/pressable.dart';
+import '../../data/providers.dart';
 import '../tour/tour_progress.dart';
 import 'coach_copy.dart';
+import 'coach_pack.dart';
 import 'coach_progress.dart';
 
 export 'coach_copy.dart';
@@ -94,7 +96,10 @@ class _CoachHostState extends ConsumerState<CoachHost> {
   void _start({bool force = false}) {
     if (!mounted || _entry != null) return;
     final steps = <(CoachStep, GlobalKey)>[
-      for (final s in coachSteps[widget.screen] ?? const <CoachStep>[])
+      for (final s in coachStepsFor(
+        widget.screen,
+        ref.read(contentPacksProvider).pack('walkthrough'),
+      ))
         if (_keys[s.id]?.currentContext != null) (s, _keys[s.id]!),
     ];
     if (steps.isEmpty) return;

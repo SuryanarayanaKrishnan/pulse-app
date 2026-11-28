@@ -42,6 +42,7 @@ import 'card_cycles.dart'
 import 'card_value_report.dart';
 import 'catalog_service.dart';
 import 'database.dart';
+import 'own_transfers_store.dart';
 import 'ids.dart';
 import 'ingest_pipeline.dart';
 import 'splits_store.dart';
@@ -186,17 +187,30 @@ class LocalPulseRepository
       receiptNotes: t.receiptNotes,
       note: t.notes,
       receiptRef: t.receiptRef,
-      confidence: categoryConfidence(
-        hasCategory: t.categoryId != null,
-        isOther: t.categoryId == 'other',
-        ruleApplied: t.appliedRuleId != null,
-        fromStatement: t.statementLocked,
-        learned: t.tags.contains('"${eng.learnedTag}"'),
-      ),
+      confidence: _transferKind(t) != null && !t.reviewed
+          ? 0.2
+          : categoryConfidence(
+              hasCategory: t.categoryId != null,
+              isOther: t.categoryId == 'other',
+              ruleApplied: t.appliedRuleId != null,
+              fromStatement: t.statementLocked,
+              learned: t.tags.contains('"${eng.learnedTag}"'),
+            ),
       learned: t.tags.contains('"${eng.learnedTag}"'),
       guess: t.tags.contains('"guess_category"'),
+      transferKind: _transferKind(t),
     );
   }
+
+  /// Own-account movement kind from the tags, else null.
+  static String? _transferKind(TxRow t) {
+    if (!t.tags.contains('"own_transfer"')) return null;
+    return t.tags.contains('"card_bill"') ? 'card_bill' : 'own_account';
+  }
+
+  @override
+  Future<void> resolveTransfer(String txId, {required bool isTransfer}) =>
+      isTransfer ? confirmOwnTransfer(db, txId) : revertOwnTransfer(db, txId);
 
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {
