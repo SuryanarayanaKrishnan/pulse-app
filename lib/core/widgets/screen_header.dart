@@ -1,15 +1,27 @@
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../router/router.dart';
 import '../theme/tokens.dart';
 import '../../features/coach/coach.dart';
 import 'pressable.dart';
 
 /// Large title with an optional quiet line above it and trailing actions.
 class ScreenHeader extends StatelessWidget {
-  const ScreenHeader(this.title, {super.key, this.subtitle, this.trailing});
+  const ScreenHeader(
+    this.title, {
+    super.key,
+    this.subtitle,
+    this.trailing,
+    this.showSettings = false,
+  });
   final String title;
   final String? subtitle;
   final List<Widget>? trailing;
+
+  /// A gear that opens Settings. On every root tab, so settings are one tap
+  /// away from anywhere.
+  final bool showSettings;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -63,6 +75,16 @@ class ScreenHeader extends StatelessWidget {
           ),
         ),
         ...?trailing,
+        if (showSettings)
+          CoachTarget(
+            id: 'settings',
+            child: RoundIconButton(
+              key: const Key('open_settings'),
+              icon: Icons.settings_outlined,
+              label: 'Settings',
+              onTap: () => context.push(Routes.settings),
+            ),
+          ),
         if (CoachHost.isAvailable(context))
           RoundIconButton(
             key: const Key('coach_help'),

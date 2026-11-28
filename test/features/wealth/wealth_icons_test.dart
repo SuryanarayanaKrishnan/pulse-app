@@ -162,40 +162,51 @@ void main() {
               : Brightness.light;
           addTearDown(tester.view.reset);
           addTearDown(tester.platformDispatcher.clearAllTestValues);
-          await tester.pumpWidget(
-            ProviderScope(
-              overrides: [
-                tourKvProvider.overrideWithValue(kv()),
-                repositoryProvider.overrideWithValue(
-                  MockPulseRepository(latency: Duration.zero),
-                ),
-                analyticsProvider.overrideWithValue(NoopAnalytics()),
-                sessionProvider.overrideWith(
-                  (ref) => SessionController(
-                    onboarded: true,
-                    signedIn: true,
-                    connected: true,
-                  ),
-                ),
-              ],
-              child: const PulseApp(initialLocation: '/wealth'),
-            ),
-          );
-          for (var i = 0; i < 25; i++) {
-            await tester.pump(const Duration(milliseconds: 150));
-          }
           final seen = <WealthKind>{};
-          final list = find.byType(Scrollable).first;
-          for (var i = 0; i < 30; i++) {
-            seen.addAll(
-              tester
-                  .widgetList<WealthIcon>(
-                    find.byType(WealthIcon, skipOffstage: false),
-                  )
-                  .map((w) => w.kind),
+          // Each tile opens a page whose rows carry their own icons.
+          for (final id in [
+            'gold',
+            'funds',
+            'stocks',
+            'plan',
+            'papers',
+            'goals',
+          ]) {
+            await tester.pumpWidget(
+              ProviderScope(
+                key: ValueKey(id),
+                overrides: [
+                  tourKvProvider.overrideWithValue(kv()),
+                  repositoryProvider.overrideWithValue(
+                    MockPulseRepository(latency: Duration.zero),
+                  ),
+                  analyticsProvider.overrideWithValue(NoopAnalytics()),
+                  sessionProvider.overrideWith(
+                    (ref) => SessionController(
+                      onboarded: true,
+                      signedIn: true,
+                      connected: true,
+                    ),
+                  ),
+                ],
+                child: PulseApp(initialLocation: '/wealth-section/$id'),
+              ),
             );
-            await tester.drag(list, const Offset(0, -400));
-            await tester.pump(const Duration(milliseconds: 100));
+            for (var i = 0; i < 12; i++) {
+              await tester.pump(const Duration(milliseconds: 150));
+            }
+            final list = find.byType(Scrollable).first;
+            for (var i = 0; i < 12; i++) {
+              seen.addAll(
+                tester
+                    .widgetList<WealthIcon>(
+                      find.byType(WealthIcon, skipOffstage: false),
+                    )
+                    .map((w) => w.kind),
+              );
+              await tester.drag(list, const Offset(0, -400));
+              await tester.pump(const Duration(milliseconds: 100));
+            }
           }
           // At least gold/jewellery, funds and goals read differently.
           expect(seen.length, greaterThanOrEqualTo(3), reason: '$seen');

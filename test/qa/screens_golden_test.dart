@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pulse/core/utils/app_clock.dart';
+
 import 'harness.dart';
 import 'seed.dart';
 import 'screen_matrix_test.dart' show routes;
@@ -95,8 +96,17 @@ void main() {
     }
   }
   for (final dark in [false, true]) {
-    for (final tab in ['home', 'budget', 'cards', 'splits', 'wealth', 'activity']) {
-      testWidgets('golden $tab typical ${dark ? "dark" : "light"}', (tester) async {
+    for (final tab in [
+      'home',
+      'budget',
+      'cards',
+      'splits',
+      'wealth',
+      'activity',
+    ]) {
+      testWidgets('golden $tab typical ${dark ? "dark" : "light"}', (
+        tester,
+      ) async {
         await shoot(
           tester,
           '/$tab',

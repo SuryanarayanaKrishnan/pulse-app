@@ -1,4 +1,5 @@
 import '../../core/utils/app_clock.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,6 +45,7 @@ class BudgetScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 120),
             children: [
               ScreenHeader(
+                showSettings: true,
                 'Budget',
                 subtitle: DateFormat('MMMM y').format(AppClock.now()),
                 trailing: [

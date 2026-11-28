@@ -119,8 +119,17 @@ bool _fontsLoaded = false;
 /// Material icon font are the real ones.
 Future<void> loadRealFonts() async {
   if (_fontsLoaded) return;
-  final root = Platform.environment['FLUTTER_ROOT'] ??
-      File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.parent.parent.path;
+  final root =
+      Platform.environment['FLUTTER_ROOT'] ??
+      File(Platform.resolvedExecutable)
+          .parent
+          .parent
+          .parent
+          .parent
+          .parent
+          .parent
+          .parent
+          .path;
   final dir = '$root/bin/cache/artifacts/material_fonts';
   Future<ByteData> bytes(String path) async {
     final b = File(path).readAsBytesSync();
@@ -133,7 +142,8 @@ Future<void> loadRealFonts() async {
     if (File(path).existsSync()) ui.addFont(bytes(path));
   }
   await ui.load();
-  final icons = FontLoader('MaterialIcons')..addFont(bytes('$dir/MaterialIcons-Regular.otf'));
+  final icons = FontLoader('MaterialIcons')
+    ..addFont(bytes('$dir/MaterialIcons-Regular.otf'));
   await icons.load();
   final display = FontLoader('PulseDisplay')
     ..addFont(bytes('assets/fonts/Fraunces_500Medium.ttf'))

@@ -215,7 +215,7 @@ void main() {
     // Simulated card tap from Settings -> reward banner and card-check note.
     await tapText('Home');
     await tester.tap(
-      find.byIcon(Icons.account_circle_outlined).first,
+      find.byIcon(Icons.settings_outlined).first,
       warnIfMissed: false,
     );
     await settle();

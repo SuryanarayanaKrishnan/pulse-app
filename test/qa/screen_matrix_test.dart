@@ -73,10 +73,13 @@ void main() {
               await app.go(route);
               tester.takeException();
               for (final e in app.errors.drain()) {
-                if (e.contains('No implementation found for method cancel')) continue;
+                if (e.contains('No implementation found for method cancel'))
+                  continue;
                 failures.add('$route: $e');
               }
-              if (app.visibleText.any((t) => t.contains('Something went wrong'))) {
+              if (app.visibleText.any(
+                (t) => t.contains('Something went wrong'),
+              )) {
                 failures.add('$route: error state shown');
               }
               // The tour is an overlay drawn over the app on purpose.

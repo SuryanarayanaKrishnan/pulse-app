@@ -47,10 +47,14 @@ class PulseSheetSurface extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: c.isDark ? c.surface : c.bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(Radii.lg),
+        ),
       ),
       child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(Radii.lg),
+        ),
         child: child,
       ),
     );

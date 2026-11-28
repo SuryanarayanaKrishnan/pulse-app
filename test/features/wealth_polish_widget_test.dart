@@ -70,6 +70,14 @@ Future<void> _reveal(WidgetTester tester, Finder f) async {
   await tester.pump();
 }
 
+/// Taps the Wealth tile for [kind] and waits for its page.
+Future<void> _drill(WidgetTester tester, String kind) async {
+  final tile = find.byKey(Key('wealth-tile-$kind'));
+  await _reveal(tester, tile);
+  await tester.tap(tile);
+  await tester.pumpAndSettle();
+}
+
 Future<void> _open(
   WidgetTester tester,
   MockPulseRepository repo,
@@ -116,6 +124,7 @@ void main() {
   ) async {
     final repo = _Editable(const [_flat]);
     await _open(tester, repo, '/wealth');
+    await _drill(tester, 'realEstate');
     expect(find.text('Marina flat'), findsOneWidget);
 
     await _reveal(tester, find.byKey(const Key('swipe_m1')));
@@ -140,6 +149,7 @@ void main() {
   ) async {
     final repo = _Editable(const [_flat]);
     await _open(tester, repo, '/wealth');
+    await _drill(tester, 'realEstate');
     await _reveal(tester, find.byKey(const Key('swipe_m1')));
     await tester.drag(find.byKey(const Key('swipe_m1')), const Offset(-600, 0));
     await tester.pumpAndSettle();
@@ -154,6 +164,7 @@ void main() {
   ) async {
     final repo = _Editable(const [_flat]);
     await _open(tester, repo, '/wealth');
+    await _drill(tester, 'realEstate');
     await _reveal(tester, find.text('Marina flat'));
     await tester.tap(find.text('Marina flat'));
     await tester.pumpAndSettle();

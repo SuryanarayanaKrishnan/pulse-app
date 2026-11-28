@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -61,47 +59,44 @@ class _AppShellState extends ConsumerState<AppShell> {
           child: shell,
         ),
         bottomNavigationBar: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: c.bg.withValues(alpha: 0.82),
-                border: Border(top: BorderSide(color: c.border, width: 0.5)),
-              ),
-              child: SafeArea(
-                top: false,
-                // The bar is a fixed 56 high: cap how far large text can grow
-                // its labels so they never overflow it.
-                child: MediaQuery.withClampedTextScaling(
-                  maxScaleFactor: 1.0,
-                  child: SizedBox(
-                    height: 56,
-                    child: Row(
-                      children: [
-                        for (var i = 0; i < _items.length; i++)
-                          Expanded(
-                            child: _NavItem(
-                              index: i,
-                              icon: shell.currentIndex == i
-                                  ? _items[i].$1
-                                  : _items[i].$2,
-                              label: _items[i].$3,
-                              selected: shell.currentIndex == i,
-                              badge: i == 2 && newCombos,
-                              onTap: () {
-                                if (i != shell.currentIndex) {
-                                  Haptics.tap();
-                                  ref.read(analyticsProvider).screen(_names[i]);
-                                }
-                                shell.goBranch(
-                                  i,
-                                  initialLocation: i == shell.currentIndex,
-                                );
-                              },
-                            ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: c.bg,
+              border: Border(top: BorderSide(color: c.border, width: 0.5)),
+            ),
+            child: SafeArea(
+              top: false,
+              // The bar is a fixed 56 high: cap how far large text can grow
+              // its labels so they never overflow it.
+              child: MediaQuery.withClampedTextScaling(
+                maxScaleFactor: 1.0,
+                child: SizedBox(
+                  height: 56,
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < _items.length; i++)
+                        Expanded(
+                          child: _NavItem(
+                            index: i,
+                            icon: shell.currentIndex == i
+                                ? _items[i].$1
+                                : _items[i].$2,
+                            label: _items[i].$3,
+                            selected: shell.currentIndex == i,
+                            badge: i == 2 && newCombos,
+                            onTap: () {
+                              if (i != shell.currentIndex) {
+                                Haptics.tap();
+                                ref.read(analyticsProvider).screen(_names[i]);
+                              }
+                              shell.goBranch(
+                                i,
+                                initialLocation: i == shell.currentIndex,
+                              );
+                            },
                           ),
-                      ],
-                    ),
+                        ),
+                    ],
                   ),
                 ),
               ),

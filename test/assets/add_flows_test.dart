@@ -406,50 +406,60 @@ void main() {
 
   group('Wealth screen', () {
     testWidgets(
-      'lists jewellery, funds, documents and upcoming dates, and opens the jewellery detail',
+      'opens on a grid of tiles; each tile drills into its own list',
       (tester) async {
         await pumpApp(tester, '/wealth');
-        await tester.pump(
-          const Duration(milliseconds: 500),
-        ); // let the async sections load
-        // They sit one tap away on the switch under the net worth.
+        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.byKey(const Key('wealth-grid')), findsOneWidget);
         expect(
           find.widgetWithText(SectionHeader, 'Gold and jewellery'),
           findsNothing,
           reason: 'the overview does not stack every section',
         );
-        await tester.ensureVisible(find.text('Investments and papers'));
+        expect(find.byKey(const Key('wealth-tile-gold')), findsOneWidget);
+        await tester.ensureVisible(find.byKey(const Key('wealth-tile-gold')));
         await tester.pump();
-        await tester.tap(find.text('Investments and papers'));
-        await tester.pump(const Duration(milliseconds: 500));
-        for (final h in [
-          'Upcoming',
-          'Gold and jewellery',
-          'Mutual funds',
-          'Stocks and ETFs',
-          'Investing plan',
-          'Documents',
-        ]) {
-          // The list is lazy: scroll a screenful at a time until the header builds.
-          for (
-            var i = 0;
-            i < 20 && find.widgetWithText(SectionHeader, h).evaluate().isEmpty;
-            i++
-          ) {
-            await tester.drag(
-              find.byType(ListView).first,
-              const Offset(0, -400),
-            );
-            await tester.pump();
-          }
-          expect(
-            find.widgetWithText(SectionHeader, h),
-            findsOneWidget,
-            reason: h,
-          );
-        }
+        await tester.tap(find.byKey(const Key('wealth-tile-gold')));
+        await tester.pumpAndSettle(const Duration(milliseconds: 100));
+        expect(
+          find.widgetWithText(SectionHeader, 'Gold and jewellery'),
+          findsOneWidget,
+        );
       },
     );
+
+    for (final (id, header) in [
+      ('papers', 'Documents'),
+      ('plan', 'Investing plan'),
+      ('funds', 'Mutual funds'),
+      ('stocks', 'Stocks and ETFs'),
+    ])
+      testWidgets('the $id page shows its section', (tester) async {
+        await pumpApp(tester, '/wealth-section/$id');
+        await tester.pump(const Duration(milliseconds: 500));
+        for (
+          var i = 0;
+          i < 20 &&
+              find.widgetWithText(SectionHeader, header).evaluate().isEmpty;
+          i++
+        ) {
+          await tester.drag(find.byType(ListView).first, const Offset(0, -400));
+          await tester.pump();
+        }
+        expect(find.widgetWithText(SectionHeader, header), findsOneWidget);
+      });
+
+    testWidgets('Settings is one tap away on every tab', (tester) async {
+      for (final tab in ['/home', '/budget', '/cards', '/splits', '/wealth']) {
+        await pumpApp(tester, tab);
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(
+          find.byKey(const Key('open_settings')),
+          findsOneWidget,
+          reason: tab,
+        );
+      }
+    });
 
     testWidgets(
       'jewellery detail shows value, gain, chart and a full-screen photo viewer',

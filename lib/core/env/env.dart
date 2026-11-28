@@ -61,8 +61,9 @@ class Env {
 
   /// Sample data is for preview/debug builds only. A release build always
   /// runs on the person's own on-device ledger, never on made-up data.
-  static bool get sampleAllowed =>
-      debugReleaseOverride != null ? !debugReleaseOverride! : (demoData || !kReleaseMode);
+  static bool get sampleAllowed => debugReleaseOverride != null
+      ? !debugReleaseOverride!
+      : (demoData || !kReleaseMode);
 
   /// Tests only: pretend to be a release build (true) so the guard that keeps
   /// sample data out of release builds can be exercised. Null in production.

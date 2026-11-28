@@ -13,7 +13,11 @@ import 'package:pulse/data/providers.dart';
 import 'package:pulse/data/recurring_providers.dart';
 import 'package:pulse/features/auth/session.dart';
 
-Future<void> open(WidgetTester tester, {List<NwPoint>? history}) async {
+Future<void> open(
+  WidgetTester tester, {
+  List<NwPoint>? history,
+  bool scroll = true,
+}) async {
   PulseTheme.useGoogleFonts = false;
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -42,6 +46,15 @@ Future<void> open(WidgetTester tester, {List<NwPoint>? history}) async {
   );
   await tester.pump(const Duration(milliseconds: 100));
   await tester.pump(const Duration(seconds: 3));
+  // The history sits under the grid of tiles.
+  if (scroll) {
+    await tester.scrollUntilVisible(
+      find.byKey(const Key('nw_change')),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pump();
+  }
 }
 
 String change(WidgetTester t) =>
@@ -103,6 +116,7 @@ void main() {
       await open(
         tester,
         history: [const NwPoint(CalDate(2026, 11, 24), 100000, 0)],
+        scroll: false,
       );
       expect(find.byKey(const Key('nw_ranges')), findsNothing);
       expect(find.text('Net worth'), findsWidgets);

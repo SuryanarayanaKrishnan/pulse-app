@@ -59,6 +59,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
               padding: const EdgeInsets.only(bottom: 120),
               children: [
                 ScreenHeader(
+                  showSettings: true,
                   'Cards',
                   subtitle: 'Your wallet',
                   trailing: [

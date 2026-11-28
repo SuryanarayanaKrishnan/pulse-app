@@ -1221,7 +1221,8 @@ class LocalPulseRepository
       id: id,
       issuer: issuer,
       // "Tabby" + "Tabby Card" would read "Tabby Tabby Card": show it once.
-      name: name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
+      name:
+          name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
               name.length > issuer.length + 1
           ? name.substring(issuer.length + 1)
           : name,
