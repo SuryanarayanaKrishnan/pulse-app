@@ -123,6 +123,7 @@ class LocalSplitsStore {
       for (final p in jsonDecode(e.participants) as List) p as String,
     ],
     date: e.date,
+    transactionId: e.transactionId,
     shares: e.shares == null
         ? null
         : {
@@ -238,6 +239,7 @@ class LocalSplitsStore {
                     }),
             ),
             date: e.date,
+            transactionId: Value(e.transactionId),
           ),
         );
     return SplitExpense(
@@ -248,6 +250,7 @@ class LocalSplitsStore {
       participants: e.participants,
       date: e.date,
       shares: e.shares,
+      transactionId: e.transactionId,
     );
   }
 

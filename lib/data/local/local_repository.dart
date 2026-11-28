@@ -27,6 +27,7 @@ import '../api/dto.dart';
 import '../cap_snapshot.dart';
 import '../insights.dart';
 import '../models.dart';
+import '../splits_util.dart';
 import '../wealth_service.dart';
 import '../../core/engine/prices.dart';
 import '../recategoriser.dart';
@@ -1221,7 +1222,8 @@ class LocalPulseRepository
       id: id,
       issuer: issuer,
       // "Tabby" + "Tabby Card" would read "Tabby Tabby Card": show it once.
-      name: name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
+      name:
+          name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
               name.length > issuer.length + 1
           ? name.substring(issuer.length + 1)
           : name,
@@ -2388,11 +2390,55 @@ class LocalPulseRepository
       (s) => s.splitGroups(),
     );
     final ids = {for (final g in mine) g.id};
-    return [
+    final all = [
       ...mine,
       for (final g in remote)
         if (!ids.contains(g.id)) g,
     ];
+    // Someone else paid and you are in it (they added you on Pulse, or you
+    // logged it): your share belongs in your own transactions.
+    await _recordOwedShares(all);
+    return all;
+  }
+
+  /// Adds a transaction for your share of every expense someone else paid,
+  /// once. The id comes from the expense, so reloading never doubles it, and a
+  /// share you deleted stays deleted.
+  Future<void> _recordOwedShares(List<SplitGroup> groups) async {
+    for (final g in groups) {
+      for (final e in g.expenses) {
+        if (e.paidBy == 'me') continue;
+        final share = shareOf(e, 'me');
+        if (share <= 0) continue;
+        final id = splitShareTxId(e.id);
+        final exists = await (db.select(
+          db.transactions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (exists != null) continue;
+        final payer = g.member(e.paidBy)?.name ?? 'someone';
+        final acct = await _cashAccount();
+        final catId = await _categoryId(SpendCategory.other);
+        await db
+            .into(db.transactions)
+            .insert(
+              TransactionsCompanion.insert(
+                id: id,
+                accountId: acct.id,
+                amountMinor: (share * 100).round(),
+                direction: 'debit',
+                categoryId: Value(catId),
+                merchantRaw: Value(e.title),
+                merchantNormalized: Value(e.title),
+                notes: Value('Your share of ${g.name}, paid by $payer'),
+                postedAt: e.date.toUtc(),
+                source: 'manual',
+                sources: const Value('["manual"]'),
+                reviewed: const Value(true),
+              ),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+    }
   }
 
   @override
@@ -2427,8 +2473,13 @@ class LocalPulseRepository
     String groupId,
     SplitExpense expense,
   ) async {
-    if (await _splits.hasGroup(groupId))
-      return _splits.addExpense(groupId, expense);
+    if (await _splits.hasGroup(groupId)) {
+      final saved = await _splits.addExpense(groupId, expense);
+      if (saved.paidBy != 'me') {
+        await _recordOwedShares([await _splits.group(groupId)]);
+      }
+      return saved;
+    }
     return _needsServer(
       'Splitting with others',
       (s) => s.addSplitExpense(groupId, expense),

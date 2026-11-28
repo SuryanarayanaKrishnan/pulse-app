@@ -259,16 +259,32 @@ class _Body extends ConsumerWidget {
 }
 
 class AddSplitSheet extends ConsumerStatefulWidget {
-  const AddSplitSheet({super.key, required this.groups, this.initial});
+  const AddSplitSheet({
+    super.key,
+    required this.groups,
+    this.initial,
+    this.fromTransaction,
+  });
   final List<SplitGroup> groups;
   final SplitGroup? initial;
+
+  /// Split a payment you already have: its merchant and amount are filled in
+  /// and you are the payer. Typing both by hand stays possible.
+  final Transaction? fromTransaction;
   @override
   ConsumerState<AddSplitSheet> createState() => _AddSplitSheetState();
 }
 
 class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
-  final _title = TextEditingController();
-  final _amount = TextEditingController();
+  late final _title = TextEditingController(
+    text: widget.fromTransaction?.merchant,
+  );
+  late final _amount = TextEditingController(
+    text: widget.fromTransaction?.amount.toStringAsFixed(2),
+  );
+
+  /// Who paid: 'me', or a member id when you are logging a bill a friend paid.
+  String _paidBy = 'me';
   late SplitGroup _group = widget.initial ?? widget.groups.first;
   late Set<String> _with = _group.members.map((m) => m.id).toSet();
 
@@ -307,10 +323,13 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
             SplitExpense(
               id: 'new${DateTime.now().microsecondsSinceEpoch}',
               title: _title.text.trim(),
-              paidBy: 'me',
+              paidBy: _paidBy,
               amount: amt!,
               participants: _with.toList(),
-              date: DateTime.now(),
+              date: widget.fromTransaction?.date ?? DateTime.now(),
+              transactionId: _paidBy == 'me'
+                  ? widget.fromTransaction?.id
+                  : null,
             ),
           );
       ref.read(analyticsProvider).track(AnalyticsEvent.splitExpenseAdded);
@@ -333,7 +352,11 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
   @override
   Widget build(BuildContext context) => SheetScaffold(
     title: 'Add expense',
-    subtitle: 'You paid. Split equally.',
+    subtitle: widget.fromTransaction != null
+        ? 'Your payment, split equally. Change the amount if needed.'
+        : _paidBy == 'me'
+        ? 'You paid. Split equally.'
+        : 'Someone else paid. Your share lands in your transactions.',
     footer: PrimaryButton(
       label: 'Add expense',
       loading: _busy,
@@ -353,6 +376,7 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
                   selected: g.id == _group.id,
                   onTap: () => setState(() {
                     _group = g;
+                    _paidBy = 'me';
                     _with = g.members.map((m) => m.id).toSet();
                   }),
                 ),
@@ -375,6 +399,24 @@ class _AddSplitSheetState extends ConsumerState<AddSplitSheet> {
             prefixIconConstraints: kCurrencyPrefixConstraints,
           ),
         ),
+        if (widget.fromTransaction == null && _group.members.length > 1) ...[
+          const SizedBox(height: Space.xl),
+          Text('Paid by', style: context.tt.bodySmall),
+          const SizedBox(height: Space.sm),
+          Wrap(
+            key: const Key('paid-by'),
+            spacing: Space.sm,
+            runSpacing: Space.sm,
+            children: [
+              for (final m in _group.members)
+                Pill(
+                  m.id == 'me' ? 'You' : m.name,
+                  selected: _paidBy == m.id,
+                  onTap: () => setState(() => _paidBy = m.id),
+                ),
+            ],
+          ),
+        ],
         const SizedBox(height: Space.xl),
         Text('Split between', style: context.tt.bodySmall),
         const SizedBox(height: Space.sm),
