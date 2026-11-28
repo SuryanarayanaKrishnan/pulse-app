@@ -18,13 +18,19 @@ void main() {
       prev?.call(d);
     };
     app.main();
-    await tester.pumpAndSettle(const Duration(seconds: 1), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 30));
-    await tester.pump(const Duration(seconds: 3));
-
-    final texts = [
-      for (final w in tester.widgetList<Text>(find.byType(Text)))
-        if (w.data != null) w.data!,
+    // main() is async (opens the encrypted database, loads the catalog), so
+    // the first frame can come many seconds after it returns: wait for words.
+    List<String> readText() => [
+      for (final w in tester.widgetList<RichText>(find.byType(RichText)))
+        if (w.text.toPlainText().trim().isNotEmpty) w.text.toPlainText(),
     ];
+    var texts = <String>[];
+    for (var i = 0; i < 90 && texts.isEmpty; i++) {
+      await tester.pump(const Duration(seconds: 1));
+      texts = readText();
+    }
+    await tester.pump(const Duration(seconds: 3));
+    texts = readText();
     expect(texts, isNotEmpty, reason: 'nothing readable on the first screen');
     expect(
       texts.any((t) => t.contains('Something went wrong') || t.contains('failed to open')),
