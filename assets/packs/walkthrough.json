@@ -1,1 +1,118 @@
-{"version": 1, "screens": {}}
+{
+ "version": 1,
+ "screens": {
+  "home": [
+   {
+    "id": "safe",
+    "title": "Your number for today",
+    "body": "What is safe to spend after bills and goals. Tap it to see how it is worked out."
+   },
+   {
+    "id": "customise",
+    "title": "Make Home yours",
+    "body": "Reorder, hide or add tiles so Home shows only what you care about."
+   },
+   {
+    "id": "settings",
+    "title": "Settings and replays",
+    "body": "Backup, capture, privacy and every walkthrough live here."
+   }
+  ],
+  "budget": [
+   {
+    "id": "hero",
+    "title": "Spent against plan",
+    "body": "This month at a glance. It updates as card alerts arrive."
+   },
+   {
+    "id": "categories",
+    "title": "Categories, your way",
+    "body": "Swipe through them. Tap Edit to rename, set a budget, or add your own category."
+   },
+   {
+    "id": "manage",
+    "title": "Build, import, automate",
+    "body": "Build a budget from a few answers, import your sheet, or set rules that file things for you."
+   }
+  ],
+  "cards": [
+   {
+    "id": "add",
+    "title": "Add a card or account",
+    "body": "Pick from the catalogue and the card appears exactly as it looks in your wallet."
+   },
+   {
+    "id": "which",
+    "title": "Which card should I use?",
+    "body": "Tap the bolt before you pay. We rank your cards for that purchase."
+   },
+   {
+    "id": "switch",
+    "title": "Cards and accounts",
+    "body": "Switch between your cards and your bank accounts here."
+   }
+  ],
+  "splits": [
+   {
+    "id": "add",
+    "title": "Split an expense",
+    "body": "Add who paid and who shares it. Settling up is one more tap."
+   },
+   {
+    "id": "groups",
+    "title": "Your groups",
+    "body": "Open a group to see who owes whom, and settle in one go."
+   }
+  ],
+  "wealth": [
+   {
+    "id": "hero",
+    "title": "Net worth",
+    "body": "Everything you own minus everything you owe, in one number."
+   },
+   {
+    "id": "add",
+    "title": "Add assets and loans",
+    "body": "Gold, funds, property, savings, loans. Approximate is fine to start."
+   }
+  ],
+  "categories": [
+   {
+    "id": "new",
+    "title": "Add your own category",
+    "body": "Tap + (or New category below) for your own name, icon and monthly budget."
+   },
+   {
+    "id": "list",
+    "title": "Tap to set a budget",
+    "body": "Each row opens its budget and icon. Custom ones are marked."
+   }
+  ],
+  "vault": [
+   {
+    "id": "add",
+    "title": "What your family would need",
+    "body": "Tap Add for a policy, a loan, a paper or an investment, and where it is held."
+   },
+   {
+    "id": "nominee",
+    "title": "People you trust",
+    "body": "Name someone who can open this if something happens to you."
+   }
+  ],
+  "capture": [
+   {
+    "id": "steps",
+    "title": "Set up capture once",
+    "body": "After this, payments arrive on their own. No typing."
+   }
+  ],
+  "plus": [
+   {
+    "id": "perks",
+    "title": "What Plus adds",
+    "body": "Core budgeting stays free. Plus adds deeper card intel and AI summaries."
+   }
+  ]
+ }
+}
