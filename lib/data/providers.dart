@@ -545,6 +545,7 @@ final Provider<LocalStatementService?> localStatementServiceProvider =
         db: db,
         passwords: ref.watch(statementPasswordStoreProvider),
         locked: kIsWeb ? MemoryLockedFileStore() : PrivateLockedFileStore(),
+        pipeline: ref.watch(ingestPipelineProvider),
         onTransfer: (c, minor) =>
             ref.read(autoSettleServiceProvider).handle(c, minor),
       );

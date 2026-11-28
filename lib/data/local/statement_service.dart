@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
@@ -18,6 +19,8 @@ import '../statement_password_store.dart';
 import '../statements.dart';
 import 'database.dart';
 import 'ids.dart';
+import 'ingest_pipeline.dart';
+import 'statement_txns.dart';
 
 // ---- PDF text -----------------------------------------------------------------
 
@@ -149,11 +152,16 @@ class LocalStatementService {
     PdfTextExtractor? extractor,
     LockedFileStore? locked,
     this.onTransfer,
+    this.pipeline,
   }) : _extractor = extractor ?? const PdfrxTextExtractor(),
        _locked = locked ?? MemoryLockedFileStore();
 
   final PulseDatabase db;
   final StatementPasswordStore passwords;
+
+  /// When set, a statement's lines become transactions (merged with what was
+  /// already captured) as soon as they are read.
+  final IngestPipeline? pipeline;
   final PdfTextExtractor _extractor;
   final LockedFileStore _locked;
 
@@ -516,6 +524,21 @@ class LocalStatementService {
     });
     await _settleTransfers(id, parsed);
     await _fillCardFromStatement(parsed, inst);
+    final p = pipeline;
+    if (p != null) {
+      try {
+        await importStatementTransactions(
+          db,
+          p,
+          statementId: id,
+          parsed: parsed,
+          institution: inst,
+        );
+      } on Object catch (e) {
+        // The statement itself is stored; lines can be imported again later.
+        debugPrint('Statement lines not imported: $e');
+      }
+    }
   }
 
   Future<void> _fillCardFromStatement(
@@ -546,7 +569,10 @@ class LocalStatementService {
             .get();
     final captured =
         await (db.select(db.transactions)..where(
-              (t) => t.deletedAt.isNull() & t.source.equals('statement').not(),
+              (t) =>
+                  t.deletedAt.isNull() &
+                  (t.source.equals('statement').not() |
+                      t.statementId.equals(statementId)),
             ))
             .get();
     final a = _day(row.periodStart), b = _day(row.periodEnd);
