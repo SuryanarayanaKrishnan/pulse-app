@@ -9,6 +9,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
+import 'spending_calendar.dart';
 import 'tx_detail_sheet.dart';
 import 'tx_tile.dart';
 
@@ -24,6 +25,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
   final _search = TextEditingController();
   late String? _catId = widget.initialCategory;
   bool _manualOnly = false;
+  bool _calendar = false;
 
   @override
   void dispose() {
@@ -61,6 +63,16 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
           onPressed: () => context.popOrHome(),
         ),
         actions: [
+          IconButton(
+            key: const Key('activity_view_toggle'),
+            tooltip: _calendar ? 'Show list' : 'Show calendar',
+            icon: Icon(
+              _calendar
+                  ? Icons.view_list_rounded
+                  : Icons.calendar_month_rounded,
+            ),
+            onPressed: () => setState(() => _calendar = !_calendar),
+          ),
           IconButton(
             key: const Key('activity_add'),
             tooltip: 'Add a payment',
@@ -149,6 +161,7 @@ class _ActivityScreenState extends ConsumerState<ActivityScreen> {
                     message: 'Try a different search or filter.',
                   );
                 }
+                if (_calendar) return SpendingCalendar(transactions: f);
                 final groups = <String, List<Transaction>>{};
                 for (final t in f) {
                   groups.putIfAbsent(_dayLabel(t.date), () => []).add(t);
