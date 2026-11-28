@@ -36,11 +36,15 @@ class IngestFields {
     this.merchant,
     this.last4,
     this.postedAt,
+    this.dateOnly = false,
   });
   final int amountMinor;
   final String currency, direction;
   final String? merchant, last4;
   final DateTime? postedAt;
+
+  /// [postedAt] is only right to the day (a late screenshot or receipt).
+  final bool dateOnly;
 
   Map<String, Object?> toJson() => {
     'amount_minor': amountMinor,
@@ -49,6 +53,7 @@ class IngestFields {
     if (merchant != null) 'merchant': merchant,
     if (last4 != null) 'last4': last4,
     if (postedAt != null) 'posted_at': postedAt!.toUtc().toIso8601String(),
+    if (dateOnly) 'date_only': true,
   };
 
   static IngestFields? fromJson(Object? j) {
@@ -64,6 +69,7 @@ class IngestFields {
       postedAt: j['posted_at'] == null
           ? null
           : DateTime.tryParse('${j['posted_at']}'),
+      dateOnly: j['date_only'] == true,
     );
   }
 }
@@ -573,6 +579,7 @@ class IngestPipeline {
         postedAt: f.postedAt ?? input.receivedAt,
         institution: input.institution,
         confidence: 1,
+        dateOnly: f.dateOnly && f.postedAt != null,
       );
     }
     final text = input.rawText ?? '';
@@ -747,6 +754,7 @@ class IngestPipeline {
           direction: direction,
           merchant: p.merchantRaw,
           postedAt: postedAt,
+          dateOnly: p.dateOnly,
         );
     if (dupe != null) {
       final sources = {

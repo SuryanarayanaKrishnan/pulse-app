@@ -233,9 +233,54 @@ StoredTxn? findCaptureDuplicate(
   required String? merchant,
   required DateTime postedAt,
   Duration window = captureWindow,
+  bool dateOnly = false,
 }) {
-  StoredTxn? best;
-  var bestScore = -1;
+  final tight = _findCapture(
+    stored,
+    accountId: accountId,
+    channel: channel,
+    amountMinor: amountMinor,
+    currency: currency,
+    direction: direction,
+    merchant: merchant,
+    postedAt: postedAt,
+    window: window,
+    sameDay: false,
+  );
+  if (tight.isNotEmpty || !dateOnly) return tight.firstOrNull;
+  // The source showed its own date but no time (a screenshot or receipt of an
+  // earlier order): fall back to the same Dubai day and amount, but only when
+  // exactly one purchase fits, so two same-priced buys are never guessed.
+  final loose = _findCapture(
+    stored,
+    accountId: accountId,
+    channel: channel,
+    amountMinor: amountMinor,
+    currency: currency,
+    direction: direction,
+    merchant: merchant,
+    postedAt: postedAt,
+    window: window,
+    sameDay: true,
+  );
+  return loose.length == 1 ? loose.single : null;
+}
+
+/// Candidates for a capture duplicate, best merchant match first.
+List<StoredTxn> _findCapture(
+  Iterable<StoredTxn> stored, {
+  required String accountId,
+  required TxnSource channel,
+  required int amountMinor,
+  required String currency,
+  required Direction direction,
+  required String? merchant,
+  required DateTime postedAt,
+  required Duration window,
+  required bool sameDay,
+}) {
+  final out = <(StoredTxn, int, int)>[];
+  final day = toDubaiDate(postedAt);
   for (final t in stored) {
     if (t.source == TxnSource.statement ||
         t.accountId != accountId ||
@@ -244,7 +289,11 @@ StoredTxn? findCaptureDuplicate(
         t.direction != direction) {
       continue;
     }
-    if (t.postedAt.difference(postedAt).abs() > window) continue;
+    if (sameDay) {
+      if (toDubaiDate(t.postedAt) != day) continue;
+    } else if (t.postedAt.difference(postedAt).abs() > window) {
+      continue;
+    }
     final seen = t.sources.isEmpty ? [t.source.wire] : t.sources;
     if (seen.contains(channel.wire)) continue;
     final score = merchantScore(
@@ -252,12 +301,13 @@ StoredTxn? findCaptureDuplicate(
       t.merchantNormalized ?? t.merchantRaw,
     );
     if (score != null && score < minMerchantScore) continue;
-    if (best == null || (score ?? 0) > bestScore) {
-      best = t;
-      bestScore = score ?? 0;
-    }
+    out.add((t, score ?? 0, out.length));
   }
-  return best;
+  out.sort((a, b) {
+    final c = b.$2.compareTo(a.$2);
+    return c != 0 ? c : a.$3.compareTo(b.$3);
+  });
+  return [for (final e in out) e.$1];
 }
 
 final _ws = RegExp(r'\s+');

@@ -25,6 +25,7 @@ class ParsedTransaction {
     this.postedAt,
     this.institution,
     this.confidence = 0.5,
+    this.dateOnly = false,
   });
 
   final int amountMinor;
@@ -35,6 +36,10 @@ class ParsedTransaction {
   final DateTime? postedAt;
   final String? institution;
   final double confidence;
+
+  /// The source gave its own date but no time of day, so [postedAt] is only
+  /// right to the day (a screenshot or receipt of an earlier order).
+  final bool dateOnly;
 
   ParsedTransaction copyWith({
     String? institution,
@@ -49,6 +54,7 @@ class ParsedTransaction {
     postedAt: postedAt,
     institution: clearInstitution ? null : (institution ?? this.institution),
     confidence: confidence ?? this.confidence,
+    dateOnly: dateOnly,
   );
 }
 
@@ -206,10 +212,14 @@ class SmsParser implements MessageParser {
       final amountMinor = parseMinorUnits(_group(m, 'amt')!);
       if (amountMinor == null || amountMinor <= 0) continue;
       var postedAt = receivedAt;
+      var dateOnly = false;
       final dateS = _group(m, 'date') ?? _findDate(t);
       if (dateS != null) {
         final d = parseDate(dateS);
-        if (d != null) postedAt = atDate(d, receivedAt);
+        if (d != null) {
+          postedAt = atDate(d, receivedAt);
+          dateOnly = true;
+        }
       }
       final merchant = (_group(m, 'merchant') ?? '').trim();
       final cleaned = _stripChars(merchant, ' .-,');
@@ -222,6 +232,7 @@ class SmsParser implements MessageParser {
         postedAt: postedAt,
         institution: institution,
         confidence: 0.85,
+        dateOnly: dateOnly,
       );
     }
     return null;
