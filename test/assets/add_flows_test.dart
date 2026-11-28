@@ -412,6 +412,16 @@ void main() {
         await tester.pump(
           const Duration(milliseconds: 500),
         ); // let the async sections load
+        // They sit one tap away on the switch under the net worth.
+        expect(
+          find.widgetWithText(SectionHeader, 'Gold and jewellery'),
+          findsNothing,
+          reason: 'the overview does not stack every section',
+        );
+        await tester.ensureVisible(find.text('Investments and papers'));
+        await tester.pump();
+        await tester.tap(find.text('Investments and papers'));
+        await tester.pump(const Duration(milliseconds: 500));
         for (final h in [
           'Upcoming',
           'Gold and jewellery',
