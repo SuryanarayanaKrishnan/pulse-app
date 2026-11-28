@@ -98,6 +98,7 @@ HTx? txFromRow(String id, Map<String, Object?> r) {
     postedAt: posted.toUtc(),
     excluded: r['excluded'] == true || r['excluded'] == 1,
     merchant: _str(r['merchant']) ?? '',
+    cardCatalogId: _str(r['card_catalog_id']),
   );
 }
 

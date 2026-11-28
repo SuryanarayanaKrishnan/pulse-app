@@ -27,6 +27,7 @@ import '../api/dto.dart';
 import '../cap_snapshot.dart';
 import '../insights.dart';
 import '../models.dart';
+import '../splits_util.dart';
 import '../wealth_service.dart';
 import '../../core/engine/prices.dart';
 import '../recategoriser.dart';
@@ -35,6 +36,8 @@ import '../rules.dart';
 import '../statements.dart';
 import '../../core/engine/card_value.dart';
 import 'card_cycles.dart';
+import 'card_cycles.dart' as cc
+    show separateCapCatalogs, setCapShared, partnerCapCatalogs, setPartnerHolds;
 import 'card_value_report.dart';
 import 'catalog_service.dart';
 import 'database.dart';
@@ -86,7 +89,8 @@ class LocalPulseRepository
         PulseRepository,
         Recategoriser,
         NetWorthHistorySource,
-        CapSource {
+        CapSource,
+        CapShareSettings {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -220,6 +224,21 @@ class LocalPulseRepository
               (t) => OrderingTerm.desc(t.id),
             ]))
           .get();
+
+  /// [rows] with split payments cut down to your own share, for budgets and
+  /// category trends: a AED 120 dinner split in two counts as AED 60 spent.
+  /// The payment itself (and cash flow) keep the real amount.
+  Future<List<TxRow>> _netOfSplits(List<TxRow> rows) async {
+    final back = await _splits.othersShareByTransaction();
+    if (back.isEmpty) return rows;
+    return [
+      for (final t in rows)
+        if (back[t.id] case final b?)
+          t.copyWith(amountMinor: (t.amountMinor - b).clamp(0, t.amountMinor))
+        else
+          t,
+    ];
+  }
 
   Future<Transaction> _txById(String id) async {
     final row = await (db.select(
@@ -842,7 +861,7 @@ class LocalPulseRepository
       1,
     ).subtract(const Duration(days: 1));
     final (rows, accounts, cats, budgets) = await (
-      _txRows(since: since),
+      _txRows(since: since).then(_netOfSplits),
       _accountMap(),
       _categoryMap(),
       db.select(db.budgets).get(),
@@ -1221,7 +1240,8 @@ class LocalPulseRepository
       id: id,
       issuer: issuer,
       // "Tabby" + "Tabby Card" would read "Tabby Tabby Card": show it once.
-      name: name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
+      name:
+          name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
               name.length > issuer.length + 1
           ? name.substring(issuer.length + 1)
           : name,
@@ -1285,6 +1305,20 @@ class LocalPulseRepository
       dueDay: c.account.dueDay == 0 ? null : c.account.dueDay,
     );
   }
+
+  @override
+  Future<Set<String>> separateCapCatalogs() => cc.separateCapCatalogs(db);
+
+  @override
+  Future<void> setCapShared(String catalogId, bool shared) =>
+      cc.setCapShared(db, catalogId, shared);
+
+  @override
+  Future<Set<String>> partnerCapCatalogs() => cc.partnerCapCatalogs(db);
+
+  @override
+  Future<void> setPartnerHolds(String catalogId, bool holds) =>
+      cc.setPartnerHolds(db, catalogId, holds);
 
   @override
   Future<CapSnapshot> capSnapshot() async {
@@ -2140,7 +2174,10 @@ class LocalPulseRepository
       today.month - 5,
       1,
     ).subtract(const Duration(days: 1));
-    final (rows, cats) = await (_txRows(since: since), _categoryMap()).wait;
+    final (rows, cats) = await (
+      _txRows(since: since).then(_netOfSplits),
+      _categoryMap(),
+    ).wait;
     final monthIdx = [
       for (var i = 5; i >= 0; i--) today.year * 12 + today.month - 1 - i,
     ];
@@ -2388,11 +2425,55 @@ class LocalPulseRepository
       (s) => s.splitGroups(),
     );
     final ids = {for (final g in mine) g.id};
-    return [
+    final all = [
       ...mine,
       for (final g in remote)
         if (!ids.contains(g.id)) g,
     ];
+    // Someone else paid and you are in it (they added you on Pulse, or you
+    // logged it): your share belongs in your own transactions.
+    await _recordOwedShares(all);
+    return all;
+  }
+
+  /// Adds a transaction for your share of every expense someone else paid,
+  /// once. The id comes from the expense, so reloading never doubles it, and a
+  /// share you deleted stays deleted.
+  Future<void> _recordOwedShares(List<SplitGroup> groups) async {
+    for (final g in groups) {
+      for (final e in g.expenses) {
+        if (e.paidBy == 'me') continue;
+        final share = shareOf(e, 'me');
+        if (share <= 0) continue;
+        final id = splitShareTxId(e.id);
+        final exists = await (db.select(
+          db.transactions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        if (exists != null) continue;
+        final payer = g.member(e.paidBy)?.name ?? 'someone';
+        final acct = await _cashAccount();
+        final catId = await _categoryId(SpendCategory.other);
+        await db
+            .into(db.transactions)
+            .insert(
+              TransactionsCompanion.insert(
+                id: id,
+                accountId: acct.id,
+                amountMinor: (share * 100).round(),
+                direction: 'debit',
+                categoryId: Value(catId),
+                merchantRaw: Value(e.title),
+                merchantNormalized: Value(e.title),
+                notes: Value('Your share of ${g.name}, paid by $payer'),
+                postedAt: e.date.toUtc(),
+                source: 'manual',
+                sources: const Value('["manual"]'),
+                reviewed: const Value(true),
+              ),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+    }
   }
 
   @override
@@ -2427,8 +2508,13 @@ class LocalPulseRepository
     String groupId,
     SplitExpense expense,
   ) async {
-    if (await _splits.hasGroup(groupId))
-      return _splits.addExpense(groupId, expense);
+    if (await _splits.hasGroup(groupId)) {
+      final saved = await _splits.addExpense(groupId, expense);
+      if (saved.paidBy != 'me') {
+        await _recordOwedShares([await _splits.group(groupId)]);
+      }
+      return saved;
+    }
     return _needsServer(
       'Splitting with others',
       (s) => s.addSplitExpense(groupId, expense),

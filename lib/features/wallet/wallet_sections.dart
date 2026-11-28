@@ -8,6 +8,8 @@ import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/cap_providers.dart';
+import '../../household/household_providers.dart' show jointDataProvider;
 import '../../data/card_ranking.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
@@ -209,6 +211,7 @@ class CardDetailBody extends ConsumerWidget {
             ),
           ],
         ),
+        _SharedCapRow(card),
         CardValueSection(card.id),
         const SectionHeader('Payment'),
         PaymentDetails(card),
@@ -286,3 +289,55 @@ Future<void> openAccountDetail(
   title: (i) => accounts[i].label,
   sections: (_, i) => [AccountDetailBody(accounts[i])],
 );
+
+/// Partnership mode: one cashback cap for a primary card and its
+/// supplementary card. Two switches: both cards in this wallet, and a partner
+/// in the household who holds the supplementary on their own phone.
+class _SharedCapRow extends ConsumerWidget {
+  const _SharedCapRow(this.card);
+  final CreditCard card;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = card.catalogId;
+    if (id == null) return const SizedBox.shrink();
+    final cards = ref.watch(myCardsProvider).value ?? const <CreditCard>[];
+    final twoHere = cards.where((c) => c.catalogId == id).length >= 2;
+    final joint = ref.watch(jointDataProvider).value;
+    final hasPartner = joint != null && joint.memberIds.length > 1;
+    if (!twoHere && !hasPartner) return const SizedBox.shrink();
+    final separate = ref.watch(separateCapCatalogsProvider).value ?? const {};
+    final partner = ref.watch(partnerCapCatalogsProvider).value ?? const {};
+    final c = context.pc;
+    return RowGroup(
+      indent: ListRow.leadingInset,
+      children: [
+        if (twoHere)
+          SwitchListTile.adaptive(
+            key: const Key('shared_cap_switch'),
+            secondary: IconWell(Icons.people_outline_rounded, color: c.calm),
+            title: const Text('Share cashback cap with the other card'),
+            subtitle: const Text(
+              'Both cards\' spend counts toward one cap. Most banks pay '
+              'supplementary cashback to the primary account; check your '
+              'card\'s terms.',
+            ),
+            value: !separate.contains(id),
+            onChanged: (v) => setCapShared(ref, id, v),
+          ),
+        if (hasPartner)
+          SwitchListTile.adaptive(
+            key: const Key('partner_cap_switch'),
+            secondary: IconWell(Icons.family_restroom_rounded, color: c.calm),
+            title: const Text('A household member holds a supplementary'),
+            subtitle: const Text(
+              'Their spend on this card, shared through the household, '
+              'counts toward this cap. Both of you should switch this on.',
+            ),
+            value: partner.contains(id),
+            onChanged: (v) => setPartnerHolds(ref, id, v),
+          ),
+      ],
+    );
+  }
+}

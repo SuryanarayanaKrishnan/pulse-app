@@ -10,6 +10,7 @@ import 'package:pulse/core/engine/goals.dart';
 import 'package:pulse/data/api/api_exception.dart';
 import 'package:pulse/data/goal_models.dart';
 import 'package:pulse/data/local/goal_store.dart';
+import 'package:pulse/data/local/card_cycles.dart';
 import 'package:pulse/data/local/catalog_service.dart';
 import 'package:pulse/data/local/database.dart';
 import 'package:pulse/data/local/ingest_pipeline.dart';
@@ -86,6 +87,85 @@ Future<Rig> withCard() async {
 }
 
 void main() {
+  group('partnership mode: shared cap', () {
+    Future<Rig> twoCards() async {
+      final r = await rig();
+      await r.repo.addCard(catalogId: _enbd, last4: '1111');
+      await r.repo.addCard(catalogId: _enbd, last4: '2222');
+      await r.sms(
+        'Purchase of AED 300.00 with Credit Card ending 1111 at CARREFOUR, DUBAI.',
+        id: 'a',
+      );
+      await r.sms(
+        'Purchase of AED 200.00 with Credit Card ending 2222 at CARREFOUR, DUBAI.',
+        id: 'b',
+        at: DateTime.utc(2026, 3, 12, 10),
+      );
+      return r;
+    }
+
+    test('a primary and its supplementary pool spend by default', () async {
+      final r = await twoCards();
+      final cards = await loadOwnedCards(r.db);
+      final st = await capStatuses(r.db, cards, const CalDate(2026, 3, 12));
+      expect(st.map((c) => c.spendAed), [500, 500]);
+      expect(st.every((c) => c.isShared), isTrue);
+      expect(st.where((c) => c.isShareLead), hasLength(1));
+    });
+
+    test('turning sharing off gives each card its own cap', () async {
+      final r = await twoCards();
+      await r.repo.setCapShared(_enbd, false);
+      final cards = await loadOwnedCards(r.db);
+      final st = await capStatuses(r.db, cards, const CalDate(2026, 3, 12));
+      expect(st.map((c) => c.spendAed).toSet(), {300.0, 200.0});
+      expect(st.any((c) => c.isShared), isFalse);
+      await r.repo.setCapShared(_enbd, true);
+      expect(await r.repo.separateCapCatalogs(), isEmpty);
+    });
+
+    test('a household partner\'s supplementary spend joins the cap', () async {
+      addTearDown(() => partnerSpendSource = null);
+      final r = await withCard();
+      await r.sms(
+        'Purchase of AED 300.00 with Credit Card ending 1234 at CARREFOUR, DUBAI.',
+      );
+      partnerSpendSource = (id) async => id == _enbd
+          ? [
+              PartnerSpend(
+                at: DateTime.utc(2026, 3, 10, 9),
+                amountMinor: 20000,
+                categoryId: 'groceries',
+                merchant: 'Spinneys',
+              ),
+              // Another cycle: not counted.
+              PartnerSpend(
+                at: DateTime.utc(2026, 1, 10, 9),
+                amountMinor: 99900,
+              ),
+            ]
+          : [];
+      final cards = await loadOwnedCards(r.db);
+      const day = CalDate(2026, 3, 12);
+      // Not switched on: the partner's spend stays out.
+      var st = await capStatuses(r.db, cards, day);
+      expect(st.single.spendAed, 300);
+      expect(st.single.withPartner, isFalse);
+      await r.repo.setPartnerHolds(_enbd, true);
+      st = await capStatuses(r.db, cards, day);
+      expect(st.single.spendAed, 500);
+      expect(st.single.withPartner, isTrue);
+      expect(st.single.isShared, isTrue);
+    });
+
+    test('a single card is never marked shared', () async {
+      final r = await withCard();
+      final cards = await loadOwnedCards(r.db);
+      final st = await capStatuses(r.db, cards, const CalDate(2026, 3, 12));
+      expect(st.single.isShared, isFalse);
+    });
+  });
+
   group('empty database', () {
     test('every read works and nothing is invented', () async {
       final r = await rig();

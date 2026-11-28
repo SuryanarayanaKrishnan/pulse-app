@@ -185,6 +185,12 @@ class LocalHouseholdStore implements HouseholdStore {
                   t.deletedAt.isNull() & t.postedAt.isBiggerOrEqualValue(from),
             ))
             .get();
+    final catalogOfAccount = <String, String>{
+      for (final u in await (db.select(
+        db.userCards,
+      )..where((u) => u.deletedAt.isNull() & u.accountId.isNotNull())).get())
+        u.accountId!: u.catalogCardId,
+    };
     for (final t in txs) {
       out.add(
         HRow(
@@ -200,6 +206,7 @@ class LocalHouseholdStore implements HouseholdStore {
             'merchant': t.merchantNormalized ?? t.merchantRaw ?? '',
             'posted_at': t.postedAt.toUtc().toIso8601String(),
             'excluded': t.excludeFromBudget,
+            'card_catalog_id': catalogOfAccount[t.accountId],
           },
         ),
       );

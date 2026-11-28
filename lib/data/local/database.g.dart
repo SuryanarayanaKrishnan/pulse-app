@@ -23623,6 +23623,17 @@ class $SplitExpensesTable extends SplitExpenses
     type: DriftSqlType.dateTime,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _transactionIdMeta = const VerificationMeta(
+    'transactionId',
+  );
+  @override
+  late final GeneratedColumn<String> transactionId = GeneratedColumn<String>(
+    'transaction_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -23634,6 +23645,7 @@ class $SplitExpensesTable extends SplitExpenses
     shares,
     date,
     syncedAt,
+    transactionId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -23718,6 +23730,15 @@ class $SplitExpensesTable extends SplitExpenses
         syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
       );
     }
+    if (data.containsKey('transaction_id')) {
+      context.handle(
+        _transactionIdMeta,
+        transactionId.isAcceptableOrUnknown(
+          data['transaction_id']!,
+          _transactionIdMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -23763,6 +23784,10 @@ class $SplitExpensesTable extends SplitExpenses
         DriftSqlType.dateTime,
         data['${effectivePrefix}synced_at'],
       ),
+      transactionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transaction_id'],
+      ),
     );
   }
 
@@ -23786,6 +23811,9 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
   final String? shares;
   final DateTime date;
   final DateTime? syncedAt;
+
+  /// The transaction this split was started from (you paid), if any.
+  final String? transactionId;
   const SplitExpenseRow({
     required this.id,
     required this.groupId,
@@ -23796,6 +23824,7 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
     this.shares,
     required this.date,
     this.syncedAt,
+    this.transactionId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -23812,6 +23841,9 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
     map['date'] = Variable<DateTime>(date);
     if (!nullToAbsent || syncedAt != null) {
       map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    if (!nullToAbsent || transactionId != null) {
+      map['transaction_id'] = Variable<String>(transactionId);
     }
     return map;
   }
@@ -23831,6 +23863,9 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
           : Value(syncedAt),
+      transactionId: transactionId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transactionId),
     );
   }
 
@@ -23849,6 +23884,7 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
       shares: serializer.fromJson<String?>(json['shares']),
       date: serializer.fromJson<DateTime>(json['date']),
       syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      transactionId: serializer.fromJson<String?>(json['transactionId']),
     );
   }
   @override
@@ -23864,6 +23900,7 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
       'shares': serializer.toJson<String?>(shares),
       'date': serializer.toJson<DateTime>(date),
       'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'transactionId': serializer.toJson<String?>(transactionId),
     };
   }
 
@@ -23877,6 +23914,7 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
     Value<String?> shares = const Value.absent(),
     DateTime? date,
     Value<DateTime?> syncedAt = const Value.absent(),
+    Value<String?> transactionId = const Value.absent(),
   }) => SplitExpenseRow(
     id: id ?? this.id,
     groupId: groupId ?? this.groupId,
@@ -23887,6 +23925,9 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
     shares: shares.present ? shares.value : this.shares,
     date: date ?? this.date,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+    transactionId: transactionId.present
+        ? transactionId.value
+        : this.transactionId,
   );
   SplitExpenseRow copyWithCompanion(SplitExpensesCompanion data) {
     return SplitExpenseRow(
@@ -23903,6 +23944,9 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
       shares: data.shares.present ? data.shares.value : this.shares,
       date: data.date.present ? data.date.value : this.date,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+      transactionId: data.transactionId.present
+          ? data.transactionId.value
+          : this.transactionId,
     );
   }
 
@@ -23917,7 +23961,8 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
           ..write('participants: $participants, ')
           ..write('shares: $shares, ')
           ..write('date: $date, ')
-          ..write('syncedAt: $syncedAt')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('transactionId: $transactionId')
           ..write(')'))
         .toString();
   }
@@ -23933,6 +23978,7 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
     shares,
     date,
     syncedAt,
+    transactionId,
   );
   @override
   bool operator ==(Object other) =>
@@ -23946,7 +23992,8 @@ class SplitExpenseRow extends DataClass implements Insertable<SplitExpenseRow> {
           other.participants == this.participants &&
           other.shares == this.shares &&
           other.date == this.date &&
-          other.syncedAt == this.syncedAt);
+          other.syncedAt == this.syncedAt &&
+          other.transactionId == this.transactionId);
 }
 
 class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
@@ -23959,6 +24006,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
   final Value<String?> shares;
   final Value<DateTime> date;
   final Value<DateTime?> syncedAt;
+  final Value<String?> transactionId;
   final Value<int> rowid;
   const SplitExpensesCompanion({
     this.id = const Value.absent(),
@@ -23970,6 +24018,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
     this.shares = const Value.absent(),
     this.date = const Value.absent(),
     this.syncedAt = const Value.absent(),
+    this.transactionId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   SplitExpensesCompanion.insert({
@@ -23982,6 +24031,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
     this.shares = const Value.absent(),
     required DateTime date,
     this.syncedAt = const Value.absent(),
+    this.transactionId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        groupId = Value(groupId),
@@ -24000,6 +24050,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
     Expression<String>? shares,
     Expression<DateTime>? date,
     Expression<DateTime>? syncedAt,
+    Expression<String>? transactionId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -24012,6 +24063,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
       if (shares != null) 'shares': shares,
       if (date != null) 'date': date,
       if (syncedAt != null) 'synced_at': syncedAt,
+      if (transactionId != null) 'transaction_id': transactionId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -24026,6 +24078,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
     Value<String?>? shares,
     Value<DateTime>? date,
     Value<DateTime?>? syncedAt,
+    Value<String?>? transactionId,
     Value<int>? rowid,
   }) {
     return SplitExpensesCompanion(
@@ -24038,6 +24091,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
       shares: shares ?? this.shares,
       date: date ?? this.date,
       syncedAt: syncedAt ?? this.syncedAt,
+      transactionId: transactionId ?? this.transactionId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -24072,6 +24126,9 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
     if (syncedAt.present) {
       map['synced_at'] = Variable<DateTime>(syncedAt.value);
     }
+    if (transactionId.present) {
+      map['transaction_id'] = Variable<String>(transactionId.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -24090,6 +24147,7 @@ class SplitExpensesCompanion extends UpdateCompanion<SplitExpenseRow> {
           ..write('shares: $shares, ')
           ..write('date: $date, ')
           ..write('syncedAt: $syncedAt, ')
+          ..write('transactionId: $transactionId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -39167,6 +39225,7 @@ typedef $$SplitExpensesTableCreateCompanionBuilder =
       Value<String?> shares,
       required DateTime date,
       Value<DateTime?> syncedAt,
+      Value<String?> transactionId,
       Value<int> rowid,
     });
 typedef $$SplitExpensesTableUpdateCompanionBuilder =
@@ -39180,6 +39239,7 @@ typedef $$SplitExpensesTableUpdateCompanionBuilder =
       Value<String?> shares,
       Value<DateTime> date,
       Value<DateTime?> syncedAt,
+      Value<String?> transactionId,
       Value<int> rowid,
     });
 
@@ -39234,6 +39294,11 @@ class $$SplitExpensesTableFilterComposer
 
   ColumnFilters<DateTime> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -39291,6 +39356,11 @@ class $$SplitExpensesTableOrderingComposer
     column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$SplitExpensesTableAnnotationComposer
@@ -39332,6 +39402,11 @@ class $$SplitExpensesTableAnnotationComposer
 
   GeneratedColumn<DateTime> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get transactionId => $composableBuilder(
+    column: $table.transactionId,
+    builder: (column) => column,
+  );
 }
 
 class $$SplitExpensesTableTableManager
@@ -39380,6 +39455,7 @@ class $$SplitExpensesTableTableManager
                 Value<String?> shares = const Value.absent(),
                 Value<DateTime> date = const Value.absent(),
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> transactionId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SplitExpensesCompanion(
                 id: id,
@@ -39391,6 +39467,7 @@ class $$SplitExpensesTableTableManager
                 shares: shares,
                 date: date,
                 syncedAt: syncedAt,
+                transactionId: transactionId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -39404,6 +39481,7 @@ class $$SplitExpensesTableTableManager
                 Value<String?> shares = const Value.absent(),
                 required DateTime date,
                 Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> transactionId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => SplitExpensesCompanion.insert(
                 id: id,
@@ -39415,6 +39493,7 @@ class $$SplitExpensesTableTableManager
                 shares: shares,
                 date: date,
                 syncedAt: syncedAt,
+                transactionId: transactionId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

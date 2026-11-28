@@ -16,6 +16,7 @@ import '../../data/providers.dart';
 import '../../data/rules.dart';
 import '../categories/category_picker.dart';
 import '../household/ownership_widgets.dart';
+import '../splits/tx_split_row.dart';
 import 'recategorise_sheet.dart';
 
 /// Transaction detail. Re-categorising offers to turn the choice into a rule.
@@ -236,6 +237,7 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                     child: const Text('Forget'),
                   ),
                 ),
+              TxSplitRow(tx: tx),
               OwnerRow(table: 'transactions', id: tx.id, title: tx.merchant),
               ListRow(
                 dense: true,

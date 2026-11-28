@@ -241,6 +241,7 @@ void main() {
       'merchant',
       'posted_at',
       'excluded',
+      'card_catalog_id',
     });
     expect(r.values['merchant'], 'Carrefour');
   });

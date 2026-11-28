@@ -616,6 +616,11 @@ class SettlementRecord {
   );
 }
 
+/// Id of the transaction that records your share of an expense someone else
+/// paid. Derived from the expense, so syncing the same expense twice never
+/// adds a second one.
+String splitShareTxId(String expenseId) => 'split_$expenseId';
+
 class SplitExpense {
   const SplitExpense({
     required this.id,
@@ -625,10 +630,22 @@ class SplitExpense {
     required this.participants,
     required this.date,
     this.shares,
+    this.transactionId,
   });
   final String id;
   final String title;
   final String paidBy;
+
+  /// The payment in your own transactions this split was started from (you
+  /// paid). Null when typed in by hand, or when someone else paid: then your
+  /// share has a transaction of its own, see [linkedTransactionId].
+  final String? transactionId;
+
+  /// Id of your own transaction this split ties to: the payment you split, or
+  /// (someone else paid) the one recording your share. Null when you paid and
+  /// nothing was linked.
+  String? get linkedTransactionId =>
+      transactionId ?? (paidBy == 'me' ? null : splitShareTxId(id));
   final double amount;
 
   /// Member ids sharing equally (when [shares] is null).
