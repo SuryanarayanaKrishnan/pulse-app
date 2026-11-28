@@ -16,7 +16,10 @@ class _Tolerant extends LocalFileComparator {
   final double tolerance;
   @override
   Future<bool> compare(Uint8List imageBytes, Uri golden) async {
-    final r = await GoldenFileComparator.compareLists(imageBytes, await getGoldenBytes(golden));
+    final r = await GoldenFileComparator.compareLists(
+      imageBytes,
+      await getGoldenBytes(golden),
+    );
     if (!r.passed && r.diffPercent <= tolerance) return true;
     if (!r.passed) {
       final err = await generateFailureOutput(r, golden, basedir);
@@ -28,7 +31,12 @@ class _Tolerant extends LocalFileComparator {
 
 void main() {
   final base = goldenFileComparator as LocalFileComparator;
-  setUpAll(() => goldenFileComparator = _Tolerant(base.basedir.resolve('golden_smoke_test.dart'), 0.03));
+  setUpAll(
+    () => goldenFileComparator = _Tolerant(
+      base.basedir.resolve('golden_smoke_test.dart'),
+      0.03,
+    ),
+  );
   tearDownAll(() => goldenFileComparator = base);
 
   const tabs = ['home', 'budget', 'cards', 'splits', 'wealth'];
@@ -44,7 +52,10 @@ void main() {
           dpr: 1,
         );
         await app.settle(10);
-        await expectLater(find.byType(MaterialApp), matchesGoldenFile('goldens/${tab}_${dark ? "dark" : "light"}.png'));
+        await expectLater(
+          find.byType(MaterialApp),
+          matchesGoldenFile('goldens/${tab}_${dark ? "dark" : "light"}.png'),
+        );
         expect(tester.takeException(), isNull);
         await shutDown(tester);
       });

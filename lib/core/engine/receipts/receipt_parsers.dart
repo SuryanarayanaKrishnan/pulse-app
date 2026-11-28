@@ -17,9 +17,22 @@ import 'receipt_models.dart';
 /// HTML to one trimmed line per element. Scripts and styles are dropped.
 List<String> htmlToLines(String html) {
   var s = html
-      .replaceAll(RegExp(r'<(script|style)[^>]*>.*?</\1>', caseSensitive: false, dotAll: true), ' ')
+      .replaceAll(
+        RegExp(
+          r'<(script|style)[^>]*>.*?</\1>',
+          caseSensitive: false,
+          dotAll: true,
+        ),
+        ' ',
+      )
       .replaceAll(RegExp(r'<!--.*?-->', dotAll: true), ' ')
-      .replaceAll(RegExp(r'<\s*(br|/p|/div|/tr|/li|/h\d|/table|/td|/th)\b[^>]*>', caseSensitive: false), '\n')
+      .replaceAll(
+        RegExp(
+          r'<\s*(br|/p|/div|/tr|/li|/h\d|/table|/td|/th)\b[^>]*>',
+          caseSensitive: false,
+        ),
+        '\n',
+      )
       .replaceAll(RegExp(r'<[^>]+>'), ' ');
   s = s
       .replaceAll('&nbsp;', ' ')
@@ -35,19 +48,32 @@ List<String> htmlToLines(String html) {
 
 List<String> _lines(String s) => [
   for (final l in s.split(RegExp(r'\r?\n')))
-    if (l.replaceAll(RegExp(r'\s+'), ' ').trim().isNotEmpty) l.replaceAll(RegExp(r'\s+'), ' ').trim(),
+    if (l.replaceAll(RegExp(r'\s+'), ' ').trim().isNotEmpty)
+      l.replaceAll(RegExp(r'\s+'), ' ').trim(),
 ];
 
-List<String> _bodyLines(ReceiptMessage m) => m.isHtml || RegExp(r'<(html|body|div|table)\b', caseSensitive: false).hasMatch(m.body)
+List<String> _bodyLines(ReceiptMessage m) =>
+    m.isHtml ||
+        RegExp(
+          r'<(html|body|div|table)\b',
+          caseSensitive: false,
+        ).hasMatch(m.body)
     ? htmlToLines(m.body)
     : _lines(m.body);
 
 // ---- amounts ------------------------------------------------------------------
 
-final _amountCore = r'(-?\s*[\d]{1,3}(?:,\d{3})*(?:\.\d{1,2})?|-?\s*\d+(?:\.\d{1,2})?)';
+final _amountCore =
+    r'(-?\s*[\d]{1,3}(?:,\d{3})*(?:\.\d{1,2})?|-?\s*\d+(?:\.\d{1,2})?)';
 final _cur = r'(AED|USD|EUR|GBP|SAR|Dhs?\.?)';
-final _amountOnly = RegExp('^(?:-\\s*)?(?:$_cur\\s*)?$_amountCore(?:\\s*$_cur)?\$', caseSensitive: false);
-final _inline = RegExp('^(.*?)[:\\s]+((?:-\\s*)?$_cur\\s*$_amountCore|$_amountCore\\s*$_cur)\$', caseSensitive: false);
+final _amountOnly = RegExp(
+  '^(?:-\\s*)?(?:$_cur\\s*)?$_amountCore(?:\\s*$_cur)?\$',
+  caseSensitive: false,
+);
+final _inline = RegExp(
+  '^(.*?)[:\\s]+((?:-\\s*)?$_cur\\s*$_amountCore|$_amountCore\\s*$_cur)\$',
+  caseSensitive: false,
+);
 
 /// fils from "1,200.50", or null.
 int? _minor(String raw) {
@@ -83,15 +109,26 @@ List<_Pair> _pairs(List<String> lines) {
   while (i < lines.length) {
     final l = lines[i];
     final inl = _inline.firstMatch(l);
-    if (inl != null && inl.group(1)!.trim().isNotEmpty && RegExp(r'[A-Za-z]').hasMatch(inl.group(1)!)) {
+    if (inl != null &&
+        inl.group(1)!.trim().isNotEmpty &&
+        RegExp(r'[A-Za-z]').hasMatch(inl.group(1)!)) {
       final amt = _minor(inl.group(2)!);
       if (amt != null) {
-        out.add(_Pair(inl.group(1)!.trim().replaceAll(RegExp(r'[:\-\s]+$'), ''), amt, i, _curOf(l)));
+        out.add(
+          _Pair(
+            inl.group(1)!.trim().replaceAll(RegExp(r'[:\-\s]+$'), ''),
+            amt,
+            i,
+            _curOf(l),
+          ),
+        );
         i++;
         continue;
       }
     }
-    if (i + 1 < lines.length && RegExp(r'[A-Za-z]').hasMatch(l) && !_amountOnly.hasMatch(l)) {
+    if (i + 1 < lines.length &&
+        RegExp(r'[A-Za-z]').hasMatch(l) &&
+        !_amountOnly.hasMatch(l)) {
       final n = lines[i + 1].trim();
       if (n.toUpperCase() == 'FREE') {
         out.add(_Pair(l, 0, i, 'AED'));
@@ -100,7 +137,8 @@ List<_Pair> _pairs(List<String> lines) {
       }
       // The next line must be a currency-marked amount, so a plain number
       // such as an order number is never read as money.
-      if (RegExp(_cur, caseSensitive: false).hasMatch(n) && _amountOnly.hasMatch(n)) {
+      if (RegExp(_cur, caseSensitive: false).hasMatch(n) &&
+          _amountOnly.hasMatch(n)) {
         final amt = _minor(n);
         if (amt != null) {
           out.add(_Pair(l, amt, i, _curOf(n)));
@@ -137,7 +175,8 @@ final _orderRe = RegExp(
 String? _findOrderId(Iterable<String> texts) {
   for (final t in texts) {
     final m = _orderRe.firstMatch(t);
-    if (m != null) return m.group(1)!.toUpperCase().replaceAll(RegExp(r'-$'), '');
+    if (m != null)
+      return m.group(1)!.toUpperCase().replaceAll(RegExp(r'-$'), '');
   }
   return null;
 }
@@ -154,7 +193,11 @@ DateTime? _findWhen(List<String> lines) {
     caseSensitive: false,
   );
   for (final l in lines) {
-    if (!RegExp(r'date|placed|ordered|delivered on|time', caseSensitive: false).hasMatch(l)) continue;
+    if (!RegExp(
+      r'date|placed|ordered|delivered on|time',
+      caseSensitive: false,
+    ).hasMatch(l))
+      continue;
     final m = re.firstMatch(l);
     if (m == null) continue;
     final mon = _months[m.group(2)!.toLowerCase()];
@@ -164,7 +207,13 @@ DateTime? _findWhen(List<String> lines) {
     final ap = m.group(6)?.toUpperCase();
     if (ap == 'PM' && h < 12) h += 12;
     if (ap == 'AM' && h == 12) h = 0;
-    return DateTime(int.parse(m.group(3)!), mon, int.parse(m.group(1)!), h, min);
+    return DateTime(
+      int.parse(m.group(3)!),
+      mon,
+      int.parse(m.group(1)!),
+      h,
+      min,
+    );
   }
   return null;
 }
@@ -187,11 +236,18 @@ _Sorted _sort(List<String> lines) {
     final low = label.toLowerCase();
     final item = _itemRe.firstMatch(label);
     if (item != null) {
-      r.items.add(ReceiptItem(item.group(2)!.trim(), quantity: int.parse(item.group(1)!), priceMinor: p.minor.abs()));
+      r.items.add(
+        ReceiptItem(
+          item.group(2)!.trim(),
+          quantity: int.parse(item.group(1)!),
+          priceMinor: p.minor.abs(),
+        ),
+      );
       continue;
     }
     // A card line followed by "cashback" text is a reward, never a charge.
-    if (RegExp(r'\b(visa|mastercard|master card|amex|card)\b').hasMatch(low) && !low.startsWith('total')) {
+    if (RegExp(r'\b(visa|mastercard|master card|amex|card)\b').hasMatch(low) &&
+        !low.startsWith('total')) {
       final next = lines.skip(p.line + 1).take(4).join(' ').toLowerCase();
       if (next.contains('cashback') || low.contains('cashback')) {
         r.cashback ??= p.minor.abs();
@@ -206,17 +262,23 @@ _Sorted _sort(List<String> lines) {
       r.subtotal ??= p.minor;
       continue;
     }
-    if (RegExp(r'^(grand total|total|amount paid|amount charged|you paid|order total|total paid)').hasMatch(low)) {
+    if (RegExp(
+      r'^(grand total|total|amount paid|amount charged|you paid|order total|total paid)',
+    ).hasMatch(low)) {
       r.total ??= p.minor;
       r.currency = p.currency;
       continue;
     }
-    if (RegExp(r'coupon|promo|discount|voucher|offer|saving|wallet credit').hasMatch(low) || p.minor < 0) {
+    if (RegExp(r'coupon|promo|discount|voucher|offer|saving|wallet credit')
+            .hasMatch(low) ||
+        p.minor < 0) {
       r.discounts.add(ReceiptLine(label, p.minor.abs()));
       continue;
     }
     if (RegExp(r'\bvat\b|\btax\b').hasMatch(low)) continue;
-    if (RegExp(r'fee|charge|delivery|shipping|tip|warranty|service|packaging|surcharge').hasMatch(low)) {
+    if (RegExp(
+      r'fee|charge|delivery|shipping|tip|warranty|service|packaging|surcharge',
+    ).hasMatch(low)) {
       r.fees.add(ReceiptLine(label, p.minor));
     }
   }
@@ -225,7 +287,10 @@ _Sorted _sort(List<String> lines) {
 
 /// A short hint that this food order is dining, not groceries, or vice versa,
 /// is decided from items in category.dart; here only the delivery context.
-bool _looksFood(String text) => RegExp(r'restaurant|food|meal|burger|pizza|menu', caseSensitive: false).hasMatch(text);
+bool _looksFood(String text) => RegExp(
+  r'restaurant|food|meal|burger|pizza|menu',
+  caseSensitive: false,
+).hasMatch(text);
 
 // ---- noon ---------------------------------------------------------------------
 
@@ -234,7 +299,10 @@ ParsedReceipt _noon(ReceiptMessage m, List<String> lines) {
   final all = lines.join('\n');
   final food = subj.contains('noon food') || all.contains('noon Food Team');
   if (food) {
-    final fm = RegExp(r'order number\s+(\S+)\s+from\s+(.+?)\s+has been', caseSensitive: false).firstMatch(all);
+    final fm = RegExp(
+      r'order number\s+(\S+)\s+from\s+(.+?)\s+has been',
+      caseSensitive: false,
+    ).firstMatch(all);
     return ParsedReceipt(
       messageId: m.id,
       kind: MerchantKind.noon,
@@ -247,13 +315,26 @@ ParsedReceipt _noon(ReceiptMessage m, List<String> lines) {
       verified: true,
     );
   }
-  final delivered = subj.contains('delivered') || subj.contains('dispatched') || subj.contains('shipped');
-  final confirmed = subj.contains('thank you for your') || subj.contains('order is confirmed') || all.contains('is confirmed!');
-  final shipment = RegExp(r'[Ss]hipment,?\s+([A-Z]{3,}\d{4,})(?:-S\d+)?').firstMatch(all);
+  final delivered =
+      subj.contains('delivered') ||
+      subj.contains('dispatched') ||
+      subj.contains('shipped');
+  final confirmed =
+      subj.contains('thank you for your') ||
+      subj.contains('order is confirmed') ||
+      all.contains('is confirmed!');
+  final shipment = RegExp(r'[Ss]hipment,?\s+([A-Z]{3,}\d{4,})(?:-S\d+)?')
+      .firstMatch(all);
   final order = delivered
       ? shipment?.group(1)
-      : RegExp(r'order,?\s+((?:N[A-Z]{3,5})\d{6,})', caseSensitive: false).firstMatch(all)?.group(1)?.toUpperCase() ?? _findOrderId(lines);
-  final super_ = subj.contains('supermall') || all.toLowerCase().contains('supermall order');
+      : RegExp(
+              r'order,?\s+((?:N[A-Z]{3,5})\d{6,})',
+              caseSensitive: false,
+            ).firstMatch(all)?.group(1)?.toUpperCase() ??
+            _findOrderId(lines);
+  final super_ =
+      subj.contains('supermall') ||
+      all.toLowerCase().contains('supermall order');
   if (delivered || !confirmed) {
     return ParsedReceipt(
       messageId: m.id,
@@ -287,26 +368,47 @@ ParsedReceipt _noon(ReceiptMessage m, List<String> lines) {
 
 // ---- Talabat and Careem (synthetic layouts, unverified) ------------------------
 
-ParsedReceipt _marketplace(ReceiptMessage m, List<String> lines, MerchantKind kind, String brand) {
+ParsedReceipt _marketplace(
+  ReceiptMessage m,
+  List<String> lines,
+  MerchantKind kind,
+  String brand,
+) {
   final all = lines.join('\n');
   final subj = m.subject.toLowerCase();
   final s = _sort(lines);
-  final venueM = RegExp(r'^(?:restaurant|store|vendor|from)\s*:\s*(.+)$', caseSensitive: false, multiLine: true).firstMatch(all);
-  final accepted = (subj.contains('accepted') || subj.contains('on its way')) && s.total == null;
+  final venueM = RegExp(
+    r'^(?:restaurant|store|vendor|from)\s*:\s*(.+)$',
+    caseSensitive: false,
+    multiLine: true,
+  ).firstMatch(all);
+  final accepted =
+      (subj.contains('accepted') || subj.contains('on its way')) &&
+      s.total == null;
   final has = s.total != null;
   final lower = all.toLowerCase();
-  final mart = lower.contains('talabat mart') || lower.contains('quik') || lower.contains('grocer');
+  final mart =
+      lower.contains('talabat mart') ||
+      lower.contains('quik') ||
+      lower.contains('grocer');
   var name = brand;
-  if (kind == MerchantKind.talabat && lower.contains('talabat mart')) name = 'Talabat Mart';
-  if (kind == MerchantKind.careem && lower.contains('quik')) name = 'Careem Quik';
-  if (kind == MerchantKind.careem && lower.contains('food') && !mart) name = 'Careem Food';
+  if (kind == MerchantKind.talabat && lower.contains('talabat mart'))
+    name = 'Talabat Mart';
+  if (kind == MerchantKind.careem && lower.contains('quik'))
+    name = 'Careem Quik';
+  if (kind == MerchantKind.careem && lower.contains('food') && !mart)
+    name = 'Careem Food';
   return ParsedReceipt(
     messageId: m.id,
     kind: kind,
-    stage: has ? ReceiptStage.confirmed : (accepted ? ReceiptStage.accepted : ReceiptStage.unknown),
+    stage: has
+        ? ReceiptStage.confirmed
+        : (accepted ? ReceiptStage.accepted : ReceiptStage.unknown),
     merchantName: name,
     venue: venueM?.group(1)?.trim(),
-    orderId: _findOrderId(lines.where((l) => !l.toLowerCase().startsWith('subject'))),
+    orderId: _findOrderId(
+      lines.where((l) => !l.toLowerCase().startsWith('subject')),
+    ),
     totalMinor: s.total,
     subtotalMinor: s.subtotal,
     currency: s.currency,
@@ -328,7 +430,9 @@ ParsedReceipt _generic(ReceiptMessage m, List<String> lines) {
   final from = m.from;
   final nameM = RegExp(r'^\s*"?([^"<@]+?)"?\s*<').firstMatch(from);
   final domain = RegExp(r'@([A-Za-z0-9-]+)\.').firstMatch(from)?.group(1);
-  final name = (nameM?.group(1)?.trim().isNotEmpty ?? false) ? nameM!.group(1)!.trim() : (domain ?? 'Unknown');
+  final name = (nameM?.group(1)?.trim().isNotEmpty ?? false)
+      ? nameM!.group(1)!.trim()
+      : (domain ?? 'Unknown');
   return ParsedReceipt(
     messageId: m.id,
     kind: MerchantKind.other,
@@ -355,8 +459,10 @@ ParsedReceipt parseReceipt(ReceiptMessage m) {
     final lines = _bodyLines(m);
     final from = m.from.toLowerCase();
     if (from.contains('noon.com')) return _noon(m, lines);
-    if (from.contains('talabat')) return _marketplace(m, lines, MerchantKind.talabat, 'Talabat');
-    if (from.contains('careem')) return _marketplace(m, lines, MerchantKind.careem, 'Careem');
+    if (from.contains('talabat'))
+      return _marketplace(m, lines, MerchantKind.talabat, 'Talabat');
+    if (from.contains('careem'))
+      return _marketplace(m, lines, MerchantKind.careem, 'Careem');
     return _generic(m, lines);
   } catch (_) {
     return ParsedReceipt(

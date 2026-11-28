@@ -48,55 +48,53 @@ class _AllFeaturesSheetState extends State<AllFeaturesSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-            TextField(
-              key: const Key('features-search'),
-              onChanged: (v) => setState(() => _q = v),
-              textInputAction: TextInputAction.search,
-              decoration: const InputDecoration(
-                hintText: 'Search features',
-                prefixIcon: Icon(Icons.search_rounded),
+          TextField(
+            key: const Key('features-search'),
+            onChanged: (v) => setState(() => _q = v),
+            textInputAction: TextInputAction.search,
+            decoration: const InputDecoration(
+              hintText: 'Search features',
+              prefixIcon: Icon(Icons.search_rounded),
+            ),
+          ),
+          const SizedBox(height: Space.md),
+          if (hits.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(Space.xl),
+              child: Text(
+                'Nothing matches "$_q".',
+                textAlign: TextAlign.center,
+                style: context.tt.bodyMedium!.copyWith(color: c.textSecondary),
               ),
             ),
-            const SizedBox(height: Space.md),
-            if (hits.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(Space.xl),
-                child: Text(
-                  'Nothing matches "$_q".',
-                  textAlign: TextAlign.center,
-                  style: context.tt.bodyMedium!.copyWith(
-                    color: c.textSecondary,
-                  ),
+          for (final g in groups) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xs),
+              child: Text(
+                g.toUpperCase(),
+                style: context.tt.labelSmall!.copyWith(
+                  color: c.textTertiary,
+                  letterSpacing: 0.8,
                 ),
               ),
-            for (final g in groups) ...[
-              Padding(
-                padding: const EdgeInsets.only(top: Space.sm, bottom: Space.xs),
-                child: Text(
-                  g.toUpperCase(),
-                  style: context.tt.labelSmall!.copyWith(
-                    color: c.textTertiary,
-                    letterSpacing: 0.8,
+            ),
+            RowGroup(
+              padding: EdgeInsets.zero,
+              indent: ListRow.leadingInset,
+              children: [
+                for (final f in hits.where((f) => f.group == g))
+                  ListRow(
+                    key: Key('feature-${f.id}'),
+                    leading: IconWell(f.icon, color: c.calm),
+                    title: f.title,
+                    subtitle: f.subtitle,
+                    chevron: true,
+                    onTap: () => _open(f),
                   ),
-                ),
-              ),
-              RowGroup(
-                padding: EdgeInsets.zero,
-                indent: ListRow.leadingInset,
-                children: [
-                  for (final f in hits.where((f) => f.group == g))
-                    ListRow(
-                      key: Key('feature-${f.id}'),
-                      leading: IconWell(f.icon, color: c.calm),
-                      title: f.title,
-                      subtitle: f.subtitle,
-                      chevron: true,
-                      onTap: () => _open(f),
-                    ),
-                ],
-              ),
-            ],
-            const SizedBox(height: Space.lg),
+              ],
+            ),
+          ],
+          const SizedBox(height: Space.lg),
         ],
       ),
     );

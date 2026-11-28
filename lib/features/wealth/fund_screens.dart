@@ -406,8 +406,10 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Current NAV per unit',
-                prefixIcon: CurrencyPrefix(_mode == _Mode.search && _hasPick ? 'INR' : _currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+                prefixIcon: CurrencyPrefix(
+                  _mode == _Mode.search && _hasPick ? 'INR' : _currency,
+                ),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -419,8 +421,10 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Average cost per unit (optional)',
-                prefixIcon: CurrencyPrefix(_mode == _Mode.search && _hasPick ? 'INR' : _currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+                prefixIcon: CurrencyPrefix(
+                  _mode == _Mode.search && _hasPick ? 'INR' : _currency,
+                ),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -646,7 +650,11 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
               dense: true,
               title: 'NAV',
               subtitle:
-                  '${f.navSource == 'market' ? 'Market' : f.navSource == 'statement' ? 'From your statement' : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
+                  '${f.navSource == 'market'
+                      ? 'Market'
+                      : f.navSource == 'statement'
+                      ? 'From your statement'
+                      : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
               trailing: Text(
                 '${f.currency} ${f.nav.toStringAsFixed(4)}',
                 style: PulseTheme.amount(c.textPrimary, size: 15),

@@ -37,7 +37,8 @@ class Rig {
     addTearDown(db.close);
     final catalog = CatalogService(
       db: db,
-      bundled: () async => File('test/fixtures/catalog/cards_small.json').readAsStringSync(),
+      bundled: () async =>
+          File('test/fixtures/catalog/cards_small.json').readAsStringSync(),
     );
     await catalog.loadBundled();
     pipeline = IngestPipeline(db, clock: () => DateTime.utc(2026, 3, 12, 8));

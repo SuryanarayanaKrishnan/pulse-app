@@ -21,7 +21,11 @@ void main() {
     sensor = StreamController<Accel>.broadcast(sync: true);
     clock = DateTime(2026, 1, 1);
     shakes = 0;
-    listener = ShakeListener(source: () => sensor.stream, onShake: () => shakes++, now: () => clock);
+    listener = ShakeListener(
+      source: () => sensor.stream,
+      onShake: () => shakes++,
+      now: () => clock,
+    );
   });
   tearDown(() async {
     listener.stop();
@@ -67,22 +71,25 @@ void main() {
     expect(shakes, 0);
   });
 
-  test('debounce: a continued shake fires once, then again after the cooldown', () {
-    listener.start();
-    for (var i = 0; i < 9; i++) {
-      tick(_jolt); // 9 jolts over ~1 s
-    }
-    expect(shakes, 1);
-    for (var i = 0; i < 3; i++) {
-      tick(_jolt, 200);
-    }
-    expect(shakes, 1, reason: 'still cooling down');
-    clock = clock.add(const Duration(seconds: 4));
-    for (var i = 0; i < 3; i++) {
-      tick(_jolt);
-    }
-    expect(shakes, 2);
-  });
+  test(
+    'debounce: a continued shake fires once, then again after the cooldown',
+    () {
+      listener.start();
+      for (var i = 0; i < 9; i++) {
+        tick(_jolt); // 9 jolts over ~1 s
+      }
+      expect(shakes, 1);
+      for (var i = 0; i < 3; i++) {
+        tick(_jolt, 200);
+      }
+      expect(shakes, 1, reason: 'still cooling down');
+      clock = clock.add(const Duration(seconds: 4));
+      for (var i = 0; i < 3; i++) {
+        tick(_jolt);
+      }
+      expect(shakes, 2);
+    },
+  );
 
   test('stopped (app in background) means nothing fires', () {
     listener.start();

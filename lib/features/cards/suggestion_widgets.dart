@@ -8,11 +8,18 @@ import '../../data/card_suggestions.dart';
 import '../../data/providers.dart';
 import 'quick_pick_sheet.dart';
 
-final cardSuggestionsProvider = FutureProvider<List<CardSuggestion>>((ref) async {
+final cardSuggestionsProvider = FutureProvider<List<CardSuggestion>>((
+  ref,
+) async {
   final catalog = await ref.watch(catalogProvider.future);
   final owned = await ref.watch(myCardsProvider.future);
   final txs = ref.watch(transactionsProvider).value ?? const [];
-  return suggestCards(catalog: catalog, owned: owned, txs: txs, now: DateTime.now());
+  return suggestCards(
+    catalog: catalog,
+    owned: owned,
+    txs: txs,
+    now: DateTime.now(),
+  );
 });
 
 /// "Cards worth having": shown at once, from your spend when there is enough,
@@ -30,7 +37,12 @@ class CardSuggestionsSection extends ConsumerWidget {
       children: [
         const SectionHeader('Cards worth having'),
         Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.sm),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            0,
+            Space.gutter,
+            Space.sm,
+          ),
           child: Text(
             list.first.typical
                 ? 'Based on a typical month. Pulse switches to your own spend as it learns it.'
@@ -43,7 +55,10 @@ class CardSuggestionsSection extends ConsumerWidget {
           children: [
             for (final s in list)
               ListRow(
-                leading: SizedBox(width: 56, child: CreditCardVisual(card: s.card, compact: true)),
+                leading: SizedBox(
+                  width: 56,
+                  child: CreditCardVisual(card: s.card, compact: true),
+                ),
                 title: '${s.card.issuer} ${s.card.name}',
                 subtitle: s.reason,
                 trailing: Column(
@@ -57,7 +72,10 @@ class CardSuggestionsSection extends ConsumerWidget {
                     Text('a year', style: context.tt.labelSmall),
                   ],
                 ),
-                onTap: () => showPulseSheet<void>(context, builder: (_) => _SuggestionSheet(s)),
+                onTap: () => showPulseSheet<void>(
+                  context,
+                  builder: (_) => _SuggestionSheet(s),
+                ),
               ),
           ],
         ),
@@ -75,7 +93,8 @@ class _SuggestionSheet extends StatelessWidget {
     final c = context.pc;
     return SheetScaffold(
       title: '${s.card.issuer} ${s.card.name}',
-      subtitle: 'About ${Money.aed(s.annualGain, decimals: false)} a year more than your current cards.',
+      subtitle:
+          'About ${Money.aed(s.annualGain, decimals: false)} a year more than your current cards.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

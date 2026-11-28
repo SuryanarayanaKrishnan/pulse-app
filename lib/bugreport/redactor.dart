@@ -31,12 +31,18 @@ abstract final class Redactor {
   static final _email = RegExp(
     r'[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(?:\.[A-Za-z0-9\-]+)+',
   );
-  static final _url = RegExp(r'(?:https?|ftp|pulse)://\S+', caseSensitive: false);
+  static final _url = RegExp(
+    r'(?:https?|ftp|pulse)://\S+',
+    caseSensitive: false,
+  );
   static final _iban = RegExp(
     r'\b[A-Za-z]{2}\p{Nd}{2}(?:[ \-]?[A-Za-z0-9]){10,30}\b',
     unicode: true,
   );
-  static final _phone = RegExp(r'\+?\p{Nd}[\p{Nd} \-().]{5,}\p{Nd}', unicode: true);
+  static final _phone = RegExp(
+    r'\+?\p{Nd}[\p{Nd} \-().]{5,}\p{Nd}',
+    unicode: true,
+  );
   static const _cur =
       r'(?:AED|USD|EUR|GBP|INR|SAR|QAR|KWD|BHD|OMR|PKR|Dhs?|Dirhams?|Rs\.?|'
       r'\$|€|£|₹|د\.إ)';
@@ -60,7 +66,10 @@ abstract final class Redactor {
     s = s.replaceAll(_email, '[email]');
     s = s.replaceAll(_url, '[link]');
     s = s.replaceAll(_iban, '[iban]');
-    s = s.replaceAllMapped(_phone, (m) => _digitCount(m[0]!) >= 7 ? '[phone]' : m[0]!);
+    s = s.replaceAllMapped(
+      _phone,
+      (m) => _digitCount(m[0]!) >= 7 ? '[phone]' : m[0]!,
+    );
     s = s.replaceAll(_amount, '[amount]');
     s = s.replaceAllMapped(_digits, (m) => m[3] != null ? '#' : m[0]!);
     return s;
@@ -73,10 +82,14 @@ abstract final class Redactor {
     for (final t in terms) {
       final term = t.trim();
       if (term.length < 2) continue;
-      s = s.replaceAll(RegExp(RegExp.escape(term), caseSensitive: false), '[text]');
+      s = s.replaceAll(
+        RegExp(RegExp.escape(term), caseSensitive: false),
+        '[text]',
+      );
     }
     return redact(s);
   }
 
-  static int _digitCount(String s) => RegExp(r'\p{Nd}', unicode: true).allMatches(s).length;
+  static int _digitCount(String s) =>
+      RegExp(r'\p{Nd}', unicode: true).allMatches(s).length;
 }

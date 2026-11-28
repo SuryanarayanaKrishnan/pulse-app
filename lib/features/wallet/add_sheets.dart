@@ -43,17 +43,27 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(context, builder: (_) => const AddCardSheet(), full: true);
+            showPulseSheet<void>(
+              context,
+              builder: (_) => const AddCardSheet(),
+              full: true,
+            );
           },
         ),
         ListRow(
-          leading: IconWell(Icons.account_balance_outlined, color: context.pc.calm),
+          leading: IconWell(
+            Icons.account_balance_outlined,
+            color: context.pc.calm,
+          ),
           title: 'Bank account or wallet',
           subtitle: 'Balances move as alerts arrive',
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(context, builder: (_) => const AddAccountSheet());
+            showPulseSheet<void>(
+              context,
+              builder: (_) => const AddAccountSheet(),
+            );
           },
         ),
         ListRow(
@@ -63,7 +73,10 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
           chevron: true,
           onTap: () {
             Navigator.of(sheet).pop();
-            showPulseSheet<void>(context, builder: (_) => const AddAssetSheet());
+            showPulseSheet<void>(
+              context,
+              builder: (_) => const AddAssetSheet(),
+            );
           },
         ),
       ],
@@ -101,7 +114,15 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
 
   @override
   void dispose() {
-    for (final c in [_last4, _limit, _owed, _statement, _due, _customIssuer, _customName]) {
+    for (final c in [
+      _last4,
+      _limit,
+      _owed,
+      _statement,
+      _due,
+      _customIssuer,
+      _customName,
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -110,10 +131,12 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
   Future<void> _createCustom() async {
     setState(() => _busy = true);
     try {
-      final card = await ref.read(repositoryProvider).addCustomCatalogCard(
-        issuer: _customIssuer.text,
-        name: _customName.text,
-      );
+      final card = await ref
+          .read(repositoryProvider)
+          .addCustomCatalogCard(
+            issuer: _customIssuer.text,
+            name: _customName.text,
+          );
       if (mounted) setState(() => _picked = card);
     } on Object catch (e) {
       if (mounted) _fail(context, e);
@@ -131,10 +154,14 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
       return;
     }
     final day =
-        (_statement.text.trim().isNotEmpty && _parseDay(_statement.text) == null) ||
+        (_statement.text.trim().isNotEmpty &&
+            _parseDay(_statement.text) == null) ||
         (_due.text.trim().isNotEmpty && _parseDay(_due.text) == null);
     if (day) {
-      setState(() => _error = 'Statement day and due day are a day of the month, 1 to 31.');
+      setState(
+        () => _error =
+            'Statement day and due day are a day of the month, 1 to 31.',
+      );
       return;
     }
     setState(() {
@@ -157,7 +184,11 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
     } on Object catch (e) {
       // Shown in the sheet: a snackbar would sit behind it and look like nothing happened.
       if (mounted) {
-        setState(() => _error = e is ApiException ? e.message : 'That did not work. Try again.');
+        setState(
+          () => _error = e is ApiException
+              ? e.message
+              : 'That did not work. Try again.',
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -186,15 +217,25 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
               key: const Key('custom_card_name'),
               controller: _customName,
               textCapitalization: TextCapitalization.words,
-              decoration: const InputDecoration(hintText: 'Card name, like Platinum'),
+              decoration: const InputDecoration(
+                hintText: 'Card name, like Platinum',
+              ),
               onChanged: (_) => setState(() {}),
             ),
             const SizedBox(height: Space.lg),
             PrimaryButton(
               label: 'Continue',
-              onPressed: _busy || _customIssuer.text.trim().isEmpty || _customName.text.trim().isEmpty ? null : _createCustom,
+              onPressed:
+                  _busy ||
+                      _customIssuer.text.trim().isEmpty ||
+                      _customName.text.trim().isEmpty
+                  ? null
+                  : _createCustom,
             ),
-            TextButton(onPressed: () => setState(() => _custom = false), child: const Text('Back to the list')),
+            TextButton(
+              onPressed: () => setState(() => _custom = false),
+              child: const Text('Back to the list'),
+            ),
           ],
         ),
       );
@@ -208,7 +249,9 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
-              decoration: const InputDecoration(hintText: 'Search by bank or card'),
+              decoration: const InputDecoration(
+                hintText: 'Search by bank or card',
+              ),
               onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
             ),
             const SizedBox(height: Space.md),
@@ -219,11 +262,16 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
               builder: (list) {
                 final shown = [
                   for (final k in list)
-                    if (_query.isEmpty || '${k.issuer} ${k.name}'.toLowerCase().contains(_query)) k,
+                    if (_query.isEmpty ||
+                        '${k.issuer} ${k.name}'.toLowerCase().contains(_query))
+                      k,
                 ];
                 final cantFind = ListRow(
                   key: const Key('cant_find_card'),
-                  leading: IconWell(Icons.add_card_outlined, color: context.pc.calm),
+                  leading: IconWell(
+                    Icons.add_card_outlined,
+                    color: context.pc.calm,
+                  ),
                   title: "I can't find my card",
                   subtitle: 'Add it yourself',
                   chevron: true,
@@ -247,7 +295,10 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                   children: [
                     for (final k in shown)
                       ListRow(
-                        leading: SizedBox(width: 56, child: CreditCardVisual(card: k, compact: true)),
+                        leading: SizedBox(
+                          width: 56,
+                          child: CreditCardVisual(card: k, compact: true),
+                        ),
                         title: '${k.issuer} ${k.name}',
                         subtitle: k.highlight,
                         chevron: true,
@@ -273,15 +324,25 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             controller: _last4,
             autofocus: true,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-            decoration: const InputDecoration(labelText: 'Last 4 digits (optional)', hintText: '1234'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            decoration: const InputDecoration(
+              labelText: 'Last 4 digits (optional)',
+              hintText: '1234',
+            ),
             onChanged: (_) => setState(() => _error = null),
           ),
           const SizedBox(height: Space.md),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.auto_awesome_outlined, size: 18, color: context.pc.accent),
+              Icon(
+                Icons.auto_awesome_outlined,
+                size: 18,
+                color: context.pc.accent,
+              ),
               const SizedBox(width: Space.sm),
               Expanded(
                 child: Text(
@@ -296,15 +357,27 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             TextField(
               key: const Key('add_card_limit'),
               controller: _limit,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Credit limit', prefixIcon: CurrencyPrefix('AED'), prefixIconConstraints: kCurrencyPrefixConstraints),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Credit limit',
+                prefixIcon: CurrencyPrefix('AED'),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
+              ),
             ),
             const SizedBox(height: Space.md),
             TextField(
               key: const Key('add_card_owed'),
               controller: _owed,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(labelText: 'Owed today', prefixIcon: CurrencyPrefix('AED'), prefixIconConstraints: kCurrencyPrefixConstraints),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                labelText: 'Owed today',
+                prefixIcon: CurrencyPrefix('AED'),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
+              ),
             ),
             const SizedBox(height: Space.md),
             Row(
@@ -314,8 +387,14 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                     key: const Key('add_card_statement_day'),
                     controller: _statement,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
-                    decoration: const InputDecoration(labelText: 'Statement day', hintText: '1 to 31'),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(2),
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: 'Statement day',
+                      hintText: '1 to 31',
+                    ),
                   ),
                 ),
                 const SizedBox(width: Space.md),
@@ -324,8 +403,14 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                     key: const Key('add_card_due_day'),
                     controller: _due,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
-                    decoration: const InputDecoration(labelText: 'Due day', hintText: '1 to 31'),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(2),
+                    ],
+                    decoration: const InputDecoration(
+                      labelText: 'Due day',
+                      hintText: '1 to 31',
+                    ),
                   ),
                 ),
               ],
@@ -344,13 +429,24 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
             Text(
               _error!,
               key: const Key('add_card_error'),
-              style: context.tt.bodyMedium?.copyWith(color: context.pc.negative),
+              style: context.tt.bodyMedium?.copyWith(
+                color: context.pc.negative,
+              ),
             ),
           ],
           const SizedBox(height: Space.xl),
-          PrimaryButton(key: const Key('add_card_save'), label: 'Add card', loading: _busy, onPressed: _save),
+          PrimaryButton(
+            key: const Key('add_card_save'),
+            label: 'Add card',
+            loading: _busy,
+            onPressed: _save,
+          ),
           const SizedBox(height: Space.sm),
-          PrimaryButton(label: 'Choose another', secondary: true, onPressed: () => setState(() => _picked = null)),
+          PrimaryButton(
+            label: 'Choose another',
+            secondary: true,
+            onPressed: () => setState(() => _picked = null),
+          ),
         ],
       ),
     );
@@ -382,7 +478,16 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
   bool get _isCash => _kind == BankAccountKind.cash;
 
   /// One-tap banks; anything else is typed.
-  static const _banks = ['Emirates NBD', 'Mashreq', 'ADCB', 'FAB', 'DIB', 'RAKBANK', 'Wio', 'Revolut'];
+  static const _banks = [
+    'Emirates NBD',
+    'Mashreq',
+    'ADCB',
+    'FAB',
+    'DIB',
+    'RAKBANK',
+    'Wio',
+    'Revolut',
+  ];
 
   Future<void> _save() async {
     final bank = _isCash ? 'Cash' : _bank.text.trim();
@@ -396,7 +501,8 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
             name: _name.text.trim().isEmpty ? _kind.label : _name.text.trim(),
             kind: _kind,
             last4: _last4.text.trim().isEmpty ? null : _last4.text.trim(),
-            balance: double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
+            balance:
+                double.tryParse(_balance.text.trim().replaceAll(',', '')) ?? 0,
           );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
@@ -431,7 +537,11 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
             runSpacing: Space.sm,
             children: [
               for (final b in _banks)
-                ChoiceChip(label: Text(b), selected: _bank.text == b, onSelected: (_) => setState(() => _bank.text = b)),
+                ChoiceChip(
+                  label: Text(b),
+                  selected: _bank.text == b,
+                  onSelected: (_) => setState(() => _bank.text = b),
+                ),
             ],
           ),
           const SizedBox(height: Space.md),
@@ -439,26 +549,43 @@ class _AddAccountSheetState extends ConsumerState<AddAccountSheet> {
             controller: _bank,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(hintText: 'Bank or provider, like Emirates NBD'),
+            decoration: const InputDecoration(
+              hintText: 'Bank or provider, like Emirates NBD',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
           TextField(
             controller: _last4,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-            decoration: const InputDecoration(hintText: 'Last 4 digits (optional, matches alerts)'),
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4),
+            ],
+            decoration: const InputDecoration(
+              hintText: 'Last 4 digits (optional, matches alerts)',
+            ),
           ),
           const SizedBox(height: Space.md),
         ],
         TextField(
           controller: _balance,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-          decoration: const InputDecoration(hintText: 'Balance today', prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints),
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: true,
+          ),
+          decoration: const InputDecoration(
+            hintText: 'Balance today',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
+          ),
         ),
         const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Add account', loading: _busy, onPressed: (_isCash || _bank.text.trim().isNotEmpty) ? _save : null),
+        PrimaryButton(
+          label: 'Add account',
+          loading: _busy,
+          onPressed: (_isCash || _bank.text.trim().isNotEmpty) ? _save : null,
+        ),
       ],
     ),
   );
@@ -486,7 +613,8 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
   }
 
   /// The name is optional: "Gold" or "Loan or debt" is enough to start.
-  String get _kindName => _kind == AssetKind.liability ? 'Loan or debt' : _kind.label;
+  String get _kindName =>
+      _kind == AssetKind.liability ? 'Loan or debt' : _kind.label;
 
   Future<void> _save() async {
     final v = _parseAmount(_value.text);
@@ -495,16 +623,22 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
     try {
       final a = await ref
           .read(repositoryProvider)
-          .addAsset(name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(), kind: _kind, value: v);
+          .addAsset(
+            name: _name.text.trim().isEmpty ? _kindName : _name.text.trim(),
+            kind: _kind,
+            value: v,
+          );
       final problem = await saveHeldAt(
         ref,
-        sourceRef: '${_kind == AssetKind.liability ? 'liability' : 'asset'}:${a.id}',
+        sourceRef:
+            '${_kind == AssetKind.liability ? 'liability' : 'asset'}:${a.id}',
         type: vaultTypeForAsset(_kind),
         where: _heldAt.text,
         title: a.name,
       );
       if (problem != null && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(problem)));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(problem)));
       }
       ref.invalidate(assetsProvider);
       ref.invalidate(netWorthProvider);
@@ -529,7 +663,9 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           children: [
             for (final k in AssetKind.values.where((k) => k != AssetKind.funds))
               ChoiceChip(
-                label: Text(k == AssetKind.liability ? 'Loan or debt' : k.label),
+                label: Text(
+                  k == AssetKind.liability ? 'Loan or debt' : k.label,
+                ),
                 selected: _kind == k,
                 onSelected: (_) => setState(() => _kind = k),
               ),
@@ -540,7 +676,9 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           controller: _name,
           textCapitalization: TextCapitalization.sentences,
           textInputAction: TextInputAction.next,
-          decoration: const InputDecoration(hintText: 'Name (optional), like "Marina apartment"'),
+          decoration: const InputDecoration(
+            hintText: 'Name (optional), like "Marina apartment"',
+          ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.md),
@@ -548,25 +686,39 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
           controller: _value,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: InputDecoration(hintText: _kind == AssetKind.liability ? 'Amount owed' : 'Value today', prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints),
+          decoration: InputDecoration(
+            hintText: _kind == AssetKind.liability
+                ? 'Amount owed'
+                : 'Value today',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
+          ),
           onChanged: (_) => setState(() {}),
         ),
         const SizedBox(height: Space.md),
         HeldAtField(
           controller: _heldAt,
           hint: switch (_kind) {
-            AssetKind.realEstate => 'Papers at, e.g. title deed in locker, agent, DLD',
+            AssetKind.realEstate =>
+              'Papers at, e.g. title deed in locker, agent, DLD',
             AssetKind.liability => 'Owed to, e.g. bank or person',
             AssetKind.gold => 'Kept at, e.g. bank locker, home safe',
             _ => 'Held at, e.g. bank or platform',
           },
         ),
         const SizedBox(height: Space.xl),
-        PrimaryButton(label: 'Add', loading: _busy, onPressed: _parseAmount(_value.text) != null ? _save : null),
+        PrimaryButton(
+          label: 'Add',
+          loading: _busy,
+          onPressed: _parseAmount(_value.text) != null ? _save : null,
+        ),
         if (_parseAmount(_value.text) != null) ...[
           const SizedBox(height: Space.sm),
-          Text(Money.aed(_parseAmount(_value.text)!, decimals: false), style: context.tt.bodySmall, textAlign: TextAlign.center),
+          Text(
+            Money.aed(_parseAmount(_value.text)!, decimals: false),
+            style: context.tt.bodySmall,
+            textAlign: TextAlign.center,
+          ),
         ],
       ],
     ),
@@ -575,21 +727,40 @@ class _AddAssetSheetState extends ConsumerState<AddAssetSheet> {
 
 /// Edits or deletes something the user typed in: a manual asset, a loan or an
 /// account balance. [onOwnership] adds a "Who owns this" link for households.
-Future<void> showEditAssetSheet(BuildContext context, Asset asset, {VoidCallback? onOwnership}) =>
-    showPulseSheet<void>(context, builder: (_) => EditAssetSheet(asset, onOwnership: onOwnership));
+Future<void> showEditAssetSheet(
+  BuildContext context,
+  Asset asset, {
+  VoidCallback? onOwnership,
+}) => showPulseSheet<void>(
+  context,
+  builder: (_) => EditAssetSheet(asset, onOwnership: onOwnership),
+);
 
 /// Asks before deleting [asset]; returns true when it was deleted.
-Future<bool> confirmDeleteAsset(BuildContext context, WidgetRef ref, Asset asset) async {
+Future<bool> confirmDeleteAsset(
+  BuildContext context,
+  WidgetRef ref,
+  Asset asset,
+) async {
   final sure = await showDialog<bool>(
     context: context,
     builder: (ctx) => AlertDialog(
       title: Text('Delete ${asset.name}?'),
       content: Text(
-        asset.id.startsWith('account:') ? 'It leaves your net worth. Its transactions stay in Activity.' : 'It leaves your net worth.',
+        asset.id.startsWith('account:')
+            ? 'It leaves your net worth. Its transactions stay in Activity.'
+            : 'It leaves your net worth.',
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
-        TextButton(key: const Key('confirm_delete_asset'), onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text('Keep'),
+        ),
+        TextButton(
+          key: const Key('confirm_delete_asset'),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text('Delete'),
+        ),
       ],
     ),
   );
@@ -618,7 +789,8 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
   late final _value = TextEditingController(text: _plain(widget.asset.value));
   bool _busy = false;
 
-  static String _plain(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+  static String _plain(double v) =>
+      v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
 
   @override
   void dispose() {
@@ -627,12 +799,19 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
     super.dispose();
   }
 
-  bool get _valid => _name.text.trim().isNotEmpty && _parseAmount(_value.text) != null;
+  bool get _valid =>
+      _name.text.trim().isNotEmpty && _parseAmount(_value.text) != null;
 
   Future<void> _save() async {
     setState(() => _busy = true);
     try {
-      await ref.read(repositoryProvider).updateAsset(widget.asset.id, name: _name.text.trim(), value: _parseAmount(_value.text)!);
+      await ref
+          .read(repositoryProvider)
+          .updateAsset(
+            widget.asset.id,
+            name: _name.text.trim(),
+            value: _parseAmount(_value.text)!,
+          );
       ref.invalidate(assetsProvider);
       ref.invalidate(netWorthProvider);
       if (mounted) Navigator.of(context).pop();
@@ -654,7 +833,9 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
     final owed = widget.asset.isLiability;
     return SheetScaffold(
       title: 'Edit ${widget.asset.name}',
-      subtitle: isAccount ? 'Set today\'s balance; it moves with your transactions from here.' : 'Update the value whenever it changes.',
+      subtitle: isAccount
+          ? 'Set today\'s balance; it moves with your transactions from here.'
+          : 'Update the value whenever it changes.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -671,12 +852,22 @@ class _EditAssetSheetState extends ConsumerState<EditAssetSheet> {
             key: const Key('edit_asset_value'),
             controller: _value,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(hintText: owed ? 'Amount owed' : (isAccount ? 'Balance today' : 'Value today'), prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints),
+            decoration: InputDecoration(
+              hintText: owed
+                  ? 'Amount owed'
+                  : (isAccount ? 'Balance today' : 'Value today'),
+              prefixIcon: CurrencyPrefix('AED'),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),
-          PrimaryButton(key: const Key('edit_asset_save'), label: 'Save', loading: _busy, onPressed: _valid ? _save : null),
+          PrimaryButton(
+            key: const Key('edit_asset_save'),
+            label: 'Save',
+            loading: _busy,
+            onPressed: _valid ? _save : null,
+          ),
           const SizedBox(height: Space.sm),
           if (widget.onOwnership != null)
             TextButton(
@@ -707,10 +898,18 @@ class EditCardSheet extends ConsumerStatefulWidget {
 }
 
 class _EditCardSheetState extends ConsumerState<EditCardSheet> {
-  late final _last4 = TextEditingController(text: widget.card.last4 == '----' ? '' : widget.card.last4);
-  late final _limit = TextEditingController(text: widget.card.limit > 0 ? widget.card.limit.toStringAsFixed(0) : '');
-  late final _statement = TextEditingController(text: widget.card.statementDay?.toString() ?? '');
-  late final _due = TextEditingController(text: widget.card.dueDay?.toString() ?? '');
+  late final _last4 = TextEditingController(
+    text: widget.card.last4 == '----' ? '' : widget.card.last4,
+  );
+  late final _limit = TextEditingController(
+    text: widget.card.limit > 0 ? widget.card.limit.toStringAsFixed(0) : '',
+  );
+  late final _statement = TextEditingController(
+    text: widget.card.statementDay?.toString() ?? '',
+  );
+  late final _due = TextEditingController(
+    text: widget.card.dueDay?.toString() ?? '',
+  );
   bool _busy = false;
   String? _error;
 
@@ -728,9 +927,13 @@ class _EditCardSheetState extends ConsumerState<EditCardSheet> {
       setState(() => _error = 'Enter all four digits, or leave this empty.');
       return;
     }
-    if ((_statement.text.trim().isNotEmpty && _parseDay(_statement.text) == null) ||
+    if ((_statement.text.trim().isNotEmpty &&
+            _parseDay(_statement.text) == null) ||
         (_due.text.trim().isNotEmpty && _parseDay(_due.text) == null)) {
-      setState(() => _error = 'Statement day and due day are a day of the month, 1 to 31.');
+      setState(
+        () => _error =
+            'Statement day and due day are a day of the month, 1 to 31.',
+      );
       return;
     }
     if (_limit.text.trim().isNotEmpty && _parseAmount(_limit.text) == null) {
@@ -742,17 +945,24 @@ class _EditCardSheetState extends ConsumerState<EditCardSheet> {
       _error = null;
     });
     try {
-      await ref.read(repositoryProvider).updateCardDetails(
-        widget.card.id,
-        last4: digits,
-        limit: _parseAmount(_limit.text),
-        statementDay: _parseDay(_statement.text),
-        dueDay: _parseDay(_due.text),
-      );
+      await ref
+          .read(repositoryProvider)
+          .updateCardDetails(
+            widget.card.id,
+            last4: digits,
+            limit: _parseAmount(_limit.text),
+            statementDay: _parseDay(_statement.text),
+            dueDay: _parseDay(_due.text),
+          );
       invalidateWallet(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object catch (e) {
-      if (mounted) setState(() => _error = e is ApiException ? e.message : 'That did not work. Try again.');
+      if (mounted)
+        setState(
+          () => _error = e is ApiException
+              ? e.message
+              : 'That did not work. Try again.',
+        );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -769,15 +979,25 @@ class _EditCardSheetState extends ConsumerState<EditCardSheet> {
           key: const Key('edit_card_last4'),
           controller: _last4,
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
-          decoration: const InputDecoration(labelText: 'Last 4 digits', hintText: '1234'),
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(4),
+          ],
+          decoration: const InputDecoration(
+            labelText: 'Last 4 digits',
+            hintText: '1234',
+          ),
         ),
         const SizedBox(height: Space.md),
         TextField(
           key: const Key('edit_card_limit'),
           controller: _limit,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(labelText: 'Credit limit', prefixIcon: CurrencyPrefix('AED'), prefixIconConstraints: kCurrencyPrefixConstraints),
+          decoration: const InputDecoration(
+            labelText: 'Credit limit',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
+          ),
         ),
         const SizedBox(height: Space.md),
         Row(
@@ -787,8 +1007,14 @@ class _EditCardSheetState extends ConsumerState<EditCardSheet> {
                 key: const Key('edit_card_statement_day'),
                 controller: _statement,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
-                decoration: const InputDecoration(labelText: 'Statement day', hintText: '1 to 31'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Statement day',
+                  hintText: '1 to 31',
+                ),
               ),
             ),
             const SizedBox(width: Space.md),
@@ -797,18 +1023,33 @@ class _EditCardSheetState extends ConsumerState<EditCardSheet> {
                 key: const Key('edit_card_due_day'),
                 controller: _due,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(2)],
-                decoration: const InputDecoration(labelText: 'Due day', hintText: '1 to 31'),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(2),
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'Due day',
+                  hintText: '1 to 31',
+                ),
               ),
             ),
           ],
         ),
         if (_error != null) ...[
           const SizedBox(height: Space.md),
-          Text(_error!, key: const Key('edit_card_error'), style: context.tt.bodyMedium?.copyWith(color: context.pc.negative)),
+          Text(
+            _error!,
+            key: const Key('edit_card_error'),
+            style: context.tt.bodyMedium?.copyWith(color: context.pc.negative),
+          ),
         ],
         const SizedBox(height: Space.xl),
-        PrimaryButton(key: const Key('edit_card_save'), label: 'Save', loading: _busy, onPressed: _save),
+        PrimaryButton(
+          key: const Key('edit_card_save'),
+          label: 'Save',
+          loading: _busy,
+          onPressed: _save,
+        ),
       ],
     ),
   );

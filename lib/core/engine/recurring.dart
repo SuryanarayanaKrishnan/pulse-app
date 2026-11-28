@@ -20,7 +20,12 @@ const priceIncreaseMinPct = 3.0;
 const priceIncreaseMinMinor = 100;
 const forgottenAfterCharges = 4;
 const ignoredCategories = {
-  'transfer', 'cc_payment', 'salary', 'other_income', 'fees', 'savings',
+  'transfer',
+  'cc_payment',
+  'salary',
+  'other_income',
+  'fees',
+  'savings',
 };
 
 const _cadences = <(String, int, int)>[
@@ -34,14 +39,50 @@ const _cadences = <(String, int, int)>[
 /// Merchants (lower-case substring of the normalised name) that are
 /// subscriptions by nature.
 const subscriptionMerchants = [
-  'netflix', 'spotify', 'anghami', 'shahid', 'osn', 'disney', 'apple.com/bill', 'apple music', 'icloud',
-  'google one', 'google play', 'youtube', 'amazon prime', 'prime video', 'adobe', 'microsoft', 'chatgpt',
-  'openai', 'claude', 'notion', 'dropbox', 'canva', 'linkedin', 'gym', 'fitness', 'talabat pro',
-  'deliveroo plus', 'noon one', 'careem plus', 'starzplay', 'tod', 'playstation', 'xbox', 'nintendo',
+  'netflix',
+  'spotify',
+  'anghami',
+  'shahid',
+  'osn',
+  'disney',
+  'apple.com/bill',
+  'apple music',
+  'icloud',
+  'google one',
+  'google play',
+  'youtube',
+  'amazon prime',
+  'prime video',
+  'adobe',
+  'microsoft',
+  'chatgpt',
+  'openai',
+  'claude',
+  'notion',
+  'dropbox',
+  'canva',
+  'linkedin',
+  'gym',
+  'fitness',
+  'talabat pro',
+  'deliveroo plus',
+  'noon one',
+  'careem plus',
+  'starzplay',
+  'tod',
+  'playstation',
+  'xbox',
+  'nintendo',
 ];
 
 class Charge {
-  const Charge(this.postedOn, this.amountMinor, this.merchant, this.key, [this.categorySlug]);
+  const Charge(
+    this.postedOn,
+    this.amountMinor,
+    this.merchant,
+    this.key, [
+    this.categorySlug,
+  ]);
   final CalDate postedOn;
   final int amountMinor;
 
@@ -54,7 +95,12 @@ class Charge {
 }
 
 class PriceIncrease {
-  const PriceIncrease(this.fromMinor, this.toMinor, this.increaseMinor, this.pct);
+  const PriceIncrease(
+    this.fromMinor,
+    this.toMinor,
+    this.increaseMinor,
+    this.pct,
+  );
   final int fromMinor, toMinor, increaseMinor;
   final double pct;
 }
@@ -101,29 +147,37 @@ class Series {
 CalDate addMonths(CalDate d, int months, [int? anchorDay]) {
   final idx = d.year * 12 + d.month - 1 + months;
   final year = idx ~/ 12, month = idx % 12 + 1;
-  return CalDate(year, month, math.min(anchorDay ?? d.day, daysInMonth(year, month)));
+  return CalDate(
+    year,
+    month,
+    math.min(anchorDay ?? d.day, daysInMonth(year, month)),
+  );
 }
 
-CalDate advance(CalDate d, String cadence, [int? anchorDay]) => switch (cadence) {
-  'weekly' => d.addDays(7),
-  'fortnightly' => d.addDays(14),
-  'monthly' => addMonths(d, 1, anchorDay),
-  'quarterly' => addMonths(d, 3, anchorDay),
-  _ => addMonths(d, 12, anchorDay),
-};
+CalDate advance(CalDate d, String cadence, [int? anchorDay]) =>
+    switch (cadence) {
+      'weekly' => d.addDays(7),
+      'fortnightly' => d.addDays(14),
+      'monthly' => addMonths(d, 1, anchorDay),
+      'quarterly' => addMonths(d, 3, anchorDay),
+      _ => addMonths(d, 12, anchorDay),
+    };
 
 (String, int)? _classify(List<int> gaps) {
   final med = median(gaps);
   for (final (name, nominal, tol) in _cadences) {
     if ((med - nominal).abs() <= tol) {
-      final fit = gaps.where((g) => (g - nominal).abs() <= tol * 2).length / gaps.length;
+      final fit =
+          gaps.where((g) => (g - nominal).abs() <= tol * 2).length /
+          gaps.length;
       if (fit >= 0.7) return (name, nominal);
     }
   }
   return null;
 }
 
-bool isSubscriptionMerchant(String key) => subscriptionMerchants.any(key.contains);
+bool isSubscriptionMerchant(String key) =>
+    subscriptionMerchants.any(key.contains);
 
 /// All recurring series in [charges] (debits only), next-expected first.
 ///
@@ -134,7 +188,9 @@ bool isSubscriptionMerchant(String key) => subscriptionMerchants.any(key.contain
 List<Series> detect(List<Charge> charges, CalDate today) {
   final groups = <String, List<Charge>>{};
   for (final c in charges) {
-    if (c.amountMinor > 0 && !ignoredCategories.contains(c.categorySlug) && c.key.isNotEmpty) {
+    if (c.amountMinor > 0 &&
+        !ignoredCategories.contains(c.categorySlug) &&
+        c.key.isNotEmpty) {
       groups.putIfAbsent(c.key, () => []).add(c);
     }
   }
@@ -142,13 +198,25 @@ List<Series> detect(List<Charge> charges, CalDate today) {
   for (final MapEntry(key: key, value: items) in groups.entries) {
     // Tiers first when the merchant clearly bills several fixed amounts
     // (their gaps would otherwise blur into one false cadence).
-    final tiers = items.length >= minOccurrences * 2 ? _amountTiers(items) : const <List<Charge>>[];
+    final tiers = items.length >= minOccurrences * 2
+        ? _amountTiers(items)
+        : const <List<Charge>>[];
     final covered = tiers.fold(0, (a, t) => a + t.length);
     if (tiers.length >= 2 && covered >= items.length * 0.8) {
       final found = <Series>[];
       for (final tier in tiers) {
-        final tierKey = '$key#${(median(tier.map((c) => c.amountMinor).toList()) / 100).round()}';
-        final s = _detectGroup(tierKey, [for (final c in tier) Charge(c.postedOn, c.amountMinor, c.merchant, tierKey, c.categorySlug)], today);
+        final tierKey =
+            '$key#${(median(tier.map((c) => c.amountMinor).toList()) / 100).round()}';
+        final s = _detectGroup(tierKey, [
+          for (final c in tier)
+            Charge(
+              c.postedOn,
+              c.amountMinor,
+              c.merchant,
+              tierKey,
+              c.categorySlug,
+            ),
+        ], today);
         if (s != null) found.add(s);
       }
       if (found.isNotEmpty) {
@@ -169,31 +237,51 @@ List<Series> detect(List<Charge> charges, CalDate today) {
 /// [fixedTolerance] of its tier's first member, tiers sorted by amount).
 /// Tiers with fewer than [minOccurrences] charges are dropped.
 List<List<Charge>> _amountTiers(List<Charge> items) {
-  final sorted = stableSorted(items, (a, b) => a.amountMinor.compareTo(b.amountMinor));
+  final sorted = stableSorted(
+    items,
+    (a, b) => a.amountMinor.compareTo(b.amountMinor),
+  );
   final tiers = <List<Charge>>[];
   for (final c in sorted) {
-    if (tiers.isNotEmpty && (c.amountMinor - tiers.last.first.amountMinor) <= tiers.last.first.amountMinor * fixedTolerance) {
+    if (tiers.isNotEmpty &&
+        (c.amountMinor - tiers.last.first.amountMinor) <=
+            tiers.last.first.amountMinor * fixedTolerance) {
       tiers.last.add(c);
     } else {
       tiers.add([c]);
     }
   }
-  return [for (final t in tiers) if (t.length >= minOccurrences) t];
+  return [
+    for (final t in tiers)
+      if (t.length >= minOccurrences) t,
+  ];
 }
 
 Series? _detectGroup(String key, List<Charge> items0, CalDate today) {
-  final items = stableSorted(items0, (a, b) => a.postedOn.compareTo(b.postedOn));
+  final items = stableSorted(
+    items0,
+    (a, b) => a.postedOn.compareTo(b.postedOn),
+  );
   // Several charges on one day (split payments) count as one occurrence.
   final days = <Charge>[];
   for (final c in items) {
     if (days.isNotEmpty && days.last.postedOn == c.postedOn) {
-      days[days.length - 1] = Charge(c.postedOn, days.last.amountMinor + c.amountMinor, c.merchant, key, c.categorySlug);
+      days[days.length - 1] = Charge(
+        c.postedOn,
+        days.last.amountMinor + c.amountMinor,
+        c.merchant,
+        key,
+        c.categorySlug,
+      );
     } else {
       days.add(c);
     }
   }
   if (days.length < minOccurrencesYearly) return null;
-  final gaps = [for (var i = 1; i < days.length; i++) days[i].postedOn.daysSince(days[i - 1].postedOn)];
+  final gaps = [
+    for (var i = 1; i < days.length; i++)
+      days[i].postedOn.daysSince(days[i - 1].postedOn),
+  ];
   final found = _classify(gaps);
   if (found == null) return null;
   final (cadence, nominal) = found;
@@ -212,8 +300,12 @@ Series? _detectGroup(String key, List<Charge> items0, CalDate today) {
   final last = days.last;
   final nxt = advance(last.postedOn, cadence, anchor);
   final grace = math.max(3, nominal ~/ 6);
-  final status = nxt >= today ? 'active' : (today.daysSince(nxt) <= grace ? 'due' : 'lapsed');
-  final recent = amounts.length >= 3 ? amounts.sublist(amounts.length - 3) : amounts;
+  final status = nxt >= today
+      ? 'active'
+      : (today.daysSince(nxt) <= grace ? 'due' : 'lapsed');
+  final recent = amounts.length >= 3
+      ? amounts.sublist(amounts.length - 3)
+      : amounts;
   final series = Series(
     key: key,
     merchant: last.merchant,
@@ -241,7 +333,8 @@ Series? _detectGroup(String key, List<Charge> items0, CalDate today) {
 void _priceIncrease(Series s, List<int> amounts) {
   final now = amounts.last;
   var runStart = amounts.length - 1;
-  while (runStart > 0 && (amounts[runStart - 1] - now).abs() <= now * fixedTolerance) {
+  while (runStart > 0 &&
+      (amounts[runStart - 1] - now).abs() <= now * fixedTolerance) {
     runStart--;
   }
   final earlier = amounts.sublist(0, runStart);

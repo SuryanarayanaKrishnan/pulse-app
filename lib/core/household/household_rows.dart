@@ -8,7 +8,8 @@ import 'household_scope.dart';
 /// build): such rows are skipped, never thrown on, so one bad row cannot
 /// stall the log.
 
-int? _int(Object? v) => v is int ? v : (v is num && v == v.roundToDouble() ? v.toInt() : null);
+int? _int(Object? v) =>
+    v is int ? v : (v is num && v == v.roundToDouble() ? v.toInt() : null);
 String? _str(Object? v) => v is String ? v : null;
 
 Map<String, Object?> memberToRow(HMember m) => {
@@ -42,7 +43,8 @@ HBill? billFromRow(String id, Map<String, Object?> r) {
   final name = _str(r['name']);
   final amount = _int(r['amount_minor']);
   final day = _int(r['due_day']);
-  if (name == null || amount == null || day == null || day < 1 || day > 31) return null;
+  if (name == null || amount == null || day == null || day < 1 || day > 31)
+    return null;
   Map<String, int> split;
   try {
     final j = jsonDecode(_str(r['split']) ?? '{}') as Map;
@@ -71,7 +73,12 @@ HLimit? limitFromRow(String id, Map<String, Object?> r) {
   final cat = _str(r['category_id']);
   final limit = _int(r['limit_minor']);
   if (cat == null || limit == null) return null;
-  return HLimit(id: id, categoryId: cat, limitMinor: limit, currency: _str(r['currency']) ?? 'AED');
+  return HLimit(
+    id: id,
+    categoryId: cat,
+    limitMinor: limit,
+    currency: _str(r['currency']) ?? 'AED',
+  );
 }
 
 HTx? txFromRow(String id, Map<String, Object?> r) {
@@ -79,7 +86,8 @@ HTx? txFromRow(String id, Map<String, Object?> r) {
   final posted = DateTime.tryParse(_str(r['posted_at']) ?? '');
   final owner = _str(r['owner']);
   final dir = _str(r['direction']);
-  if (amount == null || posted == null || owner == null || dir == null) return null;
+  if (amount == null || posted == null || owner == null || dir == null)
+    return null;
   return HTx(
     id: id,
     owner: owner,
@@ -114,7 +122,12 @@ HGoal? goalFromRow(String id, Map<String, Object?> r) {
   final target = _int(r['target_minor']);
   final current = _int(r['current_minor']);
   final bps = _int(r['progress_bps']);
-  if (name == null || owner == null || target == null || current == null || bps == null) return null;
+  if (name == null ||
+      owner == null ||
+      target == null ||
+      current == null ||
+      bps == null)
+    return null;
   return HGoal(
     id: id,
     name: name,
@@ -135,7 +148,8 @@ List<T> mirrorOf<T>(
   String table,
   T? Function(String, Map<String, Object?>) fromRow,
 ) => [
-  for (final e in (mirror[table] ?? const <String, Map<String, Object?>>{}).entries)
+  for (final e
+      in (mirror[table] ?? const <String, Map<String, Object?>>{}).entries)
     if (fromRow(e.key, e.value) case final T v) v,
 ];
 

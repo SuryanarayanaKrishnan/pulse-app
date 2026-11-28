@@ -15,16 +15,35 @@ class _BadAdapter implements HttpClientAdapter {
   _BadAdapter(this.mode);
   final String mode;
   @override
-  Future<ResponseBody> fetch(RequestOptions o, Stream<List<int>>? s, Future<void>? c) async {
+  Future<ResponseBody> fetch(
+    RequestOptions o,
+    Stream<List<int>>? s,
+    Future<void>? c,
+  ) async {
     switch (mode) {
       case 'refused':
-        throw DioException(requestOptions: o, type: DioExceptionType.connectionError);
+        throw DioException(
+          requestOptions: o,
+          type: DioExceptionType.connectionError,
+        );
       case '401':
-        return ResponseBody.fromString('{"detail":"nope"}', 401, headers: {'content-type': ['application/json']});
+        return ResponseBody.fromString(
+          '{"detail":"nope"}',
+          401,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        );
       case '500':
         return ResponseBody.fromString('boom', 500);
       default:
-        return ResponseBody.fromString('{"unexpected": true}', 200, headers: {'content-type': ['application/json']});
+        return ResponseBody.fromString(
+          '{"unexpected": true}',
+          200,
+          headers: {
+            'content-type': ['application/json'],
+          },
+        );
     }
   }
 
@@ -34,20 +53,33 @@ class _BadAdapter implements HttpClientAdapter {
 
 void main() {
   for (final mode in ['refused', '401', '500', 'garbage']) {
-    test('shared features fall back to empty when the backend is $mode', () async {
-      driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
-      final db = PulseDatabase(NativeDatabase.memory());
-      addTearDown(db.close);
-      final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
-      await catalog.loadBundled();
-      final pipeline = IngestPipeline(db);
-      addTearDown(pipeline.dispose);
-      final dio = Dio(BaseOptions(baseUrl: 'http://backend.invalid'))..httpClientAdapter = _BadAdapter(mode);
-      final repo = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, shared: ApiPulseRepository(dio));
-      expect(await repo.splitGroups(), isEmpty);
-      expect(await repo.statements(), isEmpty);
-      expect(await repo.emailConnections(), isEmpty);
-      expect(await repo.statementPasswords(), isEmpty);
-    });
+    test(
+      'shared features fall back to empty when the backend is $mode',
+      () async {
+        driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+        final db = PulseDatabase(NativeDatabase.memory());
+        addTearDown(db.close);
+        final catalog = CatalogService(
+          db: db,
+          bundled: () async =>
+              File('assets/catalog/cards.json').readAsStringSync(),
+        );
+        await catalog.loadBundled();
+        final pipeline = IngestPipeline(db);
+        addTearDown(pipeline.dispose);
+        final dio = Dio(BaseOptions(baseUrl: 'http://backend.invalid'))
+          ..httpClientAdapter = _BadAdapter(mode);
+        final repo = LocalPulseRepository(
+          db: db,
+          catalog: catalog,
+          pipeline: pipeline,
+          shared: ApiPulseRepository(dio),
+        );
+        expect(await repo.splitGroups(), isEmpty);
+        expect(await repo.statements(), isEmpty);
+        expect(await repo.emailConnections(), isEmpty);
+        expect(await repo.statementPasswords(), isEmpty);
+      },
+    );
   }
 }

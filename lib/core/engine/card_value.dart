@@ -91,7 +91,9 @@ CardCheck? checkCard({
     bestCardId: pick.card.id,
     bestTitle: pick.card.title,
     bestMinor: pick.quote.valueMinor,
-    estimated: unverifiedCardIds.contains(paidCardId) || unverifiedCardIds.contains(pick.card.id),
+    estimated:
+        unverifiedCardIds.contains(paidCardId) ||
+        unverifiedCardIds.contains(pick.card.id),
   );
 }
 
@@ -119,7 +121,10 @@ List<Benefit> parseBenefits(Map<String, Object?> perks) {
       final unit = (raw['unit_value_aed'] as num?)?.toDouble();
       final uses = (raw['uses_per_year'] as num?)?.toDouble();
       if (unit != null && uses != null) {
-        final pct = ((raw['expected_use_pct'] as num?)?.toDouble() ?? 1).clamp(0, 1);
+        final pct = ((raw['expected_use_pct'] as num?)?.toDouble() ?? 1).clamp(
+          0,
+          1,
+        );
         aed = unit * uses * pct;
       }
     }
@@ -129,7 +134,8 @@ List<Benefit> parseBenefits(Map<String, Object?> perks) {
   return out;
 }
 
-int totalBenefitsMinor(List<Benefit> b) => b.fold(0, (s, x) => s + x.annualValueMinor);
+int totalBenefitsMinor(List<Benefit> b) =>
+    b.fold(0, (s, x) => s + x.annualValueMinor);
 
 // ---------------------------------------------------------------------------
 // (c) Progress rings
@@ -157,13 +163,19 @@ class MilestoneRing {
   /// What reaching the target is worth (fee saved or bonus), in fils.
   final int rewardMinor;
 
-  double get fraction => targetMinor <= 0 ? 1 : (currentMinor / targetMinor).clamp(0, 1).toDouble();
+  double get fraction => targetMinor <= 0
+      ? 1
+      : (currentMinor / targetMinor).clamp(0, 1).toDouble();
   int get remainingMinor => math.max(0, targetMinor - currentMinor);
 }
 
 /// Annual-fee waiver progress; null when the card has no fee or no known
 /// waiver threshold. [yearSpendMinor] is the spend in the current fee year.
-MilestoneRing? feeWaiverRing(CardSpec spec, int annualFeeMinor, int yearSpendMinor) {
+MilestoneRing? feeWaiverRing(
+  CardSpec spec,
+  int annualFeeMinor,
+  int yearSpendMinor,
+) {
   final target = spec.feeWaiverSpendMinor;
   if (target == null || target <= 0 || annualFeeMinor <= 0) return null;
   return MilestoneRing(
@@ -192,7 +204,13 @@ WelcomeBonus? parseWelcomeBonus(Map<String, Object?> perks) {
   final spend = (w['spend_minor'] as num?)?.toInt();
   final days = (w['within_days'] as num?)?.toInt();
   final value = (w['bonus_value_aed'] as num?)?.toDouble();
-  if (spend == null || spend <= 0 || days == null || days <= 0 || value == null || value <= 0) return null;
+  if (spend == null ||
+      spend <= 0 ||
+      days == null ||
+      days <= 0 ||
+      value == null ||
+      value <= 0)
+    return null;
   return WelcomeBonus(
     name: (w['name'] as String?) ?? 'Welcome offer',
     spendMinor: spend,
@@ -215,7 +233,9 @@ MilestoneRing welcomeBonusRing(
     label: bonus.name,
     currentMinor: spendSinceOpenMinor,
     targetMinor: bonus.spendMinor,
-    state: done ? RingState.complete : (left < 0 ? RingState.expired : RingState.active),
+    state: done
+        ? RingState.complete
+        : (left < 0 ? RingState.expired : RingState.active),
     daysLeft: math.max(0, left),
     rewardMinor: bonus.bonusValueMinor,
   );
@@ -226,7 +246,12 @@ MilestoneRing welcomeBonusRing(
 // ---------------------------------------------------------------------------
 
 class CardHint {
-  const CardHint({required this.cardId, required this.message, this.suggestedCardId, required this.kind});
+  const CardHint({
+    required this.cardId,
+    required this.message,
+    this.suggestedCardId,
+    required this.kind,
+  });
 
   /// `cap` or `threshold`.
   final String kind;
@@ -252,13 +277,24 @@ List<CardHint> cardHints({
       all: all,
       cycleEnd: cycleEnd,
       category: rule.categories.isEmpty ? null : rule.categories.first,
-      merchantKey: rule.categories.isEmpty && rule.merchants.isNotEmpty ? rule.merchants.first : null,
+      merchantKey: rule.categories.isEmpty && rule.merchants.isNotEmpty
+          ? rule.merchants.first
+          : null,
     );
     if (n == null || !seen.add(n.message)) continue;
-    out.add(CardHint(kind: 'cap', cardId: card.id, suggestedCardId: n.suggestedCardId, message: n.message));
+    out.add(
+      CardHint(
+        kind: 'cap',
+        cardId: card.id,
+        suggestedCardId: n.suggestedCardId,
+        message: n.message,
+      ),
+    );
   }
   final min = card.spec.minMonthlySpendMinor;
-  if (min > 0 && !card.state.minSpendMet && card.state.spendMinor >= min * nearCapPct / 100) {
+  if (min > 0 &&
+      !card.state.minSpendMet &&
+      card.state.spendMinor >= min * nearCapPct / 100) {
     final gap = min - card.state.spendMinor;
     out.add(
       CardHint(
@@ -327,7 +363,8 @@ class CardNetValue {
   final int annualFeeMinor;
   final bool feeWaived, estimated;
 
-  int get netAnnualMinor => annualRewardsMinor + annualBenefitsMinor - annualFeeMinor;
+  int get netAnnualMinor =>
+      annualRewardsMinor + annualBenefitsMinor - annualFeeMinor;
 }
 
 /// Ranks cards by net annual value, best first (ties: the input order).
@@ -340,7 +377,9 @@ List<CardNetValue> rankByNetValue(List<CardValueInput> cards, CalDate today) {
     final sorted = [...c.spends]..sort((a, b) => a.date.compareTo(b.date));
     final cycles = <String, List<DatedSpend>>{};
     for (final s in sorted) {
-      cycles.putIfAbsent(cycleBounds(s.date, c.statementDay).$1.toIso(), () => []).add(s);
+      cycles
+          .putIfAbsent(cycleBounds(s.date, c.statementDay).$1.toIso(), () => [])
+          .add(s);
     }
     var spend = 0;
     var rewards = 0;
@@ -356,11 +395,15 @@ List<CardNetValue> rankByNetValue(List<CardValueInput> cards, CalDate today) {
           spend += math.max(0, s.spend.amountMinor);
         }
       }
-      if (cycleSpend >= c.spec.minMonthlySpendMinor) rewards += c.spec.valueMinor(inWindowUnits);
+      if (cycleSpend >= c.spec.minMonthlySpendMinor)
+        rewards += c.spec.valueMinor(inWindowUnits);
     }
     final annualRewards = (rewards * 365 / rankWindowDays).round();
     final target = c.spec.feeWaiverSpendMinor;
-    final waived = target != null && c.annualFeeMinor > 0 && spend * 365 / rankWindowDays >= target;
+    final waived =
+        target != null &&
+        c.annualFeeMinor > 0 &&
+        spend * 365 / rankWindowDays >= target;
     out.add(
       CardNetValue(
         id: c.id,

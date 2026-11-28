@@ -21,10 +21,18 @@ Future<void> openWealth(WidgetTester tester, List<Asset> assets) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
+        repositoryProvider.overrideWithValue(
+          MockPulseRepository(latency: Duration.zero),
+        ),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         kvStoreProvider.overrideWithValue(MemoryKvStore()),
-        sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+        sessionProvider.overrideWith(
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
+        ),
         recurringTodayProvider.overrideWithValue(const CalDate(2026, 11, 24)),
         assetsProvider.overrideWith((ref) async => assets),
       ],
@@ -36,14 +44,18 @@ Future<void> openWealth(WidgetTester tester, List<Asset> assets) async {
 }
 
 void main() {
-  testWidgets('Wealth with no assets shows a calm empty state, no exception', (tester) async {
+  testWidgets('Wealth with no assets shows a calm empty state, no exception', (
+    tester,
+  ) async {
     await openWealth(tester, const []);
     expect(tester.takeException(), isNull);
     expect(find.text('Nothing here yet'), findsOneWidget);
     expect(find.text('Add to Wealth'), findsOneWidget);
   });
 
-  testWidgets('Wealth with assets worth zero does not divide by zero', (tester) async {
+  testWidgets('Wealth with assets worth zero does not divide by zero', (
+    tester,
+  ) async {
     await openWealth(tester, const [
       Asset(id: 'a1', name: 'Empty account', kind: AssetKind.cash, value: 0),
       Asset(id: 'a2', name: 'Spare', kind: AssetKind.other, value: 0),
@@ -52,7 +64,10 @@ void main() {
     expect(find.text('Allocation'), findsOneWidget);
     // No 0% rows: with nothing to split there is a hint instead.
     expect(find.text('0%'), findsNothing);
-    expect(find.textContaining('to see how your money is split'), findsOneWidget);
+    expect(
+      find.textContaining('to see how your money is split'),
+      findsOneWidget,
+    );
     expect(find.textContaining('NaN'), findsNothing);
     expect(find.textContaining('Infinity'), findsNothing);
   });

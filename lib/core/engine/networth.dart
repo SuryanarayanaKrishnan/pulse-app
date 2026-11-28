@@ -5,7 +5,12 @@ library;
 import 'types.dart';
 
 class AssetInput {
-  const AssetInput(this.kind, this.currency, this.manualValueMinor, [this.costBasisMinor]);
+  const AssetInput(
+    this.kind,
+    this.currency,
+    this.manualValueMinor, [
+    this.costBasisMinor,
+  ]);
   final String kind, currency;
   final int? manualValueMinor, costBasisMinor;
 

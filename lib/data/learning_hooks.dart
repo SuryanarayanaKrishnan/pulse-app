@@ -36,7 +36,11 @@ Future<void> rememberCategoryChoice(
 }) async {
   try {
     if (category.id == SpendCategory.other.id || tx.isIncome) return;
-    await memory.confirm(tx.merchant, category.id, weight: fix ? fixWeight : confirmWeight);
+    await memory.confirm(
+      tx.merchant,
+      category.id,
+      weight: fix ? fixWeight : confirmWeight,
+    );
   } on Object {
     // ignore
   }

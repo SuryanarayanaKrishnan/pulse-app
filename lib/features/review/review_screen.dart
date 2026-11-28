@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/learning/learning_controller.dart';
 import '../../data/learning_hooks.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -33,7 +34,8 @@ class ReviewScreen extends ConsumerStatefulWidget {
   ConsumerState<ReviewScreen> createState() => _ReviewScreenState();
 }
 
-class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerProviderStateMixin {
+class _ReviewScreenState extends ConsumerState<ReviewScreen>
+    with SingleTickerProviderStateMixin {
   /// Top card first. Null while loading.
   List<Transaction>? _stack;
   final _history = <_Done>[];
@@ -51,7 +53,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
   void initState() {
     super.initState();
     _anim.addListener(() {
-      setState(() => _dx = _from + (_to - _from) * Motion.curve.transform(_anim.value));
+      setState(
+        () => _dx = _from + (_to - _from) * Motion.curve.transform(_anim.value),
+      );
     });
     _load();
   }
@@ -116,8 +120,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     Haptics.light();
     await _move(_width * 1.2);
     await ref.read(repositoryProvider).setReviewed([tx.id], true);
-    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, tx.category));
-    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), tx, tx.category));
+    unawaited(
+      recordConfirmedCategory(
+        ref.read(learningControllerProvider),
+        tx,
+        tx.category,
+      ),
+    );
+    unawaited(
+      rememberCategoryChoice(ref.read(merchantMemoryProvider), tx, tx.category),
+    );
     ref.read(analyticsProvider).track(AnalyticsEvent.reviewSwiped('right'));
     _finish(tx, _Dir.right);
   }
@@ -146,15 +158,32 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
   /// The existing category picker, then the scope sheet. False when the
   /// choice was dismissed or nothing changed.
   Future<bool> _fix(Transaction tx) async {
-    final picked = await pickCategory(context, selected: tx.category, title: 'Fix category');
+    final picked = await pickCategory(
+      context,
+      selected: tx.category,
+      title: 'Fix category',
+    );
     if (picked == null || picked == tx.category || !mounted) return false;
-    if (await recategoriseWithScope(context, ref, tx: tx, to: picked)) return true;
+    if (await recategoriseWithScope(context, ref, tx: tx, to: picked))
+      return true;
     final analytics = ref.read(analyticsProvider);
     await ref.read(repositoryProvider).recategorise(tx.id, picked);
-    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), tx, picked));
-    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), tx, picked, fix: true));
+    unawaited(
+      recordConfirmedCategory(ref.read(learningControllerProvider), tx, picked),
+    );
+    unawaited(
+      rememberCategoryChoice(
+        ref.read(merchantMemoryProvider),
+        tx,
+        picked,
+        fix: true,
+      ),
+    );
     analytics.track(
-      AnalyticsEvent.transactionRecategorized(from: tx.category.name, to: picked.name),
+      AnalyticsEvent.transactionRecategorized(
+        from: tx.category.name,
+        to: picked.name,
+      ),
     );
     return true;
   }
@@ -203,7 +232,11 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
     final stack = _stack;
     if (_busy || stack == null || stack.isEmpty) return;
     final tx = stack.first;
-    await showPulseSheet<void>(context, full: true, builder: (_) => TxDetailSheet(tx: tx));
+    await showPulseSheet<void>(
+      context,
+      full: true,
+      builder: (_) => TxDetailSheet(tx: tx),
+    );
     if (!mounted) return;
     // The sheet may have changed it; show what is true now.
     final all = await ref.read(repositoryProvider).transactions();
@@ -245,7 +278,10 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
               child: stack == null
                   ? const SizedBox.shrink()
                   : empty
-                  ? _InboxZero(streak: streak, onDone: () => Navigator.of(context).maybePop())
+                  ? _InboxZero(
+                      streak: streak,
+                      onDone: () => Navigator.of(context).maybePop(),
+                    )
                   : _Stack(
                       stack: stack,
                       dx: _dx,
@@ -258,7 +294,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
             ),
             if (!empty && stack != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.xl),
+                padding: const EdgeInsets.fromLTRB(
+                  Space.gutter,
+                  Space.md,
+                  Space.gutter,
+                  Space.xl,
+                ),
                 child: Column(
                   children: [
                     Row(
@@ -296,7 +337,12 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> with SingleTickerPr
 }
 
 class _Header extends StatelessWidget {
-  const _Header({required this.left, required this.canUndo, required this.onClose, required this.onUndo});
+  const _Header({
+    required this.left,
+    required this.canUndo,
+    required this.onClose,
+    required this.onUndo,
+  });
   final int? left;
   final bool canUndo;
   final VoidCallback onClose;
@@ -309,12 +355,17 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(Space.md, Space.sm, Space.gutter, 0),
       child: Row(
         children: [
-          RoundIconButton(icon: Icons.close_rounded, label: 'Close', onTap: onClose),
+          RoundIconButton(
+            icon: Icons.close_rounded,
+            label: 'Close',
+            onTap: onClose,
+          ),
           Expanded(
             child: Column(
               children: [
                 Text('Review', style: context.tt.titleMedium),
-                if (left != null && left! > 0) Text('$left left', style: context.tt.bodySmall),
+                if (left != null && left! > 0)
+                  Text('$left left', style: context.tt.bodySmall),
               ],
             ),
           ),
@@ -365,7 +416,10 @@ class _Stack extends StatelessWidget {
     final right = dx > 0;
     final tx = stack.first;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Space.gutter, vertical: Space.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: Space.gutter,
+        vertical: Space.lg,
+      ),
       child: Stack(
         alignment: Alignment.topCenter,
         children: [
@@ -397,13 +451,18 @@ class _Stack extends StatelessWidget {
                   angle: reduced ? 0 : dx / 2400,
                   child: Stack(
                     children: [
-                      Positioned.fill(child: _CardFace(tx: tx, cards: cards)),
+                      Positioned.fill(
+                        child: _CardFace(tx: tx, cards: cards),
+                      ),
                       if (dx != 0)
                         Positioned(
                           top: Space.lg,
                           left: right ? Space.lg : null,
                           right: right ? null : Space.lg,
-                          child: Opacity(opacity: progress, child: _Hint(right: right)),
+                          child: Opacity(
+                            opacity: progress,
+                            child: _Hint(right: right),
+                          ),
                         ),
                     ],
                   ),
@@ -429,9 +488,16 @@ class _Hint extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(right ? Icons.check_rounded : Icons.edit_outlined, size: 18, color: color),
+        Icon(
+          right ? Icons.check_rounded : Icons.edit_outlined,
+          size: 18,
+          color: color,
+        ),
         const SizedBox(width: Space.xs),
-        Text(right ? 'Looks right' : 'Fix it', style: context.tt.labelMedium!.copyWith(color: color)),
+        Text(
+          right ? 'Looks right' : 'Fix it',
+          style: context.tt.labelMedium!.copyWith(color: color),
+        ),
       ],
     );
   }
@@ -447,7 +513,8 @@ class _CardFace extends StatelessWidget {
     final c = context.pc;
     final note = rewardsNote(tx, cards);
     return Semantics(
-      label: '${tx.merchant}, ${tx.category.label}. Swipe right if it looks right, left to fix it.',
+      label:
+          '${tx.merchant}, ${tx.category.label}. Swipe right if it looks right, left to fix it.',
       child: Container(
         padding: const EdgeInsets.all(Space.xl),
         decoration: BoxDecoration(
@@ -468,7 +535,10 @@ class _CardFace extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: Space.xs),
-            Text(DateFormat('EEEE d MMMM, HH:mm').format(tx.date), style: context.tt.bodyMedium),
+            Text(
+              DateFormat('EEEE d MMMM, HH:mm').format(tx.date),
+              style: context.tt.bodyMedium,
+            ),
             const SizedBox(height: Space.lg),
             AmountText(
               tx.signed,
@@ -480,16 +550,24 @@ class _CardFace extends StatelessWidget {
               animate: false,
             ),
             const SizedBox(height: Space.lg),
-            Pill(tx.category.label, leading: CategoryIcon(tx.category, size: 18)),
+            Pill(
+              tx.category.label,
+              leading: CategoryIcon(tx.category, size: 18),
+            ),
             const Spacer(),
             _Line(icon: Icons.credit_card_rounded, text: tx.accountLabel),
             if (note != null) _Line(icon: Icons.stars_rounded, text: note),
             _Line(
               icon: tx.source.icon,
-              text: tx.source.automatic ? 'Captured via ${tx.source.label}' : 'Added by you',
+              text: tx.source.automatic
+                  ? 'Captured via ${tx.source.label}'
+                  : 'Added by you',
             ),
             if (tx.confidence < 0.5)
-              _Line(icon: Icons.help_outline_rounded, text: 'Pulse is not sure about this category'),
+              _Line(
+                icon: Icons.help_outline_rounded,
+                text: 'Pulse is not sure about this category',
+              ),
           ],
         ),
       ),
@@ -533,7 +611,12 @@ class _InboxZero extends StatelessWidget {
           message: label == null
               ? 'Everything has been looked at.'
               : 'Everything has been looked at.\n$label.',
-          action: PrimaryButton(label: 'Done', secondary: true, expand: false, onPressed: onDone),
+          action: PrimaryButton(
+            label: 'Done',
+            secondary: true,
+            expand: false,
+            onPressed: onDone,
+          ),
         ),
       ),
     );

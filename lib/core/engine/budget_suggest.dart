@@ -65,7 +65,12 @@ class SuggestInput {
 }
 
 class SuggestedLine {
-  const SuggestedLine(this.categoryId, this.amountMinor, this.basis, {required this.fixed});
+  const SuggestedLine(
+    this.categoryId,
+    this.amountMinor,
+    this.basis, {
+    required this.fixed,
+  });
   final String categoryId;
   final int amountMinor;
   final SuggestBasis basis;
@@ -73,11 +78,16 @@ class SuggestedLine {
   /// A bill that does not move month to month.
   final bool fixed;
 
-  SuggestedLine withAmount(int minor, SuggestBasis b) => SuggestedLine(categoryId, minor, b, fixed: fixed);
+  SuggestedLine withAmount(int minor, SuggestBasis b) =>
+      SuggestedLine(categoryId, minor, b, fixed: fixed);
 }
 
 class SuggestedBudget {
-  const SuggestedBudget({required this.lines, required this.savingsMinor, required this.incomeMinor});
+  const SuggestedBudget({
+    required this.lines,
+    required this.savingsMinor,
+    required this.incomeMinor,
+  });
   final List<SuggestedLine> lines;
   final int savingsMinor;
   final int incomeMinor;
@@ -88,7 +98,8 @@ class SuggestedBudget {
   /// Planned spend plus savings exceeds take-home (leftover is negative).
   bool get isOverBudget => leftoverMinor < 0;
 
-  SuggestedLine? line(String id) => lines.where((l) => l.categoryId == id).firstOrNull;
+  SuggestedLine? line(String id) =>
+      lines.where((l) => l.categoryId == id).firstOrNull;
 }
 
 /// The income bands rent is sized on: lower earners spend a bigger share.
@@ -121,12 +132,18 @@ SuggestedBudget suggestBudget(SuggestInput i) {
   // Norms, in fils. Fixed bills first, then the flexible lines.
   final norm = <String, (int, bool)>{
     if (i.housing == Housing.rent) 'rent': (share(rentShare(income)), true),
-    if (i.housing == Housing.owned) 'home_loan': (share(rentShare(income)), true),
-    'groceries': (_clamp(adults * 60000 + kids * 35000, 40000, share(0.18)), false),
+    if (i.housing == Housing.owned)
+      'home_loan': (share(rentShare(income)), true),
+    'groceries': (
+      _clamp(adults * 60000 + kids * 35000, 40000, share(0.18)),
+      false,
+    ),
     'utilities': (_clamp(25000 + people * 9000, 25000, 90000), false),
     'telecom': (_clamp(15000 + adults * 10000, 15000, 50000), true),
     'transport': (
-      i.hasCar ? _clamp(share(0.055), 40000, 180000) : _clamp(adults * 25000, 15000, 60000),
+      i.hasCar
+          ? _clamp(share(0.055), 40000, 180000)
+          : _clamp(adults * 25000, 15000, 60000),
       false,
     ),
     'dining': (_clamp(share(0.06), 20000, 250000), false),
@@ -134,7 +151,8 @@ SuggestedBudget suggestBudget(SuggestInput i) {
     'shopping': (_clamp(share(0.05), 20000, 250000), false),
     'entertainment': (_clamp(share(0.03), 10000, 150000), false),
     'travel': (_clamp(share(0.04), 0, 200000), false),
-    if (kids > 0) 'education': (_clamp(kids * share(0.07), 0, kids * 300000), true),
+    if (kids > 0)
+      'education': (_clamp(kids * share(0.07), 0, kids * 300000), true),
     if (i.sendsMoneyHome) 'family': (share(0.05), false),
     'fees': (_clamp(share(0.005), 2000, 20000), false),
     'other': (_clamp(share(0.02), 10000, 100000), false),
@@ -142,7 +160,12 @@ SuggestedBudget suggestBudget(SuggestInput i) {
 
   final lines = <String, SuggestedLine>{};
   norm.forEach((id, v) {
-    lines[id] = SuggestedLine(id, _roundNice(v.$1), SuggestBasis.norm, fixed: v.$2);
+    lines[id] = SuggestedLine(
+      id,
+      _roundNice(v.$1),
+      SuggestBasis.norm,
+      fixed: v.$2,
+    );
   });
 
   // History beats a norm; a user-stated amount beats both. Spending history
@@ -151,7 +174,12 @@ SuggestedBudget suggestBudget(SuggestInput i) {
     if (minor <= 0 || id == 'salary' || id == 'savings') return;
     final fixed = lines[id]?.fixed ?? _fixedIds.contains(id);
     final v = fixed ? minor : (minor * 1.05).round();
-    lines[id] = SuggestedLine(id, _roundNice(v), SuggestBasis.history, fixed: fixed);
+    lines[id] = SuggestedLine(
+      id,
+      _roundNice(v),
+      SuggestBasis.history,
+      fixed: fixed,
+    );
   });
   i.known.forEach((id, minor) {
     if (minor <= 0) return;
@@ -159,7 +187,8 @@ SuggestedBudget suggestBudget(SuggestInput i) {
     lines[id] = SuggestedLine(id, minor, SuggestBasis.known, fixed: fixed);
   });
   // A known mortgage or rent replaces the norm for the other kind.
-  if (i.known.containsKey('rent') && i.housing != Housing.rent) lines.remove('rent');
+  if (i.known.containsKey('rent') && i.housing != Housing.rent)
+    lines.remove('rent');
 
   // Fit: spend plus savings must not exceed income. Trim discretionary lines
   // (only ones that came from a norm) in proportion, down to half at most.
@@ -167,7 +196,12 @@ SuggestedBudget suggestBudget(SuggestInput i) {
   var spend = lines.values.fold<int>(0, (a, l) => a + l.amountMinor);
   if (income > 0 && spend > room) {
     final trimmable = lines.values
-        .where((l) => !l.fixed && l.basis == SuggestBasis.norm && l.categoryId != 'groceries')
+        .where(
+          (l) =>
+              !l.fixed &&
+              l.basis == SuggestBasis.norm &&
+              l.categoryId != 'groceries',
+        )
         .toList();
     final pool = trimmable.fold<int>(0, (a, l) => a + l.amountMinor);
     final over = spend - room;
@@ -175,30 +209,54 @@ SuggestedBudget suggestBudget(SuggestInput i) {
       final cut = math.min(over, pool ~/ 2);
       final f = 1 - cut / pool;
       for (final l in trimmable) {
-        lines[l.categoryId] = l.withAmount(_roundNice((l.amountMinor * f).round()), SuggestBasis.trimmed);
+        lines[l.categoryId] = l.withAmount(
+          _roundNice((l.amountMinor * f).round()),
+          SuggestBasis.trimmed,
+        );
       }
       spend = lines.values.fold<int>(0, (a, l) => a + l.amountMinor);
     }
   }
   final out = lines.values.where((l) => l.amountMinor > 0).toList()
     ..sort((a, b) => b.amountMinor.compareTo(a.amountMinor));
-  return SuggestedBudget(lines: out, savingsMinor: income > 0 ? savings : 0, incomeMinor: income);
+  return SuggestedBudget(
+    lines: out,
+    savingsMinor: income > 0 ? savings : 0,
+    incomeMinor: income,
+  );
 }
 
-const _fixedIds = {'rent', 'home_loan', 'car_loan', 'telecom', 'fixed_expenses', 'education'};
+const _fixedIds = {
+  'rent',
+  'home_loan',
+  'car_loan',
+  'telecom',
+  'fixed_expenses',
+  'education',
+};
 
 /// A typical month per category from past spend: the median of the months
 /// that had any, so one big month does not set the budget. [byMonth] is
 /// category id → month key → fils.
-Map<String, int> typicalMonthly(Map<String, Map<String, int>> byMonth, {int lastMonths = 6}) {
+Map<String, int> typicalMonthly(
+  Map<String, Map<String, int>> byMonth, {
+  int lastMonths = 6,
+}) {
   final out = <String, int>{};
   byMonth.forEach((id, months) {
     final keys = months.keys.toList()..sort();
-    final recent = keys.length > lastMonths ? keys.sublist(keys.length - lastMonths) : keys;
-    final vals = [for (final k in recent) if ((months[k] ?? 0) > 0) months[k]!]..sort();
+    final recent = keys.length > lastMonths
+        ? keys.sublist(keys.length - lastMonths)
+        : keys;
+    final vals = [
+      for (final k in recent)
+        if ((months[k] ?? 0) > 0) months[k]!,
+    ]..sort();
     if (vals.isEmpty) return;
     final mid = vals.length ~/ 2;
-    out[id] = vals.length.isOdd ? vals[mid] : ((vals[mid - 1] + vals[mid]) / 2).round();
+    out[id] = vals.length.isOdd
+        ? vals[mid]
+        : ((vals[mid - 1] + vals[mid]) / 2).round();
   });
   return out;
 }

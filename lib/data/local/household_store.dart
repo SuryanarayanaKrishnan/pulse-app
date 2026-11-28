@@ -13,7 +13,8 @@ import 'database.dart';
 /// Months of transactions a household log carries: this month and the one
 /// before. A fixed calendar window (not "last 60 days") so rows only leave
 /// it once a month.
-DateTime sharingWindowStart(DateTime now) => DateTime.utc(now.year, now.month - 1, 1);
+DateTime sharingWindowStart(DateTime now) =>
+    DateTime.utc(now.year, now.month - 1, 1);
 
 /// The household on the on-device database.
 class LocalHouseholdStore implements HouseholdStore {
@@ -54,15 +55,17 @@ class LocalHouseholdStore implements HouseholdStore {
   Future<void> saveConfig(HouseholdConfig c) async {
     await db.transaction(() async {
       await db.delete(db.householdConfigs).go();
-      await db.into(db.householdConfigs).insert(
-        HouseholdConfigsCompanion.insert(
-          id: c.id,
-          name: c.name,
-          myMemberId: c.myMemberId,
-          shareMine: Value(c.shareMine),
-          createdAt: Value(c.createdAt),
-        ),
-      );
+      await db
+          .into(db.householdConfigs)
+          .insert(
+            HouseholdConfigsCompanion.insert(
+              id: c.id,
+              name: c.name,
+              myMemberId: c.myMemberId,
+              shareMine: Value(c.shareMine),
+              createdAt: Value(c.createdAt),
+            ),
+          );
     });
   }
 
@@ -115,24 +118,28 @@ class LocalHouseholdStore implements HouseholdStore {
   static Map<String, int> _split(String json) {
     try {
       final m = jsonDecode(json) as Map;
-      return {for (final e in m.entries) e.key as String: (e.value as num).toInt()};
+      return {
+        for (final e in m.entries) e.key as String: (e.value as num).toInt(),
+      };
     } catch (_) {
       return {};
     }
   }
 
   @override
-  Future<void> saveBill(HBill b) => db.into(db.householdBills).insertOnConflictUpdate(
-    HouseholdBillsCompanion.insert(
-      id: b.id,
-      name: b.name,
-      amountMinor: b.amountMinor,
-      currency: Value(b.currency),
-      dueDay: b.dueDay,
-      categoryId: Value(b.categoryId),
-      split: Value(jsonEncode(b.split)),
-    ),
-  );
+  Future<void> saveBill(HBill b) => db
+      .into(db.householdBills)
+      .insertOnConflictUpdate(
+        HouseholdBillsCompanion.insert(
+          id: b.id,
+          name: b.name,
+          amountMinor: b.amountMinor,
+          currency: Value(b.currency),
+          dueDay: b.dueDay,
+          categoryId: Value(b.categoryId),
+          split: Value(jsonEncode(b.split)),
+        ),
+      );
 
   @override
   Future<void> deleteBill(String id) =>
@@ -141,18 +148,25 @@ class LocalHouseholdStore implements HouseholdStore {
   @override
   Future<List<HLimit>> limits() async => [
     for (final r in await db.select(db.householdLimits).get())
-      HLimit(id: r.id, categoryId: r.categoryId, limitMinor: r.limitMinor, currency: r.currency),
+      HLimit(
+        id: r.id,
+        categoryId: r.categoryId,
+        limitMinor: r.limitMinor,
+        currency: r.currency,
+      ),
   ];
 
   @override
-  Future<void> saveLimit(HLimit l) => db.into(db.householdLimits).insertOnConflictUpdate(
-    HouseholdLimitsCompanion.insert(
-      id: l.id,
-      categoryId: l.categoryId,
-      limitMinor: l.limitMinor,
-      currency: Value(l.currency),
-    ),
-  );
+  Future<void> saveLimit(HLimit l) => db
+      .into(db.householdLimits)
+      .insertOnConflictUpdate(
+        HouseholdLimitsCompanion.insert(
+          id: l.id,
+          categoryId: l.categoryId,
+          limitMinor: l.limitMinor,
+          currency: Value(l.currency),
+        ),
+      );
 
   @override
   Future<void> deleteLimit(String id) =>
@@ -165,9 +179,12 @@ class LocalHouseholdStore implements HouseholdStore {
     final out = <HRow>[];
 
     final from = sharingWindowStart(_clock());
-    final txs = await (db.select(db.transactions)
-          ..where((t) => t.deletedAt.isNull() & t.postedAt.isBiggerOrEqualValue(from)))
-        .get();
+    final txs =
+        await (db.select(db.transactions)..where(
+              (t) =>
+                  t.deletedAt.isNull() & t.postedAt.isBiggerOrEqualValue(from),
+            ))
+            .get();
     for (final t in txs) {
       out.add(
         HRow(
@@ -264,11 +281,19 @@ class LocalHouseholdStore implements HouseholdStore {
   Future<Ownership> ownership(String table, String id) async {
     switch (table) {
       case HTable.transactions:
-        final r = await (db.select(db.transactions)..where((t) => t.id.equals(id))).getSingleOrNull();
-        return r == null ? const Ownership() : Ownership(owner: r.owner, isPrivate: r.isPrivate);
+        final r = await (db.select(
+          db.transactions,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        return r == null
+            ? const Ownership()
+            : Ownership(owner: r.owner, isPrivate: r.isPrivate);
       case HTable.goals:
-        final r = await (db.select(db.savingsGoals)..where((t) => t.id.equals(id))).getSingleOrNull();
-        return r == null ? const Ownership() : Ownership(owner: r.owner, isPrivate: r.isPrivate);
+        final r = await (db.select(
+          db.savingsGoals,
+        )..where((t) => t.id.equals(id))).getSingleOrNull();
+        return r == null
+            ? const Ownership()
+            : Ownership(owner: r.owner, isPrivate: r.isPrivate);
       case HTable.lines:
         return (await _lineOwnership())[id] ?? const Ownership(isPrivate: true);
     }
@@ -276,16 +301,24 @@ class LocalHouseholdStore implements HouseholdStore {
   }
 
   @override
-  Future<void> setOwnership(String table, String id, {String? owner, bool? isPrivate}) async {
+  Future<void> setOwnership(
+    String table,
+    String id, {
+    String? owner,
+    bool? isPrivate,
+  }) async {
     Value<String> o() => owner == null ? const Value.absent() : Value(owner);
-    Value<bool> p() => isPrivate == null ? const Value.absent() : Value(isPrivate);
+    Value<bool> p() =>
+        isPrivate == null ? const Value.absent() : Value(isPrivate);
     switch (table) {
       case HTable.transactions:
-        await (db.update(db.transactions)..where((t) => t.id.equals(id)))
-            .write(TransactionsCompanion(owner: o(), isPrivate: p()));
+        await (db.update(db.transactions)..where((t) => t.id.equals(id))).write(
+          TransactionsCompanion(owner: o(), isPrivate: p()),
+        );
       case HTable.goals:
-        await (db.update(db.savingsGoals)..where((t) => t.id.equals(id)))
-            .write(SavingsGoalsCompanion(owner: o(), isPrivate: p()));
+        await (db.update(db.savingsGoals)..where((t) => t.id.equals(id))).write(
+          SavingsGoalsCompanion(owner: o(), isPrivate: p()),
+        );
       case HTable.lines:
         if (id.startsWith('account:') || id.startsWith('card:')) {
           final aid = id.substring(id.indexOf(':') + 1);
@@ -301,8 +334,9 @@ class LocalHouseholdStore implements HouseholdStore {
                 ..where((t) => t.id.equals(id.substring(5))))
               .write(FundHoldingsCompanion(owner: o(), isPrivate: p()));
         } else {
-          await (db.update(db.assets)..where((t) => t.id.equals(id)))
-              .write(AssetsCompanion(owner: o(), isPrivate: p()));
+          await (db.update(db.assets)..where((t) => t.id.equals(id))).write(
+            AssetsCompanion(owner: o(), isPrivate: p()),
+          );
           await (db.update(db.liabilities)..where((t) => t.id.equals(id)))
               .write(LiabilitiesCompanion(owner: o(), isPrivate: p()));
         }
@@ -316,7 +350,9 @@ class LocalHouseholdStore implements HouseholdStore {
     final out = <String, Map<String, Map<String, Object?>>>{};
     for (final r in await db.select(db.householdMirror).get()) {
       try {
-        out.putIfAbsent(r.kind, () => {})[r.rowId] = Map<String, Object?>.from(jsonDecode(r.payload) as Map);
+        out.putIfAbsent(r.kind, () => {})[r.rowId] = Map<String, Object?>.from(
+          jsonDecode(r.payload) as Map,
+        );
       } catch (_) {
         // an unreadable copy is just absent; the next sync rewrites it
       }
@@ -325,14 +361,26 @@ class LocalHouseholdStore implements HouseholdStore {
   }
 
   @override
-  Future<void> putMirror(String table, String id, Map<String, Object?>? values) async {
+  Future<void> putMirror(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  ) async {
     if (values == null) {
-      await (db.delete(db.householdMirror)..where((t) => t.kind.equals(table) & t.rowId.equals(id))).go();
+      await (db.delete(
+        db.householdMirror,
+      )..where((t) => t.kind.equals(table) & t.rowId.equals(id))).go();
       return;
     }
-    await db.into(db.householdMirror).insertOnConflictUpdate(
-      HouseholdMirrorCompanion.insert(kind: table, rowId: id, payload: jsonEncode(values)),
-    );
+    await db
+        .into(db.householdMirror)
+        .insertOnConflictUpdate(
+          HouseholdMirrorCompanion.insert(
+            kind: table,
+            rowId: id,
+            payload: jsonEncode(values),
+          ),
+        );
   }
 
   @override

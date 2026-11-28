@@ -36,7 +36,12 @@ Future<void> _pump(WidgetTester t) async {
         home: Scaffold(
           body: Consumer(
             builder: (context, ref, _) => TextButton(
-              onPressed: () => recategoriseWithScope(context, ref, tx: _tx, to: SpendCategory.shopping),
+              onPressed: () => recategoriseWithScope(
+                context,
+                ref,
+                tx: _tx,
+                to: SpendCategory.shopping,
+              ),
               child: const Text('go'),
             ),
           ),
@@ -48,19 +53,29 @@ Future<void> _pump(WidgetTester t) async {
   await t.pumpAndSettle();
 }
 
-Future<int> _inShopping() async =>
-    (await _repo.transactions()).where((x) => x.merchant == 'Talabat' && x.category == SpendCategory.shopping).length;
+Future<int> _inShopping() async => (await _repo.transactions())
+    .where(
+      (x) => x.merchant == 'Talabat' && x.category == SpendCategory.shopping,
+    )
+    .length;
 
 void main() {
-  testWidgets('shows three choices and how many past ones would change', (t) async {
+  testWidgets('shows three choices and how many past ones would change', (
+    t,
+  ) async {
     await _pump(t);
     expect(find.text('Just this one'), findsOneWidget);
     expect(find.text('All future from Talabat'), findsOneWidget);
     expect(find.text('All past and future from Talabat'), findsOneWidget);
-    expect(find.textContaining('earlier transactions will change'), findsOneWidget);
+    expect(
+      find.textContaining('earlier transactions will change'),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('past and future changes history, then Undo reverts it', (t) async {
+  testWidgets('past and future changes history, then Undo reverts it', (
+    t,
+  ) async {
     await _pump(t);
     final rulesBefore = (await _repo.rules()).length;
     await t.tap(find.text('All past and future from Talabat'));
@@ -70,7 +85,10 @@ void main() {
     expect(await _inShopping(), greaterThan(1));
     expect((await _repo.rules()).length, rulesBefore + 1);
     expect(_rec.events.map((e) => e.name), contains('recategorise_scope'));
-    expect(_rec.events.firstWhere((e) => e.name == 'recategorise_scope').properties, {'scope': 'all'});
+    expect(
+      _rec.events.firstWhere((e) => e.name == 'recategorise_scope').properties,
+      {'scope': 'all'},
+    );
 
     await t.tap(find.text('Undo'));
     await t.pumpAndSettle();
@@ -78,12 +96,17 @@ void main() {
     expect((await _repo.rules()).length, rulesBefore);
   });
 
-  testWidgets('just this one changes a single transaction with no Undo', (t) async {
+  testWidgets('just this one changes a single transaction with no Undo', (
+    t,
+  ) async {
     await _pump(t);
     await t.tap(find.text('Apply'));
     await t.pumpAndSettle();
     expect(await _inShopping(), 1);
     expect(find.text('Undo'), findsNothing);
-    expect(_rec.events.firstWhere((e) => e.name == 'recategorise_scope').properties, {'scope': 'once'});
+    expect(
+      _rec.events.firstWhere((e) => e.name == 'recategorise_scope').properties,
+      {'scope': 'once'},
+    );
   });
 }

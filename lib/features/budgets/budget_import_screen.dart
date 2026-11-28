@@ -269,25 +269,25 @@ class _BudgetImportScreenState extends ConsumerState<BudgetImportScreen> {
         title: m.label.label,
         subtitle: 'Where should this go?',
         child: Column(
-            children: [
+          children: [
+            ListRow(
+              leading: const IconWell(Icons.add_circle_outline_rounded),
+              title: 'Keep as its own category',
+              subtitle: m.label.label,
+              onTap: () => Navigator.pop(ctx, NewTarget(m.label.label)),
+            ),
+            ListRow(
+              leading: const IconWell(Icons.block_rounded),
+              title: 'Skip it',
+              onTap: () => Navigator.pop(ctx, const SkipTarget()),
+            ),
+            for (final c in _targets)
               ListRow(
-                leading: const IconWell(Icons.add_circle_outline_rounded),
-                title: 'Keep as its own category',
-                subtitle: m.label.label,
-                onTap: () => Navigator.pop(ctx, NewTarget(m.label.label)),
+                leading: CategoryIcon.well(c),
+                title: c.label,
+                onTap: () => Navigator.pop(ctx, ExistingTarget(c)),
               ),
-              ListRow(
-                leading: const IconWell(Icons.block_rounded),
-                title: 'Skip it',
-                onTap: () => Navigator.pop(ctx, const SkipTarget()),
-              ),
-              for (final c in _targets)
-                ListRow(
-                  leading: CategoryIcon.well(c),
-                  title: c.label,
-                  onTap: () => Navigator.pop(ctx, ExistingTarget(c)),
-                ),
-            ],
+          ],
         ),
       ),
     );

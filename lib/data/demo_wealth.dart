@@ -48,21 +48,44 @@ MemoryWealthStore demoWealthStore({DateTime? now}) {
   );
 
   // Eleven month-ends of stored valuations, drifting up with the gold price.
-  const drift = [0.86, 0.88, 0.87, 0.91, 0.93, 0.92, 0.95, 0.97, 0.96, 0.99, 1.0];
+  const drift = [
+    0.86,
+    0.88,
+    0.87,
+    0.91,
+    0.93,
+    0.92,
+    0.95,
+    0.97,
+    0.96,
+    0.99,
+    1.0,
+  ];
   List<ValuationPoint> series(JewelleryItem i, int nowMinor) => [
     for (var k = 0; k < drift.length; k++)
-      ValuationPoint(today.addDays(-(drift.length - 1 - k) * 30), (nowMinor * drift[k]).round(), null),
+      ValuationPoint(
+        today.addDays(-(drift.length - 1 - k) * 30),
+        (nowMinor * drift[k]).round(),
+        null,
+      ),
   ];
   const price = 470.0; // matches the bundled fallback
   int melt(JewelleryItem i) => (i.weightGrams * i.purity * price * 100).round();
 
   // A recent "fetch", so the demo reads as live prices.
   final fetched = n.toUtc().subtract(const Duration(minutes: 12));
-  PriceQuote q(String symbol, double p) => PriceQuote(symbol: symbol, price: p, source: 'Demo price feed', quotedAt: fetched, fetchedAt: fetched);
+  PriceQuote q(String symbol, double p) => PriceQuote(
+    symbol: symbol,
+    price: p,
+    source: 'Demo price feed',
+    quotedAt: fetched,
+    fetchedAt: fetched,
+  );
 
   return MemoryWealthStore(
     quotes: [
-      for (final k in PriceBook.goldKarats) q('XAU_AED_G_${k}K', double.parse((price * k / 24).toStringAsFixed(2))),
+      for (final k in PriceBook.goldKarats)
+        q('XAU_AED_G_${k}K', double.parse((price * k / 24).toStringAsFixed(2))),
       q('FX_USD_AED', 3.6725),
       q('FX_INR_AED', 0.0425),
     ],

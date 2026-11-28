@@ -15,15 +15,23 @@ import 'package:pulse/data/local/local_repository.dart';
 
 String fx(String n) => File('test/fixtures/sheets/$n').readAsStringSync();
 
-Future<(LocalPulseRepository, BudgetImportService, BudgetPlanService)> _setup() async {
+Future<(LocalPulseRepository, BudgetImportService, BudgetPlanService)>
+_setup() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
+  final catalog = CatalogService(
+    db: db,
+    bundled: () async => File('assets/catalog/cards.json').readAsStringSync(),
+  );
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db, clock: DateTime.now);
   addTearDown(pipeline.dispose);
-  final repo = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline);
+  final repo = LocalPulseRepository(
+    db: db,
+    catalog: catalog,
+    pipeline: pipeline,
+  );
   final plan = BudgetPlanService(
     store: LocalBudgetPlanStore(db),
     transactions: () => repo.transactions(),
@@ -40,11 +48,12 @@ void main() {
       'Ledger': parseCsv(fx('ledger.csv')),
     });
     final maps = await svc.proposeMappings(a);
-    String target(String label) => switch (maps.firstWhere((m) => m.label.label == label).target) {
-      ExistingTarget(:final category) => category.id,
-      NewTarget(:final name) => 'new:$name',
-      SkipTarget() => 'skip',
-    };
+    String target(String label) =>
+        switch (maps.firstWhere((m) => m.label.label == label).target) {
+          ExistingTarget(:final category) => category.id,
+          NewTarget(:final name) => 'new:$name',
+          SkipTarget() => 'skip',
+        };
     expect(target('Rent'), 'rent');
     expect(target('Car loan'), 'car_loan');
     expect(target('Groceries'), 'groceries');
@@ -60,7 +69,10 @@ void main() {
     final rent = await plan.view(DateTime(2026, 10, 1));
     expect(rent.row('rent')!.plannedMinor, 200000);
     expect(rent.row('car_loan')!.plannedMinor, 120000);
-    expect((await plan.view(DateTime(2026, 3, 1))).row('car_loan')!.plannedMinor, 90000);
+    expect(
+      (await plan.view(DateTime(2026, 3, 1))).row('car_loan')!.plannedMinor,
+      90000,
+    );
 
     // History landed in the ledger, dated as in the sheet.
     final txs = await repo.transactions();
@@ -75,31 +87,49 @@ void main() {
     expect(await repo.transactions(), hasLength(4));
   });
 
-  test('keeping own names makes a category per line; skip leaves a line out', () async {
-    final (repo, svc, plan) = await _setup();
-    final a = analyzeSheets({'Budget': parseCsv(fx('budget_grid.csv'))});
-    final maps = await svc.proposeMappings(a, keepOwnNames: true);
-    final parking = maps.firstWhere((m) => m.label.label == 'Parking');
-    expect(parking.target, isA<NewTarget>());
-    final fun = maps.firstWhere((m) => m.label.label == 'Overall fun');
-    fun.target = const SkipTarget();
-    final r = await svc.apply(a, maps, importHistory: false);
-    expect(r.categoriesCreated, 2); // Rent and Parking; Overall fun was skipped
-    expect((await repo.categories()).map((c) => c.label), containsAll(['Rent', 'Parking']));
-    expect((await repo.categories()).map((c) => c.label), isNot(contains('Overall fun')));
-    expect((await plan.view(DateTime(2026, 10, 1))).rows.length, 4);
-  });
+  test(
+    'keeping own names makes a category per line; skip leaves a line out',
+    () async {
+      final (repo, svc, plan) = await _setup();
+      final a = analyzeSheets({'Budget': parseCsv(fx('budget_grid.csv'))});
+      final maps = await svc.proposeMappings(a, keepOwnNames: true);
+      final parking = maps.firstWhere((m) => m.label.label == 'Parking');
+      expect(parking.target, isA<NewTarget>());
+      final fun = maps.firstWhere((m) => m.label.label == 'Overall fun');
+      fun.target = const SkipTarget();
+      final r = await svc.apply(a, maps, importHistory: false);
+      expect(
+        r.categoriesCreated,
+        2,
+      ); // Rent and Parking; Overall fun was skipped
+      expect(
+        (await repo.categories()).map((c) => c.label),
+        containsAll(['Rent', 'Parking']),
+      );
+      expect(
+        (await repo.categories()).map((c) => c.label),
+        isNot(contains('Overall fun')),
+      );
+      expect((await plan.view(DateTime(2026, 10, 1))).rows.length, 4);
+    },
+  );
 
-  test('actual rows without a ledger become one dated entry per month', () async {
-    final (repo, svc, _) = await _setup();
-    final a = analyzeSheets({'Budget': parseCsv(fx('budget_grid.csv'))});
-    final maps = await svc.proposeMappings(a);
-    final r = await svc.apply(a, maps);
-    // Salary 3 + rent 3 + car loan 3 + groceries 3 + parking 3 + fun 2 months of actuals.
-    expect(r.transactionsAdded, 17);
-    final txs = await repo.transactions();
-    expect(txs.where((t) => t.merchant.endsWith('(from your sheet)')), hasLength(17));
-  });
+  test(
+    'actual rows without a ledger become one dated entry per month',
+    () async {
+      final (repo, svc, _) = await _setup();
+      final a = analyzeSheets({'Budget': parseCsv(fx('budget_grid.csv'))});
+      final maps = await svc.proposeMappings(a);
+      final r = await svc.apply(a, maps);
+      // Salary 3 + rent 3 + car loan 3 + groceries 3 + parking 3 + fun 2 months of actuals.
+      expect(r.transactionsAdded, 17);
+      final txs = await repo.transactions();
+      expect(
+        txs.where((t) => t.merchant.endsWith('(from your sheet)')),
+        hasLength(17),
+      );
+    },
+  );
 
   test('a suggestion is saved as limits from this month', () async {
     final (_, svc, plan) = await _setup();

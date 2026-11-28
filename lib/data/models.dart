@@ -59,80 +59,32 @@ class SpendCategory {
     'Salary',
     kind: CategoryKind.income,
   );
-  static const groceries = SpendCategory(
-    'groceries',
-    'Groceries',
-  );
-  static const dining = SpendCategory(
-    'dining',
-    'Dining & Delivery',
-  );
-  static const transport = SpendCategory(
-    'transport',
-    'Transport & Fuel',
-  );
-  static const carLoan = SpendCategory(
-    'car_loan',
-    'Car Loan',
-  );
-  static const homeLoan = SpendCategory(
-    'home_loan',
-    'Home Loan',
-  );
-  static const rent = SpendCategory(
-    'rent',
-    'Rent & Housing',
-  );
-  static const utilities = SpendCategory(
-    'utilities',
-    'Utilities',
-  );
-  static const telecom = SpendCategory(
-    'telecom',
-    'Telecom',
-  );
+  static const groceries = SpendCategory('groceries', 'Groceries');
+  static const dining = SpendCategory('dining', 'Dining & Delivery');
+  static const transport = SpendCategory('transport', 'Transport & Fuel');
+  static const carLoan = SpendCategory('car_loan', 'Car Loan');
+  static const homeLoan = SpendCategory('home_loan', 'Home Loan');
+  static const rent = SpendCategory('rent', 'Rent & Housing');
+  static const utilities = SpendCategory('utilities', 'Utilities');
+  static const telecom = SpendCategory('telecom', 'Telecom');
   static const fixedExpenses = SpendCategory(
     'fixed_expenses',
     'Fixed Expenses',
   );
-  static const education = SpendCategory(
-    'education',
-    'Education Fees',
-  );
-  static const health = SpendCategory(
-    'health',
-    'Health',
-  );
-  static const shopping = SpendCategory(
-    'shopping',
-    'Shopping',
-  );
-  static const travel = SpendCategory(
-    'travel',
-    'Travel',
-  );
-  static const entertainment = SpendCategory(
-    'entertainment',
-    'Entertainment',
-  );
-  static const family = SpendCategory(
-    'family',
-    'Family & Remittances',
-  );
-  static const savings = SpendCategory(
-    'savings',
-    'Savings & Investments',
-  );
+  static const education = SpendCategory('education', 'Education Fees');
+  static const health = SpendCategory('health', 'Health');
+  static const shopping = SpendCategory('shopping', 'Shopping');
+  static const travel = SpendCategory('travel', 'Travel');
+  static const entertainment = SpendCategory('entertainment', 'Entertainment');
+  static const family = SpendCategory('family', 'Family & Remittances');
+  static const savings = SpendCategory('savings', 'Savings & Investments');
   static const cardPayments = SpendCategory(
     'cc_payment',
     'Credit Card Payments',
     kind: CategoryKind.transfer,
   );
   static const fees = SpendCategory('fees', 'Fees');
-  static const other = SpendCategory(
-    'other',
-    'Other',
-  );
+  static const other = SpendCategory('other', 'Other');
 
   /// The income bucket.
   static const income = salary;
@@ -398,36 +350,44 @@ class CreditCard {
   double get utilisation => limit == 0 ? 0 : balance / limit;
   double get totalDue => statementBalance ?? balance;
 
-  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate, String? last4, double? limit, bool? owned, int? statementDay, int? dueDay}) =>
-      CreditCard(
-        id: id,
-        issuer: issuer,
-        name: name,
-        last4: last4 ?? this.last4,
-        network: network,
-        gradient: gradient,
-        limit: limit ?? this.limit,
-        balance: balance ?? this.balance,
-        dueDate: dueDate,
-        minDue: minDue,
-        rewardsLabel: rewardsLabel,
-        rewardPoints: rewardPoints,
-        rewardValueAed: rewardValueAed,
-        categoryRates: categoryRates,
-        annualFee: annualFee,
-        owned: owned ?? this.owned,
-        highlight: highlight,
-        statementDate: statementDate,
-        statementBalance: statementBalance,
-        baseRate: baseRate,
-        caps: caps ?? this.caps,
-        rulesVerifiedOn: rulesVerifiedOn,
-        catalogId: catalogId,
-        art: art,
-        hasDueDate: hasDueDate ?? this.hasDueDate,
-        statementDay: statementDay ?? this.statementDay,
-        dueDay: dueDay ?? this.dueDay,
-      );
+  CreditCard copyWith({
+    double? balance,
+    Map<SpendCategory, RewardCap>? caps,
+    bool? hasDueDate,
+    String? last4,
+    double? limit,
+    bool? owned,
+    int? statementDay,
+    int? dueDay,
+  }) => CreditCard(
+    id: id,
+    issuer: issuer,
+    name: name,
+    last4: last4 ?? this.last4,
+    network: network,
+    gradient: gradient,
+    limit: limit ?? this.limit,
+    balance: balance ?? this.balance,
+    dueDate: dueDate,
+    minDue: minDue,
+    rewardsLabel: rewardsLabel,
+    rewardPoints: rewardPoints,
+    rewardValueAed: rewardValueAed,
+    categoryRates: categoryRates,
+    annualFee: annualFee,
+    owned: owned ?? this.owned,
+    highlight: highlight,
+    statementDate: statementDate,
+    statementBalance: statementBalance,
+    baseRate: baseRate,
+    caps: caps ?? this.caps,
+    rulesVerifiedOn: rulesVerifiedOn,
+    catalogId: catalogId,
+    art: art,
+    hasDueDate: hasDueDate ?? this.hasDueDate,
+    statementDay: statementDay ?? this.statementDay,
+    dueDay: dueDay ?? this.dueDay,
+  );
 }
 
 /// A monthly cap on the reward a card pays for a category (AED of reward).

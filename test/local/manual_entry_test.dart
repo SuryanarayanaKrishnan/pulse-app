@@ -15,33 +15,53 @@ Future<LocalPulseRepository> _repo() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('test/fixtures/catalog/cards_small.json').readAsStringSync());
+  final catalog = CatalogService(
+    db: db,
+    bundled: () async =>
+        File('test/fixtures/catalog/cards_small.json').readAsStringSync(),
+  );
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db, clock: () => _now);
   addTearDown(pipeline.dispose);
-  return LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, clock: () => _now);
+  return LocalPulseRepository(
+    db: db,
+    catalog: catalog,
+    pipeline: pipeline,
+    clock: () => _now,
+  );
 }
 
 void main() {
-  test('a manual payment takes a date and a note, and income counts as income', () async {
-    final r = await _repo();
-    final lunch = await r.addManualTransaction(
-      merchant: 'Lunch',
-      amount: 30,
-      category: SpendCategory.dining,
-      date: DateTime(2026, 3, 3, 12),
-      note: '  with Sam ',
-    );
-    expect(lunch.note, 'with Sam');
-    expect(lunch.date.day, 3);
-    expect(lunch.isIncome, isFalse);
-    final gift = await r.addManualTransaction(merchant: 'Gift', amount: 200, category: SpendCategory.salary);
-    expect(gift.isIncome, isTrue);
-  });
+  test(
+    'a manual payment takes a date and a note, and income counts as income',
+    () async {
+      final r = await _repo();
+      final lunch = await r.addManualTransaction(
+        merchant: 'Lunch',
+        amount: 30,
+        category: SpendCategory.dining,
+        date: DateTime(2026, 3, 3, 12),
+        note: '  with Sam ',
+      );
+      expect(lunch.note, 'with Sam');
+      expect(lunch.date.day, 3);
+      expect(lunch.isIncome, isFalse);
+      final gift = await r.addManualTransaction(
+        merchant: 'Gift',
+        amount: 200,
+        category: SpendCategory.salary,
+      );
+      expect(gift.isIncome, isTrue);
+    },
+  );
 
   test('notes can be set, changed and cleared', () async {
     final r = await _repo();
-    final t = await r.addManualTransaction(merchant: 'Taxi', amount: 20, category: SpendCategory.transport);
+    final t = await r.addManualTransaction(
+      merchant: 'Taxi',
+      amount: 20,
+      category: SpendCategory.transport,
+    );
     expect(t.note, isNull);
     await r.setTransactionNote(t.id, 'airport run');
     expect((await r.transactions()).single.note, 'airport run');
@@ -51,8 +71,16 @@ void main() {
 
   test('a deleted payment leaves the list and the totals', () async {
     final r = await _repo();
-    final a = await r.addManualTransaction(merchant: 'A', amount: 10, category: SpendCategory.dining);
-    await r.addManualTransaction(merchant: 'B', amount: 15, category: SpendCategory.dining);
+    final a = await r.addManualTransaction(
+      merchant: 'A',
+      amount: 10,
+      category: SpendCategory.dining,
+    );
+    await r.addManualTransaction(
+      merchant: 'B',
+      amount: 15,
+      category: SpendCategory.dining,
+    );
     await r.deleteTransaction(a.id);
     expect([for (final t in await r.transactions()) t.merchant], ['B']);
     expect((await r.transactionsPage()).items.map((t) => t.merchant), ['B']);
@@ -73,16 +101,23 @@ void main() {
     expect((await r.manualSalary())!.day, 5);
   });
 
-  test('a detected salary replaces the typed one and updates the amount', () async {
-    final r = await _repo();
-    await r.setManualSalary(const ManualSalary(amountMinor: 1500000, day: 5));
-    expect(await r.transactions(), hasLength(1));
-    await r.addManualTransaction(merchant: 'Acme FZ-LLC', amount: 16000, category: SpendCategory.salary);
-    final txs = await r.transactions();
-    expect(txs, hasLength(1));
-    expect(txs.single.merchant, 'Acme FZ-LLC');
-    expect((await r.manualSalary())!.amountMinor, 1600000);
-  });
+  test(
+    'a detected salary replaces the typed one and updates the amount',
+    () async {
+      final r = await _repo();
+      await r.setManualSalary(const ManualSalary(amountMinor: 1500000, day: 5));
+      expect(await r.transactions(), hasLength(1));
+      await r.addManualTransaction(
+        merchant: 'Acme FZ-LLC',
+        amount: 16000,
+        category: SpendCategory.salary,
+      );
+      final txs = await r.transactions();
+      expect(txs, hasLength(1));
+      expect(txs.single.merchant, 'Acme FZ-LLC');
+      expect((await r.manualSalary())!.amountMinor, 1600000);
+    },
+  );
 
   test('deleting the typed salary credit keeps it deleted; removing the setting clears it', () async {
     final r = await _repo();

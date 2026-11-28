@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../../core/learning/learning_controller.dart';
 import '../../data/learning_hooks.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
@@ -34,9 +35,10 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
   bool _ruleSaved = false;
   bool _saving = false;
   late final _note = TextEditingController(text: widget.tx.note ?? '');
-  late final FocusNode _noteFocus = FocusNode()..addListener(() {
-    if (!_noteFocus.hasFocus) _saveNote();
-  });
+  late final FocusNode _noteFocus = FocusNode()
+    ..addListener(() {
+      if (!_noteFocus.hasFocus) _saveNote();
+    });
   late String _savedNote = widget.tx.note ?? '';
 
   @override
@@ -55,7 +57,9 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       if (mounted) invalidateLedger(ref);
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save the note.')));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(content: Text('Could not save the note.')),
+        );
       }
     }
   }
@@ -65,10 +69,19 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete this payment?'),
-        content: const Text('It is removed from your totals, budgets and cash flow.'),
+        content: const Text(
+          'It is removed from your totals, budgets and cash flow.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Keep')),
-          TextButton(key: const Key('tx_delete_confirm'), onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Delete')),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Keep'),
+          ),
+          TextButton(
+            key: const Key('tx_delete_confirm'),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Delete'),
+          ),
         ],
       ),
     );
@@ -79,7 +92,9 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       if (mounted) Navigator.of(context).pop();
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not delete that payment.')));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(content: Text('Could not delete that payment.')),
+        );
       }
     }
   }
@@ -93,7 +108,11 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
     if (!mounted) return;
     setState(() => _forgot = true);
     ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-      SnackBar(content: Text('Forgotten. Future ${widget.tx.merchant} will be sorted by default.')),
+      SnackBar(
+        content: Text(
+          'Forgotten. Future ${widget.tx.merchant} will be sorted by default.',
+        ),
+      ),
     );
   }
 
@@ -111,8 +130,21 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
       return;
     }
     await ref.read(repositoryProvider).recategorise(widget.tx.id, picked);
-    unawaited(recordConfirmedCategory(ref.read(learningControllerProvider), widget.tx, picked));
-    unawaited(rememberCategoryChoice(ref.read(merchantMemoryProvider), widget.tx, picked, fix: true));
+    unawaited(
+      recordConfirmedCategory(
+        ref.read(learningControllerProvider),
+        widget.tx,
+        picked,
+      ),
+    );
+    unawaited(
+      rememberCategoryChoice(
+        ref.read(merchantMemoryProvider),
+        widget.tx,
+        picked,
+        fix: true,
+      ),
+    );
     ref
         .read(analyticsProvider)
         .track(
@@ -190,9 +222,14 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 ListRow(
                   key: const Key('tx_learned_row'),
                   dense: true,
-                  leading: Icon(Icons.auto_awesome_outlined, size: 22, color: c.accent),
+                  leading: Icon(
+                    Icons.auto_awesome_outlined,
+                    size: 22,
+                    color: c.accent,
+                  ),
                   title: 'Learned from your choice',
-                  subtitle: 'You put ${tx.merchant} here before. Only on this phone.',
+                  subtitle:
+                      'You put ${tx.merchant} here before. Only on this phone.',
                   trailing: TextButton(
                     key: const Key('tx_learned_forget'),
                     onPressed: _forget,
@@ -243,14 +280,27 @@ class _TxDetailSheetState extends ConsumerState<TxDetailSheet> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.receipt_long_outlined, size: 18, color: c.textSecondary),
+                      Icon(
+                        Icons.receipt_long_outlined,
+                        size: 18,
+                        color: c.textSecondary,
+                      ),
                       const SizedBox(width: Space.sm),
-                      Expanded(child: Text('From your email receipt', style: context.tt.titleSmall)),
+                      Expanded(
+                        child: Text(
+                          'From your email receipt',
+                          style: context.tt.titleSmall,
+                        ),
+                      ),
                     ],
                   ),
                   if (tx.receiptNotes != null) ...[
                     const SizedBox(height: Space.sm),
-                    Text(tx.receiptNotes!, key: const Key('tx_receipt_notes'), style: context.tt.bodyMedium),
+                    Text(
+                      tx.receiptNotes!,
+                      key: const Key('tx_receipt_notes'),
+                      style: context.tt.bodyMedium,
+                    ),
                   ],
                   const SizedBox(height: Space.sm),
                   Text(
@@ -420,24 +470,37 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
     setState(() => _busy = true);
     try {
       final now = DateTime.now();
-      final today = _date.year == now.year && _date.month == now.month && _date.day == now.day;
+      final today =
+          _date.year == now.year &&
+          _date.month == now.month &&
+          _date.day == now.day;
       await ref
           .read(repositoryProvider)
           .addManualTransaction(
             // The name is optional: the category names the payment.
-            merchant: _merchant.text.trim().isEmpty ? _cat.label : _merchant.text.trim(),
+            merchant: _merchant.text.trim().isEmpty
+                ? _cat.label
+                : _merchant.text.trim(),
             amount: amt,
             category: _cat,
-            date: today ? null : DateTime(_date.year, _date.month, _date.day, 12),
+            date: today
+                ? null
+                : DateTime(_date.year, _date.month, _date.day, 12),
             note: _note.text,
           );
-      ref.read(analyticsProvider).track(AnalyticsEvent.manualTransactionAdded(category: _cat.name));
+      ref
+          .read(analyticsProvider)
+          .track(AnalyticsEvent.manualTransactionAdded(category: _cat.name));
       invalidateLedger(ref);
       if (mounted) Navigator.of(context).pop();
     } on Object {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save that payment. Try again.')));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(
+            content: Text('Could not save that payment. Try again.'),
+          ),
+        );
       }
     }
   }
@@ -454,8 +517,16 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
           Wrap(
             spacing: Space.sm,
             children: [
-              ChoiceChip(label: const Text('Expense'), selected: !_income, onSelected: (_) => _setIncome(false)),
-              ChoiceChip(label: const Text('Income'), selected: _income, onSelected: (_) => _setIncome(true)),
+              ChoiceChip(
+                label: const Text('Expense'),
+                selected: !_income,
+                onSelected: (_) => _setIncome(false),
+              ),
+              ChoiceChip(
+                label: const Text('Income'),
+                selected: _income,
+                onSelected: (_) => _setIncome(true),
+              ),
             ],
           ),
           const SizedBox(height: Space.md),
@@ -464,8 +535,11 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(hintText: 'Amount', prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints),
+            decoration: const InputDecoration(
+              hintText: 'Amount',
+              prefixIcon: CurrencyPrefix('AED'),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -474,15 +548,33 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
             runSpacing: Space.sm,
             children: [
               if (_income)
-                ChoiceChip(label: Text(SpendCategory.salary.label), selected: _cat.id == SpendCategory.salary.id, onSelected: (_) => setState(() => _cat = SpendCategory.salary))
+                ChoiceChip(
+                  label: Text(SpendCategory.salary.label),
+                  selected: _cat.id == SpendCategory.salary.id,
+                  onSelected: (_) =>
+                      setState(() => _cat = SpendCategory.salary),
+                )
               else
                 for (final q in [..._quick, if (!inQuick) _cat])
-                  ChoiceChip(label: Text(q.label), selected: _cat.id == q.id, onSelected: (_) => setState(() => _cat = q)),
-              if (_income && _cat.id != SpendCategory.salary.id) ChoiceChip(label: Text(_cat.label), selected: true, onSelected: (_) {}),
+                  ChoiceChip(
+                    label: Text(q.label),
+                    selected: _cat.id == q.id,
+                    onSelected: (_) => setState(() => _cat = q),
+                  ),
+              if (_income && _cat.id != SpendCategory.salary.id)
+                ChoiceChip(
+                  label: Text(_cat.label),
+                  selected: true,
+                  onSelected: (_) {},
+                ),
               ActionChip(
                 label: const Text('More'),
                 onPressed: () async {
-                  final c = await pickCategory(context, selected: _cat, includeIncome: _income);
+                  final c = await pickCategory(
+                    context,
+                    selected: _cat,
+                    includeIncome: _income,
+                  );
                   if (c != null) setState(() => _cat = c);
                 },
               ),
@@ -492,14 +584,19 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
           TextField(
             controller: _merchant,
             textInputAction: TextInputAction.next,
-            decoration: InputDecoration(hintText: _income ? 'From (optional)' : 'Paid to (optional)'),
+            decoration: InputDecoration(
+              hintText: _income ? 'From (optional)' : 'Paid to (optional)',
+            ),
           ),
           const SizedBox(height: Space.md),
           ListRow(
             key: const Key('manual_date'),
             dense: true,
             title: 'Date',
-            trailing: Text(DateFormat('EEE d MMM yyyy').format(_date), style: context.tt.bodyMedium),
+            trailing: Text(
+              DateFormat('EEE d MMM yyyy').format(_date),
+              style: context.tt.bodyMedium,
+            ),
             chevron: true,
             onTap: _pickDate,
           ),
@@ -512,7 +609,11 @@ class _AddManualTxSheetState extends ConsumerState<AddManualTxSheet> {
             onSubmitted: (_) => _save(),
           ),
           const SizedBox(height: Space.xl),
-          PrimaryButton(label: 'Save', loading: _busy, onPressed: _parsed == null ? null : _save),
+          PrimaryButton(
+            label: 'Save',
+            loading: _busy,
+            onPressed: _parsed == null ? null : _save,
+          ),
         ],
       ),
     );

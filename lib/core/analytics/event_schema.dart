@@ -383,12 +383,10 @@ abstract final class AnalyticsSchema {
       'Everyday use',
       'Pulse shows you a category that is over its budget.',
       props: {
-        'kind': EnumProp('One-off, recurring, worth watching, or too early to tell', [
-          'one_off',
-          'pattern',
-          'watch',
-          'early',
-        ]),
+        'kind': EnumProp(
+          'One-off, recurring, worth watching, or too early to tell',
+          ['one_off', 'pattern', 'watch', 'early'],
+        ),
         'surface': EnumProp('Where it was shown', ['budget', 'home']),
       },
     ),

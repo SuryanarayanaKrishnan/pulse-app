@@ -81,6 +81,30 @@ Future<bool> connectGmail(BuildContext context, WidgetRef ref) async {
   }
 }
 
+/// Stops reading a Gmail account. Statements already saved stay.
+Future<bool> disconnectGmail(
+  BuildContext context,
+  WidgetRef ref,
+  String connectionId,
+) async {
+  try {
+    await ref.read(repositoryProvider).disconnectEmail(connectionId);
+    ref.invalidate(emailConnectionsProvider);
+    if (context.mounted) {
+      _toast(context, 'Gmail is off. Statements already saved stay.');
+    }
+    return true;
+  } on ApiException catch (e) {
+    if (context.mounted) _toast(context, e.message);
+    return false;
+  } catch (_) {
+    if (context.mounted) {
+      _toast(context, 'Could not turn Gmail off right now. Try again.');
+    }
+    return false;
+  }
+}
+
 /// Picks a statement file (PDF, CSV, Excel, text) and reads it on this phone.
 /// Nothing is uploaded. Every failure ends in a sheet that says what is wrong
 /// and what to do next.

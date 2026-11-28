@@ -404,7 +404,10 @@ class FundsSection extends ConsumerWidget {
                       ),
                     if (v.holding.schemeCode != null)
                       DayChangeText(
-                        quote: quotes[LivePriceService.fundKey(v.holding.schemeCode!)],
+                        quote:
+                            quotes[LivePriceService.fundKey(
+                              v.holding.schemeCode!,
+                            )],
                         quantity: v.holding.units,
                         currency: v.holding.currency,
                       ),

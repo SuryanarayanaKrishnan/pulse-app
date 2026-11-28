@@ -44,95 +44,108 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
     return CoachHost(
       screen: CoachScreen.plus,
       child: Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          tooltip: 'Close',
-          onPressed: () => context.pop(),
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.close_rounded),
+            tooltip: 'Close',
+            onPressed: () => context.pop(),
+          ),
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(
-          Space.gutter,
-          0,
-          Space.gutter,
-          Space.xxxl,
-        ),
-        children: [
-          Text(
-            'PULSE PLUS',
-            style: context.tt.labelMedium!.copyWith(
-              color: c.accent,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.9,
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            0,
+            Space.gutter,
+            Space.xxxl,
+          ),
+          children: [
+            Text(
+              'PULSE PLUS',
+              style: context.tt.labelMedium!.copyWith(
+                color: c.accent,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.9,
+              ),
             ),
-          ),
-          const SizedBox(height: Space.sm),
-          Text(
-            e.isPlus ? 'You have Plus' : 'The detail that saves you money',
-            style: context.tt.headlineMedium,
-          ),
-          const SizedBox(height: Space.sm),
-          Text(
-            from == null
-                ? 'Budgeting, card tracking and the everyday card advice stay free.'
-                : '${from.label} is part of Plus. Budgeting, card tracking and everyday card advice stay free.',
-            style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
-          ),
-          const SizedBox(height: Space.xl),
-          CoachTarget(
-            id: 'perks',
-            child: RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
-              for (final p in _perks)
-                ListRow(
-                  leading: IconWell(p.$1, color: c.calm),
-                  title: p.$2,
-                  subtitle: p.$3,
-                ),
-            ],
-          )),
-          if (!e.isPlus) ...[
+            const SizedBox(height: Space.sm),
+            Text(
+              e.isPlus ? 'You have Plus' : 'The detail that saves you money',
+              style: context.tt.headlineMedium,
+            ),
+            const SizedBox(height: Space.sm),
+            Text(
+              from == null
+                  ? 'Budgeting, card tracking and the everyday card advice stay free.'
+                  : '${from.label} is part of Plus. Budgeting, card tracking and everyday card advice stay free.',
+              style: context.tt.bodyLarge!.copyWith(color: c.textSecondary),
+            ),
             const SizedBox(height: Space.xl),
-            for (final o in plusOffers) ...[
-              _OfferTile(o, selected: o.id == _offer.id, onTap: () => setState(() => _offer = o)),
-              const SizedBox(height: Space.sm),
+            CoachTarget(
+              id: 'perks',
+              child: RowGroup(
+                indent: ListRow.leadingInset,
+                children: [
+                  for (final p in _perks)
+                    ListRow(
+                      leading: IconWell(p.$1, color: c.calm),
+                      title: p.$2,
+                      subtitle: p.$3,
+                    ),
+                ],
+              ),
+            ),
+            if (!e.isPlus) ...[
+              const SizedBox(height: Space.xl),
+              for (final o in plusOffers) ...[
+                _OfferTile(
+                  o,
+                  selected: o.id == _offer.id,
+                  onTap: () => setState(() => _offer = o),
+                ),
+                const SizedBox(height: Space.sm),
+              ],
             ],
           ],
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!e.isPlus)
-                PrimaryButton(
-                  label: 'Continue',
-                  onPressed: () => context.push('/plus/billing?offer=${_offer.id}'),
-                )
-              else ...[
-                PrimaryButton(label: 'Done', onPressed: () => context.pop()),
+        ),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              Space.md,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (!e.isPlus)
+                  PrimaryButton(
+                    label: 'Continue',
+                    onPressed: () =>
+                        context.push('/plus/billing?offer=${_offer.id}'),
+                  )
+                else ...[
+                  PrimaryButton(label: 'Done', onPressed: () => context.pop()),
+                  const SizedBox(height: Space.sm),
+                  PrimaryButton(
+                    label: 'Switch Plus off (test)',
+                    secondary: true,
+                    onPressed: () =>
+                        ref.read(entitlementProvider.notifier).cancel(),
+                  ),
+                ],
                 const SizedBox(height: Space.sm),
-                PrimaryButton(
-                  label: 'Switch Plus off (test)',
-                  secondary: true,
-                  onPressed: () => ref.read(entitlementProvider.notifier).cancel(),
+                Text(
+                  'Friends and family beta: billing is a test. Nothing is charged.',
+                  textAlign: TextAlign.center,
+                  style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
                 ),
               ],
-              const SizedBox(height: Space.sm),
-              Text(
-                'Friends and family beta: billing is a test. Nothing is charged.',
-                textAlign: TextAlign.center,
-                style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
-              ),
-            ],
+            ),
           ),
         ),
       ),
-    ));
+    );
   }
 }
 

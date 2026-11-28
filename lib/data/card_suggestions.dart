@@ -36,7 +36,10 @@ class CardSuggestion {
 
 /// Average monthly spend per expense category over the last 90 days, or null
 /// when there are too few transactions to say anything real.
-Map<SpendCategory, double>? learnedMonthlySpend(List<Transaction> txs, DateTime now) {
+Map<SpendCategory, double>? learnedMonthlySpend(
+  List<Transaction> txs,
+  DateTime now,
+) {
   final since = now.subtract(const Duration(days: 90));
   final byCat = <SpendCategory, double>{};
   var n = 0;
@@ -86,7 +89,14 @@ List<CardSuggestion> suggestCards({
     }
     final annual = gain * 12 - c.annualFee;
     if (annual > 0 && top != null) {
-      out.add(CardSuggestion(card: c, annualGain: annual, topCategory: top, typical: learned == null));
+      out.add(
+        CardSuggestion(
+          card: c,
+          annualGain: annual,
+          topCategory: top,
+          typical: learned == null,
+        ),
+      );
     }
   }
   out.sort((a, b) => b.annualGain.compareTo(a.annualGain));

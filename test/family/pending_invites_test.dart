@@ -8,8 +8,16 @@ void main() {
   setUp(() => store = PendingInvites(MemoryKvStore()));
 
   test('inviting the same phone twice adds one row', () async {
-    final a = await store.add(name: 'Animulla', relation: 'Other', phoneInput: '050 123 4567');
-    final b = await store.add(name: 'Animulla K', relation: 'Other', phoneInput: '+971501234567');
+    final a = await store.add(
+      name: 'Animulla',
+      relation: 'Other',
+      phoneInput: '050 123 4567',
+    );
+    final b = await store.add(
+      name: 'Animulla K',
+      relation: 'Other',
+      phoneInput: '+971501234567',
+    );
     expect(a.alreadyPending, isFalse);
     expect(b.alreadyPending, isTrue);
     expect(b.invite.id, a.invite.id);
@@ -27,20 +35,34 @@ void main() {
     expect(await store.all(), hasLength(2));
   });
 
-  test('cancel removes the invite and the person can be invited again', () async {
-    final a = await store.add(name: 'Khalid', relation: 'Partner', phoneInput: '0551112222');
-    await store.cancel(a.invite.id);
-    expect(await store.all(), isEmpty);
-    final b = await store.add(name: 'Khalid', relation: 'Partner', phoneInput: '0551112222');
-    expect(b.alreadyPending, isFalse);
-  });
+  test(
+    'cancel removes the invite and the person can be invited again',
+    () async {
+      final a = await store.add(
+        name: 'Khalid',
+        relation: 'Partner',
+        phoneInput: '0551112222',
+      );
+      await store.cancel(a.invite.id);
+      expect(await store.all(), isEmpty);
+      final b = await store.add(
+        name: 'Khalid',
+        relation: 'Partner',
+        phoneInput: '0551112222',
+      );
+      expect(b.alreadyPending, isFalse);
+    },
+  );
 
-  test('an invite is dropped once a member with that first name joined', () async {
-    await store.add(name: 'Khalid Ali', relation: 'Partner');
-    await store.add(name: 'Noor', relation: 'Child');
-    await store.dropJoined(['Sara', 'khalid']);
-    expect((await store.all()).map((p) => p.name), ['Noor']);
-  });
+  test(
+    'an invite is dropped once a member with that first name joined',
+    () async {
+      await store.add(name: 'Khalid Ali', relation: 'Partner');
+      await store.add(name: 'Noor', relation: 'Child');
+      await store.dropJoined(['Sara', 'khalid']);
+      expect((await store.all()).map((p) => p.name), ['Noor']);
+    },
+  );
 
   test('survives a restart and ignores a corrupt store', () async {
     final kv = MemoryKvStore();

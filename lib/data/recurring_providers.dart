@@ -13,7 +13,9 @@ import 'recurring_service.dart';
 import 'repository.dart';
 
 /// "Today" for these screens (Dubai calendar). Overridden in tests.
-final recurringTodayProvider = Provider<CalDate>((ref) => toDubaiDate(DateTime.now()));
+final recurringTodayProvider = Provider<CalDate>(
+  (ref) => toDubaiDate(DateTime.now()),
+);
 
 final recurringStoreProvider = Provider<RecurringStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
@@ -23,22 +25,29 @@ final recurringStoreProvider = Provider<RecurringStore>((ref) {
 /// Confirm / ignore verdicts, with the setter.
 class RecurringChoicesNotifier extends AsyncNotifier<Map<String, RecChoice>> {
   @override
-  Future<Map<String, RecChoice>> build() => ref.watch(recurringStoreProvider).choices();
+  Future<Map<String, RecChoice>> build() =>
+      ref.watch(recurringStoreProvider).choices();
 
   Future<void> choose(Series s, RecChoice? choice) async {
-    await ref.read(recurringStoreProvider).setChoice(s.key, choice, merchant: s.merchant);
+    await ref
+        .read(recurringStoreProvider)
+        .setChoice(s.key, choice, merchant: s.merchant);
     state = AsyncData(await ref.read(recurringStoreProvider).choices());
     // The projected bills in Safe to spend depend on what is ignored.
     ref.invalidate(safeToSpendProvider);
     ref.invalidate(cashflowProvider);
     if (choice == RecChoice.confirmed) {
-      ref.read(analyticsProvider).track(AnalyticsEvent.recurringConfirmed(s.cadence));
+      ref
+          .read(analyticsProvider)
+          .track(AnalyticsEvent.recurringConfirmed(s.cadence));
     }
   }
 }
 
 final recurringChoicesProvider =
-    AsyncNotifierProvider<RecurringChoicesNotifier, Map<String, RecChoice>>(RecurringChoicesNotifier.new);
+    AsyncNotifierProvider<RecurringChoicesNotifier, Map<String, RecChoice>>(
+      RecurringChoicesNotifier.new,
+    );
 
 final recurringChargesProvider = FutureProvider<List<Charge>>(
   (ref) async => chargesFrom(await ref.watch(transactionsProvider.future)),
@@ -56,7 +65,10 @@ class RecurringMonthNotifier extends Notifier<CalDate> {
   void set(CalDate d) => state = monthStart(d);
 }
 
-final recurringMonthSelectionProvider = NotifierProvider<RecurringMonthNotifier, CalDate>(RecurringMonthNotifier.new);
+final recurringMonthSelectionProvider =
+    NotifierProvider<RecurringMonthNotifier, CalDate>(
+      RecurringMonthNotifier.new,
+    );
 
 final recurringMonthProvider = FutureProvider<RecurringMonth>((ref) async {
   final today = ref.watch(recurringTodayProvider);
@@ -76,7 +88,13 @@ final recurringMonthProvider = FutureProvider<RecurringMonth>((ref) async {
     choices: choices,
     cardDues: [
       for (final c in cards)
-        if (c.totalDue > 0) CardDueInput(c.id, '${c.issuer} ${c.name}', toDubaiDate(c.dueDate), (c.totalDue * 100).round()),
+        if (c.totalDue > 0)
+          CardDueInput(
+            c.id,
+            '${c.issuer} ${c.name}',
+            toDubaiDate(c.dueDate),
+            (c.totalDue * 100).round(),
+          ),
     ],
     bills: [
       if (joint != null)
@@ -90,14 +108,19 @@ final recurringMonthProvider = FutureProvider<RecurringMonth>((ref) async {
 /// spread across days.
 final netWorthHistoryProvider = FutureProvider<List<NwPoint>>((ref) async {
   final repo = ref.watch(repositoryProvider);
-  if (repo is NetWorthHistorySource) return (repo as NetWorthHistorySource).netWorthHistory();
+  if (repo is NetWorthHistorySource)
+    return (repo as NetWorthHistorySource).netWorthHistory();
   final nw = await ref.watch(netWorthProvider.future);
   final today = ref.watch(recurringTodayProvider);
   final n = nw.series.length;
   return [
     for (var i = 0; i < n; i++)
       NwPoint(
-        CalDate(today.year, today.month - (n - 1 - i), 1).addDays(i == n - 1 ? today.day - 1 : 27),
+        CalDate(
+          today.year,
+          today.month - (n - 1 - i),
+          1,
+        ).addDays(i == n - 1 ? today.day - 1 : 27),
         (nw.series[i] * 100).round(),
         0,
       ),
@@ -111,7 +134,9 @@ class NwRangeNotifier extends Notifier<NwRange> {
 }
 
 /// The chip the net worth chart is on; it stays while the app is open.
-final nwRangeProvider = NotifierProvider<NwRangeNotifier, NwRange>(NwRangeNotifier.new);
+final nwRangeProvider = NotifierProvider<NwRangeNotifier, NwRange>(
+  NwRangeNotifier.new,
+);
 
 /// Reports: the chosen span and how many months back it ends.
 class ReportSpanNotifier extends Notifier<ReportSpan> {
@@ -120,7 +145,9 @@ class ReportSpanNotifier extends Notifier<ReportSpan> {
   void set(ReportSpan s) => state = s;
 }
 
-final reportSpanProvider = NotifierProvider<ReportSpanNotifier, ReportSpan>(ReportSpanNotifier.new);
+final reportSpanProvider = NotifierProvider<ReportSpanNotifier, ReportSpan>(
+  ReportSpanNotifier.new,
+);
 
 class ReportEndNotifier extends Notifier<CalDate> {
   @override
@@ -129,7 +156,9 @@ class ReportEndNotifier extends Notifier<CalDate> {
 }
 
 /// The last month of the range (first of that month).
-final reportEndProvider = NotifierProvider<ReportEndNotifier, CalDate>(ReportEndNotifier.new);
+final reportEndProvider = NotifierProvider<ReportEndNotifier, CalDate>(
+  ReportEndNotifier.new,
+);
 
 final spendRowsProvider = FutureProvider<List<SpendRow>>(
   (ref) async => spendRowsFrom(await ref.watch(transactionsProvider.future)),

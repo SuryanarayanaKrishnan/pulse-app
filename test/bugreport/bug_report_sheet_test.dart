@@ -57,7 +57,10 @@ Future<void> _pump(
                 builder: (_) => BugReportSheet(
                   screenshot: shot,
                   device: _device,
-                  logLines: const ['10:00:00 route  /home', '10:00:01 event first_capture'],
+                  logLines: const [
+                    '10:00:00 route  /home',
+                    '10:00:01 event first_capture',
+                  ],
                   local: local,
                   issue: issue,
                   onSent: onSent,
@@ -75,10 +78,15 @@ Future<void> _pump(
   await tester.pumpAndSettle();
 }
 
-Future<ui.Image> _image(WidgetTester tester) async => (await tester.runAsync(() => createTestImage(width: 390, height: 844)))!;
+Future<ui.Image> _image(WidgetTester tester) async =>
+    (await tester.runAsync(() => createTestImage(width: 390, height: 844)))!;
 
 Future<void> _scrollTo(WidgetTester tester, Finder f) async {
-  await tester.scrollUntilVisible(f, 200, scrollable: find.byType(Scrollable).first);
+  await tester.scrollUntilVisible(
+    f,
+    200,
+    scrollable: find.byType(Scrollable).first,
+  );
 }
 
 Future<void> _openAnnotate(WidgetTester tester) async {
@@ -96,7 +104,9 @@ Future<void> _drag(WidgetTester tester, Offset from, Offset to) async {
 }
 
 void main() {
-  testWidgets('shows chips, note, switches and the attachment preview', (tester) async {
+  testWidgets('shows chips, note, switches and the attachment preview', (
+    tester,
+  ) async {
     final shot = await _image(tester);
     await _pump(tester, shot: shot, local: _Fake(DeliveryMethod.local));
     for (final k in ['bug', 'confusing', 'idea']) {
@@ -106,8 +116,14 @@ void main() {
     expect(find.byKey(const Key('bug-include-screenshot')), findsOneWidget);
     expect(find.byKey(const Key('bug-mask-all')), findsOneWidget);
     await _scrollTo(tester, find.byKey(const Key('bug-preview')));
-    expect(find.textContaining('Pulse 1.2.0 (42), android Android 14'), findsOneWidget);
-    expect(find.textContaining('Screen /home, en-AE, light theme'), findsOneWidget);
+    expect(
+      find.textContaining('Pulse 1.2.0 (42), android Android 14'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('Screen /home, en-AE, light theme'),
+      findsOneWidget,
+    );
     expect(find.text('Screenshot'), findsOneWidget);
     expect(find.textContaining('Activity log, 2 lines'), findsOneWidget);
     expect(find.byKey(const Key('bug-log-view')), findsNothing);
@@ -139,18 +155,34 @@ void main() {
     await _openAnnotate(tester);
     final canvas = tester.getRect(find.byKey(const Key('bug-canvas')));
     final undo = find.byKey(const Key('bug-undo'));
-    expect(tester.widget<TextButton>(undo).onPressed, isNull, reason: 'nothing to undo yet');
+    expect(
+      tester.widget<TextButton>(undo).onPressed,
+      isNull,
+      reason: 'nothing to undo yet',
+    );
 
-    await _drag(tester, canvas.topLeft + const Offset(20, 40), canvas.topLeft + const Offset(80, 120));
+    await _drag(
+      tester,
+      canvas.topLeft + const Offset(20, 40),
+      canvas.topLeft + const Offset(80, 120),
+    );
     expect(tester.widget<TextButton>(undo).onPressed, isNotNull);
 
     await tester.tap(find.byKey(const Key('bug-tool-blur')));
     await tester.pump();
-    await _drag(tester, canvas.topLeft + const Offset(10, 150), canvas.topLeft + const Offset(100, 200));
+    await _drag(
+      tester,
+      canvas.topLeft + const Offset(10, 150),
+      canvas.topLeft + const Offset(100, 200),
+    );
 
     await tester.tap(find.byKey(const Key('bug-color-1')));
     await tester.pump();
-    await _drag(tester, canvas.topLeft + const Offset(30, 250), canvas.topLeft + const Offset(120, 260));
+    await _drag(
+      tester,
+      canvas.topLeft + const Offset(30, 250),
+      canvas.topLeft + const Offset(120, 260),
+    );
 
     await tester.tap(find.byKey(const Key('bug-annotate-done')));
     await tester.pumpAndSettle();
@@ -174,25 +206,37 @@ void main() {
     expect(find.text('Screenshot'), findsOneWidget);
   });
 
-  testWidgets('without a service URL the sheet offers the share sheet and sends once', (tester) async {
-    final local = _Fake(DeliveryMethod.local);
-    DeliveryMethod? sent;
-    await _pump(tester, local: local, onSent: (m) => sent = m);
-    expect(find.byKey(const Key('bug-send')), findsNothing);
-    await tester.tap(find.byKey(const Key('bug-category-idea')));
-    await tester.enterText(find.byKey(const Key('bug-note')), 'Add dark charts');
-    await tester.pump();
-    await _scrollTo(tester, find.byKey(const Key('bug-share')));
-    await tester.tap(find.byKey(const Key('bug-share')));
-    await tester.pumpAndSettle();
-    expect(sent, DeliveryMethod.local);
-    expect(local.sent.single.category, BugCategory.idea);
-    expect(local.sent.single.note, 'Add dark charts');
-    expect(local.sent.single.screenshotPng, isNull);
-    expect(find.byKey(const Key('bug-note')), findsNothing, reason: 'sheet closed');
-  });
+  testWidgets(
+    'without a service URL the sheet offers the share sheet and sends once',
+    (tester) async {
+      final local = _Fake(DeliveryMethod.local);
+      DeliveryMethod? sent;
+      await _pump(tester, local: local, onSent: (m) => sent = m);
+      expect(find.byKey(const Key('bug-send')), findsNothing);
+      await tester.tap(find.byKey(const Key('bug-category-idea')));
+      await tester.enterText(
+        find.byKey(const Key('bug-note')),
+        'Add dark charts',
+      );
+      await tester.pump();
+      await _scrollTo(tester, find.byKey(const Key('bug-share')));
+      await tester.tap(find.byKey(const Key('bug-share')));
+      await tester.pumpAndSettle();
+      expect(sent, DeliveryMethod.local);
+      expect(local.sent.single.category, BugCategory.idea);
+      expect(local.sent.single.note, 'Add dark charts');
+      expect(local.sent.single.screenshotPng, isNull);
+      expect(
+        find.byKey(const Key('bug-note')),
+        findsNothing,
+        reason: 'sheet closed',
+      );
+    },
+  );
 
-  testWidgets('a failing issue endpoint falls back to the share sheet', (tester) async {
+  testWidgets('a failing issue endpoint falls back to the share sheet', (
+    tester,
+  ) async {
     final issue = _Fake(DeliveryMethod.issue, ok: false);
     final local = _Fake(DeliveryMethod.local);
     DeliveryMethod? sent;
@@ -205,7 +249,9 @@ void main() {
     expect(sent, DeliveryMethod.local);
   });
 
-  testWidgets('the screenshot is exported with the marks when included', (tester) async {
+  testWidgets('the screenshot is exported with the marks when included', (
+    tester,
+  ) async {
     final shot = await _image(tester);
     final local = _Fake(DeliveryMethod.local);
     await _pump(tester, shot: shot, local: local);
@@ -228,7 +274,11 @@ void main() {
     c.begin(const Offset(0.1, 0.1));
     c.extend(const Offset(2, -1));
     c.end();
-    expect((c.marks.single as PenMark).points.last, const Offset(1, 0), reason: 'clamped');
+    expect(
+      (c.marks.single as PenMark).points.last,
+      const Offset(1, 0),
+      reason: 'clamped',
+    );
     c.setTool(AnnotateTool.blur);
     c.begin(const Offset(0.2, 0.2));
     c.extend(const Offset(0.5, 0.4));

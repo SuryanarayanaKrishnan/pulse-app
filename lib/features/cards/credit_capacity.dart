@@ -57,8 +57,12 @@ class CreditCapacitySection extends ConsumerWidget {
                         flex: (s.sharePct * 10).round().clamp(1, 1000).toInt(),
                         child: Container(
                           height: 8,
-                          margin: EdgeInsets.only(right: i == r.cards.length - 1 ? 0 : 2),
-                          color: c.accent.withValues(alpha: (1 - i * 0.18).clamp(0.3, 1.0).toDouble()),
+                          margin: EdgeInsets.only(
+                            right: i == r.cards.length - 1 ? 0 : 2,
+                          ),
+                          color: c.accent.withValues(
+                            alpha: (1 - i * 0.18).clamp(0.3, 1.0).toDouble(),
+                          ),
                         ),
                       ),
                   ],
@@ -71,8 +75,16 @@ class CreditCapacitySection extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(s.name, style: context.tt.bodyMedium, maxLines: 1, overflow: TextOverflow.ellipsis),
-                      Text('${aed(s.limitMinor)}  ·  ${s.sharePct.round()}% of your limit', style: context.tt.bodySmall),
+                      Text(
+                        s.name,
+                        style: context.tt.bodyMedium,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        '${aed(s.limitMinor)}  ·  ${s.sharePct.round()}% of your limit',
+                        style: context.tt.bodySmall,
+                      ),
                     ],
                   ),
                 ),
@@ -94,9 +106,16 @@ class CreditCapacitySection extends ConsumerWidget {
               ] else ...[
                 Row(
                   children: [
-                    Expanded(child: Text('Debt burden (DBR)', style: context.tt.titleSmall)),
-                    Text('${dbr.toStringAsFixed(dbr % 1 == 0 ? 0 : 1)}% of ${dbrMaxPct.round()}%',
-                        style: context.tt.titleSmall?.copyWith(color: tone)),
+                    Expanded(
+                      child: Text(
+                        'Debt burden (DBR)',
+                        style: context.tt.titleSmall,
+                      ),
+                    ),
+                    Text(
+                      '${dbr.toStringAsFixed(dbr % 1 == 0 ? 0 : 1)}% of ${dbrMaxPct.round()}%',
+                      style: context.tt.titleSmall?.copyWith(color: tone),
+                    ),
                   ],
                 ),
                 const SizedBox(height: Space.sm),
@@ -110,17 +129,14 @@ class CreditCapacitySection extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: Space.sm),
-                Text(
-                  switch (r.level) {
-                    DbrLevel.over =>
-                      'Over the cap by ${aed(-r.headroomMinor!)} a month. A bank is unlikely to approve new credit until this drops.',
-                    DbrLevel.tight =>
-                      'Getting close. About ${aed(r.headroomMinor!)} a month of room is left, roughly ${aed(r.extraCardLimitMinor!)} of extra card limit.',
-                    _ =>
-                      'Room for about ${aed(r.extraCardLimitMinor!)} more card limit, or ${aed(r.headroomMinor!)} a month in loan payments.',
-                  },
-                  style: context.tt.bodyMedium,
-                ),
+                Text(switch (r.level) {
+                  DbrLevel.over =>
+                    'Over the cap by ${aed(-r.headroomMinor!)} a month. A bank is unlikely to approve new credit until this drops.',
+                  DbrLevel.tight =>
+                    'Getting close. About ${aed(r.headroomMinor!)} a month of room is left, roughly ${aed(r.extraCardLimitMinor!)} of extra card limit.',
+                  _ =>
+                    'Room for about ${aed(r.extraCardLimitMinor!)} more card limit, or ${aed(r.headroomMinor!)} a month in loan payments.',
+                }, style: context.tt.bodyMedium),
               ],
               const SizedBox(height: Space.sm),
               Text(
@@ -149,19 +165,26 @@ class DbrNewCardNote extends ConsumerWidget {
     final cards = ref.watch(myCardsProvider).value ?? const <CreditCard>[];
     final salary = ref.watch(manualSalaryProvider).value;
     final r = computeDbr(
-      cards: [for (final k in cards) DbrCard(name: k.name, limitMinor: (k.limit * 100).round())],
+      cards: [
+        for (final k in cards)
+          DbrCard(name: k.name, limitMinor: (k.limit * 100).round()),
+      ],
       salaryMinor: salary?.amountMinor,
     );
     final text = switch (r.level) {
       DbrLevel.over => 'Your debt burden is over the 50% cap, so a bank may decline a new card.',
-      DbrLevel.tight => 'Your debt burden is close to the 50% cap. A new card adds to it.',
+      DbrLevel.tight =>
+        'Your debt burden is close to the 50% cap. A new card adds to it.',
       _ => null,
     };
     if (text == null) return const SizedBox.shrink();
     return Padding(
       key: const Key('dbr_new_card_note'),
       padding: const EdgeInsets.only(top: Space.xs),
-      child: Text(text, style: context.tt.bodySmall?.copyWith(color: context.pc.warning)),
+      child: Text(
+        text,
+        style: context.tt.bodySmall?.copyWith(color: context.pc.warning),
+      ),
     );
   }
 }

@@ -24,10 +24,18 @@ abstract class HouseholdSource {
   Future<HRows> mirrorRows();
 
   /// Writes a merged row of a shared table, or deletes it (null).
-  Future<void> applyShared(String table, String id, Map<String, Object?>? values);
+  Future<void> applyShared(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  );
 
   /// Writes a merged row of the mirror, or deletes it (null).
-  Future<void> applyMirror(String table, String id, Map<String, Object?>? values);
+  Future<void> applyMirror(
+    String table,
+    String id,
+    Map<String, Object?>? values,
+  );
 }
 
 /// The household log's view of the phone, for the sync engine.
