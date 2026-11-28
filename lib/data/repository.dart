@@ -273,6 +273,12 @@ abstract interface class NetWorthHistorySource {
 }
 
 /// Defaults for repositories without an on-device ledger (demo data, API).
+/// A server that can hand back a statement file exactly as stored (emailed
+/// statements are read on the phone from this).
+abstract interface class StatementFileSource {
+  Future<Uint8List> statementFile(String statementId);
+}
+
 mixin LocalOnlyFeatures implements PulseRepository {
   @override
   Future<SplitGroup> createSplitGroup({

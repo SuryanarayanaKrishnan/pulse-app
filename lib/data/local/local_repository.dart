@@ -44,6 +44,7 @@ import 'catalog_service.dart';
 import 'database.dart';
 import 'own_transfers_store.dart';
 import 'ids.dart';
+import 'emailed_statements.dart';
 import 'ingest_pipeline.dart';
 import 'splits_store.dart';
 import '../digit_suggestion.dart';
@@ -1371,7 +1372,17 @@ class LocalPulseRepository
       return;
     _lastEmailFill = now;
     try {
-      for (final st in await server.statements()) {
+      final remote = await server.statements();
+      final svc = statementService;
+      if (server is StatementFileSource && svc != null) {
+        await pullEmailedStatements(
+          db: db,
+          service: svc,
+          files: server as StatementFileSource,
+          remote: remote,
+        );
+      }
+      for (final st in remote) {
         if (st.source != 'gmail' || st.parse != ParseStatus.parsed) continue;
         final m = st.summary;
         int? day(Object? iso) =>

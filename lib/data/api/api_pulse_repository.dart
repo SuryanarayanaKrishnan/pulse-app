@@ -19,7 +19,9 @@ import 'dto.dart';
 ///  * Card rewards, minimum due and the card catalog have no backend source.
 ///  * Net-worth history does not exist, so the series is flat.
 ///  * Budget trend is built from the monthly budgets' spent figures.
-class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
+class ApiPulseRepository
+    with LocalOnlyFeatures
+    implements PulseRepository, StatementFileSource {
   ApiPulseRepository(this._dio, {DateTime Function()? clock})
     : _clock = clock ?? DateTime.now;
 
@@ -879,6 +881,15 @@ class ApiPulseRepository with LocalOnlyFeatures implements PulseRepository {
     ).wait;
     return [for (final j in json) StatementDto.toDomain(j, accounts: accounts)];
   }
+
+  @override
+  Future<Uint8List> statementFile(String statementId) => guardApi(() async {
+    final res = await _dio.get<List<int>>(
+      '/v1/statements/$statementId/file',
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return Uint8List.fromList(res.data ?? const <int>[]);
+  });
 
   @override
   Future<Reconciliation> reconciliation(String statementId) async =>
