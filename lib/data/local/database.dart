@@ -57,7 +57,7 @@ class PulseDatabase extends _$PulseDatabase {
 
   /// Bump together with a new step in [migration] and a dump in
   /// `drift_schemas/` (`dart run drift_dev schema dump ...`).
-  static const currentSchemaVersion = 13;
+  static const currentSchemaVersion = 14;
 
   @override
   int get schemaVersion => currentSchemaVersion;
@@ -210,6 +210,14 @@ class PulseDatabase extends _$PulseDatabase {
         await m.createTable(schema.splitMembers);
         await m.createTable(schema.splitExpenses);
         await m.createTable(schema.splitSettlements);
+      },
+      // v14: `split_expenses.transaction_id`, the payment a split was started
+      // from. Null on every existing expense.
+      from13To14: (m, schema) async {
+        await m.addColumn(
+          schema.splitExpenses,
+          schema.splitExpenses.transactionId,
+        );
       },
     ),
     beforeOpen: (details) async {

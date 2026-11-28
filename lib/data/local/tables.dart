@@ -980,6 +980,9 @@ class SplitExpenses extends Table {
   DateTimeColumn get date => dateTime()();
   DateTimeColumn get syncedAt => dateTime().nullable()();
 
+  /// The transaction this split was started from (you paid), if any.
+  TextColumn get transactionId => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }

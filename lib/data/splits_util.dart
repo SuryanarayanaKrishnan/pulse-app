@@ -98,3 +98,24 @@ SettlementRecord? pendingSettlement(SplitGroup g, String from, String to) {
   }
   return (owed, owe);
 }
+
+/// What [memberId] owes for [e]: their explicit share, or an equal part when
+/// they take part in an equal split, else zero.
+double shareOf(SplitExpense e, String memberId) {
+  if (e.shares != null) return e.shares![memberId] ?? 0;
+  if (!e.participants.contains(memberId) || e.participants.isEmpty) return 0;
+  return ((e.amount / e.participants.length) * 100).round() / 100;
+}
+
+/// The expense in [groups] tied to your transaction [txId], with its group.
+(SplitGroup, SplitExpense)? splitForTransaction(
+  List<SplitGroup> groups,
+  String txId,
+) {
+  for (final g in groups) {
+    for (final e in g.expenses) {
+      if (e.linkedTransactionId == txId) return (g, e);
+    }
+  }
+  return null;
+}

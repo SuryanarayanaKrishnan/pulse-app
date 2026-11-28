@@ -23,7 +23,7 @@ void main() {
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 13);
 
-    expect(PulseDatabase.currentSchemaVersion, 13);
+    expect(PulseDatabase.currentSchemaVersion, greaterThanOrEqualTo(13));
     final m = await db
         .customSelect('SELECT name FROM household_members')
         .getSingle();
