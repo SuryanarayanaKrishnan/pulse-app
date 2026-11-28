@@ -12,6 +12,7 @@ import '../../data/providers.dart';
 import '../budgets/overrun_section.dart';
 import '../cards/cap_watch_card.dart';
 import '../review/review_state.dart';
+import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_layout.dart';
 import 'health_sheet.dart';
 
@@ -180,6 +181,71 @@ class TopInsight extends ConsumerWidget {
         ? null
         : ref.watch(reviewCountProvider).value;
     if (n != null && n > 0) return const ReviewTile();
+    return const SizedBox.shrink();
+  }
+}
+
+/// Shows the one-time "Try the calm Home" offer to people who had set Home up
+/// before the calm default. Yes is the main button; closing the sheet keeps
+/// their Home as it is. It never comes back.
+class CalmOfferHost extends ConsumerStatefulWidget {
+  const CalmOfferHost({super.key});
+  @override
+  ConsumerState<CalmOfferHost> createState() => _CalmOfferHostState();
+}
+
+class _CalmOfferHostState extends ConsumerState<CalmOfferHost> {
+  var _shown = false;
+
+  Future<void> _show() async {
+    _shown = true;
+    final ctl = ref.read(dashboardProvider.notifier);
+    await showPulseSheet<void>(
+      context,
+      builder: (sheet) => SheetScaffold(
+        title: 'Try the calmer Home?',
+        subtitle:
+            'Home shows safe to spend, the card to use and one thing worth '
+            'knowing. Everything else is one tap away under Add to Home.',
+        footer: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            PrimaryButton(
+              key: const Key('calm-offer-yes'),
+              label: 'Try calm Home',
+              onPressed: () {
+                ctl.answerCalmOffer(calm: true);
+                Navigator.of(sheet).pop();
+              },
+            ),
+            const SizedBox(height: Space.sm),
+            TextAction(
+              'Keep my Home',
+              key: const Key('calm-offer-no'),
+              onTap: () {
+                ctl.answerCalmOffer(calm: false);
+                Navigator.of(sheet).pop();
+              },
+            ),
+          ],
+        ),
+        child: const SizedBox.shrink(),
+      ),
+    );
+    // Closed without choosing: keep their Home, and do not ask again.
+    if (mounted && ref.read(dashboardProvider).offerCalm) {
+      await ctl.answerCalmOffer(calm: false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final offer = ref.watch(dashboardProvider.select((d) => d.offerCalm));
+    if (offer && !_shown) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && !_shown) _show();
+      });
+    }
     return const SizedBox.shrink();
   }
 }

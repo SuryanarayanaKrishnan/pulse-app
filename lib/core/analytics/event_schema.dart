@@ -285,6 +285,8 @@ abstract final class AnalyticsSchema {
           'removed',
           'resized',
           'moved',
+          'calm_accepted',
+          'calm_declined',
         ]),
         'widget': EnumProp('Which widget', dashboardWidgetKinds),
       },

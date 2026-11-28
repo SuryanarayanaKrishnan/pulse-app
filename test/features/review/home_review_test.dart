@@ -32,6 +32,7 @@ Future<void> pumpHome(WidgetTester t, {bool allReviewed = false}) async {
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         kvStoreProvider.overrideWithValue(
           MemoryKvStore()
+            ..data[DashboardController.calmMigrationKey] = '1'
             ..data[DashboardController.storageKey] = DashboardLayout.defaults()
                 .withLegacyExtras()
                 .encode(),

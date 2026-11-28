@@ -97,6 +97,7 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ],
                 ),
+                const CalmOfferHost(),
                 if (empty)
                   const _GetStarted()
                 else ...[
