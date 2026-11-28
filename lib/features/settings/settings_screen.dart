@@ -10,6 +10,7 @@ import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
+import '../discover/all_features_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -46,6 +47,19 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 title: 'Sara Al Mansoori',
                 subtitle: 'sara@example.ae',
+              ),
+            ],
+          ),
+          const SizedBox(height: Space.lg),
+          RowGroup(
+            children: [
+              ListRow(
+                key: const Key('settings_search'),
+                leading: const IconWell(Icons.search_rounded),
+                title: 'Search',
+                subtitle: 'Find a setting, screen, card or payment',
+                chevron: true,
+                onTap: () => showAllFeaturesSheet(context),
               ),
             ],
           ),

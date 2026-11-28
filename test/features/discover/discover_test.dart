@@ -74,6 +74,10 @@ void main() {
     expect(first('joint')?.id, 'household');
     expect(first('best moves')?.id, 'combos');
     expect(first('zzzz'), isNull);
+    // Where do I turn Gmail on or off, and where is dark mode?
+    expect(first('gmail')?.id, 'connections');
+    expect(first('dark')?.id, 'look');
+    expect(first('salary')?.id, 'salary');
     expect(
       pulseFeatures.where((f) => f.matches('')).length,
       pulseFeatures.length,
@@ -90,6 +94,23 @@ void main() {
       await tester.pump(const Duration(milliseconds: 200));
     }
     expect(find.byType(RecurringScreen), findsOneWidget);
+  });
+
+  testWidgets('searching "gmail" finds the Connections switch screen', (
+    tester,
+  ) async {
+    await _pump(tester, '/home');
+    await tester.tap(find.byKey(const Key('home-all-features')));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.enterText(find.byKey(const Key('features-search')), 'gmail');
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const Key('feature-connections')));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+    expect(find.byKey(const Key('connection_gmail_switch')), findsOneWidget);
   });
 
   testWidgets('wealth surfaces Goals and Household', (tester) async {
