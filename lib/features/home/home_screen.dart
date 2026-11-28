@@ -20,6 +20,7 @@ import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_editor.dart';
 import 'dashboard/dashboard_tiles.dart';
 import 'health_sheet.dart';
+import '../../core/utils/app_clock.dart';
 import '../coach/coach.dart';
 
 /// Home answers one question: how much can I safely spend today?
@@ -29,7 +30,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final now = DateTime.now();
+    final now = AppClock.now();
     // A brand-new on-device ledger has nothing to summarise yet.
     final accounts = ref.watch(bankAccountsProvider).value;
     final cards = ref.watch(myCardsProvider).value;

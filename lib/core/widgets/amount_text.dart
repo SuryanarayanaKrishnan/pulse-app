@@ -38,13 +38,21 @@ class AmountText extends StatelessWidget {
     String fmt(double v) => compact
         ? Money.aedCompact(v)
         : Money.aed(v, decimals: decimals, sign: signed);
-    if (!animate) return Text(fmt(value), style: style);
+    // Shrinks to fit when the space is tight (an enormous amount must never run
+    // off the screen); unchanged when there is room.
+    Widget fit(Widget t) => FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: t,
+    );
+    if (!animate) return fit(Text(fmt(value), style: style, maxLines: 1));
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: value, end: value),
       duration: Motion.slow,
       curve: Motion.curve,
-      builder: (_, v, _) =>
-          Text(fmt(v), style: style, maxLines: 1, semanticsLabel: fmt(value)),
+      builder: (_, v, _) => fit(
+        Text(fmt(v), style: style, maxLines: 1, semanticsLabel: fmt(value)),
+      ),
     );
   }
 }

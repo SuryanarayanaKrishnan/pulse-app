@@ -109,6 +109,39 @@ class QaApp {
   ];
 }
 
+bool _fontsLoaded = false;
+
+/// Loads real typefaces so layout and screenshots match a phone. The default
+/// test font (Ahem) draws every letter as a full-width block, which makes text
+/// far wider than on a device: overlap and spacing checks then flag things
+/// that are fine and screenshots show boxes instead of words. Roboto (shipped
+/// inside the Flutter SDK) stands in for the system UI font; Fraunces and the
+/// Material icon font are the real ones.
+Future<void> loadRealFonts() async {
+  if (_fontsLoaded) return;
+  final root = Platform.environment['FLUTTER_ROOT'] ??
+      File(Platform.resolvedExecutable).parent.parent.parent.parent.parent.parent.parent.path;
+  final dir = '$root/bin/cache/artifacts/material_fonts';
+  Future<ByteData> bytes(String path) async {
+    final b = File(path).readAsBytesSync();
+    return ByteData.view(Uint8List.fromList(b).buffer);
+  }
+
+  final ui = FontLoader('PulseInter');
+  for (final f in ['Regular', 'Medium', 'Bold', 'Light', 'Black']) {
+    final path = '$dir/Roboto-$f.ttf';
+    if (File(path).existsSync()) ui.addFont(bytes(path));
+  }
+  await ui.load();
+  final icons = FontLoader('MaterialIcons')..addFont(bytes('$dir/MaterialIcons-Regular.otf'));
+  await icons.load();
+  final display = FontLoader('PulseDisplay')
+    ..addFont(bytes('assets/fonts/Fraunces_500Medium.ttf'))
+    ..addFont(bytes('assets/fonts/Fraunces_600SemiBold.ttf'));
+  await display.load();
+  _fontsLoaded = true;
+}
+
 /// Pumps the real app root, signed in, at [location], with fakes for native plugins.
 Future<QaApp> launchApp(
   WidgetTester tester, {
@@ -120,8 +153,11 @@ Future<QaApp> launchApp(
   Future<void> Function(PulseDatabase db)? seed,
   List<Override> overrides = const [],
   bool signedIn = true,
+  double textScale = 1.0,
 }) async {
   PulseTheme.useGoogleFonts = false;
+  await loadRealFonts();
+  PulseTheme.testFontFamily = 'PulseInter';
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   SharedPreferences.setMockInitialValues({});
   tester.view.physicalSize = size;
@@ -129,6 +165,7 @@ Future<QaApp> launchApp(
   tester.platformDispatcher.platformBrightnessTestValue = dark
       ? Brightness.dark
       : Brightness.light;
+  tester.platformDispatcher.textScaleFactorTestValue = textScale;
   addTearDown(() {
     tester.view.reset();
     tester.platformDispatcher.clearAllTestValues();
@@ -230,6 +267,17 @@ Future<QaApp> launchApp(
   addTearDown(app.errors.uninstall);
   await app.settle(8);
   return app;
+}
+
+/// Runs [body] and always puts Flutter's error hook back, even when an expect
+/// inside it fails (otherwise the real failure is buried under a harness
+/// assertion about FlutterError.onError).
+Future<void> qaGuard(QaApp app, Future<void> Function() body) async {
+  try {
+    await body();
+  } finally {
+    app.errors.uninstall();
+  }
 }
 
 /// Unmounts so providers and timers are disposed before the test ends.

@@ -30,8 +30,31 @@ Future<T?> showPulseSheet<T>(
       maxWidth: 560,
       maxHeight: MediaQuery.sizeOf(context).height * (full ? 0.94 : 0.88),
     ),
-    builder: builder,
+    // Every sheet gets an opaque rounded surface here, so one that forgets its
+    // own background (the card picker did) is never see-through.
+    builder: (ctx) => PulseSheetSurface(child: builder(ctx)),
   );
+}
+
+/// The solid, rounded background behind every sheet's content.
+class PulseSheetSurface extends StatelessWidget {
+  const PulseSheetSurface({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.isDark ? c.surface : c.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+        child: child,
+      ),
+    );
+  }
 }
 
 /// Standard bottom sheet chrome: grabber, title, keyboard-aware padding.
