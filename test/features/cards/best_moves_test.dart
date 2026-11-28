@@ -99,6 +99,7 @@ void main() {
       PulseTheme.useGoogleFonts = false;
       // Best moves is an opt-in Home widget: this Home has the full set.
       final store = kv ?? MemoryKvStore();
+      store.data.putIfAbsent(DashboardController.calmMigrationKey, () => '1');
       store.data.putIfAbsent(
         DashboardController.storageKey,
         () => DashboardLayout.defaults().withLegacyExtras().encode(),

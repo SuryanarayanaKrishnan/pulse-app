@@ -62,6 +62,7 @@ Future<void> pumpHome(WidgetTester tester, {DashboardLayout? saved}) async {
   kv = MemoryKvStore();
   rec = Rec();
   // These tests exercise the editor, so they start from a full Home.
+  kv.data[DashboardController.calmMigrationKey] = '1';
   kv.data[DashboardController.storageKey] = (saved ?? classicLayout()).encode();
   await tester.pumpWidget(
     ProviderScope(

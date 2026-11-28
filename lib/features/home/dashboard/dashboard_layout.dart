@@ -187,6 +187,22 @@ class DashboardLayout {
     ],
   );
 
+  /// This layout with its main dashboard (Everyday, else the first) reset to
+  /// the calm default. Other dashboards the person made stay as they are.
+  DashboardLayout calmed() {
+    final calm = DashboardLayout.defaults().dashboards.first.widgets;
+    final mainId = dashboards
+        .firstWhere((d) => d.id == 'everyday', orElse: () => dashboards.first)
+        .id;
+    return DashboardLayout(
+      activeId: activeId,
+      dashboards: [
+        for (final d in dashboards)
+          d.id == mainId ? Dashboard(id: d.id, name: d.name, widgets: calm) : d,
+      ],
+    );
+  }
+
   Dashboard get active => dashboards.firstWhere(
     (d) => d.id == activeId,
     orElse: () => dashboards.first,
