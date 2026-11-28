@@ -478,6 +478,7 @@ class HouseholdService {
     postedAt: t.postedAt,
     excluded: t.excluded,
     merchant: t.merchant,
+    cardCatalogId: t.cardCatalogId,
   );
 
   // ---- sync -----------------------------------------------------------------------

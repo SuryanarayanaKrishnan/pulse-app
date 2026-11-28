@@ -94,6 +94,8 @@ class CardCapStatus {
     required this.meters,
     this.catalogId,
     this.hasEarningRules = true,
+    this.sharedWith = const [],
+    this.withPartner = false,
   });
 
   final String cardId;
@@ -108,6 +110,19 @@ class CardCapStatus {
 
   /// False for a card that earns nothing itself (Tabby).
   final bool hasEarningRules;
+
+  /// Partnership mode: sorted account ids (this card included) whose spend
+  /// is pooled under one cap. Empty when the card's cap is its own.
+  final List<String> sharedWith;
+
+  /// A household partner's supplementary card pools into this cap too.
+  final bool withPartner;
+
+  bool get isShared => sharedWith.length > 1 || withPartner;
+
+  /// One card of a shared group speaks for it in alerts and stacks, so the
+  /// same cap never alerts twice.
+  bool get isShareLead => sharedWith.length < 2 || sharedWith.first == cardId;
 
   bool get hasCaps => meters.isNotEmpty;
 
@@ -159,6 +174,8 @@ CardCapStatus cardCapStatus({
   required CalDate cycleEnd,
   required CycleBasis basis,
   String? catalogId,
+  List<String> sharedWith = const [],
+  bool withPartner = false,
 }) {
   final res = computeCycle(spec, spends);
   final value = spec.pointValueAed;
@@ -226,6 +243,8 @@ CardCapStatus cardCapStatus({
     earnedAed: res.earnedUnits * value,
     meters: meters,
     hasEarningRules: topRate > 0,
+    sharedWith: sharedWith,
+    withPartner: withPartner,
   );
 }
 
@@ -357,12 +376,13 @@ List<CapAlert> capAlerts(
 }) {
   final out = <CapAlert>[];
   for (final c in cards) {
-    if (muted.contains(c.cardId)) continue;
+    if (muted.contains(c.cardId) || !c.isShareLead) continue;
     final m = c.worst;
     if (m == null || m.level == CapLevel.ok) continue;
+    final base = c.isShared ? '${c.title} (shared)' : c.title;
     final where = m.isTotal || c.meters.length == 1
-        ? c.title
-        : '${c.title} ${m.label.toLowerCase()}';
+        ? base
+        : '$base ${m.label.toLowerCase()}';
     out.add(
       CapAlert(
         key: '${c.cardId}|${c.cycleStart.toIso()}|${m.id}|${m.level.name}',

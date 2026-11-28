@@ -36,6 +36,8 @@ import '../rules.dart';
 import '../statements.dart';
 import '../../core/engine/card_value.dart';
 import 'card_cycles.dart';
+import 'card_cycles.dart' as cc
+    show separateCapCatalogs, setCapShared, partnerCapCatalogs, setPartnerHolds;
 import 'card_value_report.dart';
 import 'catalog_service.dart';
 import 'database.dart';
@@ -87,7 +89,8 @@ class LocalPulseRepository
         PulseRepository,
         Recategoriser,
         NetWorthHistorySource,
-        CapSource {
+        CapSource,
+        CapShareSettings {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -1287,6 +1290,20 @@ class LocalPulseRepository
       dueDay: c.account.dueDay == 0 ? null : c.account.dueDay,
     );
   }
+
+  @override
+  Future<Set<String>> separateCapCatalogs() => cc.separateCapCatalogs(db);
+
+  @override
+  Future<void> setCapShared(String catalogId, bool shared) =>
+      cc.setCapShared(db, catalogId, shared);
+
+  @override
+  Future<Set<String>> partnerCapCatalogs() => cc.partnerCapCatalogs(db);
+
+  @override
+  Future<void> setPartnerHolds(String catalogId, bool holds) =>
+      cc.setPartnerHolds(db, catalogId, holds);
 
   @override
   Future<CapSnapshot> capSnapshot() async {

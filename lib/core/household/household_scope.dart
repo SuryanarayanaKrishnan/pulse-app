@@ -56,6 +56,9 @@ const householdColumns = <String, Set<String>>{
     'merchant',
     'posted_at',
     'excluded',
+    // Which card product paid (never the digits): lets a partner's
+    // supplementary card share the primary's cashback cap.
+    'card_catalog_id',
     'owner',
   },
   HTable.lines: {'name', 'liability', 'value_minor', 'currency', 'owner'},
