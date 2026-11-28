@@ -1,3 +1,4 @@
+import 'learning_stats_row.dart';
 import 'salary_sheet.dart';
 
 import 'package:material_ui/material_ui.dart';
@@ -445,6 +446,7 @@ class HelpSettings extends ConsumerWidget {
               onChanged: (v) => ref.read(shakeEnabledProvider.notifier).set(v),
             ),
           ),
+          const LearningStatsRow(),
           ListRow(
             key: const Key('settings_report_bug'),
             leading: const IconWell(Icons.bug_report_outlined),

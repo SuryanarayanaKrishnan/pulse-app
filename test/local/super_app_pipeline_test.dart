@@ -116,4 +116,70 @@ void main() {
     expect(small.guess, isFalse);
     expect(big.guess, isTrue);
   });
+
+  group('late screenshots', () {
+    Future<IngestOutcome> shot(
+      String merchant,
+      String amount, {
+      required DateTime orderDay,
+      int hoursLater = 6,
+    }) => pipeline.ingest(
+      IngestInput(
+        channel: TxnSource.appleShortcut,
+        fields: IngestFields(
+          amountMinor: (double.parse(amount) * 100).round(),
+          merchant: merchant,
+          last4: '1234',
+          postedAt: orderDay,
+          dateOnly: true,
+        ),
+        receivedAt: _now.add(Duration(hours: hoursLater)),
+        externalId: 's${n++}',
+      ),
+    );
+
+    test(
+      'a screenshot hours later with only a date merges by day and amount',
+      () async {
+        await pay('NOON.COM', '120.00');
+        final out = await shot('Noon Food', '120.00', orderDay: _now);
+        expect(out.status, IngestStatus.merged);
+        final rows = await all();
+        expect(rows, hasLength(1));
+        expect(rows.single.category.id, 'dining');
+      },
+    );
+
+    test('two same-priced purchases that day are never guessed', () async {
+      await pay('NOON.COM', '120.00');
+      await pay('NOON.COM', '120.00', minutes: 300);
+      final out = await shot(
+        'Noon',
+        '120.00',
+        orderDay: _now.add(const Duration(minutes: 150)),
+      );
+      expect(out.status, IngestStatus.stored);
+    });
+
+    test('a different day does not merge', () async {
+      await pay('NOON.COM', '120.00');
+      final out = await shot(
+        'Noon',
+        '120.00',
+        orderDay: _now.add(const Duration(days: 2)),
+      );
+      expect(out.status, IngestStatus.stored);
+    });
+
+    test('without its own date, a late capture is a new purchase', () async {
+      await pay('NOON.COM', '120.00');
+      final out = await pay(
+        'NOON.COM',
+        '120.00',
+        channel: TxnSource.appleShortcut,
+        minutes: 360,
+      );
+      expect(out.status, IngestStatus.stored);
+    });
+  });
 }
