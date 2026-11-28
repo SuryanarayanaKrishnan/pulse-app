@@ -109,7 +109,8 @@ abstract final class AnalyticsSchema {
   static const dashboardWidgetKinds = [
     'safe_to_spend', 'budget_progress', 'upcoming', 'card_rewards',
     'net_worth', 'spend_by_category', 'cash_flow', 'savings_rate',
-    'split_balances', 'recent_captures', 'goals', //
+    'split_balances', 'recent_captures', 'goals', 'best_moves', 'review',
+    'health', 'cap_watch', 'overrun', 'family', 'monthly_close', //
   ];
 
   static const _trigger = EnumProp('What started it', triggers);

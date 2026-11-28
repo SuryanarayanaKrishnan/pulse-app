@@ -17,6 +17,10 @@ import '../../tour/tab_tip.dart';
 import '../../tour/tour_progress.dart';
 import '../../goals/goal_widgets.dart';
 import '../../goals/goals_screen.dart';
+import '../../budgets/overrun_section.dart';
+import '../../cards/best_moves_strip.dart';
+import '../../cards/cap_watch_card.dart';
+import '../home_extras.dart';
 import '../home_sheets.dart';
 import 'dashboard_layout.dart';
 import '../../coach/coach.dart';
@@ -43,6 +47,13 @@ class DashTile extends ConsumerWidget {
       DashKind.splitBalances => _SplitsTile(compact: compact),
       DashKind.recentCaptures => _RecentTile(compact: compact),
       DashKind.goals => _GoalsTile(compact: compact),
+      DashKind.bestMoves => const BestMovesStrip(),
+      DashKind.review => const ReviewTile(),
+      DashKind.health => const HealthTile(),
+      DashKind.capWatch => const CapWatchCard(),
+      DashKind.overrun => const OverrunHomeLine(),
+      DashKind.family => const FamilyTile(),
+      DashKind.monthlyClose => const CloseTile(),
     };
   }
 }
