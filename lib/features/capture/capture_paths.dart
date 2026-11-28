@@ -97,11 +97,15 @@ class CapturePath {
       source: CaptureSource.screenshot,
       title: 'Screenshot and Back Tap',
       why:
-          'Double-tap the back of the phone on any alert or order screen. '
-          'The text is read on the phone and the image is thrown away.',
+          'For Tabby and other apps that send no text: when the alert or '
+          'order is on screen, double-tap the back of the phone (or press the '
+          'Action button). The screenshot is taken for you, read on the '
+          'phone and thrown away.',
       stepsWithLink: const [
         'Open Settings, Accessibility, Touch, Back Tap, Double Tap, and pick '
-            '"Capture to Pulse". iOS only lets you set this yourself.',
+            '"Capture to Pulse". iOS only lets you set this yourself. '
+            'iPhone 15 Pro or newer: you can use Settings, Action Button, '
+            'Shortcut instead.',
       ],
       stepsWithoutLink: const [
         'In Shortcuts tap +, add Take Screenshot, then Capture to Pulse (from '

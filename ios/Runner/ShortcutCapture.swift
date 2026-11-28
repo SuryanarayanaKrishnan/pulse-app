@@ -213,6 +213,14 @@ struct RecordBankSmsIntent: AppIntent {
 /// recognised text. The image is never saved or sent anywhere.
 @available(iOS 16.0, *)
 enum ScreenshotReader {
+  /// Cheap check that recognised text carries an amount, so the gesture can
+  /// answer straight away. Pulse still does the real parsing.
+  static func looksLikePayment(_ text: String) -> Bool {
+    text.range(
+      of: #"(AED|Dhs?\.?)\s?\d|\d\s?(AED|Dhs?\b)"#,
+      options: [.regularExpression, .caseInsensitive]) != nil
+  }
+
   static func text(from file: IntentFile) throws -> String {
     let request = VNRecognizeTextRequest()
     request.recognitionLevel = .accurate
@@ -242,10 +250,16 @@ struct CaptureScreenshotIntent: AppIntent {
     inputConnectionBehavior: .connectToPreviousIntentResult)
   var screenshot: IntentFile
 
-  func perform() async throws -> some IntentResult {
+  func perform() async throws -> some IntentResult & ProvidesDialog {
     let text = try ScreenshotReader.text(from: screenshot)
-    if !text.isEmpty { try ShortcutInbox.appendOcr(text: text) }
-    return .result()
+    // Back Tap and the Action Button run with the screen still showing the
+    // other app, so say in one line whether anything was found. The real
+    // parsing and the Undo/Edit prompt happen in Pulse.
+    guard ScreenshotReader.looksLikePayment(text) else {
+      return .result(dialog: "No amount on screen. Open the payment or alert and try again.")
+    }
+    try ShortcutInbox.appendOcr(text: text)
+    return .result(dialog: "Sent to Pulse. Open Pulse to confirm.")
   }
 }
 
