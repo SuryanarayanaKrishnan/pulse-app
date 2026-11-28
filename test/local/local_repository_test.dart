@@ -124,6 +124,40 @@ void main() {
       expect(await r.repo.separateCapCatalogs(), isEmpty);
     });
 
+    test('a household partner\'s supplementary spend joins the cap', () async {
+      addTearDown(() => partnerSpendSource = null);
+      final r = await withCard();
+      await r.sms(
+        'Purchase of AED 300.00 with Credit Card ending 1234 at CARREFOUR, DUBAI.',
+      );
+      partnerSpendSource = (id) async => id == _enbd
+          ? [
+              PartnerSpend(
+                at: DateTime.utc(2026, 3, 10, 9),
+                amountMinor: 20000,
+                categoryId: 'groceries',
+                merchant: 'Spinneys',
+              ),
+              // Another cycle: not counted.
+              PartnerSpend(
+                at: DateTime.utc(2026, 1, 10, 9),
+                amountMinor: 99900,
+              ),
+            ]
+          : [];
+      final cards = await loadOwnedCards(r.db);
+      const day = CalDate(2026, 3, 12);
+      // Not switched on: the partner's spend stays out.
+      var st = await capStatuses(r.db, cards, day);
+      expect(st.single.spendAed, 300);
+      expect(st.single.withPartner, isFalse);
+      await r.repo.setPartnerHolds(_enbd, true);
+      st = await capStatuses(r.db, cards, day);
+      expect(st.single.spendAed, 500);
+      expect(st.single.withPartner, isTrue);
+      expect(st.single.isShared, isTrue);
+    });
+
     test('a single card is never marked shared', () async {
       final r = await withCard();
       final cards = await loadOwnedCards(r.db);

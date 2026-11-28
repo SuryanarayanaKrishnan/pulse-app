@@ -83,6 +83,51 @@ Future<void> setCapShared(
   await db.putSetting(capSeparateKey, jsonEncode(cur.toList()..sort()));
 }
 
+/// Setting key: JSON list of catalog card ids the user's household partner
+/// holds a supplementary card of (their spend on it joins this card's cap).
+const capPartnerKey = 'caps.partner_catalogs';
+
+Future<Set<String>> partnerCapCatalogs(PulseDatabase db) async {
+  try {
+    final raw = await db.setting(capPartnerKey);
+    if (raw == null) return {};
+    return {for (final x in jsonDecode(raw) as List) '$x'};
+  } on Object {
+    return {};
+  }
+}
+
+Future<void> setPartnerHolds(
+  PulseDatabase db,
+  String catalogId,
+  bool holds,
+) async {
+  final cur = await partnerCapCatalogs(db);
+  holds ? cur.add(catalogId) : cur.remove(catalogId);
+  await db.putSetting(capPartnerKey, jsonEncode(cur.toList()..sort()));
+}
+
+/// A household partner's card spend on one product, as the household log
+/// shares it (category and merchant, never card digits).
+class PartnerSpend {
+  const PartnerSpend({
+    required this.at,
+    required this.amountMinor,
+    this.categoryId,
+    this.merchant = '',
+  });
+  final DateTime at;
+  final int amountMinor;
+  final String? categoryId;
+  final String merchant;
+}
+
+/// Where partner spend comes from; set once at app start from the household.
+/// Null (the default, and in tests) means no partner spend.
+typedef PartnerSpendSource =
+    Future<List<PartnerSpend>> Function(String catalogId);
+PartnerSpendSource? partnerSpendSource;
+
 /// Accounts whose spend counts toward [card]'s caps. Partnership mode: a
 /// primary card and its supplementary card are two wallet entries of the same
 /// catalog product; the issuer pays one cap to the primary's account, so
@@ -142,16 +187,44 @@ cycleSpends(
               (t) => OrderingTerm.asc(t.id),
             ]))
           .get();
-  return (
-    spends: [
-      for (final t in rows)
-        if (t.id != excludeTxId)
+  final dated = <(DateTime, Spend)>[
+    for (final t in rows)
+      if (t.id != excludeTxId)
+        (
+          t.postedAt,
           Spend(
             t.amountMinor,
             rewardSlug(t.categoryId),
             merchantKey(t.merchantNormalized ?? t.merchantRaw),
           ),
-    ],
+        ),
+  ];
+  // Partnership mode: the partner's supplementary card, from the household.
+  final src = partnerSpendSource;
+  if (src != null && (await partnerCapCatalogs(db)).contains(card.catalog.id)) {
+    try {
+      for (final p in await src(card.catalog.id)) {
+        if (p.amountMinor <= 0 ||
+            p.at.isBefore(start) ||
+            !p.at.isBefore(end)) {
+          continue;
+        }
+        dated.add((
+          p.at,
+          Spend(
+            p.amountMinor,
+            rewardSlug(p.categoryId),
+            merchantKey(p.merchant),
+          ),
+        ));
+      }
+      dated.sort((a, b) => a.$1.compareTo(b.$1));
+    } on Object {
+      // Household unavailable: the card's own spend still counts.
+    }
+  }
+  return (
+    spends: [for (final d in dated) d.$2],
     start: from,
     end: to,
     basis: basis,
@@ -182,6 +255,9 @@ Future<List<CardCapStatus>> capStatuses(
       final group = (await capAccountIds(db, c)).toList()..sort();
       return cardCapStatus(
         sharedWith: group.length > 1 ? group : const [],
+        withPartner:
+            partnerSpendSource != null &&
+            (await partnerCapCatalogs(db)).contains(c.catalog.id),
         cardId: c.account.id,
         catalogId: c.catalog.id,
         title: c.title,

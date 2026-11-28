@@ -35,7 +35,8 @@ import '../rules.dart';
 import '../statements.dart';
 import '../../core/engine/card_value.dart';
 import 'card_cycles.dart';
-import 'card_cycles.dart' as cc show separateCapCatalogs, setCapShared;
+import 'card_cycles.dart' as cc
+    show separateCapCatalogs, setCapShared, partnerCapCatalogs, setPartnerHolds;
 import 'card_value_report.dart';
 import 'catalog_service.dart';
 import 'database.dart';
@@ -1294,6 +1295,13 @@ class LocalPulseRepository
   @override
   Future<void> setCapShared(String catalogId, bool shared) =>
       cc.setCapShared(db, catalogId, shared);
+
+  @override
+  Future<Set<String>> partnerCapCatalogs() => cc.partnerCapCatalogs(db);
+
+  @override
+  Future<void> setPartnerHolds(String catalogId, bool holds) =>
+      cc.setPartnerHolds(db, catalogId, holds);
 
   @override
   Future<CapSnapshot> capSnapshot() async {

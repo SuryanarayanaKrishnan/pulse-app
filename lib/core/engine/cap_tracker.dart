@@ -95,6 +95,7 @@ class CardCapStatus {
     this.catalogId,
     this.hasEarningRules = true,
     this.sharedWith = const [],
+    this.withPartner = false,
   });
 
   final String cardId;
@@ -114,11 +115,14 @@ class CardCapStatus {
   /// is pooled under one cap. Empty when the card's cap is its own.
   final List<String> sharedWith;
 
-  bool get isShared => sharedWith.length > 1;
+  /// A household partner's supplementary card pools into this cap too.
+  final bool withPartner;
+
+  bool get isShared => sharedWith.length > 1 || withPartner;
 
   /// One card of a shared group speaks for it in alerts and stacks, so the
   /// same cap never alerts twice.
-  bool get isShareLead => !isShared || sharedWith.first == cardId;
+  bool get isShareLead => sharedWith.length < 2 || sharedWith.first == cardId;
 
   bool get hasCaps => meters.isNotEmpty;
 
@@ -171,6 +175,7 @@ CardCapStatus cardCapStatus({
   required CycleBasis basis,
   String? catalogId,
   List<String> sharedWith = const [],
+  bool withPartner = false,
 }) {
   final res = computeCycle(spec, spends);
   final value = spec.pointValueAed;
@@ -239,6 +244,7 @@ CardCapStatus cardCapStatus({
     meters: meters,
     hasEarningRules: topRate > 0,
     sharedWith: sharedWith,
+    withPartner: withPartner,
   );
 }
 

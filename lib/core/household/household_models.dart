@@ -123,10 +123,14 @@ class HTx {
     required this.postedAt,
     this.excluded = false,
     this.merchant = '',
+    this.cardCatalogId,
   });
   final String id, owner, merchant;
   final bool isPrivate, isDebit, excluded;
   final String? categoryId;
+
+  /// Catalog id of the card product that paid, when it was a card.
+  final String? cardCatalogId;
   final int amountMinor;
   final String currency;
   final DateTime postedAt;

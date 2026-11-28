@@ -1,3 +1,6 @@
+import '../core/household/household_models.dart' show Owner;
+import '../household/household_providers.dart' show householdServiceProvider;
+import 'local/card_cycles.dart' show PartnerSpend, partnerSpendSource;
 import '../core/utils/app_clock.dart';
 import '../capture/kv_store.dart';
 import '../core/packs/content_packs.dart';
@@ -471,6 +474,27 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
       seedGroups: Env.demoData,
     );
   }
+  // Partnership mode: a partner's spend on the same card product, as the
+  // household shares it. Read lazily, so nothing runs without a household.
+  partnerSpendSource = (catalogId) async {
+    final joint = await ref.read(householdServiceProvider).joint();
+    if (joint == null) return const [];
+    return [
+      for (final t in joint.txs)
+        if (t.owner != joint.me &&
+            t.owner != Owner.shared &&
+            t.isDebit &&
+            !t.excluded &&
+            t.currency == 'AED' &&
+            t.cardCatalogId == catalogId)
+          PartnerSpend(
+            at: t.postedAt,
+            amountMinor: t.amountMinor,
+            categoryId: t.categoryId,
+            merchant: t.merchant,
+          ),
+    ];
+  };
   return LocalPulseRepository(
     clock: AppClock.now,
     db: db,

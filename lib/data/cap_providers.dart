@@ -86,6 +86,23 @@ Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
   ref.invalidate(capSnapshotProvider);
 }
 
+/// Catalog products a household partner holds a supplementary card of.
+final partnerCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
+  final repo = ref.watch(repositoryProvider);
+  if (repo is CapShareSettings) {
+    return (repo as CapShareSettings).partnerCapCatalogs();
+  }
+  return <String>{};
+});
+
+Future<void> setPartnerHolds(WidgetRef ref, String catalogId, bool holds) async {
+  final repo = ref.read(repositoryProvider);
+  if (repo is! CapShareSettings) return;
+  await (repo as CapShareSettings).setPartnerHolds(catalogId, holds);
+  ref.invalidate(partnerCapCatalogsProvider);
+  ref.invalidate(capSnapshotProvider);
+}
+
 /// Combos the user holds at least two cards of, with their legs' caps added.
 final capStacksProvider = FutureProvider<List<(String, StackCapStatus)>>((
   ref,
