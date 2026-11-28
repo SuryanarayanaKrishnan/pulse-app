@@ -320,7 +320,6 @@ class HelpSettings extends ConsumerWidget {
   const HelpSettings({super.key});
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
     return _Page('Help and about', [
       const SectionHeader('Explore'),
       RowGroup(
@@ -423,7 +422,7 @@ class HelpSettings extends ConsumerWidget {
           indent: ListRow.leadingInset,
           children: [
             ListRow(
-              leading: IconWell(Icons.contactless_outlined, color: c.accent),
+              leading: IconWell(Icons.contactless_outlined),
               title: 'Simulate a card tap',
               subtitle: 'Shows the live rewards moment',
               onTap: () => simulateCardTap(context, ref),

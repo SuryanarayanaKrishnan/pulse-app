@@ -69,7 +69,7 @@ class SettingsScreen extends ConsumerWidget {
             children: [
               ListRow(
                 key: const Key('settings_connections'),
-                leading: IconWell(Icons.power_outlined, color: c.accent),
+                leading: IconWell(Icons.power_outlined),
                 title: 'Connections',
                 subtitle: 'Gmail, bank texts, Apple Pay',
                 trailing: onCount == 0
@@ -133,10 +133,7 @@ class SettingsScreen extends ConsumerWidget {
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: IconWell(
-                  Icons.workspace_premium_outlined,
-                  color: context.pc.accent,
-                ),
+                leading: IconWell(Icons.workspace_premium_outlined),
                 title: 'Pulse Plus',
                 subtitle: ref.watch(entitlementProvider).isPlus
                     ? 'On (test billing)'
