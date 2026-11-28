@@ -122,7 +122,12 @@ List<LineMatch> matchLines(List<StatementLine> lines, List<TxnLike> txns) {
     }
   }
   pairs.sort((a, b) {
-    for (final c in [a.$1.compareTo(b.$1), a.$2.compareTo(b.$2), a.$3.compareTo(b.$3), a.$4.compareTo(b.$4)]) {
+    for (final c in [
+      a.$1.compareTo(b.$1),
+      a.$2.compareTo(b.$2),
+      a.$3.compareTo(b.$3),
+      a.$4.compareTo(b.$4),
+    ]) {
       if (c != 0) return c;
     }
     return 0;
@@ -196,7 +201,10 @@ StoredTxn? findStatementTransaction(
       continue;
     }
     if (toDubaiDate(t.postedAt).daysSince(day).abs() > dateWindowDays) continue;
-    final score = merchantScore(merchant, t.merchantNormalized ?? t.merchantRaw);
+    final score = merchantScore(
+      merchant,
+      t.merchantNormalized ?? t.merchantRaw,
+    );
     final acceptable =
         (score != null && score >= minMerchantScore) ||
         (score == null && merchant == null);
@@ -236,7 +244,10 @@ StoredTxn? findCaptureDuplicate(
     if (t.postedAt.difference(postedAt).abs() > window) continue;
     final seen = t.sources.isEmpty ? [t.source.wire] : t.sources;
     if (seen.contains(channel.wire)) continue;
-    final score = merchantScore(merchant, t.merchantNormalized ?? t.merchantRaw);
+    final score = merchantScore(
+      merchant,
+      t.merchantNormalized ?? t.merchantRaw,
+    );
     if (score != null && score < minMerchantScore) continue;
     if (best == null || (score ?? 0) > bestScore) {
       best = t;

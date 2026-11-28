@@ -113,7 +113,9 @@ Units 250.120
 void typedFundTests() {
   group('typed fund entries', () {
     test('lakh and k, amount is today\'s value', () {
-      final f = parseApproximateFund('about ₹1.5 lakh in Parag Parikh Flexi Cap')!;
+      final f = parseApproximateFund(
+        'about ₹1.5 lakh in Parag Parikh Flexi Cap',
+      )!;
       expect(f.name, 'Parag Parikh Flexi Cap');
       expect(f.current, 150000);
       expect(f.invested, isNull);
@@ -131,14 +133,28 @@ void typedFundTests() {
       expect(f.sipDay, isNull);
     });
     test('units without money', () {
-      final f = parseApproximateFund('500 units of Mirae Asset Large Cap fund')!;
+      final f = parseApproximateFund(
+        '500 units of Mirae Asset Large Cap fund',
+      )!;
       expect(f.units, 500);
       expect(f.name, 'Mirae Asset Large Cap fund');
     });
     test('routes through parseApproximate; US and NSE stocks stay stocks', () {
-      expect(parseApproximate('about ₹1 lakh in Parag Parikh Flexi Cap').kind, CaptureKind.mutualFunds);
-      expect(parseApproximate('50 shares of VOO avg 400').kind, CaptureKind.portfolio);
-      expect(parseApproximate('10 shares of RELIANCE.NS avg 1200').holdings.single.symbol, 'RELIANCE.NS');
+      expect(
+        parseApproximate('about ₹1 lakh in Parag Parikh Flexi Cap').kind,
+        CaptureKind.mutualFunds,
+      );
+      expect(
+        parseApproximate('50 shares of VOO avg 400').kind,
+        CaptureKind.portfolio,
+      );
+      expect(
+        parseApproximate('10 shares of RELIANCE.NS avg 1200')
+            .holdings
+            .single
+            .symbol,
+        'RELIANCE.NS',
+      );
     });
   });
 }

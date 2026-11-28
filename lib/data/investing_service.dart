@@ -339,7 +339,8 @@ class InvestingService {
       // amount and the scheme's NAV below.
       var units = d.unitsHeld;
       final typedAmount = d.current ?? d.invested;
-      if ((units == null || units <= 0) && (typedAmount == null || typedAmount <= 0)) {
+      if ((units == null || units <= 0) &&
+          (typedAmount == null || typedAmount <= 0)) {
         skipped++;
         continue;
       }
@@ -461,7 +462,12 @@ class InvestingService {
         ),
       );
     }
-    await trackFundSip(fund, amountMinor: amountMinor, day: day, frequency: frequency);
+    await trackFundSip(
+      fund,
+      amountMinor: amountMinor,
+      day: day,
+      frequency: frequency,
+    );
     return fund;
   }
 
@@ -486,7 +492,12 @@ class InvestingService {
     }
     if (old != null) {
       await store.saveRule(
-        old.copyWith(amountMinor: amountMinor, day: day, frequency: frequency, active: true),
+        old.copyWith(
+          amountMinor: amountMinor,
+          day: day,
+          frequency: frequency,
+          active: true,
+        ),
       );
       return false;
     }
@@ -555,7 +566,9 @@ class InvestingService {
       if (dayAt != null) {
         await wealth.reminders.schedule(
           id: day,
-          title: r.isFund ? 'Did your SIP go through?' : 'Time to buy ${r.symbol}',
+          title: r.isFund
+              ? 'Did your SIP go through?'
+              : 'Time to buy ${r.symbol}',
           body: '$amount $what is due today. Open Pulse to confirm the price.',
           at: dayAt,
         );
@@ -778,7 +791,9 @@ class InvestingService {
         units: res.units,
         avgCostNav: res.avgCost > 0 ? res.avgCost : null,
         nav: nav,
-        navDate: price != null ? _clock().toUtc().toIso8601String().substring(0, 10) : navDate,
+        navDate: price != null
+            ? _clock().toUtc().toIso8601String().substring(0, 10)
+            : navDate,
         navSource: price != null ? 'manual' : navSource,
         navFetchedAt: fetched,
       ),
@@ -832,5 +847,6 @@ class InvestingService {
 
   // ---- net worth ---------------------------------------------------------------------
 
-  Future<List<Asset>> assets(PriceBook b) async => stockAssets(await store.holdings(), b);
+  Future<List<Asset>> assets(PriceBook b) async =>
+      stockAssets(await store.holdings(), b);
 }

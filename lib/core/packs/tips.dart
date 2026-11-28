@@ -1,7 +1,12 @@
 /// One note from the `tips` content pack: a card tip or warning from the
 /// Pulse team that arrives without an app update.
 class PackTip {
-  const PackTip({required this.id, required this.title, required this.body, this.url});
+  const PackTip({
+    required this.id,
+    required this.title,
+    required this.body,
+    this.url,
+  });
   final String id;
   final String title;
   final String body;
@@ -14,9 +19,11 @@ class PackTip {
     final id = raw['id'];
     final title = raw['title'];
     final body = raw['body'];
-    if (id is! String || title is! String || body is! String || title.isEmpty) return null;
+    if (id is! String || title is! String || body is! String || title.isEmpty)
+      return null;
     final audience = raw['audience'];
-    if (audience is String && audience != 'all') return null; // only 'all' exists today
+    if (audience is String && audience != 'all')
+      return null; // only 'all' exists today
     final url = raw['url'];
     return PackTip(
       id: id,

@@ -21,16 +21,34 @@ Map<String, Object?> _groupJson() => {
   'currency': 'AED',
   'created_by': 'u1',
   'members': [
-    {'id': 'm1', 'user_id': 'u1', 'display_name': 'Sara', 'email': null, 'phone': null},
-    {'id': 'm2', 'user_id': null, 'display_name': 'Omar', 'email': null, 'phone': '+971501234567'},
+    {
+      'id': 'm1',
+      'user_id': 'u1',
+      'display_name': 'Sara',
+      'email': null,
+      'phone': null,
+    },
+    {
+      'id': 'm2',
+      'user_id': null,
+      'display_name': 'Omar',
+      'email': null,
+      'phone': '+971501234567',
+    },
   ],
 };
 
-Future<LocalPulseRepository> _repo(FakeAdapter adapter, {required bool cloudReady}) async {
+Future<LocalPulseRepository> _repo(
+  FakeAdapter adapter, {
+  required bool cloudReady,
+}) async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
+  final catalog = CatalogService(
+    db: db,
+    bundled: () async => File('assets/catalog/cards.json').readAsStringSync(),
+  );
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db);
   addTearDown(pipeline.dispose);
@@ -53,7 +71,13 @@ void main() {
       'GET /v1/splits/groups/g1': _groupJson(),
       'POST /v1/splits/groups/g1/members': (
         201,
-        {'id': 'm3', 'user_id': null, 'display_name': 'Lena', 'email': null, 'phone': null},
+        {
+          'id': 'm3',
+          'user_id': null,
+          'display_name': 'Lena',
+          'email': null,
+          'phone': null,
+        },
       ),
       'POST /v1/splits/groups/g1/expenses': (
         201,
@@ -74,8 +98,13 @@ void main() {
     final repo = ApiPulseRepository(fakeDio(adapter));
     final g = await repo.createSplitGroup(name: 'Trip', members: people);
     expect(g.id, 'g1');
-    expect(g.members.map((m) => m.id), ['me', 'm2']); // the server adds the signed-in user as member 1
-    final create = adapter.requests.firstWhere((r) => r.path == '/v1/splits/groups');
+    expect(g.members.map((m) => m.id), [
+      'me',
+      'm2',
+    ]); // the server adds the signed-in user as member 1
+    final create = adapter.requests.firstWhere(
+      (r) => r.path == '/v1/splits/groups',
+    );
     expect(create.data, {
       'name': 'Trip',
       'currency': 'AED',
@@ -96,19 +125,30 @@ void main() {
     final repo = await _repo(adapter, cloudReady: true);
     final g = await repo.createSplitGroup(name: 'Trip', members: people);
     expect(g.id, 'g1');
-    expect(adapter.requests.any((r) => r.path == '/v1/splits/groups' && r.method == 'POST'), isTrue);
+    expect(
+      adapter.requests.any(
+        (r) => r.path == '/v1/splits/groups' && r.method == 'POST',
+      ),
+      isTrue,
+    );
   });
 
-  test('signed out: the group stays on the phone and the server is not called', () async {
-    final adapter = FakeAdapter({});
-    final repo = await _repo(adapter, cloudReady: false);
-    final g = await repo.createSplitGroup(name: 'Trip', members: people);
-    expect(g.id, isNot('g1'));
-    expect(adapter.requests, isEmpty);
-  });
+  test(
+    'signed out: the group stays on the phone and the server is not called',
+    () async {
+      final adapter = FakeAdapter({});
+      final repo = await _repo(adapter, cloudReady: false);
+      final g = await repo.createSplitGroup(name: 'Trip', members: people);
+      expect(g.id, isNot('g1'));
+      expect(adapter.requests, isEmpty);
+    },
+  );
 
   test('server down: falls back to a group on the phone', () async {
-    final adapter = FakeAdapter({'POST /v1/splits/groups': (503, 'unavailable'), 'GET /v1/me': {'id': 'u1'}});
+    final adapter = FakeAdapter({
+      'POST /v1/splits/groups': (503, 'unavailable'),
+      'GET /v1/me': {'id': 'u1'},
+    });
     final repo = await _repo(adapter, cloudReady: true);
     final g = await repo.createSplitGroup(name: 'Trip', members: people);
     expect(g.name, 'Trip');
@@ -120,12 +160,21 @@ void main() {
       'GET /v1/me': {'id': 'u1'},
       'POST /v1/splits/groups': (
         422,
-        {'error': {'code': 'invalid_phone', 'message': 'Not a valid phone number', 'details': []}},
+        {
+          'error': {
+            'code': 'invalid_phone',
+            'message': 'Not a valid phone number',
+            'details': [],
+          },
+        },
       ),
     });
     final repo = await _repo(adapter, cloudReady: true);
     await expectLater(
-      repo.createSplitGroup(name: 'Trip', members: const [NewGroupMember(name: 'X', phone: '12')]),
+      repo.createSplitGroup(
+        name: 'Trip',
+        members: const [NewGroupMember(name: 'X', phone: '12')],
+      ),
       throwsA(isA<ApiException>()),
     );
   });

@@ -493,7 +493,8 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               hintText: 'Amount invested',
-              prefixText: '${r.currency}  ',
+              prefixIcon: CurrencyPrefix(r.currency),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -712,7 +713,8 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               hintText: 'Average cost per share (optional)',
-              prefixText: '$_currency  ',
+              prefixIcon: CurrencyPrefix(_currency),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           const SizedBox(height: Space.md),
@@ -723,7 +725,8 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
               hintText: _market.livePrice
                   ? 'Price (blank = fetch live)'
                   : 'Current price',
-              prefixText: '$_currency  ',
+              prefixIcon: CurrencyPrefix(_currency),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           const FieldLabel('Currency'),
@@ -1072,7 +1075,8 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               hintText: 'Amount each time',
-              prefixText: '$_currency  ',
+              prefixIcon: CurrencyPrefix(_currency),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
             onChanged: (_) => setState(() {}),
           ),

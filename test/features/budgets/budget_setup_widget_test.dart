@@ -20,7 +20,12 @@ class Rec extends NoopAnalytics {
   void track(AnalyticsEvent event) => events.add(event);
 }
 
-Future<void> open(WidgetTester tester, String location, Rec rec, {Future<Uint8List> Function(String)? fetch}) async {
+Future<void> open(
+  WidgetTester tester,
+  String location,
+  Rec rec, {
+  Future<Uint8List> Function(String)? fetch,
+}) async {
   PulseTheme.useGoogleFonts = false;
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
@@ -28,10 +33,18 @@ Future<void> open(WidgetTester tester, String location, Rec rec, {Future<Uint8Li
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
+        repositoryProvider.overrideWithValue(
+          MockPulseRepository(latency: Duration.zero),
+        ),
         analyticsProvider.overrideWithValue(rec),
         kvStoreProvider.overrideWithValue(MemoryKvStore()),
-        sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+        sessionProvider.overrideWith(
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
+        ),
         if (fetch != null) sheetFetcherProvider.overrideWithValue(fetch),
       ],
       child: PulseApp(initialLocation: location),
@@ -42,45 +55,76 @@ Future<void> open(WidgetTester tester, String location, Rec rec, {Future<Uint8Li
 }
 
 void main() {
-  testWidgets('setup: income in, a full budget out, tap to change a line, use it', (tester) async {
-    final rec = Rec();
-    await open(tester, '/budget-setup', rec);
-    expect(find.text('Start with your take-home'), findsOneWidget);
-    await tester.enterText(find.byKey(const Key('setup_income')), '15000');
-    await tester.pump(const Duration(milliseconds: 300));
-    final rent = find.byKey(const Key('setup_rent'));
-    await tester.scrollUntilVisible(rent, 200, scrollable: find.byType(Scrollable).first);
-    expect(rent, findsOneWidget);
-    expect(tester.widget<TextField>(find.byKey(const Key('amount_rent'))).controller!.text, '4500');
-    expect(find.text('Typical for the UAE'), findsWidgets);
+  testWidgets(
+    'setup: income in, a full budget out, tap to change a line, use it',
+    (tester) async {
+      final rec = Rec();
+      await open(tester, '/budget-setup', rec);
+      expect(find.text('Start with your take-home'), findsOneWidget);
+      await tester.enterText(find.byKey(const Key('setup_income')), '15000');
+      await tester.pump(const Duration(milliseconds: 300));
+      final rent = find.byKey(const Key('setup_rent'));
+      await tester.scrollUntilVisible(
+        rent,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(rent, findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('amount_rent')))
+            .controller!
+            .text,
+        '4500',
+      );
+      expect(find.text('Typical for the UAE'), findsWidgets);
 
-    await tester.enterText(find.byKey(const Key('amount_rent')), '5200');
-    await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('What you told us'), findsOneWidget);
-    // Totals follow the edit without any confirm step.
-    expect(find.byType(Slider), findsWidgets);
+      await tester.enterText(find.byKey(const Key('amount_rent')), '5200');
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(find.text('What you told us'), findsOneWidget);
+      // Totals follow the edit without any confirm step.
+      expect(find.byType(Slider), findsWidgets);
 
-    await tester.tap(find.byKey(const Key('setup_apply')));
-    await tester.pump(const Duration(milliseconds: 600));
-    await tester.pump(const Duration(seconds: 1));
-    expect(rec.events.where((e) => e.name == 'budget_suggested'), hasLength(1));
-  });
+      await tester.tap(find.byKey(const Key('setup_apply')));
+      await tester.pump(const Duration(milliseconds: 600));
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        rec.events.where((e) => e.name == 'budget_suggested'),
+        hasLength(1),
+      );
+    },
+  );
 
-  testWidgets('import: a shared link is read, lines are mapped, import runs', (tester) async {
+  testWidgets('import: a shared link is read, lines are mapped, import runs', (
+    tester,
+  ) async {
     final rec = Rec();
     // A CSV served for the link: not a workbook, read as text.
-    final csv = Uint8List.fromList(File('test/fixtures/sheets/budget_grid.csv').readAsBytesSync());
+    final csv = Uint8List.fromList(
+      File('test/fixtures/sheets/budget_grid.csv').readAsBytesSync(),
+    );
     String? asked;
-    await open(tester, '/budget-import', rec, fetch: (id) async {
-      asked = id;
-      return csv;
-    });
+    await open(
+      tester,
+      '/budget-import',
+      rec,
+      fetch: (id) async {
+        asked = id;
+        return csv;
+      },
+    );
     await tester.enterText(find.byKey(const Key('import_link')), 'not a link');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump(const Duration(milliseconds: 300));
-    expect(find.text('That does not look like a Google Sheets link.'), findsOneWidget);
+    expect(
+      find.text('That does not look like a Google Sheets link.'),
+      findsOneWidget,
+    );
 
-    await tester.enterText(find.byKey(const Key('import_link')), 'https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit?usp=sharing');
+    await tester.enterText(
+      find.byKey(const Key('import_link')),
+      'https://docs.google.com/spreadsheets/d/1AbCdEfGhIjKlMnOpQrStUvWxYz0123456789/edit?usp=sharing',
+    );
     await tester.tap(find.text('Read the sheet'));
     await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(seconds: 1));
@@ -100,7 +144,24 @@ void main() {
     await open(tester, '/budget', Rec());
     // The mock has data, so the entry points live in Manage.
     final build = find.byKey(const Key('manage_build'));
-    await tester.scrollUntilVisible(build, 300, scrollable: find.byType(Scrollable).first);
+    final more = find.byKey(const Key('manage_more'));
+    await tester.scrollUntilVisible(
+      more,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    if (build.evaluate().isEmpty) {
+      // Lift it clear of the floating tab bar.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+      await tester.pumpAndSettle();
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+    }
+    await tester.scrollUntilVisible(
+      build,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(build, findsOneWidget);
     expect(find.byKey(const Key('manage_import')), findsOneWidget);
   });

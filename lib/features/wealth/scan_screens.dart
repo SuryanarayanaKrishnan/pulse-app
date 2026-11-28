@@ -307,11 +307,11 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
         if (r.holdingsUpdated > 0) '${r.holdingsUpdated} updated',
         if (r.fundsAdded > 0)
           '${r.fundsAdded} ${r.fundsAdded == 1 ? 'fund' : 'funds'} added',
-        if (r.fundsUpdated > 0) '${r.fundsUpdated} ${r.fundsUpdated == 1 ? 'fund' : 'funds'} updated',
+        if (r.fundsUpdated > 0)
+          '${r.fundsUpdated} ${r.fundsUpdated == 1 ? 'fund' : 'funds'} updated',
         if (r.sipsAdded > 0)
           '${r.sipsAdded} ${r.sipsAdded == 1 ? 'SIP' : 'SIPs'} tracked',
-        if (r.fundsUnmatched > 0)
-          '${r.fundsUnmatched} without a live NAV',
+        if (r.fundsUnmatched > 0) '${r.fundsUnmatched} without a live NAV',
       ];
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -423,7 +423,9 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
       CaptureKind.portfolio =>
         _holdings.length == 1 ? 'One holding' : '${_holdings.length} holdings',
       CaptureKind.mutualFunds =>
-        _funds.length == 1 ? 'One mutual fund' : '${_funds.length} mutual funds',
+        _funds.length == 1
+            ? 'One mutual fund'
+            : '${_funds.length} mutual funds',
       CaptureKind.unknown => 'Found',
     };
     return '$what · check before saving';
@@ -481,7 +483,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           decoration: const InputDecoration(
             hintText: 'What you paid (optional)',
-            prefixText: 'AED  ',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
           ),
         ),
         const SizedBox(height: Space.sm),
@@ -585,7 +588,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: InputDecoration(
                     hintText: 'Avg cost',
-                    prefixText: '${h.draft.currency}  ',
+                    prefixIcon: CurrencyPrefix(h.draft.currency),
+                    prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),
@@ -664,7 +668,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: const InputDecoration(
                     hintText: 'Invested',
-                    prefixText: '₹  ',
+                    prefixIcon: CurrencyPrefix('₹'),
+                    prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),
@@ -681,7 +686,8 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
                   ),
                   decoration: const InputDecoration(
                     hintText: 'SIP (optional)',
-                    prefixText: '₹  ',
+                    prefixIcon: CurrencyPrefix('₹'),
+                    prefixIconConstraints: kCurrencyPrefixConstraints,
                   ),
                 ),
               ),
@@ -699,8 +705,7 @@ class _ScanSheetState extends ConsumerState<ScanSheet> {
           Padding(
             padding: const EdgeInsets.only(top: Space.sm),
             child: Text(
-              f.draft.note ??
-                  'Matched to the official fund list for a live NAV. A SIP is tracked monthly and you confirm each instalment.',
+              f.draft.note ?? 'Matched to the official fund list for a live NAV. A SIP is tracked monthly and you confirm each instalment.',
               style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
             ),
           ),

@@ -28,7 +28,13 @@ abstract class WealthStore {
   Future<void> savePriceQuotes(List<PriceQuote> quotes);
 
   /// Stores [valueMinor] for the day; the latest value of a day wins.
-  Future<void> recordValuation(String kind, String id, CalDate date, int valueMinor, {double? unitPrice});
+  Future<void> recordValuation(
+    String kind,
+    String id,
+    CalDate date,
+    int valueMinor, {
+    double? unitPrice,
+  });
   Future<List<ValuationPoint>> valuationHistory(String kind, String id);
 }
 
@@ -75,32 +81,35 @@ class LocalWealthStore implements WealthStore {
 
   @override
   Future<List<JewelleryItem>> jewellery() async => [
-    for (final r in await (db.select(db.jewelleryItems)
-          ..where((t) => t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get())
+    for (final r
+        in await (db.select(db.jewelleryItems)
+              ..where((t) => t.deletedAt.isNull())
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get())
       _jewel(r),
   ];
 
   @override
   Future<JewelleryItem> saveJewellery(JewelleryItem i) async {
-    await db.into(db.jewelleryItems).insertOnConflictUpdate(
-      JewelleryItemsCompanion(
-        id: Value(i.id),
-        name: Value(i.name),
-        weightGrams: Value(i.weightGrams),
-        karat: Value(i.karat),
-        purityOverride: Value(i.purityOverride),
-        purchasePriceMinor: Value(i.purchasePriceMinor),
-        purchaseDate: Value(i.purchaseDate?.toIso()),
-        makingChargesMinor: Value(i.makingChargesMinor),
-        notes: Value(i.notes),
-        photoPaths: Value(jsonEncode(i.photoPaths)),
-        approximate: Value(i.approximate),
-        createdAt: Value(i.createdAt),
-        deletedAt: const Value(null),
-      ),
-    );
+    await db
+        .into(db.jewelleryItems)
+        .insertOnConflictUpdate(
+          JewelleryItemsCompanion(
+            id: Value(i.id),
+            name: Value(i.name),
+            weightGrams: Value(i.weightGrams),
+            karat: Value(i.karat),
+            purityOverride: Value(i.purityOverride),
+            purchasePriceMinor: Value(i.purchasePriceMinor),
+            purchaseDate: Value(i.purchaseDate?.toIso()),
+            makingChargesMinor: Value(i.makingChargesMinor),
+            notes: Value(i.notes),
+            photoPaths: Value(jsonEncode(i.photoPaths)),
+            approximate: Value(i.approximate),
+            createdAt: Value(i.createdAt),
+            deletedAt: const Value(null),
+          ),
+        );
     return i;
   }
 
@@ -109,15 +118,19 @@ class LocalWealthStore implements WealthStore {
     await (db.update(db.jewelleryItems)..where((t) => t.id.equals(id))).write(
       JewelleryItemsCompanion(deletedAt: Value(DateTime.now().toUtc())),
     );
-    await (db.delete(db.valuationSnapshots)..where((t) => t.subjectKind.equals('jewellery') & t.subjectId.equals(id))).go();
+    await (db.delete(db.valuationSnapshots)..where(
+          (t) => t.subjectKind.equals('jewellery') & t.subjectId.equals(id),
+        ))
+        .go();
   }
 
   @override
   Future<List<WealthDocument>> documents() async => [
-    for (final r in await (db.select(db.documentAttachments)
-          ..where((t) => t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get())
+    for (final r
+        in await (db.select(db.documentAttachments)
+              ..where((t) => t.deletedAt.isNull())
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get())
       WealthDocument(
         id: r.id,
         title: r.title,
@@ -134,21 +147,23 @@ class LocalWealthStore implements WealthStore {
 
   @override
   Future<WealthDocument> saveDocument(WealthDocument d) async {
-    await db.into(db.documentAttachments).insertOnConflictUpdate(
-      DocumentAttachmentsCompanion(
-        id: Value(d.id),
-        title: Value(d.title),
-        category: Value(d.category.wire),
-        notes: Value(d.notes),
-        filePaths: Value(jsonEncode(d.filePaths)),
-        dueOn: Value(d.dueOn?.toIso()),
-        dueKind: Value(d.dueKind),
-        remindDaysBefore: Value(d.remindDaysBefore),
-        notificationId: Value(d.notificationId),
-        createdAt: Value(d.createdAt),
-        deletedAt: const Value(null),
-      ),
-    );
+    await db
+        .into(db.documentAttachments)
+        .insertOnConflictUpdate(
+          DocumentAttachmentsCompanion(
+            id: Value(d.id),
+            title: Value(d.title),
+            category: Value(d.category.wire),
+            notes: Value(d.notes),
+            filePaths: Value(jsonEncode(d.filePaths)),
+            dueOn: Value(d.dueOn?.toIso()),
+            dueKind: Value(d.dueKind),
+            remindDaysBefore: Value(d.remindDaysBefore),
+            notificationId: Value(d.notificationId),
+            createdAt: Value(d.createdAt),
+            deletedAt: const Value(null),
+          ),
+        );
     return d;
   }
 
@@ -160,10 +175,11 @@ class LocalWealthStore implements WealthStore {
 
   @override
   Future<List<FundHolding>> funds() async => [
-    for (final r in await (db.select(db.fundHoldings)
-          ..where((t) => t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get())
+    for (final r
+        in await (db.select(db.fundHoldings)
+              ..where((t) => t.deletedAt.isNull())
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get())
       FundHolding(
         id: r.id,
         kind: r.kind,
@@ -184,32 +200,35 @@ class LocalWealthStore implements WealthStore {
 
   @override
   Future<FundHolding> saveFund(FundHolding f) async {
-    await db.into(db.fundHoldings).insertOnConflictUpdate(
-      FundHoldingsCompanion(
-        id: Value(f.id),
-        kind: Value(f.kind),
-        schemeCode: Value(f.schemeCode),
-        name: Value(f.name),
-        currency: Value(f.currency),
-        units: Value(f.units),
-        avgCostNav: Value(f.avgCostNav),
-        nav: Value(f.nav),
-        navDate: Value(f.navDate),
-        navSource: Value(f.navSource),
-        navFetchedAt: Value(f.navFetchedAt),
-        sipAmountMinor: Value(f.sipAmountMinor),
-        sipDay: Value(f.sipDay),
-        createdAt: Value(f.createdAt),
-        deletedAt: const Value(null),
-      ),
-    );
+    await db
+        .into(db.fundHoldings)
+        .insertOnConflictUpdate(
+          FundHoldingsCompanion(
+            id: Value(f.id),
+            kind: Value(f.kind),
+            schemeCode: Value(f.schemeCode),
+            name: Value(f.name),
+            currency: Value(f.currency),
+            units: Value(f.units),
+            avgCostNav: Value(f.avgCostNav),
+            nav: Value(f.nav),
+            navDate: Value(f.navDate),
+            navSource: Value(f.navSource),
+            navFetchedAt: Value(f.navFetchedAt),
+            sipAmountMinor: Value(f.sipAmountMinor),
+            sipDay: Value(f.sipDay),
+            createdAt: Value(f.createdAt),
+            deletedAt: const Value(null),
+          ),
+        );
     return f;
   }
 
   @override
-  Future<void> deleteFund(String id) => (db.update(db.fundHoldings)..where((t) => t.id.equals(id))).write(
-    FundHoldingsCompanion(deletedAt: Value(DateTime.now().toUtc())),
-  );
+  Future<void> deleteFund(String id) =>
+      (db.update(db.fundHoldings)..where((t) => t.id.equals(id))).write(
+        FundHoldingsCompanion(deletedAt: Value(DateTime.now().toUtc())),
+      );
 
   @override
   Future<List<PriceQuote>> priceQuotes() async => [
@@ -245,35 +264,59 @@ class LocalWealthStore implements WealthStore {
   });
 
   @override
-  Future<void> recordValuation(String kind, String id, CalDate date, int valueMinor, {double? unitPrice}) async {
+  Future<void> recordValuation(
+    String kind,
+    String id,
+    CalDate date,
+    int valueMinor, {
+    double? unitPrice,
+  }) async {
     final iso = date.toIso();
-    final existing = await (db.select(db.valuationSnapshots)
-          ..where((t) => t.subjectKind.equals(kind) & t.subjectId.equals(id) & t.snapshotDate.equals(iso)))
-        .getSingleOrNull();
+    final existing =
+        await (db.select(db.valuationSnapshots)..where(
+              (t) =>
+                  t.subjectKind.equals(kind) &
+                  t.subjectId.equals(id) &
+                  t.snapshotDate.equals(iso),
+            ))
+            .getSingleOrNull();
     if (existing == null) {
-      await db.into(db.valuationSnapshots).insert(
-        ValuationSnapshotsCompanion.insert(
-          id: newId(),
-          subjectKind: kind,
-          subjectId: id,
-          snapshotDate: iso,
-          valueMinor: valueMinor,
+      await db
+          .into(db.valuationSnapshots)
+          .insert(
+            ValuationSnapshotsCompanion.insert(
+              id: newId(),
+              subjectKind: kind,
+              subjectId: id,
+              snapshotDate: iso,
+              valueMinor: valueMinor,
+              unitPrice: Value(unitPrice),
+            ),
+          );
+    } else {
+      await (db.update(
+        db.valuationSnapshots,
+      )..where((t) => t.id.equals(existing.id))).write(
+        ValuationSnapshotsCompanion(
+          valueMinor: Value(valueMinor),
           unitPrice: Value(unitPrice),
         ),
-      );
-    } else {
-      await (db.update(db.valuationSnapshots)..where((t) => t.id.equals(existing.id))).write(
-        ValuationSnapshotsCompanion(valueMinor: Value(valueMinor), unitPrice: Value(unitPrice)),
       );
     }
   }
 
   @override
-  Future<List<ValuationPoint>> valuationHistory(String kind, String id) async => [
-    for (final r in await (db.select(db.valuationSnapshots)
-          ..where((t) => t.subjectKind.equals(kind) & t.subjectId.equals(id))
-          ..orderBy([(t) => OrderingTerm.asc(t.snapshotDate)]))
-        .get())
+  Future<List<ValuationPoint>> valuationHistory(
+    String kind,
+    String id,
+  ) async => [
+    for (final r
+        in await (db.select(db.valuationSnapshots)
+              ..where(
+                (t) => t.subjectKind.equals(kind) & t.subjectId.equals(id),
+              )
+              ..orderBy([(t) => OrderingTerm.asc(t.snapshotDate)]))
+            .get())
       ValuationPoint(CalDate.parse(r.snapshotDate), r.valueMinor, r.unitPrice),
   ];
 }
@@ -291,7 +334,9 @@ class MemoryWealthStore implements WealthStore {
   }) : _jewellery = [...jewellery],
        _documents = [...documents],
        _funds = [...funds],
-       _history = {for (final e in history.entries) e.key: [...e.value]} {
+       _history = {
+         for (final e in history.entries) e.key: [...e.value],
+       } {
     for (final q in quotes) {
       _quotes[q.symbol] = q;
     }
@@ -312,7 +357,8 @@ class MemoryWealthStore implements WealthStore {
   @override
   Future<List<JewelleryItem>> jewellery() async => List.of(_jewellery);
   @override
-  Future<JewelleryItem> saveJewellery(JewelleryItem i) async => _upsert<JewelleryItem>(_jewellery, i, (e) => e.id);
+  Future<JewelleryItem> saveJewellery(JewelleryItem i) async =>
+      _upsert<JewelleryItem>(_jewellery, i, (e) => e.id);
   @override
   Future<void> deleteJewellery(String id) async {
     _jewellery.removeWhere((e) => e.id == id);
@@ -322,16 +368,20 @@ class MemoryWealthStore implements WealthStore {
   @override
   Future<List<WealthDocument>> documents() async => List.of(_documents);
   @override
-  Future<WealthDocument> saveDocument(WealthDocument d) async => _upsert<WealthDocument>(_documents, d, (e) => e.id);
+  Future<WealthDocument> saveDocument(WealthDocument d) async =>
+      _upsert<WealthDocument>(_documents, d, (e) => e.id);
   @override
-  Future<void> deleteDocument(String id) async => _documents.removeWhere((e) => e.id == id);
+  Future<void> deleteDocument(String id) async =>
+      _documents.removeWhere((e) => e.id == id);
 
   @override
   Future<List<FundHolding>> funds() async => List.of(_funds);
   @override
-  Future<FundHolding> saveFund(FundHolding f) async => _upsert<FundHolding>(_funds, f, (e) => e.id);
+  Future<FundHolding> saveFund(FundHolding f) async =>
+      _upsert<FundHolding>(_funds, f, (e) => e.id);
   @override
-  Future<void> deleteFund(String id) async => _funds.removeWhere((e) => e.id == id);
+  Future<void> deleteFund(String id) async =>
+      _funds.removeWhere((e) => e.id == id);
 
   @override
   Future<List<PriceQuote>> priceQuotes() async => _quotes.values.toList();
@@ -343,7 +393,13 @@ class MemoryWealthStore implements WealthStore {
   }
 
   @override
-  Future<void> recordValuation(String kind, String id, CalDate date, int valueMinor, {double? unitPrice}) async {
+  Future<void> recordValuation(
+    String kind,
+    String id,
+    CalDate date,
+    int valueMinor, {
+    double? unitPrice,
+  }) async {
     final list = _history.putIfAbsent('$kind:$id', () => []);
     list.removeWhere((p) => p.date == date);
     list.add(ValuationPoint(date, valueMinor, unitPrice));
@@ -351,5 +407,6 @@ class MemoryWealthStore implements WealthStore {
   }
 
   @override
-  Future<List<ValuationPoint>> valuationHistory(String kind, String id) async => List.of(_history['$kind:$id'] ?? const []);
+  Future<List<ValuationPoint>> valuationHistory(String kind, String id) async =>
+      List.of(_history['$kind:$id'] ?? const []);
 }

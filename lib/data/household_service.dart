@@ -55,7 +55,12 @@ class JointData {
 
 /// What the Household screen shows about syncing.
 class HouseholdStatus {
-  const HouseholdStatus({this.running = false, this.lastSuccess, this.error, this.keyMissing = false});
+  const HouseholdStatus({
+    this.running = false,
+    this.lastSuccess,
+    this.error,
+    this.keyMissing = false,
+  });
   final bool running, keyMissing;
   final DateTime? lastSuccess;
 
@@ -114,22 +119,40 @@ class HouseholdService {
   // ---- create / join / leave -------------------------------------------------
 
   /// Starts a household with this phone as its first member.
-  Future<HouseholdConfig> create({required String householdName, required String myName}) async {
-    if (await store.config() != null) throw StateError('Already in a household');
+  Future<HouseholdConfig> create({
+    required String householdName,
+    required String myName,
+  }) async {
+    if (await store.config() != null)
+      throw StateError('Already in a household');
     final id = BackupCrypto.hex(BackupCrypto.randomBytes(16));
     await keys.save(BackupCrypto.randomBytes(32));
-    final cfg = await _enrol(id: id, name: householdName.trim().isEmpty ? 'Our household' : householdName.trim(), myName: myName);
+    final cfg = await _enrol(
+      id: id,
+      name: householdName.trim().isEmpty
+          ? 'Our household'
+          : householdName.trim(),
+      myName: myName,
+    );
     analytics.track(AnalyticsEvent.householdCreated);
     unawaited(sync().catchError((_) => const HouseholdSyncResult()));
     return cfg;
   }
 
   /// Joins with an invite code. Throws [FormatException] for a bad code.
-  Future<HouseholdConfig> join({required String code, required String myName}) async {
-    if (await store.config() != null) throw StateError('Already in a household');
+  Future<HouseholdConfig> join({
+    required String code,
+    required String myName,
+  }) async {
+    if (await store.config() != null)
+      throw StateError('Already in a household');
     final invite = HouseholdInvite.decode(code);
     await keys.save(invite.key);
-    final cfg = await _enrol(id: invite.householdId, name: 'Our household', myName: myName);
+    final cfg = await _enrol(
+      id: invite.householdId,
+      name: 'Our household',
+      myName: myName,
+    );
     analytics.track(AnalyticsEvent.householdMemberJoined);
     // First sync pulls the log (the household's name and members) before
     // anything of mine is compared with it.
@@ -139,11 +162,26 @@ class HouseholdService {
     return cfg;
   }
 
-  Future<HouseholdConfig> _enrol({required String id, required String name, required String myName}) async {
+  Future<HouseholdConfig> _enrol({
+    required String id,
+    required String name,
+    required String myName,
+  }) async {
     final me = _newId();
-    final cfg = HouseholdConfig(id: id, name: name, myMemberId: me, createdAt: _clock().toUtc());
+    final cfg = HouseholdConfig(
+      id: id,
+      name: name,
+      myMemberId: me,
+      createdAt: _clock().toUtc(),
+    );
     await store.saveConfig(cfg);
-    await store.saveMember(HMember(id: me, name: myName.trim().isEmpty ? 'Me' : myName.trim(), joinedAt: _clock().toUtc()));
+    await store.saveMember(
+      HMember(
+        id: me,
+        name: myName.trim().isEmpty ? 'Me' : myName.trim(),
+        joinedAt: _clock().toUtc(),
+      ),
+    );
     return cfg;
   }
 
@@ -316,9 +354,15 @@ class HouseholdService {
 
   // ---- ownership -----------------------------------------------------------------
 
-  Future<Ownership> ownership(String table, String id) => store.ownership(table, id);
+  Future<Ownership> ownership(String table, String id) =>
+      store.ownership(table, id);
 
-  Future<void> setOwnership(String table, String id, {String? owner, bool? isPrivate}) async {
+  Future<void> setOwnership(
+    String table,
+    String id, {
+    String? owner,
+    bool? isPrivate,
+  }) async {
     await store.setOwnership(table, id, owner: owner, isPrivate: isPrivate);
     unawaited(sync().catchError((_) => const HouseholdSyncResult()));
   }
@@ -361,17 +405,46 @@ class HouseholdService {
     final goals = <HGoal>[];
     for (final r in own) {
       final owner = Owner.absolute(r.owner, me);
-      final v = {...r.values, 'owner': owner, 'direction': r.values['direction'] ?? 'debit'};
+      final v = {
+        ...r.values,
+        'owner': owner,
+        'direction': r.values['direction'] ?? 'debit',
+      };
       switch (r.table) {
         case HTable.transactions:
-          if (txFromRow(r.id, v) case final t?) txs.add(_withPrivate(t, r.isPrivate));
+          if (txFromRow(r.id, v) case final t?)
+            txs.add(_withPrivate(t, r.isPrivate));
         case HTable.lines:
           if (lineFromRow(r.id, v) case final l?) {
-            lines.add(HLine(id: l.id, name: l.name, isLiability: l.isLiability, valueMinor: l.valueMinor, currency: l.currency, owner: owner, isPrivate: r.isPrivate));
+            lines.add(
+              HLine(
+                id: l.id,
+                name: l.name,
+                isLiability: l.isLiability,
+                valueMinor: l.valueMinor,
+                currency: l.currency,
+                owner: owner,
+                isPrivate: r.isPrivate,
+              ),
+            );
           }
         case HTable.goals:
           if (goalFromRow(r.id, v) case final g?) {
-            goals.add(HGoal(id: g.id, name: g.name, targetMinor: g.targetMinor, currentMinor: g.currentMinor, progressBps: g.progressBps, kind: g.kind, iconKey: g.iconKey, targetDate: g.targetDate, paused: g.paused, owner: owner, isPrivate: r.isPrivate));
+            goals.add(
+              HGoal(
+                id: g.id,
+                name: g.name,
+                targetMinor: g.targetMinor,
+                currentMinor: g.currentMinor,
+                progressBps: g.progressBps,
+                kind: g.kind,
+                iconKey: g.iconKey,
+                targetDate: g.targetDate,
+                paused: g.paused,
+                owner: owner,
+                isPrivate: r.isPrivate,
+              ),
+            );
           }
       }
     }
@@ -413,7 +486,8 @@ class HouseholdService {
 
   /// Runs one sync of the household log. Safe to call often; a call made
   /// while one runs joins it.
-  Future<HouseholdSyncResult> sync() => _running ??= _sync().whenComplete(() => _running = null);
+  Future<HouseholdSyncResult> sync() =>
+      _running ??= _sync().whenComplete(() => _running = null);
 
   Future<HouseholdSyncResult> _sync({bool withdraw = false}) async {
     final cfg = await store.config();
@@ -430,7 +504,9 @@ class HouseholdService {
     _emit(HouseholdStatus(running: true, lastSuccess: _last.lastSuccess));
     try {
       final engine = SyncEngine(
-        bridge: HouseholdBridge(StoreHouseholdSource(store, cfg, withdrawAll: withdraw)),
+        bridge: HouseholdBridge(
+          StoreHouseholdSource(store, cfg, withdrawAll: withdraw),
+        ),
         transport: tf(cfg.id),
         store: sf(cfg.id),
         dataKey: Uint8List.fromList(key),
@@ -440,9 +516,14 @@ class HouseholdService {
       );
       final r = await engine.sync();
       _emit(HouseholdStatus(lastSuccess: _clock()));
-      return HouseholdSyncResult(sent: r.pushedChanges, received: r.appliedChanges);
+      return HouseholdSyncResult(
+        sent: r.pushedChanges,
+        received: r.appliedChanges,
+      );
     } catch (e) {
-      _emit(HouseholdStatus(lastSuccess: _last.lastSuccess, error: _message(e)));
+      _emit(
+        HouseholdStatus(lastSuccess: _last.lastSuccess, error: _message(e)),
+      );
       rethrow;
     }
   }
@@ -454,11 +535,15 @@ class HouseholdService {
     if (e is SyncException && e.reason == 'too_new') {
       return 'Another member runs a newer version of Pulse. Update this one to keep sharing.';
     }
-    if (e is SyncUnavailable || (e is SyncException && e.reason == 'signed_out')) {
+    if (e is SyncUnavailable ||
+        (e is SyncException && e.reason == 'signed_out')) {
       return 'Sign in to share with your household.';
     }
     final t = e.runtimeType.toString();
-    if (t.contains('Socket') || t.contains('Timeout') || t.contains('ClientException') || t.contains('Handshake')) {
+    if (t.contains('Socket') ||
+        t.contains('Timeout') ||
+        t.contains('ClientException') ||
+        t.contains('Handshake')) {
       return "You're offline. Changes are shared when you're back.";
     }
     return "Couldn't sync just now. Your data is safe on this phone.";

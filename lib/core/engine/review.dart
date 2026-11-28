@@ -86,7 +86,11 @@ int reviewStreak(Set<CalDate> zeroDays, CalDate today) {
 }
 
 /// Adds [today] and forgets days older than [keepDays] (the list stays tiny).
-Set<CalDate> withInboxZero(Set<CalDate> days, CalDate today, {int keepDays = 400}) => {
+Set<CalDate> withInboxZero(
+  Set<CalDate> days,
+  CalDate today, {
+  int keepDays = 400,
+}) => {
   for (final d in days)
     if (today.daysSince(d) <= keepDays) d,
   today,

@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulse/core/engine/budget_suggest.dart';
 
-SuggestedLine _l(String id, int aed) => SuggestedLine(id, aed * 100, SuggestBasis.known, fixed: false);
+SuggestedLine _l(String id, int aed) =>
+    SuggestedLine(id, aed * 100, SuggestBasis.known, fixed: false);
 
 void main() {
   group('budget setup summary math', () {
@@ -19,13 +20,21 @@ void main() {
     });
 
     test('over-budget gives a negative leftover and the flag', () {
-      final b = SuggestedBudget(lines: [_l('rent', 14000)], savingsMinor: 225000, incomeMinor: 1500000);
+      final b = SuggestedBudget(
+        lines: [_l('rent', 14000)],
+        savingsMinor: 225000,
+        incomeMinor: 1500000,
+      );
       expect(b.leftoverMinor, -125000);
       expect(b.isOverBudget, isTrue);
     });
 
     test('exactly spent is not over budget', () {
-      final b = SuggestedBudget(lines: [_l('rent', 12750)], savingsMinor: 225000, incomeMinor: 1500000);
+      final b = SuggestedBudget(
+        lines: [_l('rent', 12750)],
+        savingsMinor: 225000,
+        incomeMinor: 1500000,
+      );
       expect(b.leftoverMinor, 0);
       expect(b.isOverBudget, isFalse);
     });

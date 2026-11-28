@@ -13,19 +13,41 @@ class _Spy extends MockPulseRepository {
   _Spy() : super(latency: Duration.zero);
   final calls = <String>[];
   @override
-  Future<Transaction> addManualTransaction({required String merchant, required double amount, required SpendCategory category, DateTime? date, String? note}) {
+  Future<Transaction> addManualTransaction({
+    required String merchant,
+    required double amount,
+    required SpendCategory category,
+    DateTime? date,
+    String? note,
+  }) {
     calls.add('tx $merchant $amount ${category.id}');
-    return super.addManualTransaction(merchant: merchant, amount: amount, category: category, date: date, note: note);
+    return super.addManualTransaction(
+      merchant: merchant,
+      amount: amount,
+      category: category,
+      date: date,
+      note: note,
+    );
   }
 
   @override
-  Future<Asset> addAsset({required String name, required AssetKind kind, required double value}) async {
+  Future<Asset> addAsset({
+    required String name,
+    required AssetKind kind,
+    required double value,
+  }) async {
     calls.add('asset $name ${kind.name} $value');
     return Asset(id: 'x', name: name, kind: kind, value: value);
   }
 
   @override
-  Future<BankAccount> addBankAccount({required String bank, required String name, required BankAccountKind kind, String? last4, double balance = 0}) async {
+  Future<BankAccount> addBankAccount({
+    required String bank,
+    required String name,
+    required BankAccountKind kind,
+    String? last4,
+    double balance = 0,
+  }) async {
     calls.add('account $bank $name ${kind.name} $balance');
     return (await bankAccounts()).first;
   }
@@ -37,10 +59,18 @@ Future<_Spy> _open(WidgetTester tester, Widget sheet) async {
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   final spy = _Spy();
-  await tester.pumpWidget(ProviderScope(
-    overrides: [repositoryProvider.overrideWithValue(spy), analyticsProvider.overrideWithValue(NoopAnalytics())],
-    child: MaterialApp(theme: PulseTheme.light, home: Scaffold(body: sheet)),
-  ));
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        repositoryProvider.overrideWithValue(spy),
+        analyticsProvider.overrideWithValue(NoopAnalytics()),
+      ],
+      child: MaterialApp(
+        theme: PulseTheme.light,
+        home: Scaffold(body: sheet),
+      ),
+    ),
+  );
   await tester.pump(const Duration(milliseconds: 300));
   return spy;
 }
@@ -51,7 +81,9 @@ bool _enabled(WidgetTester tester, String label) {
 }
 
 void main() {
-  testWidgets('cash expense: amount, one category tap, save (note optional)', (tester) async {
+  testWidgets('cash expense: amount, one category tap, save (note optional)', (
+    tester,
+  ) async {
     final spy = await _open(tester, const AddManualTxSheet());
     await tester.tap(find.text('Save'), warnIfMissed: false);
     await tester.pump();
@@ -66,7 +98,9 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('cash expense rejects zero, negative and infinite amounts', (tester) async {
+  testWidgets('cash expense rejects zero, negative and infinite amounts', (
+    tester,
+  ) async {
     final spy = await _open(tester, const AddManualTxSheet());
     for (final bad in ['0', '-5', 'abc', 'Infinity', 'NaN']) {
       await tester.enterText(find.byType(TextField).first, bad);
@@ -77,11 +111,16 @@ void main() {
     expect(spy.calls, isEmpty);
   });
 
-  testWidgets('asset: value alone is enough, name defaults to the kind', (tester) async {
+  testWidgets('asset: value alone is enough, name defaults to the kind', (
+    tester,
+  ) async {
     final spy = await _open(tester, const AddAssetSheet());
     await tester.tap(find.text('Gold'));
     await tester.pump();
-    await tester.enterText(find.widgetWithText(TextField, 'Value today'), '5,000');
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Value today'),
+      '5,000',
+    );
     await tester.pump();
     await tester.tap(find.text('Add'));
     await tester.pump(const Duration(milliseconds: 300));

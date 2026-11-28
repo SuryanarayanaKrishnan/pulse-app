@@ -18,6 +18,7 @@ import '../wallet/wallet_sections.dart';
 import '../wallet/wallet_stack.dart';
 import 'card_widgets.dart';
 import 'combo_widgets.dart';
+import 'credit_capacity.dart';
 import 'digit_widgets.dart';
 import 'quick_pick_sheet.dart';
 import 'suggestion_widgets.dart';
@@ -122,11 +123,21 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   }
 }
 
-class _CardsView extends ConsumerWidget {
+enum _CardsPane { wallet, combos, credit }
+
+class _CardsView extends ConsumerStatefulWidget {
   const _CardsView({super.key});
+  @override
+  ConsumerState<_CardsView> createState() => _CardsViewState();
+}
+
+/// Cards opens on the wallet. Best combos and the credit picture are one tap
+/// away on the switch under the total, not stacked below it.
+class _CardsViewState extends ConsumerState<_CardsView> {
+  _CardsPane _pane = _CardsPane.wallet;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final c = context.pc;
     final cards = ref.watch(myCardsProvider);
     final txs = ref.watch(transactionsProvider).value ?? const [];
@@ -183,95 +194,97 @@ class _CardsView extends ConsumerWidget {
                   : 'Next: ${next.card.issuer} on ${DateFormat('d MMM').format(next.card.dueDate)}',
               captionColor: next != null && next.urgent ? c.warning : null,
             ),
-            FigureRow([
-              ('Minimum', Money.aed(minDue, decimals: false), null),
-              (
-                'Utilisation',
-                '${(u * 100).round()}%',
-                u > 0.5 ? c.negative : (u > 0.3 ? c.warning : null),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.gutter,
+                Space.md,
+                Space.gutter,
+                Space.sm,
               ),
-              (
-                'Rewards this month',
-                Money.aed(earned, decimals: false),
-                c.positive,
+              child: Segmented<_CardsPane>(
+                key: const Key('cards-pane'),
+                segments: const {
+                  _CardsPane.wallet: 'Wallet',
+                  _CardsPane.combos: 'Best combos',
+                  _CardsPane.credit: 'Credit',
+                },
+                value: _pane,
+                onChanged: (v) => setState(() => _pane = v),
               ),
-            ]),
-            SectionHeader(
-              'Your cards',
-              action: 'Ranked',
-              onAction: () => context.pushOnce(Routes.cardsRanked),
             ),
-            const SizedBox(height: Space.sm),
-            WalletStack(
-              count: list.length,
-              faceBuilder: (_, i) =>
-                  CreditCardVisual(card: list[i], elevated: true),
-              heroTag: (i) => 'card-${list[i].id}',
-              semanticLabel: (i) => cardName(list[i]),
-              onTap: (i) {
-                ref
-                    .read(analyticsProvider)
-                    .track(AnalyticsEvent.cardRecommendationViewed('detail'));
-                openCardDetail(context, list, i);
-              },
-            ),
-            if (dues.isNotEmpty) ...[
-              const SectionHeader('Upcoming dues'),
-              RowGroup(
-                indent: ListRow.leadingInset,
-                children: [
-                  for (final d in dues)
-                    DueRow(
-                      d,
-                      onTap: () =>
-                          openCardDetail(context, list, list.indexOf(d.card)),
-                    ),
-                ],
+            if (_pane == _CardsPane.wallet) ...[
+              SectionHeader(
+                'Your cards',
+                action: 'Ranked',
+                onAction: () => context.pushOnce(Routes.cardsRanked),
               ),
-            ],
-            const SizedBox(height: Space.lg),
-            RowGroup(
-              indent: ListRow.leadingInset,
-              children: [
-                ListRow(
-                  leading: IconWell(
-                    Icons.leaderboard_outlined,
-                    color: c.accent,
-                  ),
-                  title: 'My cards ranked',
-                  subtitle: 'By use, rewards and return after fees',
-                  chevron: true,
-                  onTap: () => context.pushOnce(Routes.cardsRanked),
-                ),
-                ListRow(
-                  leading: IconWell(Icons.bolt_rounded, color: c.accent),
-                  title: 'Which card should I use?',
-                  subtitle: 'Before you pay',
-                  chevron: true,
-                  onTap: () => showWhichCard(context, ref),
+              const SizedBox(height: Space.sm),
+              WalletStack(
+                count: list.length,
+                faceBuilder: (_, i) =>
+                    CreditCardVisual(card: list[i], elevated: true),
+                heroTag: (i) => 'card-${list[i].id}',
+                semanticLabel: (i) => cardName(list[i]),
+                onTap: (i) {
+                  ref
+                      .read(analyticsProvider)
+                      .track(AnalyticsEvent.cardRecommendationViewed('detail'));
+                  openCardDetail(context, list, i);
+                },
+              ),
+              if (dues.isNotEmpty) ...[
+                const SectionHeader('Upcoming dues'),
+                RowGroup(
+                  indent: ListRow.leadingInset,
+                  children: [
+                    for (final d in dues)
+                      DueRow(
+                        d,
+                        onTap: () =>
+                            openCardDetail(context, list, list.indexOf(d.card)),
+                      ),
+                  ],
                 ),
               ],
-            ),
-            const SectionHeader('Utilisation'),
-            UtilisationChart(list),
-            const CardSuggestionsSection(),
-            const CardCombosSection(limit: 3),
-            AsyncView<List<CreditCard>>(
-              value: catalog,
-              loading: const SizedBox.shrink(),
-              builder: (cat) => cat.isEmpty
-                  ? const SizedBox.shrink()
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const SectionHeader('Discover'),
-                        RowGroup(
-                          indent: 56 + Space.md,
-                          children: [for (final k in cat) _CatalogRow(k)],
-                        ),
-                      ],
-                    ),
-            ),
+            ],
+            if (_pane == _CardsPane.combos) ...[
+              const CardSuggestionsSection(),
+              const CardCombosSection(limit: 3),
+              AsyncView<List<CreditCard>>(
+                value: catalog,
+                loading: const SizedBox.shrink(),
+                builder: (cat) => cat.isEmpty
+                    ? const SizedBox.shrink()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SectionHeader('Discover'),
+                          RowGroup(
+                            indent: 56 + Space.md,
+                            children: [for (final k in cat) _CatalogRow(k)],
+                          ),
+                        ],
+                      ),
+              ),
+            ],
+            if (_pane == _CardsPane.credit) ...[
+              FigureRow([
+                ('Minimum', Money.aed(minDue, decimals: false), null),
+                (
+                  'Utilisation',
+                  '${(u * 100).round()}%',
+                  u > 0.5 ? c.negative : (u > 0.3 ? c.warning : null),
+                ),
+                (
+                  'Rewards this month',
+                  Money.aed(earned, decimals: false),
+                  c.positive,
+                ),
+              ]),
+              const SectionHeader('Utilisation'),
+              UtilisationChart(list),
+              const CreditCapacitySection(),
+            ],
           ],
         );
       },

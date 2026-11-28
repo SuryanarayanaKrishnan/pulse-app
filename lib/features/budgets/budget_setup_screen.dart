@@ -45,7 +45,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     super.dispose();
   }
 
-  int get _incomeMinor => ((double.tryParse(_income.text.replaceAll(',', '').trim()) ?? 0) * 100).round();
+  int get _incomeMinor =>
+      ((double.tryParse(_income.text.replaceAll(',', '').trim()) ?? 0) * 100)
+          .round();
 
   SuggestedBudget get _plan {
     final base = suggestBudget(
@@ -62,13 +64,23 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
     // Order stays as first suggested so a line does not jump under the thumb.
     final lines = [
       for (final l in base.lines)
-        _edited.containsKey(l.categoryId) ? l.withAmount(_edited[l.categoryId]!, SuggestBasis.known) : l,
+        _edited.containsKey(l.categoryId)
+            ? l.withAmount(_edited[l.categoryId]!, SuggestBasis.known)
+            : l,
     ];
-    return SuggestedBudget(lines: lines, savingsMinor: base.savingsMinor, incomeMinor: base.incomeMinor);
+    return SuggestedBudget(
+      lines: lines,
+      savingsMinor: base.savingsMinor,
+      incomeMinor: base.incomeMinor,
+    );
   }
 
   SpendCategory _cat(String id, List<SpendCategory> custom) =>
-      [...SpendCategory.defaults, ...custom].where((c) => c.id == id).firstOrNull ?? SpendCategory(id, id);
+      [
+        ...SpendCategory.defaults,
+        ...custom,
+      ].where((c) => c.id == id).firstOrNull ??
+      SpendCategory(id, id);
 
   /// Slider ceiling per line: fixed from the first suggestion so the thumb
   /// does not jump while dragging.
@@ -83,25 +95,38 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
   Future<void> _apply(SuggestedBudget plan) async {
     setState(() => _saving = true);
     try {
-      final n = await ref.read(budgetImportServiceProvider).applySuggestion(plan, DateTime.now());
-      ref.read(analyticsProvider).track(AnalyticsEvent.budgetSuggested(history: _useHistory && _history.isNotEmpty));
+      final n = await ref
+          .read(budgetImportServiceProvider)
+          .applySuggestion(plan, DateTime.now());
+      ref
+          .read(analyticsProvider)
+          .track(
+            AnalyticsEvent.budgetSuggested(
+              history: _useHistory && _history.isNotEmpty,
+            ),
+          );
       invalidateBudgetPlan(ref);
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('Budget set for $n categories. Tap any to adjust.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Budget set for $n categories. Tap any to adjust.'),
+        ),
+      );
       context.pop();
     } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Could not save the budget. Try again.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not save the budget. Try again.')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final custom = ref.watch(categoriesProvider).value ?? const <SpendCategory>[];
+    final custom =
+        ref.watch(categoriesProvider).value ?? const <SpendCategory>[];
     final plan = _plan;
     final ready = _incomeMinor > 0;
     return Scaffold(
@@ -113,7 +138,12 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
         ),
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 120),
+        padding: const EdgeInsets.fromLTRB(
+          Space.gutter,
+          Space.sm,
+          Space.gutter,
+          120,
+        ),
         children: [
           Text(
             'A few answers and we draft the whole month for you. Change anything after.',
@@ -126,12 +156,24 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
             key: const Key('setup_income'),
             controller: _income,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]'))],
-            decoration: const InputDecoration(prefixText: 'AED ', hintText: 'After tax and deductions'),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
+            ],
+            decoration: const InputDecoration(
+              prefixIcon: CurrencyPrefix('AED'),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
+              hintText: 'After tax and deductions',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),
-          _Stepper(label: 'Adults', value: _adults, min: 1, max: 4, onChanged: (v) => setState(() => _adults = v)),
+          _Stepper(
+            label: 'Adults',
+            value: _adults,
+            min: 1,
+            max: 4,
+            onChanged: (v) => setState(() => _adults = v),
+          ),
           _Stepper(
             label: 'Children',
             value: _children,
@@ -143,7 +185,11 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
           Text('Home', style: context.tt.titleSmall),
           const SizedBox(height: Space.sm),
           Segmented<Housing>(
-            segments: const {Housing.rent: 'Rent', Housing.owned: 'Mortgage', Housing.free: 'Provided'},
+            segments: const {
+              Housing.rent: 'Rent',
+              Housing.owned: 'Mortgage',
+              Housing.free: 'Provided',
+            },
             value: _housing,
             onChanged: (v) => setState(() => _housing = v),
           ),
@@ -165,7 +211,9 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
               key: const Key('setup_history'),
               contentPadding: EdgeInsets.zero,
               title: const Text('Use my past spending'),
-              subtitle: const Text('Where we have it, it replaces the typical figure.'),
+              subtitle: const Text(
+                'Where we have it, it replaces the typical figure.',
+              ),
               value: _useHistory,
               onChanged: (v) => setState(() => _useHistory = v),
             ),
@@ -189,7 +237,8 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
                     category: _cat(l.categoryId, custom),
                     line: l,
                     max: _maxFor(l),
-                    onChanged: (minor) => setState(() => _edited[l.categoryId] = minor),
+                    onChanged: (minor) =>
+                        setState(() => _edited[l.categoryId] = minor),
                   ),
               ],
             ),
@@ -203,7 +252,12 @@ class _BudgetSetupScreenState extends ConsumerState<BudgetSetupScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            Space.md,
+          ),
           child: PrimaryButton(
             key: const Key('setup_apply'),
             label: 'Use this budget',
@@ -238,7 +292,9 @@ class _SummaryStrip extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, box) {
           final scale = MediaQuery.textScalerOf(context).scale(1);
-          final longest = figures.map((f) => f.$2.length).reduce((a, b) => a > b ? a : b);
+          final longest = figures
+              .map((f) => f.$2.length)
+              .reduce((a, b) => a > b ? a : b);
           // Roughly 0.6em per glyph for titleMedium; stack when a column cannot hold it.
           final need = longest * 0.62 * 16 * scale;
           final stacked = scale > 1.3 || need > box.maxWidth / 3;
@@ -251,13 +307,24 @@ class _SummaryStrip extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 2),
                     child: Row(
                       children: [
-                        Text(f.$1, style: context.tt.bodySmall!.copyWith(color: c.textSecondary)),
+                        Text(
+                          f.$1,
+                          style: context.tt.bodySmall!.copyWith(
+                            color: c.textSecondary,
+                          ),
+                        ),
                         const SizedBox(width: Space.md),
                         Expanded(
                           child: FittedBox(
                             fit: BoxFit.scaleDown,
                             alignment: Alignment.centerRight,
-                            child: Text(f.$2, maxLines: 1, style: context.tt.titleMedium!.copyWith(color: f.$3)),
+                            child: Text(
+                              f.$2,
+                              maxLines: 1,
+                              style: context.tt.titleMedium!.copyWith(
+                                color: f.$3,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -268,7 +335,10 @@ class _SummaryStrip extends StatelessWidget {
           }
           return Row(
             key: const Key('setup_summary_row'),
-            children: [for (final f in figures) Expanded(child: _Figure(f.$1, f.$2, f.$3))],
+            children: [
+              for (final f in figures)
+                Expanded(child: _Figure(f.$1, f.$2, f.$3)),
+            ],
           );
         },
       ),
@@ -285,7 +355,11 @@ class _Figure extends StatelessWidget {
     children: [
       FittedBox(
         fit: BoxFit.scaleDown,
-        child: Text(value, style: context.tt.titleMedium!.copyWith(color: color), maxLines: 1),
+        child: Text(
+          value,
+          style: context.tt.titleMedium!.copyWith(color: color),
+          maxLines: 1,
+        ),
       ),
       const SizedBox(height: 2),
       Text(
@@ -319,7 +393,11 @@ class _Stepper extends StatelessWidget {
       ),
       SizedBox(
         width: 28,
-        child: Text('$value', textAlign: TextAlign.center, style: context.tt.titleMedium),
+        child: Text(
+          '$value',
+          textAlign: TextAlign.center,
+          style: context.tt.titleMedium,
+        ),
       ),
       IconButton(
         tooltip: 'More ${label.toLowerCase()}',
@@ -357,7 +435,8 @@ class _LineEditorState extends State<_LineEditor> {
     super.didUpdateWidget(old);
     // Keep the field in step when the plan itself changes (income, family).
     final typed = (int.tryParse(_ctl.text) ?? 0) * 100;
-    if (typed != widget.line.amountMinor && !_hasFocus) _ctl.text = _fmt(widget.line.amountMinor);
+    if (typed != widget.line.amountMinor && !_hasFocus)
+      _ctl.text = _fmt(widget.line.amountMinor);
   }
 
   bool _hasFocus = false;
@@ -366,9 +445,13 @@ class _LineEditorState extends State<_LineEditor> {
   /// caret), never narrower than the old 104. When that is more than ~45% of the screen the field moves under the name,
   /// so a value like 125,000 is shown in full at any text scale.
   double _fieldWidth(BuildContext context) {
-    final style = (Theme.of(context).textTheme.bodyLarge ?? const TextStyle()).merge(context.tt.bodyLarge);
+    final style = (Theme.of(context).textTheme.bodyLarge ?? const TextStyle())
+        .merge(context.tt.bodyLarge);
     final tp = TextPainter(
-      text: TextSpan(text: 'AED ${_ctl.text.isEmpty ? '0' : _ctl.text}', style: style),
+      text: TextSpan(
+        text: 'AED ${_ctl.text.isEmpty ? '0' : _ctl.text}',
+        style: style,
+      ),
       textDirection: TextDirection.ltr,
       textScaler: MediaQuery.textScalerOf(context),
     )..layout();
@@ -396,7 +479,10 @@ class _LineEditorState extends State<_LineEditor> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(widget.category.label, style: context.tt.bodyLarge),
-        Text(widget.line.basis.label, style: context.tt.bodySmall!.copyWith(color: c.textTertiary)),
+        Text(
+          widget.line.basis.label,
+          style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
+        ),
       ],
     );
     final field = Focus(
@@ -408,6 +494,8 @@ class _LineEditorState extends State<_LineEditor> {
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
         decoration: const InputDecoration(
+          // Always holds a number, so (unlike an empty amount field) the
+          // prefix text is never hidden here.
           prefixText: 'AED ',
           isDense: true,
           contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 14),
@@ -436,7 +524,10 @@ class _LineEditorState extends State<_LineEditor> {
                 const SizedBox(height: Space.xs),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: SizedBox(width: math.min(fieldW, screenW - 2 * Space.gutter), child: field),
+                  child: SizedBox(
+                    width: math.min(fieldW, screenW - 2 * Space.gutter),
+                    child: field,
+                  ),
                 ),
               ],
             )

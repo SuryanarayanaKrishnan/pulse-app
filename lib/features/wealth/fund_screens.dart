@@ -406,8 +406,10 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Current NAV per unit',
-                prefixText:
-                    '${_mode == _Mode.search && _hasPick ? 'INR' : _currency}  ',
+                prefixIcon: CurrencyPrefix(
+                  _mode == _Mode.search && _hasPick ? 'INR' : _currency,
+                ),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -419,8 +421,10 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
               ),
               decoration: InputDecoration(
                 hintText: 'Average cost per unit (optional)',
-                prefixText:
-                    '${_mode == _Mode.search && _hasPick ? 'INR' : _currency}  ',
+                prefixIcon: CurrencyPrefix(
+                  _mode == _Mode.search && _hasPick ? 'INR' : _currency,
+                ),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -471,7 +475,7 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
             const SizedBox(height: Space.md),
             const Hairline(),
             ListRow(
-              leading: IconWell(Icons.picture_as_pdf_outlined, color: c.accent),
+              leading: IconWell(Icons.picture_as_pdf_outlined, color: c.calm),
               title: 'Import a CAMS or KFintech statement',
               subtitle: 'Brings in every fund at once',
               chevron: true,
@@ -646,7 +650,11 @@ class _FundDetailScreenState extends ConsumerState<FundDetailScreen> {
               dense: true,
               title: 'NAV',
               subtitle:
-                  '${f.navSource == 'market' ? 'Market' : f.navSource == 'statement' ? 'From your statement' : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
+                  '${f.navSource == 'market'
+                      ? 'Market'
+                      : f.navSource == 'statement'
+                      ? 'From your statement'
+                      : 'Entered by you'}${navAge.isEmpty ? '' : ' · $navAge'}',
               trailing: Text(
                 '${f.currency} ${f.nav.toStringAsFixed(4)}',
                 style: PulseTheme.amount(c.textPrimary, size: 15),

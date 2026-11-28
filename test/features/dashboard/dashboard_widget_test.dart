@@ -21,6 +21,36 @@ class Rec implements Analytics {
   dynamic noSuchMethod(Invocation i) => null;
 }
 
+/// The Home new installs got before the calm default: a full dashboard.
+DashboardLayout classicLayout() => const DashboardLayout(
+  activeId: 'everyday',
+  dashboards: [
+    Dashboard(
+      id: 'everyday',
+      name: 'Everyday',
+      widgets: [
+        DashWidget(DashKind.safeToSpend),
+        DashWidget(DashKind.upcoming),
+        DashWidget(DashKind.netWorth, WidgetSize.compact),
+        DashWidget(DashKind.splitBalances, WidgetSize.compact),
+        DashWidget(DashKind.goals, WidgetSize.compact),
+        DashWidget(DashKind.recentCaptures),
+      ],
+    ),
+    Dashboard(
+      id: 'month_end',
+      name: 'Month end',
+      widgets: [
+        DashWidget(DashKind.budgetProgress),
+        DashWidget(DashKind.cashFlow),
+        DashWidget(DashKind.savingsRate, WidgetSize.compact),
+        DashWidget(DashKind.spendByCategory),
+        DashWidget(DashKind.cardRewards, WidgetSize.compact),
+      ],
+    ),
+  ],
+);
+
 late MemoryKvStore kv;
 late Rec rec;
 
@@ -31,7 +61,9 @@ Future<void> pumpHome(WidgetTester tester, {DashboardLayout? saved}) async {
   addTearDown(tester.view.reset);
   kv = MemoryKvStore();
   rec = Rec();
-  if (saved != null) kv.data[DashboardController.storageKey] = saved.encode();
+  // These tests exercise the editor, so they start from a full Home.
+  kv.data[DashboardController.calmMigrationKey] = '1';
+  kv.data[DashboardController.storageKey] = (saved ?? classicLayout()).encode();
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -65,7 +97,20 @@ Future<void> reveal(WidgetTester tester, Finder f) async {
 }
 
 Future<void> customise(WidgetTester tester) async {
-  await tester.tap(find.bySemanticsLabel('Customise'));
+  final add = find.byKey(const Key('home-add-widget'));
+  await tester.scrollUntilVisible(
+    add,
+    300,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await tester.pumpAndSettle();
+  await tester.tap(add);
+  await tester.pumpAndSettle();
+  // The editor opens at the top of Home.
+  tester
+      .state<ScrollableState>(find.byType(Scrollable).first)
+      .position
+      .jumpTo(0);
   await tester.pumpAndSettle();
 }
 

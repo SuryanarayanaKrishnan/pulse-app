@@ -19,7 +19,12 @@ void main() {
       db,
       clock: () => now,
       wealth: () async => const [
-        Asset(id: 'account:a1', name: 'Salary', kind: AssetKind.cash, value: 12000),
+        Asset(
+          id: 'account:a1',
+          name: 'Salary',
+          kind: AssetKind.cash,
+          value: 12000,
+        ),
         Asset(id: 'as1', name: 'Gold coins', kind: AssetKind.gold, value: 5000),
         Asset(
           id: 'l1',
@@ -112,15 +117,24 @@ void main() {
 
   tearDown(() => db.close());
 
-  test('only this and the previous month of transactions are offered', () async {
-    final ids = [for (final r in await store.ownRows()) if (r.table == HTable.transactions) r.id]..sort();
-    expect(ids, ['t_new', 't_prev']);
-  });
+  test(
+    'only this and the previous month of transactions are offered',
+    () async {
+      final ids = [
+        for (final r in await store.ownRows())
+          if (r.table == HTable.transactions) r.id,
+      ]..sort();
+      expect(ids, ['t_new', 't_prev']);
+    },
+  );
 
   test('wealth lines carry their account, asset or loan ownership; unsupported kinds are private', () async {
     await store.setOwnership(HTable.lines, 'account:a1', owner: Owner.shared);
     await store.setOwnership(HTable.lines, 'as1', isPrivate: true);
-    final rows = {for (final r in await store.ownRows()) if (r.table == HTable.lines) r.id: r};
+    final rows = {
+      for (final r in await store.ownRows())
+        if (r.table == HTable.lines) r.id: r,
+    };
     expect(rows['account:a1']!.owner, Owner.shared);
     expect(rows['as1']!.isPrivate, isTrue);
     expect(rows['l1']!.owner, Owner.me);
@@ -219,17 +233,45 @@ void main() {
 
   test('exported transactions carry only the allowed columns', () async {
     final r = (await store.ownRows()).firstWhere((r) => r.id == 't_new');
-    expect(r.values.keys.toSet(), {'category_id', 'amount_minor', 'currency', 'direction', 'merchant', 'posted_at', 'excluded'});
+    expect(r.values.keys.toSet(), {
+      'category_id',
+      'amount_minor',
+      'currency',
+      'direction',
+      'merchant',
+      'posted_at',
+      'excluded',
+    });
     expect(r.values['merchant'], 'Carrefour');
   });
 
   test('config, members, bills, limits and mirror round trip; leaving clears them and resets owners', () async {
-    await store.saveConfig(HouseholdConfig(id: 'h', name: 'Us', myMemberId: 'm1', createdAt: now));
+    await store.saveConfig(
+      HouseholdConfig(id: 'h', name: 'Us', myMemberId: 'm1', createdAt: now),
+    );
     await store.saveMember(HMember(id: 'm1', name: 'Maya', joinedAt: now));
-    await store.saveBill(const HBill(id: 'b', name: 'Rent', amountMinor: 650000, dueDay: 1, split: {'m1': 6000, 'm2': 4000}));
-    await store.saveLimit(const HLimit(id: 'l', categoryId: 'groceries', limitMinor: 200000));
-    await store.putMirror(HTable.transactions, 'x', {'amount_minor': 5, 'owner': 'm2'});
-    await store.setOwnership(HTable.transactions, 't_new', owner: 'm2', isPrivate: true);
+    await store.saveBill(
+      const HBill(
+        id: 'b',
+        name: 'Rent',
+        amountMinor: 650000,
+        dueDay: 1,
+        split: {'m1': 6000, 'm2': 4000},
+      ),
+    );
+    await store.saveLimit(
+      const HLimit(id: 'l', categoryId: 'groceries', limitMinor: 200000),
+    );
+    await store.putMirror(HTable.transactions, 'x', {
+      'amount_minor': 5,
+      'owner': 'm2',
+    });
+    await store.setOwnership(
+      HTable.transactions,
+      't_new',
+      owner: 'm2',
+      isPrivate: true,
+    );
 
     expect((await store.config())!.shareMine, isTrue);
     expect((await store.members()).single.name, 'Maya');

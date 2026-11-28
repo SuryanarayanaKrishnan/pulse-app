@@ -1,45 +1,16 @@
-import 'dart:io' show Platform;
-
-import '../../core/network/cloud_access.dart';
-
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'salary_sheet.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../backup/backup_providers.dart';
-import '../../bugreport/launcher.dart';
-import '../../bugreport/settings.dart';
-import '../../backup/backup_state.dart';
-import '../../household/household_providers.dart';
-import '../../sync/sync_providers.dart';
-import '../sync/sync_screen.dart';
 import '../../core/analytics/privacy_controller.dart';
 import '../../core/entitlement/entitlement.dart';
-import '../../core/env/env.dart';
 import '../../core/router/router.dart';
-import '../../core/theme/theme_mode.dart';
 import '../../core/theme/tokens.dart';
-import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
 import '../auth/session.dart';
-import '../cards/digit_widgets.dart';
-import '../cards/upsell_widgets.dart';
-import '../../data/card_upsell_providers.dart';
-import '../../capture/providers.dart';
-import '../capture/capture_setup_sheet.dart';
-import '../rewards/reward_moment.dart';
-import '../statements/statement_actions.dart';
-import '../coach/coach_progress.dart';
 import '../discover/all_features_sheet.dart';
-import '../onboarding/start_choice.dart';
-import '../tour/tour_progress.dart';
-
-bool get _android => !kIsWeb && Platform.isAndroid;
-
-String _ordinal(int d) => (d % 100 >= 11 && d % 100 <= 13) ? 'th' : switch (d % 10) { 1 => 'st', 2 => 'nd', 3 => 'rd', _ => 'th' };
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -47,14 +18,9 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final backup = ref.watch(backupStateProvider);
-    final sync = ref.watch(syncStatusProvider);
-    final household = ref.watch(jointDataProvider).value;
     final gmail = ref.watch(emailConnectionsProvider).value ?? const [];
-    final connected = gmail.where((g) => g.active).firstOrNull;
-    final rules = ref.watch(rulesProvider).value;
-    final statements = ref.watch(statementsProvider).value;
-    final attention = statements?.where((s) => s.needsAttention).length ?? 0;
+    final onCount = gmail.where((g) => g.active).length;
+    final backup = ref.watch(backupStateProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Settings'),
@@ -84,164 +50,96 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
           ),
-          const SectionHeader('Plan'),
+          const SizedBox(height: Space.lg),
           RowGroup(
-            indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: IconWell(
-                  Icons.workspace_premium_outlined,
-                  color: context.pc.accent,
-                ),
-                title: 'Pulse Plus',
-                subtitle: ref.watch(entitlementProvider).isPlus
-                    ? 'On (test billing)'
-                    : 'Niche card intel and AI summaries',
+                key: const Key('settings_search'),
+                leading: const IconWell(Icons.search_rounded),
+                title: 'Search',
+                subtitle: 'Find a setting, screen, card or payment',
                 chevron: true,
-                onTap: () => context.push(Routes.plus),
+                onTap: () => showAllFeaturesSheet(context),
               ),
             ],
           ),
-          if (ref.watch(dismissedDigitsProvider).isNotEmpty) ...[
-            const SectionHeader('Card digits you skipped'),
-            RowGroup(
-              indent: ListRow.leadingInset,
-              children: [
-                for (final d
-                    in ref.watch(dismissedDigitsProvider).toList()..sort())
-                  ListRow(
-                    leading: const IconWell(Icons.undo_rounded),
-                    title: 'Ask again about ••$d',
-                    subtitle: 'You said these alerts are not yours',
-                    onTap: () {
-                      ref.read(dismissedDigitsProvider.notifier).restore(d);
-                      ref.invalidate(digitSuggestionsProvider);
-                    },
-                  ),
-              ],
-            ),
-          ],
-          if ((ref.watch(dismissedUpsellsProvider).value ?? const <String>{})
-              .isNotEmpty) ...[
-            const SectionHeader('Card suggestions'),
-            RowGroup(
-              indent: ListRow.leadingInset,
-              children: [
-                ListRow(
-                  key: const Key('settings_hidden_suggestions'),
-                  leading: const IconWell(Icons.undo_rounded),
-                  title: 'Hidden card suggestions',
-                  subtitle:
-                      '${ref.watch(dismissedUpsellsProvider).value!.length} hidden. Tap to show any again.',
-                  chevron: true,
-                  onTap: () => showHiddenSuggestions(context),
-                ),
-              ],
-            ),
-          ],
-          const SectionHeader('Money'),
+          const SizedBox(height: Space.lg),
           RowGroup(
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                leading: const IconWell(Icons.category_outlined),
-                title: 'Categories & budgets',
+                key: const Key('settings_connections'),
+                leading: IconWell(Icons.power_outlined),
+                title: 'Connections',
+                subtitle: 'Gmail, bank texts, Apple Pay',
+                trailing: onCount == 0
+                    ? null
+                    : Text('$onCount on', style: context.tt.bodySmall),
                 chevron: true,
-                onTap: () => context.push(Routes.categories),
+                onTap: () => context.push(Routes.connections),
               ),
               ListRow(
-                key: const Key('settings_salary'),
                 leading: const IconWell(Icons.payments_outlined),
-                title: 'Salary',
-                subtitle: switch (ref.watch(manualSalaryProvider).value) {
-                  final s? => '${Money.aed(s.amountMinor / 100, decimals: s.amountMinor % 100 != 0)} on the ${s.day}${_ordinal(s.day)}',
-                  null => 'Set it by hand, or we find it in your bank alerts',
-                },
+                title: 'Money',
+                subtitle: 'Salary, categories, rules, monthly close',
                 chevron: true,
-                onTap: () => showPulseSheet<void>(
-                  context,
-                  builder: (_) => SalarySheet(current: ref.read(manualSalaryProvider).value),
-                ),
+                onTap: () => context.push(Routes.settingsSection('money')),
               ),
               ListRow(
-                leading: const IconWell(Icons.auto_mode_rounded),
-                title: 'Automations',
-                subtitle: rules == null
-                    ? null
-                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+                leading: const IconWell(Icons.people_outline_rounded),
+                title: 'Family and household',
+                subtitle: 'Shared budget, members, family vault',
                 chevron: true,
-                onTap: () => context.push(Routes.automations),
+                onTap: () => context.push(Routes.settingsSection('family')),
               ),
-              ListRow(
-                leading: const IconWell(Icons.fact_check_outlined),
-                title: 'Monthly close',
-                subtitle: statements == null
-                    ? null
-                    : (attention == 0
-                          ? 'All statements match'
-                          : '$attention need you'),
-                subtitleColor: attention == 0 ? null : c.warning,
-                chevron: true,
-                onTap: () => context.push(Routes.statements),
-              ),
-            ],
-          ),
-          const SectionHeader('Your data'),
-          RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
               ListRow(
                 leading: const IconWell(Icons.cloud_done_outlined),
-                title: 'Backup',
-                subtitle: backup.enabled
-                    ? (backup.destination == BackupDestination.file
-                          ? 'File only, encrypted'
-                          : backedUpAgo(backup.lastSuccess, DateTime.now()))
-                    : 'Keep your data safe when you change phones',
+                title: 'Backup and devices',
+                subtitle: backup.enabled ? 'Backup is on' : 'Backup is off',
                 subtitleColor:
                     backup.cloud && backup.needsAttention(DateTime.now())
                     ? c.warning
                     : null,
                 chevron: true,
-                onTap: () => context.push(Routes.backup),
+                onTap: () => context.push(Routes.settingsSection('data')),
               ),
-              ListRow(
-                leading: const IconWell(Icons.sync_rounded),
-                title: 'Sync devices',
-                subtitle: syncSubtitle(sync, DateTime.now()),
-                subtitleColor: sync.lastError != null ? c.warning : null,
-                chevron: true,
-                onTap: () => context.push(Routes.sync),
-              ),
-            ],
-          ),
-          const SectionHeader('Privacy'),
-          RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
               ListRow(
                 leading: const IconWell(Icons.privacy_tip_outlined),
-                title: 'Privacy',
+                title: 'Privacy and security',
                 subtitle: ref.watch(privacyControllerProvider).sharing
                     ? 'Sharing anonymous usage'
                     : 'Not sharing anything',
                 chevron: true,
                 onTap: () => context.push(Routes.privacy),
               ),
+              ListRow(
+                leading: const IconWell(Icons.palette_outlined),
+                title: 'Look and notifications',
+                subtitle: 'Theme, colour, currency',
+                chevron: true,
+                onTap: () => context.push(Routes.settingsSection('look')),
+              ),
+              ListRow(
+                leading: const IconWell(Icons.help_outline_rounded),
+                title: 'Help and about',
+                subtitle: 'Tour, report a bug, version',
+                chevron: true,
+                onTap: () => context.push(Routes.settingsSection('help')),
+              ),
             ],
           ),
-          const SectionHeader('Household'),
+          const SizedBox(height: Space.lg),
           RowGroup(
             indent: ListRow.leadingInset,
             children: [
               ListRow(
-                key: const Key('settings_household'),
-                leading: const IconWell(Icons.home_outlined),
-                title: 'Household',
-                subtitle: household == null
-                    ? 'Plan money together, privately'
-                    : '${household.config.name} · ${household.members.length} ${household.members.length == 1 ? 'member' : 'members'}',
+                leading: IconWell(Icons.workspace_premium_outlined),
+                title: 'Pulse Plus',
+                subtitle: ref.watch(entitlementProvider).isPlus
+                    ? 'On (test billing)'
+                    : 'Niche card intel and AI summaries',
                 chevron: true,
+<<<<<<< HEAD
                 onTap: () => context.push(Routes.household),
               ),
               ListRow(
@@ -529,6 +427,9 @@ class SettingsScreen extends ConsumerWidget {
                       : 'Off',
                   style: context.tt.bodyMedium,
                 ),
+=======
+                onTap: () => context.push(Routes.plus),
+>>>>>>> origin/main
               ),
             ],
           ),

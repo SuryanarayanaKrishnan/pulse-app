@@ -6,7 +6,11 @@ import 'package:pulse/core/learning/privacy_filter.dart';
 
 final _map = GlobalMerchantMap(
   version: 1,
-  entries: const {'carrefour': 'groceries', 'spinneys': 'groceries', '7 eleven': 'groceries'},
+  entries: const {
+    'carrefour': 'groceries',
+    'spinneys': 'groceries',
+    '7 eleven': 'groceries',
+  },
 );
 final _f = MerchantKeyFilter(_map);
 
@@ -75,11 +79,14 @@ void main() {
     });
 
     test('hard rules apply even to a "known" key that is polluted', () {
-      final m = GlobalMerchantMap(version: 1, entries: const {
-        'x@y.com': 'dining',
-        'cafe 12345': 'dining',
-        'cafe +971': 'dining',
-      });
+      final m = GlobalMerchantMap(
+        version: 1,
+        entries: const {
+          'x@y.com': 'dining',
+          'cafe 12345': 'dining',
+          'cafe +971': 'dining',
+        },
+      );
       final f = MerchantKeyFilter(m);
       for (final k in m.entries.keys) {
         expect(f.accepts(k), isFalse, reason: k);
@@ -89,20 +96,36 @@ void main() {
 
   group('fuzz', () {
     final rng = Random(20260124);
-    const alphabet = "abcdefghijklmnopqrstuvwxyz0123456789 &'.-+@_/:,éأ\u0000\t";
+    const alphabet =
+        "abcdefghijklmnopqrstuvwxyz0123456789 &'.-+@_/:,éأ\u0000\t";
     String randomString([int max = 60]) {
       final n = rng.nextInt(max);
-      return String.fromCharCodes([for (var i = 0; i < n; i++) alphabet.runes.elementAt(rng.nextInt(alphabet.runes.length))]);
+      return String.fromCharCodes([
+        for (var i = 0; i < n; i++)
+          alphabet.runes.elementAt(rng.nextInt(alphabet.runes.length)),
+      ]);
     }
 
     /// Whatever the filter accepts must satisfy every privacy invariant.
     void expectSafe(String k) {
-      expect(RegExp(r'\d{4}').hasMatch(k), isFalse, reason: 'digit run in "$k"');
-      expect(RegExp(r'\d').allMatches(k).length, lessThanOrEqualTo(4), reason: 'digits in "$k"');
+      expect(
+        RegExp(r'\d{4}').hasMatch(k),
+        isFalse,
+        reason: 'digit run in "$k"',
+      );
+      expect(
+        RegExp(r'\d').allMatches(k).length,
+        lessThanOrEqualTo(4),
+        reason: 'digits in "$k"',
+      );
       expect(k.contains('@'), isFalse, reason: k);
       expect(k.contains('+'), isFalse, reason: k);
       expect(k.contains('http'), isFalse, reason: k);
-      expect(k.length, lessThanOrEqualTo(MerchantKeyFilter.maxLength), reason: k);
+      expect(
+        k.length,
+        lessThanOrEqualTo(MerchantKeyFilter.maxLength),
+        reason: k,
+      );
       expect(k, k.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' '));
       expect(RegExp(r'[\u0000-\u001f]').hasMatch(k), isFalse);
     }
@@ -122,15 +145,17 @@ void main() {
     test('random strings with a business word still cannot smuggle private text', () {
       const words = ['cafe', 'trading', 'llc', 'pharmacy', 'store'];
       for (var i = 0; i < 20000; i++) {
-        final k = '${randomString(30)} ${words[rng.nextInt(words.length)]} ${randomString(30)}'
-            .toLowerCase()
-            .replaceAll(RegExp(r'\s+'), ' ')
-            .trim();
+        final k =
+            '${randomString(30)} ${words[rng.nextInt(words.length)]} ${randomString(30)}'
+                .toLowerCase()
+                .replaceAll(RegExp(r'\s+'), ' ')
+                .trim();
         if (_f.accepts(k)) expectSafe(k);
       }
     });
 
-    String digits(int n) => [for (var i = 0; i < n; i++) rng.nextInt(10)].join();
+    String digits(int n) =>
+        [for (var i = 0; i < n; i++) rng.nextInt(10)].join();
 
     test('phone numbers, emails, IBANs and card numbers never pass, however dressed', () {
       const names = ['pharmacy', 'cafe', 'trading llc', 'supermarket'];
@@ -146,15 +171,40 @@ void main() {
           'ref ${digits(8)}',
         ];
         final p = privates[rng.nextInt(privates.length)];
-        for (final k in ['$p $biz', '$biz $p', '$biz ${p.replaceAll(' ', '')}', p]) {
+        for (final k in [
+          '$p $biz',
+          '$biz $p',
+          '$biz ${p.replaceAll(' ', '')}',
+          p,
+        ]) {
           expect(_f.accepts(k.toLowerCase()), isFalse, reason: k);
         }
       }
     });
 
     test('person-like names never pass, with or without a business word', () {
-      const first = ['mohammed', 'ahmed', 'fatima', 'sarah', 'john', 'priya', 'rahul', 'omar', 'maryam', 'david'];
-      const last = ['khan', 'smith', 'patel', 'ali', 'hassan', 'kumar', 'sharma', 'bin rashid'];
+      const first = [
+        'mohammed',
+        'ahmed',
+        'fatima',
+        'sarah',
+        'john',
+        'priya',
+        'rahul',
+        'omar',
+        'maryam',
+        'david',
+      ];
+      const last = [
+        'khan',
+        'smith',
+        'patel',
+        'ali',
+        'hassan',
+        'kumar',
+        'sharma',
+        'bin rashid',
+      ];
       const biz = ['', ' trading', ' pharmacy', ' llc', ' cafe', ' store'];
       for (final a in first) {
         for (final b in last) {

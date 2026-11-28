@@ -40,7 +40,9 @@ void main() {
     final log = BugLog();
     log.error(
       FormatException("Bad amount 'AED 1,200' for sara@x.ae"),
-      StackTrace.fromString('#0      foo (package:pulse/a.dart:10:5)\n#1      bar (package:pulse/b.dart:20:7)'),
+      StackTrace.fromString(
+        '#0      foo (package:pulse/a.dart:10:5)\n#1      bar (package:pulse/b.dart:20:7)',
+      ),
     );
     final text = log.lines().join('\n');
     expect(text, contains('FormatException'));
@@ -59,7 +61,13 @@ void main() {
   test('analytics wrapper logs names, never properties', () {
     final log = BugLog();
     final a = LoggingAnalytics(NoopAnalytics(), log);
-    a.track(AnalyticsEvent.backupCompleted(trigger: 'auto', sizeBucket: '<1MB', seconds: 3));
+    a.track(
+      AnalyticsEvent.backupCompleted(
+        trigger: 'auto',
+        sizeBucket: '<1MB',
+        seconds: 3,
+      ),
+    );
     a.screen('/home');
     expect(log.entries.map((e) => e.text), ['backup_completed', '/home']);
   });

@@ -30,8 +30,31 @@ Future<T?> showPulseSheet<T>(
       maxWidth: 560,
       maxHeight: MediaQuery.sizeOf(context).height * (full ? 0.94 : 0.88),
     ),
-    builder: builder,
+    // Every sheet gets an opaque rounded surface here, so one that forgets its
+    // own background (the card picker did) is never see-through.
+    builder: (ctx) => PulseSheetSurface(child: builder(ctx)),
   );
+}
+
+/// The solid, rounded background behind every sheet's content.
+class PulseSheetSurface extends StatelessWidget {
+  const PulseSheetSurface({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.isDark ? c.surface : c.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(Radii.lg)),
+        child: child,
+      ),
+    );
+  }
 }
 
 /// Standard bottom sheet chrome: grabber, title, keyboard-aware padding.
@@ -41,10 +64,15 @@ class SheetScaffold extends StatelessWidget {
     required this.title,
     required this.child,
     this.subtitle,
+    this.footer,
   });
   final String title;
   final String? subtitle;
   final Widget child;
+
+  /// Pinned under the scrolling content, so the main action is always in
+  /// reach whatever the content height or keyboard.
+  final Widget? footer;
 
   @override
   Widget build(BuildContext context) {
@@ -60,33 +88,46 @@ class SheetScaffold extends StatelessWidget {
         Space.gutter,
         Space.sm,
         Space.gutter,
-        MediaQuery.viewInsetsOf(context).bottom + Space.xl,
+        // The keyboard, or else the home indicator, plus breathing room.
+        (MediaQuery.viewInsetsOf(context).bottom > 0
+                ? MediaQuery.viewInsetsOf(context).bottom
+                : MediaQuery.viewPaddingOf(context).bottom) +
+            Space.xl,
       ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 5,
-                margin: const EdgeInsets.only(bottom: Space.lg),
-                decoration: BoxDecoration(
-                  color: c.border,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: Space.lg),
+                      decoration: BoxDecoration(
+                        color: c.border,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  Text(title, style: context.tt.headlineMedium),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: Space.xs),
+                    Text(subtitle!, style: context.tt.bodyMedium),
+                  ],
+                  const SizedBox(height: Space.xl),
+                  child,
+                ],
               ),
             ),
-            Text(title, style: context.tt.headlineMedium),
-            if (subtitle != null) ...[
-              const SizedBox(height: Space.xs),
-              Text(subtitle!, style: context.tt.bodyMedium),
-            ],
-            const SizedBox(height: Space.xl),
-            child,
-          ],
-        ),
+          ),
+          if (footer != null) ...[const SizedBox(height: Space.lg), footer!],
+        ],
       ),
     );
   }

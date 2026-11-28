@@ -1,3 +1,4 @@
+import '../../core/utils/app_clock.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +45,7 @@ class BudgetScreen extends ConsumerWidget {
             children: [
               ScreenHeader(
                 'Budget',
-                subtitle: DateFormat('MMMM y').format(DateTime.now()),
+                subtitle: DateFormat('MMMM y').format(AppClock.now()),
                 trailing: [
                   RoundIconButton(
                     icon: Icons.receipt_long_outlined,
@@ -217,9 +218,35 @@ class _Body extends ConsumerWidget {
         const SectionHeader('Manage'),
         CoachTarget(
           id: 'manage',
-          child: RowGroup(
-            indent: ListRow.leadingInset,
-            children: [
+          child: _ManageGroup(
+            // With no budget yet, building or importing one is the whole point.
+            initiallyOpen: o.planned == 0,
+            primary: [
+              ListRow(
+                leading: const IconWell(Icons.category_outlined),
+                title: 'Categories & budgets',
+                subtitle: 'Add your own, set budgets and icons',
+                chevron: true,
+                onTap: () => context.push(Routes.categories),
+              ),
+              ListRow(
+                key: const Key('manage_recurring'),
+                leading: const IconWell(Icons.event_repeat_rounded),
+                title: 'Recurring',
+                subtitle: 'Bills and subscriptions',
+                chevron: true,
+                onTap: () => context.push(Routes.recurring),
+              ),
+              ListRow(
+                key: const Key('manage_reports'),
+                leading: const IconWell(Icons.grid_view_rounded),
+                title: 'Reports',
+                subtitle: 'Where the month went',
+                chevron: true,
+                onTap: () => context.push(Routes.reports),
+              ),
+            ],
+            more: [
               ListRow(
                 key: const Key('manage_build'),
                 leading: const IconWell(Icons.auto_awesome_outlined),
@@ -251,29 +278,6 @@ class _Body extends ConsumerWidget {
                 subtitle: 'For Google Sheets (File, Import)',
                 chevron: true,
                 onTap: () => exportSpreadsheet(context, ref, ExportFormat.csv),
-              ),
-              ListRow(
-                leading: const IconWell(Icons.category_outlined),
-                title: 'Categories & budgets',
-                subtitle: 'Add your own, set budgets and icons',
-                chevron: true,
-                onTap: () => context.push(Routes.categories),
-              ),
-              ListRow(
-                key: const Key('manage_recurring'),
-                leading: const IconWell(Icons.event_repeat_rounded),
-                title: 'Recurring',
-                subtitle: 'Bills and subscriptions',
-                chevron: true,
-                onTap: () => context.push(Routes.recurring),
-              ),
-              ListRow(
-                key: const Key('manage_reports'),
-                leading: const IconWell(Icons.grid_view_rounded),
-                title: 'Reports',
-                subtitle: 'Where the month went',
-                chevron: true,
-                onTap: () => context.push(Routes.reports),
               ),
               ListRow(
                 leading: const IconWell(Icons.auto_mode_rounded),
@@ -516,4 +520,41 @@ class _WhereItWentState extends State<_WhereItWent> {
         ),
     ];
   }
+}
+
+/// The tools under Budget. The few used most are always there; the rest sit
+/// behind "More tools" so the tab is not a long menu.
+class _ManageGroup extends StatefulWidget {
+  const _ManageGroup({
+    required this.primary,
+    required this.more,
+    this.initiallyOpen = false,
+  });
+  final bool initiallyOpen;
+  final List<Widget> primary;
+  final List<Widget> more;
+  @override
+  State<_ManageGroup> createState() => _ManageGroupState();
+}
+
+class _ManageGroupState extends State<_ManageGroup> {
+  late var _open = widget.initiallyOpen;
+
+  @override
+  Widget build(BuildContext context) => RowGroup(
+    indent: ListRow.leadingInset,
+    children: [
+      ...widget.primary,
+      if (_open) ...widget.more,
+      ListRow(
+        key: const Key('manage_more'),
+        leading: IconWell(
+          _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+        ),
+        title: _open ? 'Fewer tools' : 'More tools',
+        subtitle: _open ? null : 'Build, import, export, rules, monthly close',
+        onTap: () => setState(() => _open = !_open),
+      ),
+    ],
+  );
 }

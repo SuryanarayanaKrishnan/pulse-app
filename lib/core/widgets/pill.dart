@@ -4,7 +4,7 @@ import '../theme/tokens.dart';
 import 'haptics.dart';
 import 'pressable.dart';
 
-/// Chip, optionally selectable. Selected chips fill with the tab's accent.
+/// Chip, optionally selectable. Selected chips fill with ink (the primary text colour), not the accent.
 class Pill extends StatelessWidget {
   const Pill(
     this.label, {
@@ -25,15 +25,14 @@ class Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
-    final tab = context.tabAccent;
-    final fg = selected ? c.onAccent : c.textPrimary;
+    final fg = selected ? c.bg : c.textPrimary;
     final pill = AnimatedContainer(
       duration: Motion.fast,
       curve: Motion.curve,
       height: 36,
       padding: const EdgeInsets.symmetric(horizontal: Space.md + 2),
       decoration: BoxDecoration(
-        color: selected ? tab : c.surfaceElevated,
+        color: selected ? c.textPrimary : c.surfaceElevated,
         borderRadius: BorderRadius.circular(Radii.pill),
       ),
       child: Row(

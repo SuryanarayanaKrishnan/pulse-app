@@ -1,0 +1,45 @@
+name: Catalog drift
+
+# The bundled card catalog and combos are generated from the backend repo
+# (pulse). Hand edits here silently disappear at the next sync, and a backend
+# fix that is never synced never reaches the app. This weekly check fails when
+# the bundled cards.json differs from what the backend would generate.
+# Free: public repos on a hosted runner.
+
+on:
+  schedule:
+    - cron: "41 3 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: SuryanarayanaKrishnan/pulse
+          path: pulse
+      - uses: astral-sh/setup-uv@v5
+      - run: uv python install 3.13
+      - name: Install backend dependencies
+        working-directory: pulse
+        run: uv sync --frozen
+      - name: Bundled catalog matches the backend
+        run: pulse/.venv/bin/python tool/sync_catalog.py pulse --check
+      - name: Bundled combos match the backend export
+        run: |
+          (cd pulse && .venv/bin/python scripts/export_app_combos.py ../combos.expected.json)
+          python3 - <<'PY'
+          import json, sys
+          a = json.load(open("assets/catalog/combos.json"))
+          b = json.load(open("combos.expected.json"))
+          ids = lambda d: sorted(i["id"] for i in d["items"])
+          if ids(a) != ids(b) or {i["id"]: i.get("annual_saving_aed") for i in a["items"]} != {i["id"]: i.get("annual_saving_aed") for i in b["items"]}:
+              sys.exit("DRIFT: bundled combos.json differs from the backend export; regenerate it with scripts/export_app_combos.py")
+          print("combos match")
+          PY

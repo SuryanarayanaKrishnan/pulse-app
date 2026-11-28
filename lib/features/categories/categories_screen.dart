@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/router/router.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/analytics/analytics.dart';
@@ -27,99 +29,102 @@ class CategoriesScreen extends ConsumerWidget {
     return CoachHost(
       screen: CoachScreen.categories,
       child: Scaffold(
-      appBar: AppBar(
-        title: const Text('Categories'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
-          onPressed: () => context.popOrHome(),
-        ),
-        actions: [
-          CoachTarget(
-            id: 'new',
-            child: IconButton(
-            tooltip: 'New category',
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => showPulseSheet<void>(
-              context,
-              builder: (_) => const NewCategorySheet(),
+        appBar: AppBar(
+          title: const Text('Categories'),
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+            onPressed: () => context.popOrHome(),
+          ),
+          actions: [
+            CoachTarget(
+              id: 'new',
+              child: IconButton(
+                tooltip: 'New category',
+                icon: const Icon(Icons.add_rounded),
+                onPressed: () => showPulseSheet<void>(
+                  context,
+                  builder: (_) => const NewCategorySheet(),
+                ),
+              ),
             ),
-          )),
-        ],
-      ),
-      body: AsyncView<List<SpendCategory>>(
-        value: cats,
-        onRetry: () => ref.invalidate(categoriesProvider),
-        builder: (list) {
-          final total = planned.values.fold(0.0, (a, b) => a + b);
-          Widget row(SpendCategory x, {bool budgetable = true}) => ListRow(
-            leading: CategoryIcon.well(x),
-            title: x.label,
-            subtitle: [
-              if (x.custom) 'Custom',
-              if (budgetable)
-                planned[x] == null
-                    ? 'No budget'
-                    : '${Money.aed(planned[x]!, decimals: false)} a month',
-            ].join(' · '),
-            chevron: budgetable,
-            onTap: budgetable
-                ? () => showPulseSheet<void>(
-                    context,
-                    builder: (_) =>
-                        BudgetSheet(category: x, current: planned[x]),
-                  )
-                : null,
-          );
-          return ListView(
-            padding: const EdgeInsets.only(bottom: Space.xxxl),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  Space.gutter,
-                  Space.sm,
-                  Space.gutter,
-                  0,
-                ),
-                child: Text(
-                  'Monthly budgets total ${Money.aed(total, decimals: false)}. '
-                  'Tap a category to change its budget.',
-                  style: context.tt.bodyMedium,
-                ),
-              ),
-              const SectionHeader('Spending'),
-              CoachTarget(
-                id: 'list',
-                child: RowGroup(
-                indent: ListRow.leadingInset,
-                children: [
-                  for (final x in list)
-                    if (x.kind == CategoryKind.expense) row(x),
-                  ListRow(
-                    key: const Key('category_new_row'),
-                    leading: const IconWell(Icons.add_rounded),
-                    title: 'New category',
-                    subtitle: 'Your own name, icon and monthly budget',
-                    onTap: () => showPulseSheet<void>(
+          ],
+        ),
+        body: AsyncView<List<SpendCategory>>(
+          value: cats,
+          onRetry: () => ref.invalidate(categoriesProvider),
+          builder: (list) {
+            final total = planned.values.fold(0.0, (a, b) => a + b);
+            Widget row(SpendCategory x, {bool budgetable = true}) => ListRow(
+              leading: CategoryIcon.well(x),
+              title: x.label,
+              subtitle: [
+                if (x.custom) 'Custom',
+                if (budgetable)
+                  planned[x] == null
+                      ? 'No budget'
+                      : '${Money.aed(planned[x]!, decimals: false)} a month',
+              ].join(' · '),
+              chevron: budgetable,
+              onTap: budgetable
+                  ? () => showPulseSheet<void>(
                       context,
-                      builder: (_) => const NewCategorySheet(),
-                    ),
+                      builder: (_) =>
+                          BudgetSheet(category: x, current: planned[x]),
+                    )
+                  : null,
+            );
+            return ListView(
+              padding: const EdgeInsets.only(bottom: Space.xxxl),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    Space.gutter,
+                    Space.sm,
+                    Space.gutter,
+                    0,
                   ),
-                ],
-              )),
-              const SectionHeader('Income and transfers'),
-              RowGroup(
-                indent: ListRow.leadingInset,
-                children: [
-                  for (final x in list)
-                    if (x.kind != CategoryKind.expense)
-                      row(x, budgetable: false),
-                ],
-              ),
-            ],
-          );
-        },
+                  child: Text(
+                    'Monthly budgets total ${Money.aed(total, decimals: false)}. '
+                    'Tap a category to change its budget.',
+                    style: context.tt.bodyMedium,
+                  ),
+                ),
+                const SectionHeader('Spending'),
+                CoachTarget(
+                  id: 'list',
+                  child: RowGroup(
+                    indent: ListRow.leadingInset,
+                    children: [
+                      for (final x in list)
+                        if (x.kind == CategoryKind.expense) row(x),
+                      ListRow(
+                        key: const Key('category_new_row'),
+                        leading: const IconWell(Icons.add_rounded),
+                        title: 'New category',
+                        subtitle: 'Your own name, icon and monthly budget',
+                        onTap: () => showPulseSheet<void>(
+                          context,
+                          builder: (_) => const NewCategorySheet(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SectionHeader('Income and transfers'),
+                RowGroup(
+                  indent: ListRow.leadingInset,
+                  children: [
+                    for (final x in list)
+                      if (x.kind != CategoryKind.expense)
+                        row(x, budgetable: false),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
       ),
-    ));
+    );
   }
 }
 
@@ -182,7 +187,11 @@ class _BudgetSheetState extends ConsumerState<BudgetSheet> {
           controller: _amount,
           autofocus: true,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          decoration: const InputDecoration(hintText: '0', prefixText: 'AED  '),
+          decoration: const InputDecoration(
+            hintText: '0',
+            prefixIcon: CurrencyPrefix('AED'),
+            prefixIconConstraints: kCurrencyPrefixConstraints,
+          ),
         ),
         if (widget.category.custom) ...[
           const SizedBox(height: Space.lg),
@@ -240,7 +249,11 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
     setState(() => _busy = true);
     final repo = ref.read(repositoryProvider);
     try {
-      final cat = await repo.createCategory(name: name, kind: _kind, iconKey: _iconKey);
+      final cat = await repo.createCategory(
+        name: name,
+        kind: _kind,
+        iconKey: _iconKey,
+      );
       final b = _parseAed(_budget.text);
       if (_kind == CategoryKind.expense && b != null && b > 0) {
         await repo.setBudget(cat, b);
@@ -292,7 +305,8 @@ class _NewCategorySheetState extends ConsumerState<NewCategorySheet> {
                     ),
                     decoration: const InputDecoration(
                       hintText: 'Monthly budget (optional)',
-                      prefixText: 'AED  ',
+                      prefixIcon: CurrencyPrefix('AED'),
+                      prefixIconConstraints: kCurrencyPrefixConstraints,
                     ),
                   ),
                 )

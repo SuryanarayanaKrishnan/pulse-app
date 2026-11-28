@@ -8,16 +8,31 @@ import 'package:pulse/core/engine/dates.dart';
 import 'package:pulse/core/engine/rewards.dart';
 
 CatalogCard bundled(String id) {
-  final j = jsonDecode(File('assets/catalog/cards.json').readAsStringSync()) as Map<String, Object?>;
+  final j = jsonDecode(
+    File('assets/catalog/cards.json').readAsStringSync(),
+  ) as Map<String, Object?>;
   final cat = CardCatalog.fromJson(j);
   return cat.byId(id)!;
 }
 
-CardCapStatus statusOf(CatalogCard c, List<Spend> spends, {int? stmt, CalDate? today}) {
+CardCapStatus statusOf(
+  CatalogCard c,
+  List<Spend> spends, {
+  int? stmt,
+  CalDate? today,
+}) {
   final t = today ?? const CalDate(2026, 11, 20);
   final spec = c.spec;
   final (a, b, basis) = resolveCycle(spec, t, stmt);
-  return cardCapStatus(cardId: c.id, title: '${c.issuer} ${c.name}', spec: spec, spends: spends, cycleStart: a, cycleEnd: b, basis: basis);
+  return cardCapStatus(
+    cardId: c.id,
+    title: '${c.issuer} ${c.name}',
+    spec: spec,
+    spends: spends,
+    cycleStart: a,
+    cycleEnd: b,
+    basis: basis,
+  );
 }
 
 void main() {
@@ -26,7 +41,10 @@ void main() {
 
   group('one card', () {
     test('SIB: AED 300 cap is reached at AED 3,000 of online spend', () {
-      final s = statusOf(sib, [const Spend(150000, 'shopping'), const Spend(100000, 'dining')]);
+      final s = statusOf(sib, [
+        const Spend(150000, 'shopping'),
+        const Spend(100000, 'dining'),
+      ]);
       final m = s.meters.single;
       expect(m.capAed, 300);
       expect(m.earnedAed, 250);
@@ -46,7 +64,10 @@ void main() {
     });
 
     test('under 80% is ok', () {
-      expect(statusOf(sib, [const Spend(100000, 'shopping')]).level, CapLevel.ok);
+      expect(
+        statusOf(sib, [const Spend(100000, 'shopping')]).level,
+        CapLevel.ok,
+      );
     });
 
     test('per-rule caps are separate: Dubai First style rules', () {
@@ -55,15 +76,28 @@ void main() {
         'point_value_aed': 1,
         'base_rate': 0.005,
         'rules': [
-          {'name': 'Dining', 'categories': ['dining'], 'rate': 0.05, 'monthly_cap_units': 150},
-          {'name': 'Groceries', 'categories': ['groceries'], 'rate': 0.05, 'monthly_cap_units': 150},
+          {
+            'name': 'Dining',
+            'categories': ['dining'],
+            'rate': 0.05,
+            'monthly_cap_units': 150,
+          },
+          {
+            'name': 'Groceries',
+            'categories': ['groceries'],
+            'rate': 0.05,
+            'monthly_cap_units': 150,
+          },
         ],
       });
       final s = cardCapStatus(
         cardId: 'x',
         title: 'X',
         spec: spec,
-        spends: [const Spend(300000, 'dining'), const Spend(100000, 'groceries')],
+        spends: [
+          const Spend(300000, 'dining'),
+          const Spend(100000, 'groceries'),
+        ],
         cycleStart: const CalDate(2026, 11, 1),
         cycleEnd: const CalDate(2026, 11, 30),
         basis: CycleBasis.calendar,
@@ -81,8 +115,18 @@ void main() {
         'base_rate': 0,
         'monthly_total_cap_units': 100,
         'rules': [
-          {'name': 'Dining', 'categories': ['dining'], 'rate': 0.1, 'monthly_cap_units': 80},
-          {'name': 'Fuel', 'categories': ['transport'], 'rate': 0.1, 'monthly_cap_units': 80},
+          {
+            'name': 'Dining',
+            'categories': ['dining'],
+            'rate': 0.1,
+            'monthly_cap_units': 80,
+          },
+          {
+            'name': 'Fuel',
+            'categories': ['transport'],
+            'rate': 0.1,
+            'monthly_cap_units': 80,
+          },
         ],
       });
       final s = cardCapStatus(
@@ -107,12 +151,22 @@ void main() {
         'point_value_aed': 0.01,
         'base_rate': 1,
         'rules': [
-          {'name': 'Travel', 'categories': ['travel'], 'rate': 10, 'monthly_cap_units': 5000},
+          {
+            'name': 'Travel',
+            'categories': ['travel'],
+            'rate': 10,
+            'monthly_cap_units': 5000,
+          },
         ],
       });
       final s = cardCapStatus(
-        cardId: 'x', title: 'X', spec: spec, spends: [const Spend(30000, 'travel')],
-        cycleStart: const CalDate(2026, 11, 1), cycleEnd: const CalDate(2026, 11, 30), basis: CycleBasis.calendar,
+        cardId: 'x',
+        title: 'X',
+        spec: spec,
+        spends: [const Spend(30000, 'travel')],
+        cycleStart: const CalDate(2026, 11, 1),
+        cycleEnd: const CalDate(2026, 11, 30),
+        basis: CycleBasis.calendar,
       );
       final m = s.meters.single;
       expect(m.capAed, 50);
@@ -130,7 +184,12 @@ void main() {
 
     test('statement day is used when the issuer is silent', () {
       final c = bundled('adib-cashback-covered');
-      final s = statusOf(c, const [], stmt: 17, today: const CalDate(2026, 11, 20));
+      final s = statusOf(
+        c,
+        const [],
+        stmt: 17,
+        today: const CalDate(2026, 11, 20),
+      );
       expect(s.basis, CycleBasis.statement);
       expect(s.cycleStart, const CalDate(2026, 11, 18));
       expect(s.cycleEnd, const CalDate(2026, 12, 17));
@@ -158,7 +217,10 @@ void main() {
     CardCapStatus tabbyStatus(List<Spend> sp) => statusOf(tabby, sp);
 
     test('one AED 300 quota; Tabby adds none', () {
-      final stack = stackCapStatus('Tabby+SIB', [tabbyStatus([const Spend(50000, 'shopping')]), statusOf(sib, [const Spend(350000, 'shopping')])]);
+      final stack = stackCapStatus('Tabby+SIB', [
+        tabbyStatus([const Spend(50000, 'shopping')]),
+        statusOf(sib, [const Spend(350000, 'shopping')]),
+      ]);
       expect(stack.quotaAed, 300);
       expect(stack.earnedAed, 300);
       expect(stack.level, CapLevel.hit);
@@ -167,7 +229,10 @@ void main() {
     });
 
     test('at AED 2,500 spend the stack is near with AED 500 of spend left', () {
-      final stack = stackCapStatus('Tabby+SIB', [tabbyStatus(const []), statusOf(sib, [const Spend(250000, 'shopping')])]);
+      final stack = stackCapStatus('Tabby+SIB', [
+        tabbyStatus(const []),
+        statusOf(sib, [const Spend(250000, 'shopping')]),
+      ]);
       expect(stack.level, CapLevel.near);
       expect(stack.pct, closeTo(83.3, 0.1));
       expect(stack.remainingAed, 50);
@@ -180,14 +245,31 @@ void main() {
 
     test('two capped legs add their quotas', () {
       final df = parseStructure({
-        'unit': 'cashback', 'point_value_aed': 1, 'base_rate': 0,
-        'rules': [{'name': 'Groc', 'categories': ['groceries'], 'rate': 0.05, 'monthly_cap_units': 150}],
+        'unit': 'cashback',
+        'point_value_aed': 1,
+        'base_rate': 0,
+        'rules': [
+          {
+            'name': 'Groc',
+            'categories': ['groceries'],
+            'rate': 0.05,
+            'monthly_cap_units': 150,
+          },
+        ],
       });
       final a = cardCapStatus(
-        cardId: 'df', title: 'DF', spec: df, spends: [const Spend(300000, 'groceries')],
-        cycleStart: const CalDate(2026, 11, 1), cycleEnd: const CalDate(2026, 11, 30), basis: CycleBasis.calendar,
+        cardId: 'df',
+        title: 'DF',
+        spec: df,
+        spends: [const Spend(300000, 'groceries')],
+        cycleStart: const CalDate(2026, 11, 1),
+        cycleEnd: const CalDate(2026, 11, 30),
+        basis: CycleBasis.calendar,
       );
-      final stack = stackCapStatus('DF+SIB', [a, statusOf(sib, [const Spend(100000, 'shopping')])]);
+      final stack = stackCapStatus('DF+SIB', [
+        a,
+        statusOf(sib, [const Spend(100000, 'shopping')]),
+      ]);
       expect(stack.quotaAed, 450);
       expect(stack.earnedAed, 250);
       expect(stack.level, CapLevel.ok);
@@ -197,9 +279,15 @@ void main() {
 
   group('alerts', () {
     test('hit message names the stack and the figures', () {
-      final stack = stackCapStatus('Tabby+SIB', [statusOf(tabby, const []), statusOf(sib, [const Spend(400000, 'shopping')])]);
+      final stack = stackCapStatus('Tabby+SIB', [
+        statusOf(tabby, const []),
+        statusOf(sib, [const Spend(400000, 'shopping')]),
+      ]);
       final alerts = capAlerts([], stacks: [('tabby-sib', stack)]);
-      expect(alerts.single.message, 'Tabby+SIB cap reached: AED 300 of 300 this month');
+      expect(
+        alerts.single.message,
+        'Tabby+SIB cap reached: AED 300 of 300 this month',
+      );
       expect(alerts.single.level, CapLevel.hit);
     });
 
@@ -213,7 +301,9 @@ void main() {
       final a2 = capAlerts([hit]);
       expect(a2.single.key, isNot(a1.single.key));
       expect(unsentAlerts(a2, {a1.single.key}), hasLength(1));
-      final nextMonth = statusOf(sib, [const Spend(400000, 'shopping')], today: const CalDate(2026, 12, 3));
+      final nextMonth = statusOf(sib, [
+        const Spend(400000, 'shopping'),
+      ], today: const CalDate(2026, 12, 3));
       expect(capAlerts([nextMonth]).single.key, isNot(a2.single.key));
     });
 

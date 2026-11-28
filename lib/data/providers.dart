@@ -1,3 +1,4 @@
+import '../core/utils/app_clock.dart';
 import '../capture/kv_store.dart';
 import '../core/packs/content_packs.dart';
 import '../core/packs/tips.dart';
@@ -101,6 +102,16 @@ final featureFlagProvider = Provider.family<bool, String>(
   (ref, flag) => ref.watch(remoteConfigProvider).isOn(flag),
 );
 
+/// Sample data is for previews and tests. In a release build reaching any
+/// sample fallback is a bug (the app would show made-up money as the person's
+/// own), so fail loudly instead of quietly showing it. Guarded by
+/// test/guard/release_guard_test.dart.
+void requireSampleAllowed(String what) {
+  if (!Env.sampleAllowed) {
+    throw StateError('$what (sample data) reached in a release build');
+  }
+}
+
 final dioProvider = Provider<Dio>((ref) => buildApiClient());
 
 /// The encrypted on-device database. Opened in `main`; null in widget tests
@@ -169,7 +180,10 @@ final ingestPipelineProvider = Provider<IngestPipeline?>((ref) {
 /// database, or memory (demo data, web, tests).
 final wealthStoreProvider = Provider<WealthStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  if (Env.demoData || db == null) return demoWealthStore();
+  if (Env.demoData || db == null) {
+    requireSampleAllowed('demoWealthStore');
+    return demoWealthStore();
+  }
   return LocalWealthStore(db);
 });
 
@@ -226,7 +240,10 @@ final wealthServiceProvider = Provider<WealthService>(
 
 final investingStoreProvider = Provider<InvestingStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  if (Env.demoData || db == null) return demoInvestingStore();
+  if (Env.demoData || db == null) {
+    requireSampleAllowed('demoInvestingStore');
+    return demoInvestingStore();
+  }
   return LocalInvestingStore(db);
 });
 
@@ -275,7 +292,9 @@ final livePriceServiceProvider = Provider<LivePriceService>((ref) {
 });
 
 /// Stored end-of-day quotes (with the previous close) for the day change.
-final liveQuotesProvider = FutureProvider<Map<String, LiveQuote>>((ref) => ref.watch(livePriceServiceProvider).quotes());
+final liveQuotesProvider = FutureProvider<Map<String, LiveQuote>>(
+  (ref) => ref.watch(livePriceServiceProvider).quotes(),
+);
 
 final stockQuoteServiceProvider = Provider<StockQuoteService>(
   (ref) => StockQuoteService(Env.useApi ? ref.watch(dioProvider) : null),
@@ -348,7 +367,10 @@ void invalidateWealth(WidgetRef ref) {
 
 final budgetPlanStoreProvider = Provider<BudgetPlanStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  if (Env.demoData || db == null) return demoBudgetPlanStore();
+  if (Env.demoData || db == null) {
+    requireSampleAllowed('demoBudgetPlanStore');
+    return demoBudgetPlanStore();
+  }
   return LocalBudgetPlanStore(db);
 });
 
@@ -402,7 +424,10 @@ void invalidateBudgetPlan(WidgetRef ref) {
 
 final goalStoreProvider = Provider<GoalStore>((ref) {
   final db = ref.watch(localDatabaseProvider);
-  if (Env.demoData || db == null) return demoGoalStore();
+  if (Env.demoData || db == null) {
+    requireSampleAllowed('demoGoalStore');
+    return demoGoalStore();
+  }
   return LocalGoalStore(db);
 });
 
@@ -437,12 +462,17 @@ final repositoryProvider = Provider<PulseRepository>((ref) {
   final pipeline = ref.watch(ingestPipelineProvider);
   final wealth = ref.watch(wealthServiceProvider);
   if (Env.demoData || db == null || catalog == null || pipeline == null) {
+    requireSampleAllowed('MockPulseRepository');
     return MockPulseRepository(
       wealth: wealth,
       goals: ref.watch(goalStoreProvider),
+      // Sample data on a phone (the "look around" choice) must not show made-up
+      // friends: only the DEMO_DATA preview build seeds split groups.
+      seedGroups: Env.demoData,
     );
   }
   return LocalPulseRepository(
+    clock: AppClock.now,
     db: db,
     catalog: catalog,
     pipeline: pipeline,
@@ -522,6 +552,7 @@ final Provider<LocalStatementService?> localStatementServiceProvider =
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
+
 /// The salary typed in by hand (amount + payday), if any.
 final manualSalaryProvider = FutureProvider<ManualSalary?>(
   (ref) => ref.watch(repositoryProvider).manualSalary(),

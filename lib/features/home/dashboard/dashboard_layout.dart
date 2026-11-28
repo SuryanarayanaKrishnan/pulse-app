@@ -21,7 +21,14 @@ enum DashKind {
   savingsRate('savings_rate', 'Savings rate'),
   splitBalances('split_balances', 'Split balances'),
   recentCaptures('recent_captures', 'Recent captures'),
-  goals('goals', 'Goals');
+  goals('goals', 'Goals'),
+  bestMoves('best_moves', 'Best card moves'),
+  review('review', 'Items to review'),
+  health('health', 'Financial health'),
+  capWatch('cap_watch', 'Reward caps'),
+  overrun('overrun', 'Budget overruns'),
+  family('family', 'Family'),
+  monthlyClose('monthly_close', 'Monthly close');
 
   const DashKind(this.key, this.label);
   final String key;
@@ -134,22 +141,16 @@ class DashboardLayout {
   final List<Dashboard> dashboards;
   final String activeId;
 
-  /// What a new install gets: the Home it always had, as "Everyday", and a
-  /// "Month end" view for closing the month.
+  /// What a new install gets: a calm "Everyday" Home with only safe to spend
+  /// (plus the card to use and one insight, which Home adds itself), and a
+  /// "Month end" view for closing the month. Everything else is opt-in.
   factory DashboardLayout.defaults() => const DashboardLayout(
     activeId: 'everyday',
     dashboards: [
       Dashboard(
         id: 'everyday',
         name: 'Everyday',
-        widgets: [
-          DashWidget(DashKind.safeToSpend),
-          DashWidget(DashKind.upcoming),
-          DashWidget(DashKind.netWorth, WidgetSize.compact),
-          DashWidget(DashKind.splitBalances, WidgetSize.compact),
-          DashWidget(DashKind.goals, WidgetSize.compact),
-          DashWidget(DashKind.recentCaptures),
-        ],
+        widgets: [DashWidget(DashKind.safeToSpend)],
       ),
       Dashboard(
         id: 'month_end',
@@ -164,6 +165,43 @@ class DashboardLayout {
       ),
     ],
   );
+
+  /// Adds the rows Home used to show on every dashboard, so an existing
+  /// layout looks the same after the calm default arrives.
+  DashboardLayout withLegacyExtras() => DashboardLayout(
+    activeId: activeId,
+    dashboards: [
+      for (final d in dashboards)
+        if (d.id == 'everyday' || d.id == dashboards.first.id)
+          [
+            DashKind.bestMoves,
+            DashKind.review,
+            DashKind.capWatch,
+            DashKind.overrun,
+            DashKind.health,
+            DashKind.family,
+            DashKind.monthlyClose,
+          ].fold(d, (acc, k) => acc.add(k, WidgetSize.regular))
+        else
+          d,
+    ],
+  );
+
+  /// This layout with its main dashboard (Everyday, else the first) reset to
+  /// the calm default. Other dashboards the person made stay as they are.
+  DashboardLayout calmed() {
+    final calm = DashboardLayout.defaults().dashboards.first.widgets;
+    final mainId = dashboards
+        .firstWhere((d) => d.id == 'everyday', orElse: () => dashboards.first)
+        .id;
+    return DashboardLayout(
+      activeId: activeId,
+      dashboards: [
+        for (final d in dashboards)
+          d.id == mainId ? Dashboard(id: d.id, name: d.name, widgets: calm) : d,
+      ],
+    );
+  }
 
   Dashboard get active => dashboards.firstWhere(
     (d) => d.id == activeId,

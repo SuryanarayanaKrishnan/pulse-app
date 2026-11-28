@@ -18,9 +18,15 @@ class SalarySheet extends ConsumerStatefulWidget {
 
 class _SalarySheetState extends ConsumerState<SalarySheet> {
   late final _amount = TextEditingController(
-    text: widget.current == null ? '' : (widget.current!.amountMinor / 100).toStringAsFixed(widget.current!.amountMinor % 100 == 0 ? 0 : 2),
+    text: widget.current == null
+        ? ''
+        : (widget.current!.amountMinor / 100).toStringAsFixed(
+            widget.current!.amountMinor % 100 == 0 ? 0 : 2,
+          ),
   );
-  late final _day = TextEditingController(text: widget.current?.day.toString() ?? '25');
+  late final _day = TextEditingController(
+    text: widget.current?.day.toString() ?? '25',
+  );
   bool _busy = false;
 
   @override
@@ -51,7 +57,11 @@ class _SalarySheetState extends ConsumerState<SalarySheet> {
     } on Object {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.maybeOf(context)?.showSnackBar(const SnackBar(content: Text('Could not save your salary. Try again.')));
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          const SnackBar(
+            content: Text('Could not save your salary. Try again.'),
+          ),
+        );
       }
     }
   }
@@ -71,7 +81,11 @@ class _SalarySheetState extends ConsumerState<SalarySheet> {
             autofocus: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(hintText: 'Monthly salary', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Monthly salary',
+              prefixIcon: CurrencyPrefix('AED'),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.md),
@@ -80,18 +94,33 @@ class _SalarySheetState extends ConsumerState<SalarySheet> {
             controller: _day,
             keyboardType: TextInputType.number,
             textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(hintText: 'Payday (day of month, 1 to 31)'),
+            decoration: const InputDecoration(
+              hintText: 'Payday (day of month, 1 to 31)',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: Space.xl),
           PrimaryButton(
             label: 'Save',
             loading: _busy,
-            onPressed: ok ? () => _save(ManualSalary(amountMinor: (_amt! * 100).round(), day: _dayNum!)) : null,
+            onPressed: ok
+                ? () => _save(
+                    ManualSalary(
+                      amountMinor: (_amt! * 100).round(),
+                      day: _dayNum!,
+                    ),
+                  )
+                : null,
           ),
           if (widget.current != null) ...[
             const SizedBox(height: Space.sm),
-            Center(child: TextAction('Remove', color: context.pc.negative, onTap: () => _save(null))),
+            Center(
+              child: TextAction(
+                'Remove',
+                color: context.pc.negative,
+                onTap: () => _save(null),
+              ),
+            ),
           ],
         ],
       ),

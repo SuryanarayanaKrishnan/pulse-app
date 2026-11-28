@@ -103,9 +103,13 @@ class Statement {
     this.source = 'upload',
     this.filename,
     this.parseError,
+    this.summary = const {},
   });
 
   final String id;
+
+  /// What the parser read off the statement (last4, limit, dates), when known.
+  final Map<String, Object?> summary;
 
   /// Canonical institution key (e.g. `enbd`), when known.
   final String? institution;
@@ -155,6 +159,7 @@ class Statement {
         source: source,
         filename: filename,
         parseError: parseError,
+        summary: summary,
       );
 }
 

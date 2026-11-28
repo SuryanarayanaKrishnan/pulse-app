@@ -167,7 +167,9 @@ void main() {
   test('vault papers are backed up and restored with the entry', () async {
     final paper = File('${tmp.path}/deed.pdf.enc')
       ..writeAsBytesSync([80, 65, 84, 49, 9, 9, 9, 9]);
-    await db.into(db.vaultEntries).insert(
+    await db
+        .into(db.vaultEntries)
+        .insert(
           VaultEntriesCompanion.insert(
             id: 'v1',
             type: 'property',

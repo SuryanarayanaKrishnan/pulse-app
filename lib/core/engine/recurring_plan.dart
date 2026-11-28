@@ -101,12 +101,16 @@ class RecurringMonth {
   /// Detected series that stopped charging (kept out of every total).
   final List<Series> lapsed;
 
-  List<RecItem> _by(RecState s) => [for (final i in items) if (i.state == s) i];
+  List<RecItem> _by(RecState s) => [
+    for (final i in items)
+      if (i.state == s) i,
+  ];
   List<RecItem> get paid => _by(RecState.paid);
   List<RecItem> get upcoming => _by(RecState.upcoming);
   List<RecItem> get overdue => _by(RecState.overdue);
 
-  static int _sum(Iterable<RecItem> l) => l.fold(0, (a, i) => a + i.amountMinor);
+  static int _sum(Iterable<RecItem> l) =>
+      l.fold(0, (a, i) => a + i.amountMinor);
 
   /// Everything that leaves this month: paid, still to come, and late.
   int get committedMinor => _sum(items);
@@ -117,14 +121,16 @@ class RecurringMonth {
   Map<int, List<RecItem>> get byDay {
     final m = <int, List<RecItem>>{};
     for (final i in items) {
-      if (i.dueOn.year == month.year && i.dueOn.month == month.month) (m[i.dueOn.day] ??= []).add(i);
+      if (i.dueOn.year == month.year && i.dueOn.month == month.month)
+        (m[i.dueOn.day] ??= []).add(i);
     }
     return m;
   }
 }
 
 CalDate monthStart(CalDate d) => CalDate(d.year, d.month, 1);
-CalDate monthEnd(CalDate d) => CalDate(d.year, d.month, daysInMonth(d.year, d.month));
+CalDate monthEnd(CalDate d) =>
+    CalDate(d.year, d.month, daysInMonth(d.year, d.month));
 
 /// Expected dates of [s] in [start]..[end], counting from its next expected
 /// date. Unlike [occurrencesBetween] an overdue date keeps its own day.
@@ -206,26 +212,35 @@ RecurringMonth planMonth({
       items.add(item(RecState.overdue, s.nextExpectedOn, s.typicalAmountMinor));
     }
     if (s.priceIncrease != null) {
-      hints.add(PriceHint(s, s.priceIncrease!.increaseMinor * _perYear(s.cadence)));
+      hints.add(
+        PriceHint(s, s.priceIncrease!.increaseMinor * _perYear(s.cadence)),
+      );
     }
   }
 
   for (final c in cardDues) {
     if (c.amountMinor <= 0 || c.dueOn < month || c.dueOn > end) continue;
-    items.add(RecItem(
-      id: 'card:${c.id}',
-      title: c.name,
-      kind: RecKind.cardDue,
-      state: c.dueOn >= today ? RecState.upcoming : RecState.overdue,
-      dueOn: c.dueOn,
-      amountMinor: c.amountMinor,
-    ));
+    items.add(
+      RecItem(
+        id: 'card:${c.id}',
+        title: c.name,
+        kind: RecKind.cardDue,
+        state: c.dueOn >= today ? RecState.upcoming : RecState.overdue,
+        dueOn: c.dueOn,
+        amountMinor: c.amountMinor,
+      ),
+    );
   }
   for (final b in bills) {
     // A bill the detector already found (rent paid by card, say) is shown
     // once, as the detected series.
     final n = b.name.trim().toLowerCase();
-    if (n.isNotEmpty && series.any((s) => choices[s.key] != RecChoice.ignored && (s.key.contains(n) || n.contains(s.key.split('#').first)))) {
+    if (n.isNotEmpty &&
+        series.any(
+          (s) =>
+              choices[s.key] != RecChoice.ignored &&
+              (s.key.contains(n) || n.contains(s.key.split('#').first)),
+        )) {
       continue;
     }
     final day = b.dueDay.clamp(1, daysInMonth(month.year, month.month));
@@ -233,14 +248,16 @@ RecurringMonth planMonth({
     // Earlier days of the current month are not shown: we cannot tell
     // whether the bill was settled.
     if (on < today) continue;
-    items.add(RecItem(
-      id: 'bill:${b.id}',
-      title: b.name,
-      kind: RecKind.bill,
-      state: RecState.upcoming,
-      dueOn: on,
-      amountMinor: b.amountMinor,
-    ));
+    items.add(
+      RecItem(
+        id: 'bill:${b.id}',
+        title: b.name,
+        kind: RecKind.bill,
+        state: RecState.upcoming,
+        dueOn: on,
+        amountMinor: b.amountMinor,
+      ),
+    );
   }
 
   hints.sort((a, b) => b.yearlyExtraMinor.compareTo(a.yearlyExtraMinor));
@@ -248,7 +265,12 @@ RecurringMonth planMonth({
     final c = a.dueOn.compareTo(b.dueOn);
     return c != 0 ? c : a.title.compareTo(b.title);
   });
-  return RecurringMonth(month: month, items: sorted, hints: hints, lapsed: lapsed);
+  return RecurringMonth(
+    month: month,
+    items: sorted,
+    hints: hints,
+    lapsed: lapsed,
+  );
 }
 
 bool _inTier(Series s, int amountMinor) {
@@ -269,7 +291,10 @@ List<Charge> historyOf(Series s, List<Charge> charges) {
   final base = s.key.split('#').first;
   final out = [
     for (final c in charges)
-      if (c.key == base && c.amountMinor > 0 && (!s.key.contains('#') || _inTier(s, c.amountMinor))) c,
+      if (c.key == base &&
+          c.amountMinor > 0 &&
+          (!s.key.contains('#') || _inTier(s, c.amountMinor)))
+        c,
   ];
   out.sort((a, b) => b.postedOn.compareTo(a.postedOn));
   return out;

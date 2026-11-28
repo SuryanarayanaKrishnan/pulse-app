@@ -19,7 +19,7 @@ class Sparkline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? context.pc.accent;
+    final c = color ?? context.pc.calm;
     if (values.length < 2) return SizedBox(height: height);
     final minV = values.reduce((a, b) => a < b ? a : b);
     final maxV = values.reduce((a, b) => a > b ? a : b);
@@ -180,7 +180,13 @@ class TrendBars extends StatelessWidget {
 
 /// Allocation donut: slices as arcs with thin gaps, an optional centre.
 class DonutChart extends StatelessWidget {
-  const DonutChart({super.key, required this.slices, this.size = 140, this.thickness = 16, this.center});
+  const DonutChart({
+    super.key,
+    required this.slices,
+    this.size = 140,
+    this.thickness = 16,
+    this.center,
+  });
   final List<ChartSlice> slices;
   final double size, thickness;
   final Widget? center;
@@ -240,5 +246,6 @@ class _DonutPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DonutPainter old) => old.slices != slices || old.thickness != thickness || old.track != track;
+  bool shouldRepaint(_DonutPainter old) =>
+      old.slices != slices || old.thickness != thickness || old.track != track;
 }

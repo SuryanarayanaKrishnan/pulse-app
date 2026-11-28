@@ -30,7 +30,8 @@ const forecastCaveat =
     'An estimate from your past spending, not a guarantee. Card terms, caps and rates can change; confirm with the bank.';
 
 /// Shorter form for tight spaces (notification body, chips).
-const forecastCaveatShort = 'Estimate from past spending, not a guarantee. Confirm with the bank.';
+const forecastCaveatShort =
+    'Estimate from past spending, not a guarantee. Confirm with the bank.';
 
 /// One past expense in AED.
 class LedgerSpend {
@@ -74,7 +75,8 @@ class SpendForecast {
   bool get isEmpty => totalMinor <= 0;
 }
 
-double _mean(List<double> v) => v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length;
+double _mean(List<double> v) =>
+    v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length;
 
 double _median(List<double> v) {
   final s = [...v]..sort();
@@ -105,7 +107,8 @@ double _robust(List<double> v) {
 double _cv(List<double> v) {
   final m = _mean(v);
   if (m <= 0 || v.length < 2) return 0;
-  final variance = v.map((x) => (x - m) * (x - m)).reduce((a, b) => a + b) / v.length;
+  final variance =
+      v.map((x) => (x - m) * (x - m)).reduce((a, b) => a + b) / v.length;
   return math.sqrt(variance) / m;
 }
 
@@ -184,7 +187,8 @@ SpendForecast forecastRemainingSpend({
     }
     final n = months.length;
     final level = n >= 4 ? 2 : 1;
-    final conf = ForecastConfidence.values[math.max(0, level - (volatile ? 1 : 0))];
+    final conf =
+        ForecastConfidence.values[math.max(0, level - (volatile ? 1 : 0))];
     return SpendForecast(
       remainingMinor: out,
       basis: ForecastBasis.history,
@@ -204,14 +208,18 @@ SpendForecast forecastRemainingSpend({
   var count = 0;
   for (final s in history) {
     if (s.amountMinor <= 0) continue;
-    if (s.date.year != today.year || s.date.month != today.month || s.date > today) continue;
+    if (s.date.year != today.year ||
+        s.date.month != today.month ||
+        s.date > today)
+      continue;
     soFar[s.category] = (soFar[s.category] ?? 0) + s.amountMinor;
     count++;
   }
   if (count >= 3 && today.day >= 5) {
     final out = <String, int>{
       for (final e in soFar.entries)
-        if ((e.value / today.day * left).round() > 0) e.key: (e.value / today.day * left).round(),
+        if ((e.value / today.day * left).round() > 0)
+          e.key: (e.value / today.day * left).round(),
     };
     return SpendForecast(
       remainingMinor: out,
@@ -227,7 +235,8 @@ SpendForecast forecastRemainingSpend({
     return SpendForecast(
       remainingMinor: {
         for (final e in budgetMinor.entries)
-          if (e.value > 0 && (e.value * left01).round() > 0) e.key: (e.value * left01).round(),
+          if (e.value > 0 && (e.value * left01).round() > 0)
+            e.key: (e.value * left01).round(),
       },
       basis: ForecastBasis.budget,
       cycles: 0,
@@ -254,7 +263,11 @@ SpendForecast forecastRemainingSpend({
 // ---------------------------------------------------------------------------
 
 class NextBestPolicy {
-  const NextBestPolicy({this.minNetYearlyMinor = 10000, this.maxGetCards = 3, this.upsell = const UpsellPolicy()});
+  const NextBestPolicy({
+    this.minNetYearlyMinor = 10000,
+    this.maxGetCards = 3,
+    this.upsell = const UpsellPolicy(),
+  });
 
   /// A card to get must net at least AED 100 a year after its fee.
   final int minNetYearlyMinor;
@@ -360,7 +373,10 @@ CycleResult _clone(CycleResult s) {
     ..spendMinor = s.spendMinor
     ..earnedUnits = s.earnedUnits
     ..minSpendMet = s.minSpendMet;
-  s.usage.forEach((k, u) => r.usage[k] = CapUsage(u.rule, u.capUnits)..usedUnits = u.usedUnits);
+  s.usage.forEach(
+    (k, u) =>
+        r.usage[k] = CapUsage(u.rule, u.capUnits)..usedUnits = u.usedUnits,
+  );
   return r;
 }
 
@@ -388,14 +404,16 @@ String _aed0(int minor) {
   final routed = {for (final c in held) c.id: 0};
   final valueByCat = <String, int>{};
   final cardByCat = <String, RankableCard>{};
-  final cats = spend.keys.toList()..sort((a, b) => spend[b]!.compareTo(spend[a]!));
+  final cats = spend.keys.toList()
+    ..sort((a, b) => spend[b]!.compareTo(spend[a]!));
   for (final cat in cats) {
     final amt = spend[cat]!;
     RankableCard? best;
     var bestV = -1;
     for (final c in held) {
       final v = quote(c.spec, states[c.id]!, Spend(amt, cat)).valueMinor;
-      if (v > bestV || (v == bestV && best != null && c.createdOrder < best.createdOrder)) {
+      if (v > bestV ||
+          (v == bestV && best != null && c.createdOrder < best.createdOrder)) {
         best = c;
         bestV = v;
       }
@@ -412,7 +430,9 @@ String _aed0(int minor) {
   // (what it already carried plus the forecast routed to it) reaches it.
   final dead = <String>{
     for (final c in held)
-      if (c.spec.minMonthlySpendMinor > 0 && c.state.spendMinor + routed[c.id]! < c.spec.minMonthlySpendMinor) c.id,
+      if (c.spec.minMonthlySpendMinor > 0 &&
+          c.state.spendMinor + routed[c.id]! < c.spec.minMonthlySpendMinor)
+        c.id,
   };
   var total = 0;
   final by = <String, HeldPick>{};
@@ -429,7 +449,8 @@ String _aed0(int minor) {
   return (byCategory: by, total: total, top: top);
 }
 
-Map<String, Object?> _asMap(Object? o) => o is Map ? Map<String, Object?>.from(o) : const {};
+Map<String, Object?> _asMap(Object? o) =>
+    o is Map ? Map<String, Object?>.from(o) : const {};
 
 /// The plan: forecast spend, what held cards earn on it, and the cards to get.
 ///
@@ -454,9 +475,11 @@ NextBestPlan rankNextBest({
   var skippedGain = 0;
 
   for (final card in catalog) {
-    if (heldCatalogIds.contains(card.id) || dismissedIds.contains(card.id)) continue;
+    if (heldCatalogIds.contains(card.id) || dismissedIds.contains(card.id))
+      continue;
     if (blocked.contains(card.issuer.toLowerCase().trim())) continue;
-    if (!isAttainable(card, salaryMinor: salaryMinor, policy: policy.upsell)) continue;
+    if (!isAttainable(card, salaryMinor: salaryMinor, policy: policy.upsell))
+      continue;
     final CardSpec spec;
     try {
       spec = card.spec;
@@ -467,7 +490,8 @@ NextBestPlan rankNextBest({
 
     // Variant A: only the categories where this card beats what is held.
     // Variant B: all the forecast spend on it (helps a minimum-spend card).
-    ({int value, int held, List<String> cats, int spent, int rawValue})? evaluate(Iterable<String> cats) {
+    ({int value, int held, List<String> cats, int spent, int rawValue})?
+    evaluate(Iterable<String> cats) {
       final list = cats.toList();
       if (list.isEmpty) return null;
       final chunks = [for (final c in list) Spend(spend[c]!, c)];
@@ -475,13 +499,26 @@ NextBestPlan rankNextBest({
       final res = computeCycle(spec, chunks);
       final raw = spec.valueMinor(res.earnedUnits);
       final value = spent >= minSpend ? raw : 0;
-      final heldV = list.fold(0, (a, c) => a + (sim.byCategory[c]?.valueMinor ?? 0));
-      return (value: value, held: heldV, cats: list, spent: spent, rawValue: raw);
+      final heldV = list.fold(
+        0,
+        (a, c) => a + (sim.byCategory[c]?.valueMinor ?? 0),
+      );
+      return (
+        value: value,
+        held: heldV,
+        cats: list,
+        spent: spent,
+        rawValue: raw,
+      );
     }
 
     final winners = [
       for (final c in spend.keys)
-        if (spec.valueMinor(computeCycle(spec, [Spend(spend[c]!, c)]).earnedUnits) > (sim.byCategory[c]?.valueMinor ?? 0)) c,
+        if (spec.valueMinor(
+              computeCycle(spec, [Spend(spend[c]!, c)]).earnedUnits,
+            ) >
+            (sim.byCategory[c]?.valueMinor ?? 0))
+          c,
     ];
     final a = evaluate(winners);
     final b = evaluate(spend.keys);
@@ -489,12 +526,15 @@ NextBestPlan rankNextBest({
     if (cands.isEmpty) continue;
     cands.sort((x, y) => (y.value - y.held).compareTo(x.value - x.held));
     final bestEval = cands.first;
-    final rawBest = [...cands]..sort((x, y) => (y.rawValue - y.held).compareTo(x.rawValue - x.held));
+    final rawBest = [...cands]
+      ..sort((x, y) => (y.rawValue - y.held).compareTo(x.rawValue - x.held));
     final rawGain = rawBest.first.rawValue - rawBest.first.held;
 
     if (bestEval.value - bestEval.held <= 0) {
       // Looks good on rate but the minimum monthly spend is out of reach.
-      if (minSpend > 0 && rawGain > skippedGain && rawBest.first.spent < minSpend) {
+      if (minSpend > 0 &&
+          rawGain > skippedGain &&
+          rawBest.first.spent < minSpend) {
         skipped = card;
         skippedGain = rawGain;
       }
@@ -503,9 +543,14 @@ NextBestPlan rankNextBest({
 
     final perks = _asMap(card.perks);
     final waiver = _asMap(perks['fee_waiver']);
-    final waiverSpend = (waiver['spend_minor'] as num?)?.toInt() ?? spec.feeWaiverSpendMinor;
+    final waiverSpend =
+        (waiver['spend_minor'] as num?)?.toInt() ?? spec.feeWaiverSpendMinor;
     final yearly = waiver['period'] == null || waiver['period'] == 'year';
-    final waivedByForecast = card.annualFeeMinor > 0 && waiverSpend != null && yearly && bestEval.spent * 12 >= waiverSpend;
+    final waivedByForecast =
+        card.annualFeeMinor > 0 &&
+        waiverSpend != null &&
+        yearly &&
+        bestEval.spent * 12 >= waiverSpend;
     final fee = card.annualFeeMinor;
     final gain = bestEval.value - bestEval.held;
     final net = gain * 12 - (waivedByForecast ? 0 : fee);
@@ -513,12 +558,18 @@ NextBestPlan rankNextBest({
 
     final welcome = _asMap(perks['welcome_offer']);
     final until = DateTime.tryParse('${welcome['valid_until'] ?? ''}');
-    final welcomeLive = welcome['text'] != null && (until == null || !until.isBefore(DateTime.now()));
+    final welcomeLive =
+        welcome['text'] != null &&
+        (until == null || !until.isBefore(DateTime.now()));
     final caveats = <String>[];
-    if (!card.verified) caveats.add('Figures not yet verified against the issuer');
-    if (card.minSalaryMinor == null) caveats.add('Minimum salary is not in our data');
-    if (perks['confidence'] == 'low') caveats.add('Low-confidence data for this card');
-    if (card.annualFeeMinor > 0 && waiverSpend == null) caveats.add('Fee waiver terms are not in our data');
+    if (!card.verified)
+      caveats.add('Figures not yet verified against the issuer');
+    if (card.minSalaryMinor == null)
+      caveats.add('Minimum salary is not in our data');
+    if (perks['confidence'] == 'low')
+      caveats.add('Low-confidence data for this card');
+    if (card.annualFeeMinor > 0 && waiverSpend == null)
+      caveats.add('Fee waiver terms are not in our data');
     options.add(
       GetCardOption(
         card: card,
@@ -530,11 +581,17 @@ NextBestPlan rankNextBest({
         routedCategories: bestEval.cats,
         routedSpendMinor: bestEval.spent,
         minMonthlySpendMinor: minSpend,
-        eligibility: salaryMinor != null ? Eligibility.confirmed : Eligibility.unconfirmed,
+        eligibility: salaryMinor != null
+            ? Eligibility.confirmed
+            : Eligibility.unconfirmed,
         feeWaiverText: waiver['text'] as String?,
         welcomeText: welcomeLive ? welcome['text'] as String? : null,
-        welcomeValueAed: welcomeLive ? (welcome['value_aed_est'] as num?)?.toDouble() : null,
-        salaryNote: card.minSalaryMinor == null ? null : 'Needs a salary of ${_aed0(card.minSalaryMinor!)} a month',
+        welcomeValueAed: welcomeLive
+            ? (welcome['value_aed_est'] as num?)?.toDouble()
+            : null,
+        salaryNote: card.minSalaryMinor == null
+            ? null
+            : 'Needs a salary of ${_aed0(card.minSalaryMinor!)} a month',
         caveats: caveats,
       ),
     );
@@ -549,11 +606,17 @@ NextBestPlan rankNextBest({
   final picks = options.take(policy.maxGetCards).toList();
 
   // The skipped card only matters when it would have beaten the pick.
-  final skippedShown = skipped != null && (picks.isEmpty || skippedGain > picks.first.gainMonthlyMinor) ? skipped : null;
+  final skippedShown =
+      skipped != null &&
+          (picks.isEmpty || skippedGain > picks.first.gainMonthlyMinor)
+      ? skipped
+      : null;
 
   final lead = switch (forecast.basis) {
-    ForecastBasis.history => 'You usually spend about ${_aed0(forecast.totalMinor)} a month ${afterCap ? 'after the cap' : 'in the rest of the month'}',
-    _ => 'You may spend about ${_aed0(forecast.totalMinor)} ${afterCap ? 'after the cap' : 'in the rest of the month'}',
+    ForecastBasis.history =>
+      'You usually spend about ${_aed0(forecast.totalMinor)} a month ${afterCap ? 'after the cap' : 'in the rest of the month'}',
+    _ =>
+      'You may spend about ${_aed0(forecast.totalMinor)} ${afterCap ? 'after the cap' : 'in the rest of the month'}',
   };
   String reason;
   if (forecast.isEmpty) {
@@ -566,13 +629,15 @@ NextBestPlan rankNextBest({
       reason =
           '$lead. ${skippedShown.issuer} ${skippedShown.name} needs ${_aed0(sm)} a month to earn anything, so $name is the better fit.';
     } else {
-      reason = '$lead; $name would earn about ${_aed0(t.monthlyValueMinor)} a month on it.';
+      reason =
+          '$lead; $name would earn about ${_aed0(t.monthlyValueMinor)} a month on it.';
     }
   } else if (skippedShown != null) {
     reason =
         '$lead. ${skippedShown.issuer} ${skippedShown.name} needs ${_aed0(skippedShown.spec.minMonthlySpendMinor)} a month to earn anything, so it would not pay off.';
   } else {
-    reason = '$lead; no card in the catalog beats what you hold for that spend.';
+    reason =
+        '$lead; no card in the catalog beats what you hold for that spend.';
   }
 
   return NextBestPlan(

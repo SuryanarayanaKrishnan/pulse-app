@@ -23,9 +23,7 @@ const _cities =
     r'DXB|AUH|SHJ|LONDON|NEW\s?YORK|SINGAPORE|MUMBAI|DOHA|RIYADH';
 const _countries =
     r'AE|ARE|UAE|UNITED\s?ARAB\s?EMIRATES|US|USA|GB|GBR|UK|IN|IND|SG|SGP|QA|SA';
-final _trailingLocation = RegExp(
-  '(?:[\\s,\\-]+(?:$_cities|$_countries))+\$',
-);
+final _trailingLocation = RegExp('(?:[\\s,\\-]+(?:$_cities|$_countries))+\$');
 final _trailingRef = RegExp(r'[\s#*\-]*\d{3,}$');
 final _trailingCcy = RegExp(r'\s+(?:AED|USD|EUR|GBP)\s*[\d.,]*$');
 

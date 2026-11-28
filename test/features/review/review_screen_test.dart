@@ -32,7 +32,13 @@ Future<List<Transaction>> queue() async {
   return [
     for (final id in orderReviewQueue([
       for (final t in all)
-        ReviewCandidate(id: t.id, amount: t.amount, confidence: t.confidence, date: t.date, reviewed: t.reviewed),
+        ReviewCandidate(
+          id: t.id,
+          amount: t.amount,
+          confidence: t.confidence,
+          date: t.date,
+          reviewed: t.reviewed,
+        ),
     ]))
       byId[id]!,
   ];
@@ -50,15 +56,26 @@ Future<void> pump(
   t.view.devicePixelRatio = 3;
   addTearDown(t.view.reset);
   repo = MockPulseRepository(latency: Duration.zero);
-  if (allReviewed) await repo.setReviewed([for (final x in await repo.transactions()) x.id], true);
+  if (allReviewed)
+    await repo.setReviewed([
+      for (final x in await repo.transactions()) x.id,
+    ], true);
   rec = Rec();
   kv = MemoryKvStore();
   haptics = [];
-  t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, (c) async {
-    haptics.add(c);
-    return null;
-  });
-  addTearDown(() => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(SystemChannels.platform, null));
+  t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+    SystemChannels.platform,
+    (c) async {
+      haptics.add(c);
+      return null;
+    },
+  );
+  addTearDown(
+    () => t.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+      SystemChannels.platform,
+      null,
+    ),
+  );
   await t.pumpWidget(
     ProviderScope(
       overrides: [
@@ -70,7 +87,8 @@ Future<void> pump(
       child: MaterialApp(
         theme: dark ? PulseTheme.dark : PulseTheme.light,
         builder: (context, child) => MediaQuery(
-          data: MediaQuery.of(context).copyWith(disableAnimations: reduceMotion),
+          data: MediaQuery.of(context)
+              .copyWith(disableAnimations: reduceMotion),
           child: child!,
         ),
         home: const ReviewScreen(),
@@ -83,25 +101,50 @@ Future<void> pump(
 final _card = find.byKey(const ValueKey('review-card'));
 
 void main() {
-  testWidgets('shows the first payment: biggest or least sure, with card and count', (t) async {
-    await pump(t);
-    final q = await queue();
-    expect(q.length, greaterThan(3));
-    expect(find.text('${q.length} left'), findsOneWidget);
-    expect(find.descendant(of: _card, matching: find.text(q.first.merchant)), findsOneWidget);
-    expect(find.descendant(of: _card, matching: find.text(q.first.category.label)), findsOneWidget);
-    expect(find.descendant(of: _card, matching: find.text(q.first.accountLabel)), findsOneWidget);
-    expect(find.text('Undo'), findsOneWidget); // present but hidden until used
-  });
+  testWidgets(
+    'shows the first payment: biggest or least sure, with card and count',
+    (t) async {
+      await pump(t);
+      final q = await queue();
+      expect(q.length, greaterThan(3));
+      expect(find.text('${q.length} left'), findsOneWidget);
+      expect(
+        find.descendant(of: _card, matching: find.text(q.first.merchant)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: _card, matching: find.text(q.first.category.label)),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: _card, matching: find.text(q.first.accountLabel)),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Undo'),
+        findsOneWidget,
+      ); // present but hidden until used
+    },
+  );
 
-  testWidgets('swipe right marks it reviewed and shows the next card', (t) async {
+  testWidgets('swipe right marks it reviewed and shows the next card', (
+    t,
+  ) async {
     await pump(t);
     final q = await queue();
     await t.drag(_card, const Offset(320, 0));
     await t.pumpAndSettle();
-    expect((await repo.transactions()).firstWhere((x) => x.id == q.first.id).reviewed, isTrue);
+    expect(
+      (await repo.transactions())
+          .firstWhere((x) => x.id == q.first.id)
+          .reviewed,
+      isTrue,
+    );
     expect(find.text('${q.length - 1} left'), findsOneWidget);
-    expect(find.descendant(of: _card, matching: find.text(q[1].merchant)), findsOneWidget);
+    expect(
+      find.descendant(of: _card, matching: find.text(q[1].merchant)),
+      findsOneWidget,
+    );
     expect(rec.events.map((e) => e.name), ['review_swiped']);
     expect(rec.events.single.properties, {'direction': 'right'});
     expect(haptics.any((c) => c.method == 'HapticFeedback.vibrate'), isTrue);
@@ -133,32 +176,50 @@ void main() {
     await t.tap(find.text('Undo'));
     await t.pumpAndSettle();
     expect(find.text('${q.length} left'), findsOneWidget);
-    expect(find.descendant(of: _card, matching: find.text(q.first.merchant)), findsOneWidget);
-    expect((await repo.transactions()).firstWhere((x) => x.id == q.first.id).reviewed, isFalse);
+    expect(
+      find.descendant(of: _card, matching: find.text(q.first.merchant)),
+      findsOneWidget,
+    );
+    expect(
+      (await repo.transactions())
+          .firstWhere((x) => x.id == q.first.id)
+          .reviewed,
+      isFalse,
+    );
   });
 
-  testWidgets('swipe left opens the category picker, then the scope sheet, and fixes it', (t) async {
-    await pump(t);
-    final q = await queue();
-    final first = q.first;
-    await t.drag(_card, const Offset(-320, 0));
-    await t.pumpAndSettle();
-    expect(find.text('Fix category'), findsOneWidget);
-    final target = first.category == SpendCategory.shopping ? SpendCategory.travel : SpendCategory.shopping;
-    await t.tap(find.text(target.label).last);
-    await t.pumpAndSettle();
-    expect(find.text('Just this one'), findsOneWidget);
-    await t.tap(find.text('Apply'));
-    await t.pumpAndSettle();
+  testWidgets(
+    'swipe left opens the category picker, then the scope sheet, and fixes it',
+    (t) async {
+      await pump(t);
+      final q = await queue();
+      final first = q.first;
+      await t.drag(_card, const Offset(-320, 0));
+      await t.pumpAndSettle();
+      expect(find.text('Fix category'), findsOneWidget);
+      final target = first.category == SpendCategory.shopping
+          ? SpendCategory.travel
+          : SpendCategory.shopping;
+      await t.tap(find.text(target.label).last);
+      await t.pumpAndSettle();
+      expect(find.text('Just this one'), findsOneWidget);
+      await t.tap(find.text('Apply'));
+      await t.pumpAndSettle();
 
-    final after = (await repo.transactions()).firstWhere((x) => x.id == first.id);
-    expect(after.category, target);
-    expect(after.reviewed, isTrue);
-    expect(find.text('${q.length - 1} left'), findsOneWidget);
-    final swipes = rec.events.where((e) => e.name == 'review_swiped');
-    expect(swipes.single.properties, {'direction': 'left'});
-    expect(rec.events.map((e) => e.name), contains('transaction_recategorized'));
-  });
+      final after = (await repo.transactions()).firstWhere(
+        (x) => x.id == first.id,
+      );
+      expect(after.category, target);
+      expect(after.reviewed, isTrue);
+      expect(find.text('${q.length - 1} left'), findsOneWidget);
+      final swipes = rec.events.where((e) => e.name == 'review_swiped');
+      expect(swipes.single.properties, {'direction': 'left'});
+      expect(
+        rec.events.map((e) => e.name),
+        contains('transaction_recategorized'),
+      );
+    },
+  );
 
   testWidgets('dismissing the picker leaves the card where it was', (t) async {
     await pump(t);
@@ -170,7 +231,12 @@ void main() {
     expect(find.text('Fix category'), findsNothing);
     expect(find.text('${q.length} left'), findsOneWidget);
     expect(rec.events, isEmpty);
-    expect((await repo.transactions()).firstWhere((x) => x.id == q.first.id).reviewed, isFalse);
+    expect(
+      (await repo.transactions())
+          .firstWhere((x) => x.id == q.first.id)
+          .reviewed,
+      isFalse,
+    );
   });
 
   testWidgets('tapping the card shows its details', (t) async {
@@ -181,22 +247,28 @@ void main() {
     expect(find.text('Done'), findsOneWidget);
   });
 
-  testWidgets('clearing the stack ends in a quiet inbox zero and records the day', (t) async {
-    await pump(t, now: DateTime(2026, 3, 12, 10));
-    final n = (await queue()).length;
-    for (var i = 0; i < n; i++) {
-      await t.tap(find.text('Looks right'));
-      await t.pumpAndSettle();
-    }
-    expect(find.text('Inbox zero'), findsOneWidget);
-    expect(find.text('Looks right'), findsNothing);
-    expect(find.textContaining('1 day at inbox zero'), findsOneWidget);
-    expect(rec.events.where((e) => e.name == 'review_inbox_zero'), hasLength(1));
-    expect(kv.data['review.zero_days'], '2026-03-12');
-    // Nothing guilt-shaped on the screen.
-    expect(find.textContaining('lost'), findsNothing);
-    expect(find.textContaining('broke'), findsNothing);
-  });
+  testWidgets(
+    'clearing the stack ends in a quiet inbox zero and records the day',
+    (t) async {
+      await pump(t, now: DateTime(2026, 3, 12, 10));
+      final n = (await queue()).length;
+      for (var i = 0; i < n; i++) {
+        await t.tap(find.text('Looks right'));
+        await t.pumpAndSettle();
+      }
+      expect(find.text('Inbox zero'), findsOneWidget);
+      expect(find.text('Looks right'), findsNothing);
+      expect(find.textContaining('1 day at inbox zero'), findsOneWidget);
+      expect(
+        rec.events.where((e) => e.name == 'review_inbox_zero'),
+        hasLength(1),
+      );
+      expect(kv.data['review.zero_days'], '2026-03-12');
+      // Nothing guilt-shaped on the screen.
+      expect(find.textContaining('lost'), findsNothing);
+      expect(find.textContaining('broke'), findsNothing);
+    },
+  );
 
   testWidgets('undo after inbox zero brings the last card back', (t) async {
     await pump(t);
@@ -213,14 +285,19 @@ void main() {
   testWidgets('an empty inbox is a calm empty state, not an event', (t) async {
     await pump(t, allReviewed: true);
     expect(find.text('Inbox zero'), findsOneWidget);
-    expect(find.textContaining('Everything has been looked at.'), findsOneWidget);
+    expect(
+      find.textContaining('Everything has been looked at.'),
+      findsOneWidget,
+    );
     expect(rec.events, isEmpty);
     expect(find.text('Undo'), findsOneWidget);
     await t.tap(find.text('Done'));
     await t.pumpAndSettle();
   });
 
-  testWidgets('streak from earlier days is shown, and only as a quiet line', (t) async {
+  testWidgets('streak from earlier days is shown, and only as a quiet line', (
+    t,
+  ) async {
     await pump(t, allReviewed: true, now: DateTime(2026, 3, 12, 10));
     // Two earlier days already recorded.
     kv.data['review.zero_days'] = '2026-03-10,2026-03-11';
@@ -230,14 +307,17 @@ void main() {
     expect(find.textContaining('3 days at inbox zero'), findsOneWidget);
   });
 
-  testWidgets('reduced motion: the card moves without animating, and still works', (t) async {
-    await pump(t, reduceMotion: true);
-    final q = await queue();
-    await t.drag(_card, const Offset(320, 0));
-    await t.pump(); // one frame, no settling
-    expect(find.text('${q.length - 1} left'), findsOneWidget);
-    expect(t.takeException(), isNull);
-  });
+  testWidgets(
+    'reduced motion: the card moves without animating, and still works',
+    (t) async {
+      await pump(t, reduceMotion: true);
+      final q = await queue();
+      await t.drag(_card, const Offset(320, 0));
+      await t.pump(); // one frame, no settling
+      expect(find.text('${q.length - 1} left'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    },
+  );
 
   testWidgets('works in dark mode', (t) async {
     await pump(t, dark: true);

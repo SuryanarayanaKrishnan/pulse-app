@@ -74,10 +74,12 @@ class CapMeter {
       : CapLevel.ok;
 
   /// Spend at which the cap is reached (AED); null when the rule pays nothing.
-  double? get capSpendAed => (rate == null || rate! <= 0) ? null : capAed / rate!;
+  double? get capSpendAed =>
+      (rate == null || rate! <= 0) ? null : capAed / rate!;
 
   /// Spend left before the cap is reached (AED).
-  double? get remainingSpendAed => (rate == null || rate! <= 0) ? null : remainingAed / rate!;
+  double? get remainingSpendAed =>
+      (rate == null || rate! <= 0) ? null : remainingAed / rate!;
 }
 
 class CardCapStatus {
@@ -124,12 +126,17 @@ class CardCapStatus {
 
   /// The card cannot earn more this cycle: its card-wide cap is hit, or every
   /// capped rule is hit and the card has no uncapped earning rule.
-  bool get isExhausted => meters.any((m) => m.isTotal && m.level == CapLevel.hit);
+  bool get isExhausted =>
+      meters.any((m) => m.isTotal && m.level == CapLevel.hit);
 }
 
 /// The cycle that contains [today] for [spec]: the issuer's stated basis, else
 /// the user's statement day, else the calendar month (marked as assumed).
-(CalDate, CalDate, CycleBasis) resolveCycle(CardSpec spec, CalDate today, int? statementDay) {
+(CalDate, CalDate, CycleBasis) resolveCycle(
+  CardSpec spec,
+  CalDate today,
+  int? statementDay,
+) {
   if (spec.capCycle == 'calendar') {
     final (a, b) = cycleBounds(today, null);
     return (a, b, CycleBasis.calendar);
@@ -160,7 +167,8 @@ CardCapStatus cardCapStatus({
     if (s.amountMinor <= 0) continue;
     final rule = selectRule(spec, s.category, s.merchantKey);
     if (rule == null) continue;
-    spentByRule[rule.name] = (spentByRule[rule.name] ?? 0) + s.amountMinor / 100;
+    spentByRule[rule.name] =
+        (spentByRule[rule.name] ?? 0) + s.amountMinor / 100;
   }
   final meters = <CapMeter>[];
   var topRate = 0.0;
@@ -176,7 +184,8 @@ CardCapStatus cardCapStatus({
         label: r.name,
         isTotal: false,
         capAed: r.capUnits! * value,
-        earnedAed: math.min(r.capUnits!, res.usage[r.name]?.usedUnits ?? 0) * value,
+        earnedAed:
+            math.min(r.capUnits!, res.usage[r.name]?.usedUnits ?? 0) * value,
         rate: r.rate > 0 ? r.rate * value : null,
         spentAed: spentByRule[r.name] ?? 0,
         categories: r.categories,
@@ -192,7 +201,12 @@ CardCapStatus cardCapStatus({
         label: 'All rewards',
         isTotal: true,
         capAed: spec.totalCapUnits! * value,
-        earnedAed: math.min(spec.totalCapUnits!, res.usage[totalCapKey]?.usedUnits ?? 0) * value,
+        earnedAed:
+            math.min(
+              spec.totalCapUnits!,
+              res.usage[totalCapKey]?.usedUnits ?? 0,
+            ) *
+            value,
         rate: topRate > 0 ? topRate : null,
         spentAed: res.spendMinor / 100,
         categories: const {},
@@ -239,7 +253,8 @@ class StackCapStatus {
   final List<String> uncappedLegs;
 
   double get remainingAed => math.max(0, quotaAed - earnedAed);
-  double get pct => quotaAed <= 0 ? 0 : math.min(100, earnedAed / quotaAed * 100);
+  double get pct =>
+      quotaAed <= 0 ? 0 : math.min(100, earnedAed / quotaAed * 100);
   CapLevel get level => quotaAed <= 0
       ? CapLevel.ok
       : remainingAed <= 0.005
@@ -315,18 +330,23 @@ class CapAlert {
   final bool isStack;
 }
 
-String _aed(double v) => v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
+String _aed(double v) =>
+    v == v.roundToDouble() ? v.toStringAsFixed(0) : v.toStringAsFixed(2);
 
 /// `AED 300 of 300` for a cap figure.
-String capFigures(double earned, double cap) => 'AED ${_aed(earned)} of ${_aed(cap)}';
+String capFigures(double earned, double cap) =>
+    'AED ${_aed(earned)} of ${_aed(cap)}';
 
 /// The line used by alerts, Which-card and the meter: names the card or stack
 /// and the figures; `null` below the near threshold.
-String? capLine(String title, CapLevel level, double earned, double cap) => switch (level) {
-  CapLevel.hit => '$title cap reached: ${capFigures(earned, cap)} this month',
-  CapLevel.near => '$title is nearly at its cap: ${capFigures(earned, cap)} this month',
-  CapLevel.ok => null,
-};
+String? capLine(String title, CapLevel level, double earned, double cap) =>
+    switch (level) {
+      CapLevel.hit =>
+        '$title cap reached: ${capFigures(earned, cap)} this month',
+      CapLevel.near =>
+        '$title is nearly at its cap: ${capFigures(earned, cap)} this month',
+      CapLevel.ok => null,
+    };
 
 /// Every status at or over the near threshold. [muted] holds card ids (and
 /// `stack:<id>` keys) the user muted; those are left out.
@@ -340,7 +360,9 @@ List<CapAlert> capAlerts(
     if (muted.contains(c.cardId)) continue;
     final m = c.worst;
     if (m == null || m.level == CapLevel.ok) continue;
-    final where = m.isTotal || c.meters.length == 1 ? c.title : '${c.title} ${m.label.toLowerCase()}';
+    final where = m.isTotal || c.meters.length == 1
+        ? c.title
+        : '${c.title} ${m.label.toLowerCase()}';
     out.add(
       CapAlert(
         key: '${c.cardId}|${c.cycleStart.toIso()}|${m.id}|${m.level.name}',
@@ -352,8 +374,13 @@ List<CapAlert> capAlerts(
     );
   }
   for (final (id, s) in stacks) {
-    if (muted.contains('stack:$id') || s.level == CapLevel.ok || s.legs.length < 2) continue;
-    final start = s.legs.map((l) => l.cycleStart).reduce((a, b) => a > b ? a : b);
+    if (muted.contains('stack:$id') ||
+        s.level == CapLevel.ok ||
+        s.legs.length < 2)
+      continue;
+    final start = s.legs
+        .map((l) => l.cycleStart)
+        .reduce((a, b) => a > b ? a : b);
     out.add(
       CapAlert(
         key: 'stack:$id|${start.toIso()}|${s.level.name}',

@@ -1,0 +1,42 @@
+name: iOS simulator smoke
+
+# Boots an iPhone simulator, launches the real app (real database, real
+# catalog, no mocks) and fails if it errors on start. It runs by hand and once a
+# night, not on every push, so it never burns macOS minutes (10x) per merge.
+
+on:
+  schedule:
+    - cron: '20 1 * * *' # 05:20 Dubai
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-simulator-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  simulator:
+    runs-on: macos-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Boot an iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available | grep -m1 "iPhone" | sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$UDID" || true
+          xcrun simctl bootstatus "$UDID" -b
+
+      - name: Run the launch smoke test
+        run: flutter test integration_test/smoke_test.dart -d "${{ steps.sim.outputs.udid }}"

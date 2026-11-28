@@ -15,9 +15,13 @@ import 'report.dart';
 import 'transport.dart';
 
 /// The RepaintBoundary at the app root that screenshots come from.
-final captureKeyProvider = Provider<GlobalKey>((ref) => GlobalKey(debugLabel: 'bug-report-capture'));
+final captureKeyProvider = Provider<GlobalKey>(
+  (ref) => GlobalKey(debugLabel: 'bug-report-capture'),
+);
 
-final bugReportLauncherProvider = Provider<BugReportLauncher>((ref) => BugReportLauncher(ref));
+final bugReportLauncherProvider = Provider<BugReportLauncher>(
+  (ref) => BugReportLauncher(ref),
+);
 
 /// Takes the screenshot first, then shows the sheet, so the picture is of
 /// the screen the person was on and not of the sheet.
@@ -30,9 +34,14 @@ class BugReportLauncher {
 
   Future<ui.Image?> capture() async {
     try {
-      final boundary = _ref.read(captureKeyProvider).currentContext?.findRenderObject();
+      final boundary = _ref
+          .read(captureKeyProvider)
+          .currentContext
+          ?.findRenderObject();
       if (boundary is! RenderRepaintBoundary) return null;
-      final dpr = ui.PlatformDispatcher.instance.views.firstOrNull?.devicePixelRatio ?? 2;
+      final dpr =
+          ui.PlatformDispatcher.instance.views.firstOrNull?.devicePixelRatio ??
+          2;
       return await boundary
           .toImage(pixelRatio: math.min(dpr, 2.0))
           .timeout(const Duration(seconds: 3));
@@ -50,7 +59,9 @@ class BugReportLauncher {
       shot = await capture();
       final ctx = rootNavigatorKey.currentContext;
       if (ctx == null || !ctx.mounted) return;
-      _ref.read(analyticsProvider).track(AnalyticsEvent.bugReportOpened(source));
+      _ref
+          .read(analyticsProvider)
+          .track(AnalyticsEvent.bugReportOpened(source));
       final log = _ref.read(bugLogProvider);
       final device = await DeviceSnapshot.collect(
         locale: Localizations.maybeLocaleOf(ctx) ?? const Locale('en'),
@@ -67,9 +78,13 @@ class BugReportLauncher {
           logLines: log.lines(BugReport.maxLogLines),
           local: _ref.read(localShareTransportProvider),
           issue: _ref.read(issueTransportProvider),
-          onSent: (m) => _ref.read(analyticsProvider).track(
-            AnalyticsEvent.bugReportSent(m == DeliveryMethod.issue ? 'issue' : 'local'),
-          ),
+          onSent: (m) => _ref
+              .read(analyticsProvider)
+              .track(
+                AnalyticsEvent.bugReportSent(
+                  m == DeliveryMethod.issue ? 'issue' : 'local',
+                ),
+              ),
         ),
       );
     } finally {

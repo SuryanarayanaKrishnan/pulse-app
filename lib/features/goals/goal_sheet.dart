@@ -31,15 +31,23 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
   late CalDate? _date = widget.initial?.targetDate;
   late String? _link = widget.initial?.linkedRef;
   late final _name = TextEditingController(text: widget.initial?.name);
-  late final _target = TextEditingController(text: _fill(widget.initial?.targetMinor));
-  late final _start = TextEditingController(text: _fill(widget.initial?.startMinor));
-  late final _monthly = TextEditingController(text: _fill(widget.initial?.monthlyMinor));
+  late final _target = TextEditingController(
+    text: _fill(widget.initial?.targetMinor),
+  );
+  late final _start = TextEditingController(
+    text: _fill(widget.initial?.startMinor),
+  );
+  late final _monthly = TextEditingController(
+    text: _fill(widget.initial?.monthlyMinor),
+  );
   bool _busy = false;
 
   bool get _editing => widget.initial != null;
   bool get _paydown => _kind == GoalKind.paydown;
 
-  static String _fill(int? minor) => minor == null || minor == 0 ? '' : (minor / 100).toStringAsFixed(minor % 100 == 0 ? 0 : 2);
+  static String _fill(int? minor) => minor == null || minor == 0
+      ? ''
+      : (minor / 100).toStringAsFixed(minor % 100 == 0 ? 0 : 2);
 
   @override
   void dispose() {
@@ -64,10 +72,14 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
     final linked = assets[_link];
     final int remaining;
     if (_paydown) {
-      final owed = linked == null ? (_startV ?? 0) : (linked.value * 100).round();
+      final owed = linked == null
+          ? (_startV ?? 0)
+          : (linked.value * 100).round();
       remaining = owed;
     } else {
-      final have = linked == null ? (_startV ?? 0) : (linked.value * 100).round();
+      final have = linked == null
+          ? (_startV ?? 0)
+          : (linked.value * 100).round();
       remaining = (_targetV ?? 0) - have;
     }
     return requiredMonthly(remaining, t, _date);
@@ -80,7 +92,8 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
       final old = widget.initial;
       final linked = assets[_link];
       var start = _startV ?? 0;
-      if (_paydown && linked != null && start == 0) start = (linked.value * 100).round();
+      if (_paydown && linked != null && start == 0)
+        start = (linked.value * 100).round();
       final g = GoalRecord(
         id: old?.id ?? newGoalId(),
         name: _name.text.trim(),
@@ -96,12 +109,17 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
         createdAt: old?.createdAt ?? DateTime.now(),
       );
       await ref.read(goalServiceProvider).save(g);
-      if (old == null) ref.read(analyticsProvider).track(AnalyticsEvent.goalCreated(_kind.key));
+      if (old == null)
+        ref
+            .read(analyticsProvider)
+            .track(AnalyticsEvent.goalCreated(_kind.key));
       invalidateGoals(ref);
       if (mounted) Navigator.of(context).pop(g.id);
     } on Object {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('That did not save. Try again.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('That did not save. Try again.')),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -120,7 +138,9 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
     final hint = _suggestion(byId);
     return SheetScaffold(
       title: _editing ? 'Edit goal' : 'New goal',
-      subtitle: _paydown ? 'Pay a balance down to zero.' : 'Save towards something that matters.',
+      subtitle: _paydown
+          ? 'Pay a balance down to zero.'
+          : 'Save towards something that matters.',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -129,8 +149,22 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
               spacing: Space.sm,
               runSpacing: Space.sm,
               children: [
-                Pill('Save up', selected: !_paydown, onTap: () => setState(() { _kind = GoalKind.save; _link = null; })),
-                Pill('Pay down', selected: _paydown, onTap: () => setState(() { _kind = GoalKind.paydown; _link = null; })),
+                Pill(
+                  'Save up',
+                  selected: !_paydown,
+                  onTap: () => setState(() {
+                    _kind = GoalKind.save;
+                    _link = null;
+                  }),
+                ),
+                Pill(
+                  'Pay down',
+                  selected: _paydown,
+                  onTap: () => setState(() {
+                    _kind = GoalKind.paydown;
+                    _link = null;
+                  }),
+                ),
               ],
             ),
           const SizedBox(height: Space.lg),
@@ -140,7 +174,11 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
             autofocus: widget.initial == null,
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(hintText: _paydown ? 'Name, like "Clear the card"' : 'Name, like "Trip to Japan"'),
+            decoration: InputDecoration(
+              hintText: _paydown
+                  ? 'Name, like "Clear the card"'
+                  : 'Name, like "Trip to Japan"',
+            ),
             onChanged: (_) => setState(() {}),
           ),
           const FieldLabel('Icon'),
@@ -163,14 +201,23 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
                       height: 46,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: (_icon ?? defaultGoalIcon(_kind)) == k ? c.accent.withValues(alpha: 0.12) : c.surfaceElevated,
+                        color: (_icon ?? defaultGoalIcon(_kind)) == k
+                            ? c.accent.withValues(alpha: 0.12)
+                            : c.surfaceElevated,
                         borderRadius: BorderRadius.circular(Radii.md),
                         border: Border.all(
-                          color: (_icon ?? defaultGoalIcon(_kind)) == k ? c.accent : Colors.transparent,
+                          color: (_icon ?? defaultGoalIcon(_kind)) == k
+                              ? c.accent
+                              : Colors.transparent,
                           width: 1.5,
                         ),
                       ),
-                      child: ExcludeSemantics(child: GlyphKeyIcon(k, selected: (_icon ?? defaultGoalIcon(_kind)) == k)),
+                      child: ExcludeSemantics(
+                        child: GlyphKeyIcon(
+                          k,
+                          selected: (_icon ?? defaultGoalIcon(_kind)) == k,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -181,8 +228,14 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
             TextField(
               key: const Key('goal_target'),
               controller: _target,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: const InputDecoration(hintText: 'Target amount', prefixText: 'AED  '),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Target amount',
+                prefixIcon: CurrencyPrefix('AED'),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
+              ),
               onChanged: (_) => setState(() {}),
             ),
           if (!_paydown) const SizedBox(height: Space.md),
@@ -190,10 +243,15 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
             TextField(
               key: const Key('goal_start'),
               controller: _start,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: InputDecoration(
-                hintText: _paydown ? 'Amount owed now' : 'Already saved (optional)',
-                prefixText: 'AED  ',
+                hintText: _paydown
+                    ? 'Amount owed now'
+                    : 'Already saved (optional)',
+                prefixIcon: CurrencyPrefix('AED'),
+                prefixIconConstraints: kCurrencyPrefixConstraints,
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -205,7 +263,11 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
                 icon: Icons.event_outlined,
                 selected: _date != null,
                 onTap: () async {
-                  final d = await pickDate(context, initial: _date, future: true);
+                  final d = await pickDate(
+                    context,
+                    initial: _date,
+                    future: true,
+                  );
                   if (d != null && mounted) setState(() => _date = d);
                 },
               ),
@@ -216,14 +278,26 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
             ],
           ),
           if (candidates.isNotEmpty) ...[
-            FieldLabel(_paydown ? 'Follow a card or loan (optional)' : 'Follow an account or asset (optional)'),
+            FieldLabel(
+              _paydown
+                  ? 'Follow a card or loan (optional)'
+                  : 'Follow an account or asset (optional)',
+            ),
             Wrap(
               spacing: Space.sm,
               runSpacing: Space.sm,
               children: [
-                Pill('By hand', selected: _link == null, onTap: () => setState(() => _link = null)),
+                Pill(
+                  'By hand',
+                  selected: _link == null,
+                  onTap: () => setState(() => _link = null),
+                ),
                 for (final a in candidates.take(8))
-                  Pill(a.name, selected: _link == a.id, onTap: () => setState(() => _link = a.id)),
+                  Pill(
+                    a.name,
+                    selected: _link == a.id,
+                    onTap: () => setState(() => _link = a.id),
+                  ),
               ],
             ),
             if (_link != null)
@@ -242,7 +316,11 @@ class _GoalSheetState extends ConsumerState<GoalSheet> {
             key: const Key('goal_monthly'),
             controller: _monthly,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: const InputDecoration(hintText: 'Your own figure', prefixText: 'AED  '),
+            decoration: const InputDecoration(
+              hintText: 'Your own figure',
+              prefixIcon: CurrencyPrefix('AED'),
+              prefixIconConstraints: kCurrencyPrefixConstraints,
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(top: Space.sm),

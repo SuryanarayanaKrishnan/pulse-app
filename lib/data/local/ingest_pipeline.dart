@@ -57,7 +57,9 @@ class IngestFields {
       direction: j['direction'] == 'credit' ? 'credit' : 'debit',
       merchant: j['merchant'] as String?,
       last4: j['last4'] as String?,
-      postedAt: j['posted_at'] == null ? null : DateTime.tryParse('${j['posted_at']}'),
+      postedAt: j['posted_at'] == null
+          ? null
+          : DateTime.tryParse('${j['posted_at']}'),
     );
   }
 }
@@ -90,7 +92,9 @@ class IngestInput {
     if (ch == TxnSource.notification) {
       if (app.contains('samsung')) {
         ch = TxnSource.samsungWallet;
-      } else if (app.contains('google') || app.contains('wallet') || app.contains('gms')) {
+      } else if (app.contains('google') ||
+          app.contains('wallet') ||
+          app.contains('gms')) {
         ch = TxnSource.googleWallet;
       }
     }
@@ -99,7 +103,9 @@ class IngestInput {
       rawText: p['raw_text'] as String?,
       sender: p['sender'] as String?,
       institution: p['institution'] as String?,
-      receivedAt: p['received_at'] == null ? null : DateTime.tryParse('${p['received_at']}'),
+      receivedAt: p['received_at'] == null
+          ? null
+          : DateTime.tryParse('${p['received_at']}'),
       externalId: p['external_id'] as String?,
       appName: p['app_name'] as String?,
       title: p['title'] as String?,
@@ -112,7 +118,8 @@ class IngestInput {
     if (rawText != null) 'raw_text': rawText,
     if (sender != null) 'sender': sender,
     if (institution != null) 'institution': institution,
-    if (receivedAt != null) 'received_at': receivedAt!.toUtc().toIso8601String(),
+    if (receivedAt != null)
+      'received_at': receivedAt!.toUtc().toIso8601String(),
     if (externalId != null) 'external_id': externalId,
     if (appName != null) 'app_name': appName,
     if (title != null) 'title': title,
@@ -120,7 +127,10 @@ class IngestInput {
   };
 
   static IngestInput fromStored(Map<String, Object?> j) =>
-      IngestInput.fromPayload(TxnSource.tryParse(j['channel'] as String?) ?? TxnSource.sms, j);
+      IngestInput.fromPayload(
+        TxnSource.tryParse(j['channel'] as String?) ?? TxnSource.sms,
+        j,
+      );
 }
 
 enum IngestStatus {
@@ -174,7 +184,12 @@ class RewardOutcome {
 }
 
 class IngestOutcome {
-  const IngestOutcome(this.status, {this.transactionId, this.reward, this.reason});
+  const IngestOutcome(
+    this.status, {
+    this.transactionId,
+    this.reward,
+    this.reason,
+  });
   final IngestStatus status;
   final String? transactionId;
   final RewardOutcome? reward;
@@ -183,16 +198,22 @@ class IngestOutcome {
   bool get isNew => status == IngestStatus.stored;
 
   @override
-  String toString() => 'IngestOutcome($status${reason == null ? '' : ', $reason'})';
+  String toString() =>
+      'IngestOutcome($status${reason == null ? '' : ', $reason'})';
 }
 
 /// The on-device ingest pipeline: parse, de-duplicate, resolve the account,
 /// categorise, store and work out what the card earned. Mirrors the
 /// backend's `process_raw_ingest`, with every step running on the phone.
 class IngestPipeline {
-  IngestPipeline(this.db, {ParserRegistry? registry, DateTime Function()? clock, this.globalMap, this.memory})
-    : registry = registry ?? defaultParserRegistry,
-      _clock = clock ?? DateTime.now;
+  IngestPipeline(
+    this.db, {
+    ParserRegistry? registry,
+    DateTime Function()? clock,
+    this.globalMap,
+    this.memory,
+  }) : registry = registry ?? defaultParserRegistry,
+       _clock = clock ?? DateTime.now;
 
   final PulseDatabase db;
 
@@ -215,7 +236,8 @@ class IngestPipeline {
   Future<IngestOutcome> ingest(IngestInput input) async {
     final text = input.rawText ?? '';
     // OTP messages are dropped before anything is parsed, hashed or stored.
-    if (input.fields == null && (isOtpMessage(text) || isOtpMessage(input.title ?? ''))) {
+    if (input.fields == null &&
+        (isOtpMessage(text) || isOtpMessage(input.title ?? ''))) {
       return const IngestOutcome(IngestStatus.ignored, reason: 'otp');
     }
     await voidExpiredHolds();
@@ -224,34 +246,53 @@ class IngestPipeline {
         : null;
     final parsed = notice == null ? _parse(input) : null;
     if (notice == null && parsed == null) {
-      return const IngestOutcome(IngestStatus.ignored, reason: 'not_a_transaction');
+      return const IngestOutcome(
+        IngestStatus.ignored,
+        reason: 'not_a_transaction',
+      );
     }
     final hash = computeExternalHash(
       input.channel,
       externalId: input.externalId,
       sender: input.sender,
       rawText: text,
-      fieldsJson: input.fields == null ? null : jsonEncode(input.fields!.toJson()),
+      fieldsJson: input.fields == null
+          ? null
+          : jsonEncode(input.fields!.toJson()),
       receivedAt: input.receivedAt,
     );
-    final seen = await (db.select(db.rawIngests)..where((r) => r.externalHash.equals(hash))).getSingleOrNull();
+    final seen = await (db.select(
+      db.rawIngests,
+    )..where((r) => r.externalHash.equals(hash))).getSingleOrNull();
     if (seen != null) {
-      return IngestOutcome(IngestStatus.duplicate, transactionId: seen.transactionId);
+      return IngestOutcome(
+        IngestStatus.duplicate,
+        transactionId: seen.transactionId,
+      );
     }
     final rawId = newId();
-    await db.into(db.rawIngests).insert(
-      RawIngestsCompanion.insert(
-        id: rawId,
-        channel: input.channel.wire,
-        externalHash: hash,
-        payload: jsonEncode(input.toJson()),
-        parseStatus: const Value('pending'),
-      ),
-    );
+    await db
+        .into(db.rawIngests)
+        .insert(
+          RawIngestsCompanion.insert(
+            id: rawId,
+            channel: input.channel.wire,
+            externalHash: hash,
+            payload: jsonEncode(input.toJson()),
+            parseStatus: const Value('pending'),
+          ),
+        );
     if (notice != null) {
-      final txId = await applyHoldNotice(notice, at: input.receivedAt ?? _clock());
+      final txId = await applyHoldNotice(
+        notice,
+        at: input.receivedAt ?? _clock(),
+      );
       await _markRaw(rawId, 'parsed', txId: txId);
-      return IngestOutcome(IngestStatus.holdUpdated, transactionId: txId, reason: notice.kind.name);
+      return IngestOutcome(
+        IngestStatus.holdUpdated,
+        transactionId: txId,
+        reason: notice.kind.name,
+      );
     }
     final outcome = await _process(rawId, input, parsed!, text);
     if (outcome.isNew) _results.add(outcome);
@@ -266,7 +307,10 @@ class IngestPipeline {
     final raw = await db.setting(_noticesKey);
     if (raw == null || raw.isEmpty) return [];
     try {
-      return [for (final e in jsonDecode(raw) as List) Map<String, Object?>.from(e as Map)];
+      return [
+        for (final e in jsonDecode(raw) as List)
+          Map<String, Object?>.from(e as Map),
+      ];
     } on Object {
       return [];
     }
@@ -293,19 +337,28 @@ class IngestPipeline {
   Future<bool> _holdAlreadyClosed(String? merchant, int amountMinor) async {
     final cutoff = _clock().subtract(holdExpiry);
     for (final e in await _notices()) {
-      if (e['kind'] == HoldNoticeKind.hold.name || e['hold'] != amountMinor) continue;
-      if ((DateTime.tryParse('${e['at']}') ?? cutoff).isBefore(cutoff)) continue;
+      if (e['kind'] == HoldNoticeKind.hold.name || e['hold'] != amountMinor)
+        continue;
+      if ((DateTime.tryParse('${e['at']}') ?? cutoff).isBefore(cutoff))
+        continue;
       if (sameHoldMerchant('${e['merchant']}', merchant)) return true;
     }
     return false;
   }
 
-  bool _hasTag(TxRow t, String tag) => (jsonDecode(t.tags) as List).contains(tag);
+  bool _hasTag(TxRow t, String tag) =>
+      (jsonDecode(t.tags) as List).contains(tag);
 
   Future<void> _settle(TxRow hold, int finalMinor, {String? channel}) async {
-    final tags = [for (final x in jsonDecode(hold.tags) as List) '$x']..remove(holdTag);
-    final sources = {...[for (final x in jsonDecode(hold.sources) as List) '$x'], ?channel}.toList();
-    await (db.update(db.transactions)..where((t) => t.id.equals(hold.id))).write(
+    final tags = [for (final x in jsonDecode(hold.tags) as List) '$x']
+      ..remove(holdTag);
+    final sources = {
+      ...[for (final x in jsonDecode(hold.sources) as List) '$x'],
+      ?channel,
+    }.toList();
+    await (db.update(
+      db.transactions,
+    )..where((t) => t.id.equals(hold.id))).write(
       TransactionsCompanion(
         amountMinor: Value(finalMinor),
         excludeFromBudget: const Value(false),
@@ -315,9 +368,10 @@ class IngestPipeline {
     );
   }
 
-  Future<void> _void(TxRow t) => (db.update(db.transactions)..where((x) => x.id.equals(t.id))).write(
-    TransactionsCompanion(deletedAt: Value(_clock().toUtc())),
-  );
+  Future<void> _void(TxRow t) =>
+      (db.update(db.transactions)..where((x) => x.id.equals(t.id))).write(
+        TransactionsCompanion(deletedAt: Value(_clock().toUtc())),
+      );
 
   /// Applies a merchant's hold / settlement / release email. Returns the id of
   /// the transaction it changed, if any. Notices are also remembered so the
@@ -326,36 +380,61 @@ class IngestPipeline {
     final now = at ?? _clock();
     await _saveNotice(n, now);
     final day = const Duration(days: 1);
-    final recent = await (db.select(db.transactions)
-          ..where(
-            (t) =>
-                t.deletedAt.isNull() &
-                t.direction.equals('debit') &
-                t.postedAt.isBetweenValues(now.subtract(holdExpiry), now.add(day)),
-          ))
-        .get();
-    final sameShop = [for (final t in recent) if (sameHoldMerchant(n.merchant, t.merchantNormalized ?? t.merchantRaw)) t];
-    final holds = [for (final t in sameShop) if (_hasTag(t, holdTag)) t];
+    final recent =
+        await (db.select(db.transactions)..where(
+              (t) =>
+                  t.deletedAt.isNull() &
+                  t.direction.equals('debit') &
+                  t.postedAt.isBetweenValues(
+                    now.subtract(holdExpiry),
+                    now.add(day),
+                  ),
+            ))
+            .get();
+    final sameShop = [
+      for (final t in recent)
+        if (sameHoldMerchant(n.merchant, t.merchantNormalized ?? t.merchantRaw))
+          t,
+    ];
+    final holds = [
+      for (final t in sameShop)
+        if (_hasTag(t, holdTag)) t,
+    ];
     // The row for the blocked amount, held or not yet recognised as a hold.
     TxRow? blocked;
     for (final t in sameShop) {
-      if (t.amountMinor == n.holdMinor && (blocked == null || t.postedAt.isAfter(blocked.postedAt))) blocked = t;
+      if (t.amountMinor == n.holdMinor &&
+          (blocked == null || t.postedAt.isAfter(blocked.postedAt)))
+        blocked = t;
     }
     switch (n.kind) {
       case HoldNoticeKind.hold:
         if (blocked != null && !_hasTag(blocked, holdTag)) {
-          final tags = [for (final x in jsonDecode(blocked.tags) as List) '$x', holdTag];
-          await (db.update(db.transactions)..where((t) => t.id.equals(blocked!.id))).write(
-            TransactionsCompanion(tags: Value(jsonEncode(tags)), excludeFromBudget: const Value(true)),
+          final tags = [
+            for (final x in jsonDecode(blocked.tags) as List) '$x',
+            holdTag,
+          ];
+          await (db.update(
+            db.transactions,
+          )..where((t) => t.id.equals(blocked!.id))).write(
+            TransactionsCompanion(
+              tags: Value(jsonEncode(tags)),
+              excludeFromBudget: const Value(true),
+            ),
           );
         }
         return blocked?.id;
       case HoldNoticeKind.settlement:
         final fin = n.finalMinor!;
         // The real charge may already be a row of its own (its bank alert came first).
-        final real = [for (final t in sameShop) if (t.amountMinor == fin && !_hasTag(t, holdTag)) t];
+        final real = [
+          for (final t in sameShop)
+            if (t.amountMinor == fin && !_hasTag(t, holdTag)) t,
+        ];
         if (blocked != null && real.isNotEmpty) {
-          await _void(blocked); // the hold row is redundant: the charge is already there
+          await _void(
+            blocked,
+          ); // the hold row is redundant: the charge is already there
           return real.first.id;
         }
         if (blocked != null) {
@@ -374,9 +453,12 @@ class IngestPipeline {
   /// Holds the bank never settled are released by the bank: stop counting them.
   Future<int> voidExpiredHolds() async {
     final cutoff = _clock().subtract(holdExpiry);
-    final rows = await (db.select(db.transactions)
-          ..where((t) => t.deletedAt.isNull() & t.postedAt.isSmallerThanValue(cutoff)))
-        .get();
+    final rows =
+        await (db.select(db.transactions)..where(
+              (t) =>
+                  t.deletedAt.isNull() & t.postedAt.isSmallerThanValue(cutoff),
+            ))
+            .get();
     var n = 0;
     for (final t in rows) {
       if (_hasTag(t, holdTag)) {
@@ -390,14 +472,17 @@ class IngestPipeline {
   /// Retries messages that had no matching account (after the user added a
   /// card or account). Returns how many became transactions.
   Future<int> reprocessPending() async {
-    final rows = await (db.select(db.rawIngests)
-          ..where((r) => r.parseStatus.equals('needs_review'))
-          ..orderBy([(r) => OrderingTerm.asc(r.createdAt)]))
-        .get();
+    final rows =
+        await (db.select(db.rawIngests)
+              ..where((r) => r.parseStatus.equals('needs_review'))
+              ..orderBy([(r) => OrderingTerm.asc(r.createdAt)]))
+            .get();
     var made = 0;
     for (final r in rows) {
       try {
-        final input = IngestInput.fromStored(Map<String, Object?>.from(jsonDecode(r.payload) as Map));
+        final input = IngestInput.fromStored(
+          Map<String, Object?>.from(jsonDecode(r.payload) as Map),
+        );
         final parsed = _parse(input);
         if (parsed == null) continue;
         final o = await _process(r.id, input, parsed, input.rawText ?? '');
@@ -415,19 +500,29 @@ class IngestPipeline {
   /// Waiting alerts whose card digits match no account, grouped by digits and
   /// bank, with the digit-less accounts at that bank that could own them.
   Future<List<DigitSuggestion>> digitSuggestions() async {
-    final rows = await (db.select(db.rawIngests)..where((r) => r.parseStatus.equals('needs_review'))).get();
+    final rows = await (db.select(
+      db.rawIngests,
+    )..where((r) => r.parseStatus.equals('needs_review'))).get();
     if (rows.isEmpty) return const [];
-    final accounts = await (db.select(db.accounts)..where((a) => a.deletedAt.isNull())).get();
-    final known = {for (final a in accounts) if (a.last4 != null) a.last4!};
+    final accounts = await (db.select(
+      db.accounts,
+    )..where((a) => a.deletedAt.isNull())).get();
+    final known = {
+      for (final a in accounts)
+        if (a.last4 != null) a.last4!,
+    };
     final waiting = <String, int>{};
     final inst = <String, String>{};
     for (final r in rows) {
       try {
-        final input = IngestInput.fromStored(Map<String, Object?>.from(jsonDecode(r.payload) as Map));
+        final input = IngestInput.fromStored(
+          Map<String, Object?>.from(jsonDecode(r.payload) as Map),
+        );
         final p = _parse(input);
         final last4 = p?.last4;
         final bank = p?.institution;
-        if (p == null || last4 == null || bank == null || known.contains(last4)) continue;
+        if (p == null || last4 == null || bank == null || known.contains(last4))
+          continue;
         final k = '$last4|${institutions.resolveKey(bank) ?? normName(bank)}';
         waiting[k] = (waiting[k] ?? 0) + 1;
         inst[k] = bank;
@@ -443,11 +538,20 @@ class IngestPipeline {
         for (final a in accounts)
           if (a.last4 == null &&
               a.institution != null &&
-              (institutions.resolveKey(a.institution!) ?? normName(a.institution!)) == key)
+              (institutions.resolveKey(a.institution!) ??
+                      normName(a.institution!)) ==
+                  key)
             (id: a.id, label: '${a.institution} ${a.name}'.trim()),
       ];
       if (cands.isEmpty) continue;
-      out.add(DigitSuggestion(last4: last4, institution: inst[e.key]!, candidates: cands, waiting: e.value));
+      out.add(
+        DigitSuggestion(
+          last4: last4,
+          institution: inst[e.key]!,
+          candidates: cands,
+          waiting: e.value,
+        ),
+      );
     }
     out.sort((a, b) => b.waiting.compareTo(a.waiting));
     return out;
@@ -486,16 +590,22 @@ class IngestPipeline {
   }
 
   AccountRow? _resolveAccount(List<AccountRow> all, ParsedTransaction p) {
-    final key = p.institution == null ? null : (institutions.resolveKey(p.institution!) ?? p.institution);
+    final key = p.institution == null
+        ? null
+        : (institutions.resolveKey(p.institution!) ?? p.institution);
     bool sameInstitution(AccountRow a) {
       if (key == null) return true;
       final name = a.institution;
       if (name == null) return false;
-      return (institutions.resolveKey(name) ?? normName(name)) == key || normName(name) == normName(key);
+      return (institutions.resolveKey(name) ?? normName(name)) == key ||
+          normName(name) == normName(key);
     }
 
     if (p.last4 != null) {
-      var cands = [for (final a in all) if (a.last4 == p.last4) a];
+      var cands = [
+        for (final a in all)
+          if (a.last4 == p.last4) a,
+      ];
       if (cands.length > 1) {
         final narrowed = cands.where(sameInstitution).toList();
         if (narrowed.isNotEmpty) cands = narrowed;
@@ -509,21 +619,35 @@ class IngestPipeline {
     return null;
   }
 
-  Future<void> _markRaw(String rawId, String status, {String? txId, String? error}) =>
-      (db.update(db.rawIngests)..where((r) => r.id.equals(rawId))).write(
-        RawIngestsCompanion(
-          parseStatus: Value(status),
-          transactionId: Value(txId),
-          error: Value(error),
-        ),
-      );
+  Future<void> _markRaw(
+    String rawId,
+    String status, {
+    String? txId,
+    String? error,
+  }) => (db.update(db.rawIngests)..where((r) => r.id.equals(rawId))).write(
+    RawIngestsCompanion(
+      parseStatus: Value(status),
+      transactionId: Value(txId),
+      error: Value(error),
+    ),
+  );
 
-  Future<IngestOutcome> _process(String rawId, IngestInput input, ParsedTransaction p, String text) async {
-    final accounts = await (db.select(db.accounts)..where((a) => a.deletedAt.isNull())).get();
+  Future<IngestOutcome> _process(
+    String rawId,
+    IngestInput input,
+    ParsedTransaction p,
+    String text,
+  ) async {
+    final accounts = await (db.select(
+      db.accounts,
+    )..where((a) => a.deletedAt.isNull())).get();
     final account = _resolveAccount(accounts, p);
     if (account == null) {
       await _markRaw(rawId, 'needs_review', error: 'no_matching_account');
-      return const IngestOutcome(IngestStatus.needsReview, reason: 'no_matching_account');
+      return const IngestOutcome(
+        IngestStatus.needsReview,
+        reason: 'no_matching_account',
+      );
     }
     final postedAt = (p.postedAt ?? input.receivedAt ?? _clock()).toUtc();
     final direction = p.direction;
@@ -532,16 +656,18 @@ class IngestPipeline {
     // Is it a purchase we already know?
     final window = postedAt.subtract(const Duration(days: 4));
     final windowEnd = postedAt.add(const Duration(days: 4));
-    final nearby = await (db.select(db.transactions)
-          ..where(
-            (t) =>
-                t.accountId.equals(account.id) &
-                t.deletedAt.isNull() &
-                t.postedAt.isBetweenValues(window, windowEnd),
-          ))
-        .get();
+    final nearby =
+        await (db.select(db.transactions)..where(
+              (t) =>
+                  t.accountId.equals(account.id) &
+                  t.deletedAt.isNull() &
+                  t.postedAt.isBetweenValues(window, windowEnd),
+            ))
+            .get();
     final claimed = {
-      for (final r in await (db.select(db.rawIngests)..where((x) => x.transactionId.isNotNull())).get())
+      for (final r in await (db.select(
+        db.rawIngests,
+      )..where((x) => x.transactionId.isNotNull())).get())
         r.transactionId!,
     };
     final stored = [
@@ -569,7 +695,10 @@ class IngestPipeline {
           if (t.deletedAt == null &&
               _hasTag(t, holdTag) &&
               t.direction == 'debit' &&
-              sameHoldMerchant(p.merchantRaw, t.merchantNormalized ?? t.merchantRaw) &&
+              sameHoldMerchant(
+                p.merchantRaw,
+                t.merchantNormalized ?? t.merchantRaw,
+              ) &&
               t.amountMinor > p.amountMinor &&
               postedAt.difference(t.postedAt).abs() <= settleWindow)
             t,
@@ -578,12 +707,19 @@ class IngestPipeline {
         open.sort((a, b) => b.postedAt.compareTo(a.postedAt));
         await _settle(open.first, p.amountMinor, channel: channel.wire);
         await _markRaw(rawId, 'parsed', txId: open.first.id);
-        return IngestOutcome(IngestStatus.merged, transactionId: open.first.id, reason: 'hold_settled');
+        return IngestOutcome(
+          IngestStatus.merged,
+          transactionId: open.first.id,
+          reason: 'hold_settled',
+        );
       }
       if (looksLikeHold(p.merchantRaw, p.amountMinor, direction)) {
         if (await _holdAlreadyClosed(p.merchantRaw, p.amountMinor)) {
           await _markRaw(rawId, 'parsed');
-          return const IngestOutcome(IngestStatus.ignored, reason: 'hold_already_released');
+          return const IngestOutcome(
+            IngestStatus.ignored,
+            reason: 'hold_already_released',
+          );
         }
         asHold = true;
       }
@@ -609,10 +745,12 @@ class IngestPipeline {
           postedAt: postedAt,
         );
     if (dupe != null) {
-      final sources = {...(dupe.sources.isEmpty ? [dupe.source.wire] : dupe.sources), channel.wire}.toList();
-      await (db.update(db.transactions)..where((t) => t.id.equals(dupe.id))).write(
-        TransactionsCompanion(sources: Value(jsonEncode(sources))),
-      );
+      final sources = {
+        ...(dupe.sources.isEmpty ? [dupe.source.wire] : dupe.sources),
+        channel.wire,
+      }.toList();
+      await (db.update(db.transactions)..where((t) => t.id.equals(dupe.id)))
+          .write(TransactionsCompanion(sources: Value(jsonEncode(sources))));
       await _markRaw(rawId, 'parsed', txId: dupe.id);
       return IngestOutcome(IngestStatus.merged, transactionId: dupe.id);
     }
@@ -634,54 +772,74 @@ class IngestPipeline {
     if (salary != null && categoryId == null) categoryId = 'salary';
 
     final txId = newId();
-    await db.into(db.transactions).insert(
-      TransactionsCompanion.insert(
-        id: txId,
-        accountId: account.id,
-        amountMinor: p.amountMinor,
-        currency: Value(p.currency),
-        direction: direction.name,
-        categoryId: Value(categoryId),
-        merchantRaw: Value(p.merchantRaw),
-        merchantNormalized: Value(enrichment.merchantNormalized),
-        postedAt: postedAt,
-        source: channel.wire,
-        externalHash: const Value.absent(),
-        excludeFromBudget: Value(enrichment.excludeFromBudget || asHold),
-        tags: Value(jsonEncode([...enrichment.tags, if (asHold) holdTag])),
-        sources: Value(jsonEncode([channel.wire])),
-        appliedRuleId: Value(enrichment.ruleId),
-      ),
-    );
+    await db
+        .into(db.transactions)
+        .insert(
+          TransactionsCompanion.insert(
+            id: txId,
+            accountId: account.id,
+            amountMinor: p.amountMinor,
+            currency: Value(p.currency),
+            direction: direction.name,
+            categoryId: Value(categoryId),
+            merchantRaw: Value(p.merchantRaw),
+            merchantNormalized: Value(enrichment.merchantNormalized),
+            postedAt: postedAt,
+            source: channel.wire,
+            externalHash: const Value.absent(),
+            excludeFromBudget: Value(enrichment.excludeFromBudget || asHold),
+            tags: Value(jsonEncode([...enrichment.tags, if (asHold) holdTag])),
+            sources: Value(jsonEncode([channel.wire])),
+            appliedRuleId: Value(enrichment.ruleId),
+          ),
+        );
     if (salary != null) {
-      await db.into(db.salaryRecords).insertOnConflictUpdate(
-        SalaryRecordsCompanion.insert(
-          id: newId(),
-          accountId: Value(account.id),
-          employer: Value(salary.employer),
-          amountMinor: p.amountMinor,
-          currency: Value(p.currency),
-          receivedOn: toDubaiDate(postedAt).toIso(),
-          transactionId: Value(txId),
-          matchedBy: Value(salary.matchedBy),
-        ),
-      );
+      await db
+          .into(db.salaryRecords)
+          .insertOnConflictUpdate(
+            SalaryRecordsCompanion.insert(
+              id: newId(),
+              accountId: Value(account.id),
+              employer: Value(salary.employer),
+              amountMinor: p.amountMinor,
+              currency: Value(p.currency),
+              receivedOn: toDubaiDate(postedAt).toIso(),
+              transactionId: Value(txId),
+              matchedBy: Value(salary.matchedBy),
+            ),
+          );
     }
     await _markRaw(rawId, 'parsed', txId: txId);
 
     RewardOutcome? reward;
-    if (!asHold && direction == Direction.debit && p.currency == 'AED' && account.type == 'credit_card') {
+    if (!asHold &&
+        direction == Direction.debit &&
+        p.currency == 'AED' &&
+        account.type == 'credit_card') {
       try {
-        reward = await _reward(account, txId, categoryId, enrichment.merchantNormalized ?? p.merchantRaw, p.amountMinor, postedAt);
+        reward = await _reward(
+          account,
+          txId,
+          categoryId,
+          enrichment.merchantNormalized ?? p.merchantRaw,
+          p.amountMinor,
+          postedAt,
+        );
       } on Object catch (e) {
         debugPrint('Reward calculation failed: $e');
       }
     }
-    return IngestOutcome(IngestStatus.stored, transactionId: txId, reward: reward);
+    return IngestOutcome(
+      IngestStatus.stored,
+      transactionId: txId,
+      reward: reward,
+    );
   }
 
   Future<CategoryResolver> _resolver() async {
-    final rows = await (db.select(db.merchantRules)..where((r) => r.isActive.equals(true))).get();
+    final rows = await (db.select(
+      db.merchantRules,
+    )..where((r) => r.isActive.equals(true))).get();
     final compiled = <CompiledRule>[];
     for (final r in rows) {
       try {
@@ -695,7 +853,12 @@ class IngestPipeline {
       for (final c in cats)
         if (c.slug != null) c.slug!: c.id,
     };
-    return CategoryResolver(compiled, system, globalMap: globalMap, memory: memory);
+    return CategoryResolver(
+      compiled,
+      system,
+      globalMap: globalMap,
+      memory: memory,
+    );
   }
 
   Future<RewardOutcome?> _reward(
@@ -728,7 +891,8 @@ class IngestPipeline {
     double? capLimit, capUsed;
     if (rule?.capUnits != null) {
       capLimit = rule!.capUnits! * card.spec.pointValueAed;
-      capUsed = (after.usage[rule.name]?.usedUnits ?? 0) * card.spec.pointValueAed;
+      capUsed =
+          (after.usage[rule.name]?.usedUnits ?? 0) * card.spec.pointValueAed;
     }
     return RewardOutcome(
       accountId: account.id,
@@ -744,7 +908,10 @@ class IngestPipeline {
         paidCardId: account.id,
         before: await rankablesFor(db, cards, today, excludeTxId: txId),
         spend: Spend(amountMinor, slug, key),
-        unverifiedCardIds: {for (final c in cards) if (c.catalog.verifiedOn == null) c.account.id},
+        unverifiedCardIds: {
+          for (final c in cards)
+            if (c.catalog.verifiedOn == null) c.account.id,
+        },
       ),
     );
   }
@@ -753,7 +920,8 @@ class IngestPipeline {
 /// Compiles a stored rule row for the engine.
 CompiledRule compileStoredRule(RuleRow r) {
   final conditions = [
-    for (final c in (jsonDecode(r.conditions) as List)) Map<String, Object?>.from(c as Map),
+    for (final c in (jsonDecode(r.conditions) as List))
+      Map<String, Object?>.from(c as Map),
   ];
   return compileRule(
     conditions,

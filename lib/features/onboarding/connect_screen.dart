@@ -120,7 +120,7 @@ class _ConnectScreenState extends ConsumerState<ConnectScreen> {
               children: [
                 for (final src in sources)
                   ListRow(
-                    leading: IconWell(src.$2, color: c.accent),
+                    leading: IconWell(src.$2, color: c.calm),
                     title: src.$3,
                     subtitle: '${src.$5} · ${src.$4}',
                     onTap: () => _onTap(src.$1),

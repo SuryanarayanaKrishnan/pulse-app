@@ -103,7 +103,7 @@ class RoundIconButton extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            Icon(icon, color: context.tabAccent, size: 26),
+            Icon(icon, color: context.pc.textSecondary, size: 26),
             if (badge)
               Positioned(
                 top: 9,

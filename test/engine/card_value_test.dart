@@ -11,12 +11,27 @@ CardSpec _spec(Map<String, Object?> over) => parseStructure({
   ...over,
 });
 
-RankableCard _card(String id, CardSpec spec, {List<Spend> spends = const [], int order = 0}) =>
-    RankableCard(id: id, title: 'Card $id', spec: spec, state: computeCycle(spec, spends), createdOrder: order);
+RankableCard _card(
+  String id,
+  CardSpec spec, {
+  List<Spend> spends = const [],
+  int order = 0,
+}) => RankableCard(
+  id: id,
+  title: 'Card $id',
+  spec: spec,
+  state: computeCycle(spec, spends),
+  createdOrder: order,
+);
 
 final _dining = _spec({
   'rules': [
-    {'name': 'Dining', 'categories': ['dining'], 'rate': 0.05, 'monthly_cap_units': 100},
+    {
+      'name': 'Dining',
+      'categories': ['dining'],
+      'rate': 0.05,
+      'monthly_cap_units': 100,
+    },
   ],
 });
 final _flat = _spec({'base_rate': 0.02});
@@ -44,9 +59,19 @@ void main() {
 
     test('a tie is never wrong, and tiny misses count as right', () {
       final tie = [_card('a', _flat), _card('b', _flat, order: 1)];
-      expect(checkCard(paidCardId: 'b', before: tie, spend: dinner)!.right, isTrue);
+      expect(
+        checkCard(paidCardId: 'b', before: tie, spend: dinner)!.right,
+        isTrue,
+      );
       // AED 50 at 5% vs 2%: AED 1.50 missed? 2.50-1.00 = 1.50 -> wrong; AED 10: 0.50-0.20 -> noise.
-      expect(checkCard(paidCardId: 'b', before: cards, spend: const Spend(1000, 'dining'))!.right, isTrue);
+      expect(
+        checkCard(
+          paidCardId: 'b',
+          before: cards,
+          spend: const Spend(1000, 'dining'),
+        )!.right,
+        isTrue,
+      );
     });
 
     test('caps bind: a capped card is not the best', () {
@@ -59,17 +84,41 @@ void main() {
     });
 
     test('nothing to compare returns null', () {
-      expect(checkCard(paidCardId: 'a', before: [cards.first], spend: dinner), isNull);
-      expect(checkCard(paidCardId: 'zzz', before: cards, spend: dinner), isNull);
-      expect(checkCard(paidCardId: 'a', before: cards, spend: const Spend(0, 'dining')), isNull);
-      final none = [_card('a', _spec({'base_rate': 0})), _card('b', _spec({'base_rate': 0}))];
+      expect(
+        checkCard(paidCardId: 'a', before: [cards.first], spend: dinner),
+        isNull,
+      );
+      expect(
+        checkCard(paidCardId: 'zzz', before: cards, spend: dinner),
+        isNull,
+      );
+      expect(
+        checkCard(
+          paidCardId: 'a',
+          before: cards,
+          spend: const Spend(0, 'dining'),
+        ),
+        isNull,
+      );
+      final none = [
+        _card('a', _spec({'base_rate': 0})),
+        _card('b', _spec({'base_rate': 0})),
+      ];
       expect(checkCard(paidCardId: 'a', before: none, spend: dinner), isNull);
     });
 
     test('flags estimates when terms are unverified', () {
-      final c = checkCard(paidCardId: 'b', before: cards, spend: dinner, unverifiedCardIds: {'a'})!;
+      final c = checkCard(
+        paidCardId: 'b',
+        before: cards,
+        spend: dinner,
+        unverifiedCardIds: {'a'},
+      )!;
       expect(c.estimated, isTrue);
-      expect(checkCard(paidCardId: 'b', before: cards, spend: dinner)!.estimated, isFalse);
+      expect(
+        checkCard(paidCardId: 'b', before: cards, spend: dinner)!.estimated,
+        isFalse,
+      );
     });
   });
 
@@ -78,7 +127,12 @@ void main() {
       final b = parseBenefits({
         'benefits': [
           {'name': 'Lounge', 'value_aed_year': 600},
-          {'name': 'Cinema', 'unit_value_aed': 35, 'uses_per_year': 12, 'expected_use_pct': 0.5},
+          {
+            'name': 'Cinema',
+            'unit_value_aed': 35,
+            'uses_per_year': 12,
+            'expected_use_pct': 0.5,
+          },
           {'name': 'No value'},
           {'value_aed_year': 5},
           'junk',
@@ -108,26 +162,41 @@ void main() {
       expect(feeWaiverRing(s, 31500, 2500000)!.fraction, 1);
     });
     test('no ring without a fee or threshold', () {
-      expect(feeWaiverRing(_spec({'fee_waiver_spend_minor': 100}), 0, 0), isNull);
+      expect(
+        feeWaiverRing(_spec({'fee_waiver_spend_minor': 100}), 0, 0),
+        isNull,
+      );
       expect(feeWaiverRing(_spec({}), 5000, 0), isNull);
     });
     test('welcome bonus: active, complete, expired', () {
       final w = parseWelcomeBonus({
-        'welcome_bonus': {'spend_minor': 500000, 'within_days': 90, 'bonus_value_aed': 400},
+        'welcome_bonus': {
+          'spend_minor': 500000,
+          'within_days': 90,
+          'bonus_value_aed': 400,
+        },
       })!;
       const opened = CalDate(2026, 10, 1);
       final a = welcomeBonusRing(w, opened, const CalDate(2026, 11, 1), 100000);
       expect(a.state, RingState.active);
       expect(a.daysLeft, 59);
       expect(a.rewardMinor, 40000);
-      expect(welcomeBonusRing(w, opened, const CalDate(2026, 11, 1), 500000).state, RingState.complete);
+      expect(
+        welcomeBonusRing(w, opened, const CalDate(2026, 11, 1), 500000).state,
+        RingState.complete,
+      );
       final e = welcomeBonusRing(w, opened, const CalDate(2027, 1, 15), 100000);
       expect(e.state, RingState.expired);
       expect(e.daysLeft, 0);
     });
     test('welcome bonus parse rejects incomplete data', () {
       expect(parseWelcomeBonus({}), isNull);
-      expect(parseWelcomeBonus({'welcome_bonus': {'spend_minor': 1}}), isNull);
+      expect(
+        parseWelcomeBonus({
+          'welcome_bonus': {'spend_minor': 1},
+        }),
+        isNull,
+      );
     });
   });
 
@@ -153,8 +222,22 @@ void main() {
       final h = cardHints(card: a, all: [a], cycleEnd: end);
       expect(h.single.kind, 'threshold');
       expect(h.single.message, contains('AED 300 more'));
-      expect(cardHints(card: _card('a', s, spends: const [Spend(50000)]), all: [a], cycleEnd: end), isEmpty);
-      expect(cardHints(card: _card('a', s, spends: const [Spend(250000)]), all: [a], cycleEnd: end), isEmpty);
+      expect(
+        cardHints(
+          card: _card('a', s, spends: const [Spend(50000)]),
+          all: [a],
+          cycleEnd: end,
+        ),
+        isEmpty,
+      );
+      expect(
+        cardHints(
+          card: _card('a', s, spends: const [Spend(250000)]),
+          all: [a],
+          cycleEnd: end,
+        ),
+        isEmpty,
+      );
     });
   });
 
@@ -229,14 +312,28 @@ void main() {
       );
       expect(rankByNetValue([mk(100000)], today).single.feeWaived, isFalse);
       expect(rankByNetValue([mk(100000)], today).single.annualFeeMinor, 31500);
-      final big = rankByNetValue([mk(600000)], today).single; // 6,000 x 365/90 > 20,000
+      final big = rankByNetValue([
+        mk(600000),
+      ], today).single; // 6,000 x 365/90 > 20,000
       expect(big.feeWaived, isTrue);
       expect(big.annualFeeMinor, 0);
     });
 
     test('ties keep input order; empty input', () {
-      final a = CardValueInput(id: 'a', title: 'A', spec: _flat, annualFeeMinor: 0, spends: const []);
-      final b = CardValueInput(id: 'b', title: 'B', spec: _flat, annualFeeMinor: 0, spends: const []);
+      final a = CardValueInput(
+        id: 'a',
+        title: 'A',
+        spec: _flat,
+        annualFeeMinor: 0,
+        spends: const [],
+      );
+      final b = CardValueInput(
+        id: 'b',
+        title: 'B',
+        spec: _flat,
+        annualFeeMinor: 0,
+        spends: const [],
+      );
       expect(rankByNetValue([a, b], today).map((x) => x.id), ['a', 'b']);
       expect(rankByNetValue(const [], today), isEmpty);
     });

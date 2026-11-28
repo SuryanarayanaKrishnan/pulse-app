@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pulse/features/home/dashboard/dashboard_controller.dart';
+import 'package:pulse/features/home/dashboard/dashboard_layout.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pulse/app.dart';
 import 'package:pulse/capture/kv_store.dart';
@@ -67,8 +69,8 @@ void main() {
       );
       final moves = pickBestMoves(combos);
       expect(moves, hasLength(3));
-      expect(moves.first.id, 'reddit-liv-df-sib-tabby-stack');
-      expect(moves.first.annualSavingAed, 1686);
+      expect(moves.first.id, 'reddit-tabby-sib-chain');
+      expect(moves.first.annualSavingAed, 3041);
       expect(moves.skip(1).every((c) => !c.isPlus && !c.isWarning), isTrue);
     });
   });
@@ -95,6 +97,13 @@ void main() {
       Brightness brightness = Brightness.light,
     }) async {
       PulseTheme.useGoogleFonts = false;
+      // Best moves is an opt-in Home widget: this Home has the full set.
+      final store = kv ?? MemoryKvStore();
+      store.data.putIfAbsent(DashboardController.calmMigrationKey, () => '1');
+      store.data.putIfAbsent(
+        DashboardController.storageKey,
+        () => DashboardLayout.defaults().withLegacyExtras().encode(),
+      );
       tester.view.physicalSize = size * dpr;
       tester.view.devicePixelRatio = dpr;
       tester.platformDispatcher.textScaleFactorTestValue = textScale;
@@ -105,7 +114,7 @@ void main() {
         ProviderScope(
           overrides: [
             tourKvProvider.overrideWithValue(tourKv()),
-            kvStoreProvider.overrideWithValue(kv ?? MemoryKvStore()),
+            kvStoreProvider.overrideWithValue(store),
             // The shipped bundle, read straight from disk (no async asset load).
             cardCombosProvider.overrideWith(
               (ref) async => parseCombos(
@@ -138,14 +147,12 @@ void main() {
         await pump(tester, '/home');
         expect(find.byKey(const Key('best_moves')), findsOneWidget);
         expect(find.text('Best moves'), findsOneWidget);
-        final card = find.byKey(
-          const Key('best_move_reddit-liv-df-sib-tabby-stack'),
-        );
+        final card = find.byKey(const Key('best_move_reddit-tabby-sib-chain'));
         expect(card, findsOneWidget);
         expect(
           find.descendant(
             of: card,
-            matching: find.text('Up to AED 1,686 a year'),
+            matching: find.text('Up to AED 3,041 a year'),
           ),
           findsOneWidget,
         );
@@ -165,9 +172,7 @@ void main() {
       (tester) async {
         final kv = MemoryKvStore();
         await pump(tester, '/home', kv: kv);
-        final move = find.byKey(
-          const Key('best_move_reddit-liv-df-sib-tabby-stack'),
-        );
+        final move = find.byKey(const Key('best_move_reddit-tabby-sib-chain'));
         await tester.scrollUntilVisible(
           move,
           200,
@@ -179,22 +184,24 @@ void main() {
         for (var i = 0; i < 12; i++) {
           await tester.pump(const Duration(milliseconds: 100));
         }
-        expect(find.textContaining('Four cards, one job each'), findsOneWidget);
+        expect(find.textContaining('How it works'), findsOneWidget);
         expect(
-          find.textContaining(
-            'Potential saving: up to AED 1,686 a year (estimate)',
-          ),
+          find.textContaining('Not counted in the figure'),
           findsOneWidget,
         );
         expect(
           find.textContaining(
-            'Estimate, not a promise. Worked out from the bundled catalog',
+            'Potential saving: up to AED 3,041 a year (estimate)',
           ),
           findsOneWidget,
         );
+        expect(find.textContaining('Tabby repayment fee'), findsNothing);
+        expect(find.textContaining('+ AED 3,600 a year'), findsOneWidget);
+        expect(find.textContaining('- AED 360 a year'), findsOneWidget);
+        expect(find.textContaining('- AED 199 a year'), findsOneWidget);
         expect(
           jsonDecode(kv.data[seenCombosKey]!),
-          contains('reddit-liv-df-sib-tabby-stack'),
+          contains('reddit-tabby-sib-chain'),
         );
       },
     );
@@ -224,7 +231,7 @@ void main() {
 
     testWidgets('already-seen combos show no badge', (tester) async {
       final kv = MemoryKvStore()
-        ..data[seenCombosKey] = jsonEncode(['reddit-liv-df-sib-tabby-stack']);
+        ..data[seenCombosKey] = jsonEncode(['reddit-tabby-sib-chain']);
       await pump(tester, '/cards', kv: kv);
       expect(find.byKey(const Key('nav_badge_cards')), findsNothing);
       expect(find.byKey(const Key('round_icon_badge')), findsNothing);

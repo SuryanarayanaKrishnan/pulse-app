@@ -99,14 +99,18 @@ class LocalBudgetPlanStore implements BudgetPlanStore {
 
   @override
   Future<BudgetMode> mode() async {
-    final r = await (db.select(db.budgetPrefs)..where((t) => t.id.equals('main'))).getSingleOrNull();
+    final r = await (db.select(
+      db.budgetPrefs,
+    )..where((t) => t.id.equals('main'))).getSingleOrNull();
     return BudgetMode.fromKey(r?.mode);
   }
 
   @override
   Future<void> setMode(BudgetMode m) => db
       .into(db.budgetPrefs)
-      .insertOnConflictUpdate(BudgetPrefsCompanion(id: const Value('main'), mode: Value(m.key)));
+      .insertOnConflictUpdate(
+        BudgetPrefsCompanion(id: const Value('main'), mode: Value(m.key)),
+      );
 
   @override
   Future<List<CategoryPlan>> categories() async => [
@@ -126,41 +130,53 @@ class LocalBudgetPlanStore implements BudgetPlanStore {
   ];
 
   @override
-  Future<void> saveCategoryPlan(CategoryPlan c) => (db.update(db.categories)..where((t) => t.id.equals(c.id))).write(
-    CategoriesCompanion(
-      budgetGroup: Value(c.groupChosen ? c.group.key : null),
-      rollover: Value(c.rollover),
-      rolloverStart: Value(c.rolloverStart),
-      rolloverStartMinor: Value(c.rolloverStartMinor),
-      cycleCostMinor: Value(c.cycleCostMinor),
-      cycleMonths: Value(c.cycleMonths),
-    ),
-  );
+  Future<void> saveCategoryPlan(CategoryPlan c) =>
+      (db.update(db.categories)..where((t) => t.id.equals(c.id))).write(
+        CategoriesCompanion(
+          budgetGroup: Value(c.groupChosen ? c.group.key : null),
+          rollover: Value(c.rollover),
+          rolloverStart: Value(c.rolloverStart),
+          rolloverStartMinor: Value(c.rolloverStartMinor),
+          cycleCostMinor: Value(c.cycleCostMinor),
+          cycleMonths: Value(c.cycleMonths),
+        ),
+      );
 
   @override
   Future<List<LimitRow>> limits() async => [
-    for (final b in await db.select(db.budgets).get()) LimitRow(b.categoryId, b.month, b.limitMinor),
+    for (final b in await db.select(db.budgets).get())
+      LimitRow(b.categoryId, b.month, b.limitMinor),
   ];
 
   @override
   Future<void> saveLimit(String categoryId, String month, int minor) async {
-    final q = db.select(db.budgets)..where((b) => b.categoryId.equals(categoryId) & b.month.equals(month));
+    final q = db.select(db.budgets)
+      ..where((b) => b.categoryId.equals(categoryId) & b.month.equals(month));
     final existing = await q.getSingleOrNull();
     if (existing != null) {
-      await (db.update(db.budgets)..where((b) => b.id.equals(existing.id))).write(BudgetsCompanion(limitMinor: Value(minor)));
+      await (db.update(db.budgets)..where((b) => b.id.equals(existing.id)))
+          .write(BudgetsCompanion(limitMinor: Value(minor)));
     } else {
-      await db.into(db.budgets).insert(
-        BudgetsCompanion.insert(id: newId(), categoryId: categoryId, month: month, limitMinor: minor),
-      );
+      await db
+          .into(db.budgets)
+          .insert(
+            BudgetsCompanion.insert(
+              id: newId(),
+              categoryId: categoryId,
+              month: month,
+              limitMinor: minor,
+            ),
+          );
     }
   }
 
   @override
   Future<List<BudgetMove>> moves() async => [
-    for (final r in await (db.select(db.budgetMoves)
-          ..where((t) => t.deletedAt.isNull())
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get())
+    for (final r
+        in await (db.select(db.budgetMoves)
+              ..where((t) => t.deletedAt.isNull())
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get())
       BudgetMove(
         id: r.id,
         month: r.month,
@@ -172,28 +188,34 @@ class LocalBudgetPlanStore implements BudgetPlanStore {
   ];
 
   @override
-  Future<void> addMove(BudgetMove m) => db.into(db.budgetMoves).insert(
-    BudgetMovesCompanion.insert(
-      id: m.id,
-      scope: Value(m.scope.key),
-      month: m.month,
-      fromCategoryId: m.fromId,
-      toCategoryId: m.toId,
-      amountMinor: m.amountMinor,
-    ),
-  );
+  Future<void> addMove(BudgetMove m) => db
+      .into(db.budgetMoves)
+      .insert(
+        BudgetMovesCompanion.insert(
+          id: m.id,
+          scope: Value(m.scope.key),
+          month: m.month,
+          fromCategoryId: m.fromId,
+          toCategoryId: m.toId,
+          amountMinor: m.amountMinor,
+        ),
+      );
 
   @override
-  Future<void> undoMove(String id) => (db.update(db.budgetMoves)..where((t) => t.id.equals(id))).write(
-    BudgetMovesCompanion(deletedAt: Value(DateTime.now().toUtc())),
-  );
+  Future<void> undoMove(String id) =>
+      (db.update(db.budgetMoves)..where((t) => t.id.equals(id))).write(
+        BudgetMovesCompanion(deletedAt: Value(DateTime.now().toUtc())),
+      );
 }
 
 class MemoryBudgetPlanStore implements BudgetPlanStore {
-  MemoryBudgetPlanStore({List<CategoryPlan>? categories, List<LimitRow> limits = const [], BudgetMode mode = BudgetMode.flex})
-    : _cats = [...(categories ?? defaultCategoryPlans())],
-      _limits = [...limits],
-      _mode = mode; // ignore: prefer_initializing_formals
+  MemoryBudgetPlanStore({
+    List<CategoryPlan>? categories,
+    List<LimitRow> limits = const [],
+    BudgetMode mode = BudgetMode.flex,
+  }) : _cats = [...(categories ?? defaultCategoryPlans())],
+       _limits = [...limits],
+       _mode = mode; // ignore: prefer_initializing_formals
   final List<CategoryPlan> _cats;
   final List<LimitRow> _limits;
   final List<BudgetMove> _moves = [];
@@ -230,7 +252,8 @@ class MemoryBudgetPlanStore implements BudgetPlanStore {
   Future<void> addMove(BudgetMove m) async => _moves.add(m);
 
   @override
-  Future<void> undoMove(String id) async => _moves.removeWhere((m) => m.id == id);
+  Future<void> undoMove(String id) async =>
+      _moves.removeWhere((m) => m.id == id);
 }
 
 /// The default categories with their default groups.
@@ -238,7 +261,10 @@ List<CategoryPlan> defaultCategoryPlans() => [
   for (final c in defaultCategories)
     CategoryPlan(
       id: c.slug,
-      group: BudgetGroup.resolve(null, isFixed: c.isFixed && c.kind == 'expense'),
+      group: BudgetGroup.resolve(
+        null,
+        isFixed: c.isFixed && c.kind == 'expense',
+      ),
       kind: c.kind,
     ),
 ];
@@ -261,12 +287,28 @@ MemoryBudgetPlanStore demoBudgetPlanStore({DateTime? now}) {
     'health': 50000,
     'travel': 250000,
   };
-  limits.addAll([for (final e in planned.entries) LimitRow(e.key, monthKeyOf(start), e.value)]);
+  limits.addAll([
+    for (final e in planned.entries)
+      LimitRow(e.key, monthKeyOf(start), e.value),
+  ]);
   final plans = defaultCategoryPlans().map((c) {
     return switch (c.id) {
-      'travel' => c.copyWith(group: BudgetGroup.nonMonthly, cycleCostMinor: 3000000, cycleMonths: 12, rolloverStart: monthKeyOf(start)),
-      'education' => c.copyWith(group: BudgetGroup.nonMonthly, cycleCostMinor: 1800000, cycleMonths: 3, rolloverStart: monthKeyOf(start)),
-      'groceries' => c.copyWith(rollover: true, rolloverStart: monthKeyOf(start)),
+      'travel' => c.copyWith(
+        group: BudgetGroup.nonMonthly,
+        cycleCostMinor: 3000000,
+        cycleMonths: 12,
+        rolloverStart: monthKeyOf(start),
+      ),
+      'education' => c.copyWith(
+        group: BudgetGroup.nonMonthly,
+        cycleCostMinor: 1800000,
+        cycleMonths: 3,
+        rolloverStart: monthKeyOf(start),
+      ),
+      'groceries' => c.copyWith(
+        rollover: true,
+        rolloverStart: monthKeyOf(start),
+      ),
       _ => c,
     };
   }).toList();

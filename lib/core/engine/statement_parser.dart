@@ -228,6 +228,9 @@ class ParsedStatement {
   CalDate? periodStart, periodEnd, statementDate, dueDate;
   int? openingMinor, closingMinor, minDueMinor;
   int? totalPaymentsMinor, totalPurchasesMinor;
+
+  /// The card's credit limit, when the statement prints it.
+  int? creditLimitMinor;
   String? last4;
   final lines = <StatementLine>[];
   final warnings = <String>[];
@@ -527,6 +530,11 @@ int _balance(int value, String line, StatementKind kind) {
       : value.abs();
 }
 
+final _limitLabel = RegExp(
+  r'(?:total\s+)?credit\s+limit',
+  caseSensitive: false,
+);
+
 void _extractSummary(List<String> lines, ParsedStatement stmt, Layout layout) {
   final l = layout.labels;
   final kind = stmt.kind;
@@ -578,6 +586,11 @@ void _extractSummary(List<String> lines, ParsedStatement stmt, Layout layout) {
       if (target == 'stmt') stmt.statementDate ??= d;
     }
     if (dueLine) continue;
+    if (kind == StatementKind.creditCard && stmt.creditLimitMinor == null) {
+      final lm = _limitLabel.firstMatch(ln);
+      final lv = lm == null ? null : _firstMoney(ln, lm.end);
+      if (lv != null && lv > 0) stmt.creditLimitMinor = lv;
+    }
     for (final name in [
       'min_due',
       'opening',
@@ -674,7 +687,7 @@ void _enbdSummary(List<String> lines, ParsedStatement stmt) {
 void _sibSummary(List<String> lines, ParsedStatement stmt) {
   final head = RegExp(
     r'^(\d{1,2}/[A-Za-z]{3}/\d{4})\s+(\d{4,6}X+\d{4})\s+(-?[\d,]+\.\d{2})\s+'
-    r'(\d{1,2}/[A-Za-z]{3}/\d{4})\s+[\d,]+\.\d{2}$',
+    r'(\d{1,2}/[A-Za-z]{3}/\d{4})\s+([\d,]+\.\d{2})$',
     caseSensitive: false,
   );
   for (var i = 0; i < lines.length - 1; i++) {
@@ -687,6 +700,7 @@ void _sibSummary(List<String> lines, ParsedStatement stmt) {
     stmt.dueDate ??= d(m[4]!);
     stmt.last4 ??= _last4(m[2]!);
     stmt.minDueMinor ??= parseMinorUnits(m[3]!.replaceAll('-', ''));
+    stmt.creditLimitMinor ??= parseMinorUnits(m[5]!);
     int owed(String v) =>
         -parseMinorUnits(v.replaceAll('-', ''))! * (v.startsWith('-') ? -1 : 1);
     stmt.openingMinor ??= owed(next[0]);
