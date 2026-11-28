@@ -144,6 +144,19 @@ void main() {
     await open(tester, '/budget', Rec());
     // The mock has data, so the entry points live in Manage.
     final build = find.byKey(const Key('manage_build'));
+    final more = find.byKey(const Key('manage_more'));
+    await tester.scrollUntilVisible(
+      more,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    if (build.evaluate().isEmpty) {
+      // Lift it clear of the floating tab bar.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -150));
+      await tester.pumpAndSettle();
+      await tester.tap(more);
+      await tester.pumpAndSettle();
+    }
     await tester.scrollUntilVisible(
       build,
       300,
