@@ -102,7 +102,7 @@ CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
 final separateCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
   final repo = ref.watch(repositoryProvider);
   if (repo is CapShareSettings) {
-    return repo.separateCapCatalogs();
+    return (repo as CapShareSettings).separateCapCatalogs();
   }
   return <String>{};
 });
@@ -110,7 +110,7 @@ final separateCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
 Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
   final repo = ref.read(repositoryProvider);
   if (repo is! CapShareSettings) return;
-  await repo.setCapShared(catalogId, shared);
+  await (repo as CapShareSettings).setCapShared(catalogId, shared);
   ref.invalidate(separateCapCatalogsProvider);
   ref.invalidate(capSnapshotProvider);
 }
@@ -119,7 +119,7 @@ Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
 final partnerCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
   final repo = ref.watch(repositoryProvider);
   if (repo is CapShareSettings) {
-    return repo.partnerCapCatalogs();
+    return (repo as CapShareSettings).partnerCapCatalogs();
   }
   return <String>{};
 });
@@ -127,7 +127,7 @@ final partnerCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
 Future<void> setPartnerHolds(WidgetRef ref, String catalogId, bool holds) async {
   final repo = ref.read(repositoryProvider);
   if (repo is! CapShareSettings) return;
-  await repo.setPartnerHolds(catalogId, holds);
+  await (repo as CapShareSettings).setPartnerHolds(catalogId, holds);
   ref.invalidate(partnerCapCatalogsProvider);
   ref.invalidate(capSnapshotProvider);
 }
