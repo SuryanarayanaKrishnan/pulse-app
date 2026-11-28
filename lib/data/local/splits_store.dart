@@ -5,6 +5,7 @@ import 'package:flutter/painting.dart' show Color;
 
 import '../models.dart';
 import 'database.dart';
+import '../splits_util.dart' show shareOf;
 import 'ids.dart';
 
 /// A person typed or picked while creating a group.
@@ -58,6 +59,30 @@ class LocalSplitsStore {
     final out = <SplitGroup>[];
     for (final g in gs) {
       out.add(await _load(g));
+    }
+    return out;
+  }
+
+  /// For each of your payments you split and paid for: what the others owe
+  /// of it, in minor units (the payment less your own share).
+  Future<Map<String, int>> othersShareByTransaction() async {
+    final rows = await (db.select(
+      db.splitExpenses,
+    )..where((t) => t.transactionId.isNotNull() & t.paidBy.equals('me'))).get();
+    final live = {
+      for (final g in await (db.select(
+        db.splitGroups,
+      )..where((t) => t.deletedAt.isNull())).get())
+        g.id,
+    };
+    final out = <String, int>{};
+    for (final r in rows) {
+      if (!live.contains(r.groupId)) continue;
+      final e = _expense(r);
+      final mine = _minor(shareOf(e, 'me'));
+      final others = r.amountMinor - mine;
+      if (others > 0)
+        out[r.transactionId!] = (out[r.transactionId!] ?? 0) + others;
     }
     return out;
   }

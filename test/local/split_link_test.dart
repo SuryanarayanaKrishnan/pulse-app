@@ -66,6 +66,41 @@ void main() {
     expect((await repo.transactions()).length, 1);
   });
 
+  test('budgets count only your share of a payment you split', () async {
+    final repo = await _repo();
+    final tx = await repo.addManualTransaction(
+      merchant: 'Dinner',
+      amount: 120,
+      category: SpendCategory.other,
+    );
+    await repo.addManualTransaction(
+      merchant: 'Taxi',
+      amount: 40,
+      category: SpendCategory.other,
+    );
+    expect((await repo.budgetOverview()).spent, 160);
+    final g = await repo.createSplitGroup(
+      name: 'Flat',
+      members: const [NewGroupMember(name: 'Ali')],
+    );
+    await repo.addSplitExpense(
+      g.id,
+      SplitExpense(
+        id: 'new1',
+        title: 'Dinner',
+        paidBy: 'me',
+        amount: 120,
+        participants: g.members.map((m) => m.id).toList(),
+        date: tx.date,
+        transactionId: tx.id,
+      ),
+    );
+    expect((await repo.budgetOverview()).spent, 100); // 60 + 40
+    // The payment itself still shows what left the account.
+    final dinner = (await repo.transactions()).firstWhere((t) => t.id == tx.id);
+    expect(dinner.amount, 120);
+  });
+
   test('a bill a friend paid adds your share once', () async {
     final repo = await _repo();
     final g = await repo.createSplitGroup(

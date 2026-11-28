@@ -222,6 +222,21 @@ class LocalPulseRepository
             ]))
           .get();
 
+  /// [rows] with split payments cut down to your own share, for budgets and
+  /// category trends: a AED 120 dinner split in two counts as AED 60 spent.
+  /// The payment itself (and cash flow) keep the real amount.
+  Future<List<TxRow>> _netOfSplits(List<TxRow> rows) async {
+    final back = await _splits.othersShareByTransaction();
+    if (back.isEmpty) return rows;
+    return [
+      for (final t in rows)
+        if (back[t.id] case final b?)
+          t.copyWith(amountMinor: (t.amountMinor - b).clamp(0, t.amountMinor))
+        else
+          t,
+    ];
+  }
+
   Future<Transaction> _txById(String id) async {
     final row = await (db.select(
       db.transactions,
@@ -843,7 +858,7 @@ class LocalPulseRepository
       1,
     ).subtract(const Duration(days: 1));
     final (rows, accounts, cats, budgets) = await (
-      _txRows(since: since),
+      _txRows(since: since).then(_netOfSplits),
       _accountMap(),
       _categoryMap(),
       db.select(db.budgets).get(),
@@ -2142,7 +2157,10 @@ class LocalPulseRepository
       today.month - 5,
       1,
     ).subtract(const Duration(days: 1));
-    final (rows, cats) = await (_txRows(since: since), _categoryMap()).wait;
+    final (rows, cats) = await (
+      _txRows(since: since).then(_netOfSplits),
+      _categoryMap(),
+    ).wait;
     final monthIdx = [
       for (var i = 5; i >= 0; i--) today.year * 12 + today.month - 1 - i,
     ];
