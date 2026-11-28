@@ -8,6 +8,7 @@ import '../../core/engine/dedupe.dart' as dd;
 import '../../core/engine/institutions.dart';
 import '../../core/engine/salary.dart';
 import '../../core/engine/statement_parser.dart';
+import '../../core/engine/superapps.dart';
 import '../../core/engine/types.dart';
 import 'database.dart';
 import 'ids.dart';
@@ -208,6 +209,23 @@ Future<StatementTxnResult> importStatementTransactions(
           if ((jsonDecode(m.sources) as List).isEmpty) m.source,
           'statement',
         }.toList();
+        // The bank's line may name more than the SMS did ("NOON FOOD" for
+        // "NOON"): enrich an unconfirmed row, never one the person reviewed.
+        final up = mergeUpgrade(
+          existingMerchant: m.merchantNormalized ?? m.merchantRaw,
+          incomingMerchant: l.description,
+          existingReviewed: m.reviewed,
+        );
+        final upCat = up.categorySlug == null
+            ? null
+            : systemId[up.categorySlug!];
+        var mtags = (jsonDecode(m.tags) as List).cast<Object?>();
+        if (upCat != null) {
+          mtags = [
+            for (final t in mtags)
+              if (t != guessTag) t,
+          ];
+        }
         await (db.update(
           db.transactions,
         )..where((t) => t.id.equals(m.id))).write(
@@ -215,6 +233,13 @@ Future<StatementTxnResult> importStatementTransactions(
             sources: Value(jsonEncode(sources)),
             statementId: Value(statementId),
             statementLocked: const Value(true),
+            merchantNormalized: up.merchantName == null
+                ? const Value.absent()
+                : Value(up.merchantName),
+            categoryId: upCat == null ? const Value.absent() : Value(upCat),
+            tags: upCat == null
+                ? const Value.absent()
+                : Value(jsonEncode(mtags)),
           ),
         );
         txId = m.id;
@@ -240,6 +265,22 @@ Future<StatementTxnResult> importStatementTransactions(
                 null) {
           categoryId = systemId['salary'] ?? 'salary';
         }
+        // A bare super-app name (Noon, Careem) is a guess until a hint, a
+        // habit or one tap says what it was.
+        final tags = [...enr.tags];
+        var guess = false;
+        if (enr.ruleId == null && direction == Direction.debit) {
+          if (superAppFor(l.description) != null) {
+            final hint = hintFrom(l.description);
+            final hinted = hint == null ? null : systemId[hint.category];
+            if (hinted != null) {
+              categoryId = hinted;
+            } else {
+              tags.add(guessTag);
+              guess = true;
+            }
+          }
+        }
         txId = newId();
         await db
             .into(db.transactions)
@@ -258,13 +299,15 @@ Future<StatementTxnResult> importStatementTransactions(
                 source: TxnSource.statement.wire,
                 externalHash: const Value.absent(),
                 excludeFromBudget: Value(enr.excludeFromBudget),
-                tags: Value(jsonEncode(enr.tags)),
+                tags: Value(jsonEncode(tags)),
                 sources: Value(jsonEncode([TxnSource.statement.wire])),
                 statementLocked: const Value(true),
                 appliedRuleId: Value(enr.ruleId),
                 // The bank's own line is right about the amount; the category is
                 // still a guess when nothing recognised the merchant.
-                reviewed: Value(categoryId != null && categoryId != 'other'),
+                reviewed: Value(
+                  !guess && categoryId != null && categoryId != 'other',
+                ),
               ),
             );
         newIds[txId] = l.description;

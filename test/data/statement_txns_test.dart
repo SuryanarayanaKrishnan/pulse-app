@@ -223,4 +223,30 @@ void main() {
     expect(rec.statementOnly, isEmpty);
     expect(rec.capturedOnly, isEmpty);
   });
+
+  test(
+    'a bank line that names the sub-service enriches a bare captured row',
+    () async {
+      await sms(4500, 'NOON', DateTime.utc(2026, 3, 4, 19, 0));
+      await svc.upload(
+        bytes: csv(['05/03/2026,NOON FOOD DUBAI,45.00,,5000.00']),
+        filename: 'march.csv',
+      );
+      final rows = await live();
+      expect(rows, hasLength(1));
+      expect(rows.single.merchantNormalized, contains('Food'));
+      expect(rows.single.categoryId, 'dining');
+      expect(jsonDecode(rows.single.tags), isNot(contains('guess_category')));
+    },
+  );
+
+  test('a bare super-app line is a guess, not silently final', () async {
+    await svc.upload(
+      bytes: csv(['05/03/2026,CAREEM,45.00,,5000.00']),
+      filename: 'march.csv',
+    );
+    final r = (await live()).single;
+    expect(jsonDecode(r.tags), contains('guess_category'));
+    expect(r.reviewed, isFalse);
+  });
 }
