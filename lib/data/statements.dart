@@ -169,11 +169,16 @@ class ReconLine {
     required this.description,
     required this.amount,
     this.credit = false,
+    this.reason,
   });
   final DateTime date;
   final String description;
   final double amount;
   final bool credit;
+
+  /// For an own-account movement: why it looks like one ("Paying your Tabby
+  /// card"). Null for ordinary lines.
+  final String? reason;
 }
 
 class Reconciliation {
@@ -187,6 +192,7 @@ class Reconciliation {
     this.linked = 0,
     this.statementOnly = const [],
     this.capturedOnly = const [],
+    this.ownTransfers = const [],
     this.warnings = const [],
   });
   final String statementId;
@@ -205,6 +211,10 @@ class Reconciliation {
 
   /// Captured in the period but not on the statement.
   final List<ReconLine> capturedOnly;
+
+  /// Statement lines that are money moving between your own accounts or
+  /// paying one of your cards. Not spending, so not "missing" either.
+  final List<ReconLine> ownTransfers;
   final List<String> warnings;
 }
 
