@@ -292,6 +292,26 @@ class LookSettings extends ConsumerWidget {
           onChanged: (m) => ref.read(moodPreferenceProvider.notifier).set(m),
         ),
       ),
+      const SectionHeader('Preferences'),
+      RowGroup(
+        children: [
+          ListRow(
+            dense: true,
+            title: 'Currency',
+            trailing: Text('AED', style: context.tt.bodyMedium),
+          ),
+          ListRow(
+            dense: true,
+            title: 'Notifications',
+            trailing: Text('Due dates, budgets', style: context.tt.bodyMedium),
+          ),
+          ListRow(
+            dense: true,
+            title: 'Face ID',
+            trailing: Text('On', style: context.tt.bodyMedium),
+          ),
+        ],
+      ),
     ]);
   }
 }
@@ -397,26 +417,6 @@ class HelpSettings extends ConsumerWidget {
           ],
         ),
       ],
-      const SectionHeader('Preferences'),
-      RowGroup(
-        children: [
-          ListRow(
-            dense: true,
-            title: 'Currency',
-            trailing: Text('AED', style: context.tt.bodyMedium),
-          ),
-          ListRow(
-            dense: true,
-            title: 'Notifications',
-            trailing: Text('Due dates, budgets', style: context.tt.bodyMedium),
-          ),
-          ListRow(
-            dense: true,
-            title: 'Face ID',
-            trailing: Text('On', style: context.tt.bodyMedium),
-          ),
-        ],
-      ),
       if (Env.demoData || !Env.useApi) ...[
         const SectionHeader('Demo'),
         RowGroup(

@@ -219,6 +219,8 @@ void main() {
       warnIfMissed: false,
     );
     await settle();
+    await tapText('Help and about');
+    await settle();
     await tapText('Simulate a card tap');
     await settle(10);
     expect(
@@ -231,32 +233,10 @@ void main() {
       findsWidgets,
     );
 
-    // Settings > Privacy. Park the row mid-screen, clear of the app bar and the reward banner.
-    final privacyRow = find.text('Not sharing anything');
+    // Settings > Help and about > Report a bug opens the sheet (testers who cannot shake).
     final pos = tester
         .state<ScrollableState>(find.byType(Scrollable).first)
         .position;
-    pos.jumpTo(0);
-    await settle();
-    await tester.scrollUntilVisible(
-      privacyRow,
-      300,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await settle();
-    pos.jumpTo(pos.pixels + tester.getCenter(privacyRow).dy - 420);
-    await settle();
-    await tester.tap(privacyRow);
-    await settle();
-    expect(
-      find.text('Share anonymous usage'),
-      findsWidgets,
-      reason: 'Privacy screen open',
-    );
-    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
-    await settle();
-
-    // Settings > Beta tools > Report a bug opens the sheet (testers who cannot shake).
     final reportRow = find.text('Report a bug');
     await tester.scrollUntilVisible(
       reportRow,
@@ -278,6 +258,34 @@ void main() {
     ).pop();
     await settle();
     expect(find.byKey(const Key('bug-note')), findsNothing);
+
+    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
+    await settle();
+
+    // Settings > Privacy. Park the row mid-screen, clear of the app bar and the reward banner.
+    final privacyRow = find.text('Not sharing anything');
+    final privPos = tester
+        .state<ScrollableState>(find.byType(Scrollable).first)
+        .position;
+    privPos.jumpTo(0);
+    await settle();
+    await tester.scrollUntilVisible(
+      privacyRow,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await settle();
+    privPos.jumpTo(privPos.pixels + tester.getCenter(privacyRow).dy - 420);
+    await settle();
+    await tester.tap(privacyRow);
+    await settle();
+    expect(
+      find.text('Share anonymous usage'),
+      findsWidgets,
+      reason: 'Privacy screen open',
+    );
+    Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
+    await settle();
 
     Navigator.of(tester.element(find.byType(Scaffold).last)).pop();
     await settle();
