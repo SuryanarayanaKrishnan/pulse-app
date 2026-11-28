@@ -3,6 +3,9 @@ import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../capture/providers.dart' show kvStoreProvider;
+import '../core/household/household_models.dart' show Owner;
+import '../household/household_providers.dart' show householdServiceProvider;
+import 'local/card_cycles.dart' show PartnerSpend, partnerSpendSource;
 import '../core/engine/cap_tracker.dart';
 import '../core/engine/dates.dart';
 import '../core/engine/next_best.dart';
@@ -13,9 +16,35 @@ import 'card_upsell_providers.dart';
 import 'models.dart';
 import 'providers.dart';
 
+/// Wires a household partner's spend on the same card product into the cap
+/// maths (Partnership mode). Read lazily, so nothing runs without a household.
+/// Kept out of [repositoryProvider] to avoid a provider cycle.
+final partnerSpendWiringProvider = Provider<void>((ref) {
+  partnerSpendSource = (catalogId) async {
+    final joint = await ref.read(householdServiceProvider).joint();
+    if (joint == null) return const [];
+    return [
+      for (final t in joint.txs)
+        if (t.owner != joint.me &&
+            t.owner != Owner.shared &&
+            t.isDebit &&
+            !t.excluded &&
+            t.currency == 'AED' &&
+            t.cardCatalogId == catalogId)
+          PartnerSpend(
+            at: t.postedAt,
+            amountMinor: t.amountMinor,
+            categoryId: t.categoryId,
+            merchant: t.merchant,
+          ),
+    ];
+  };
+});
+
 /// Cap state of every owned card. On-device it comes from the ledger; for the
 /// demo repository it is read from the display model's per-category caps.
 final capSnapshotProvider = FutureProvider<CapSnapshot>((ref) async {
+  ref.watch(partnerSpendWiringProvider);
   final repo = ref.watch(repositoryProvider);
   ref.watch(transactionsProvider);
   if (repo is CapSource) return (repo as CapSource).capSnapshot();
@@ -73,7 +102,7 @@ CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
 final separateCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
   final repo = ref.watch(repositoryProvider);
   if (repo is CapShareSettings) {
-    return (repo as CapShareSettings).separateCapCatalogs();
+    return repo.separateCapCatalogs();
   }
   return <String>{};
 });
@@ -81,7 +110,7 @@ final separateCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
 Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
   final repo = ref.read(repositoryProvider);
   if (repo is! CapShareSettings) return;
-  await (repo as CapShareSettings).setCapShared(catalogId, shared);
+  await repo.setCapShared(catalogId, shared);
   ref.invalidate(separateCapCatalogsProvider);
   ref.invalidate(capSnapshotProvider);
 }
@@ -90,7 +119,7 @@ Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
 final partnerCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
   final repo = ref.watch(repositoryProvider);
   if (repo is CapShareSettings) {
-    return (repo as CapShareSettings).partnerCapCatalogs();
+    return repo.partnerCapCatalogs();
   }
   return <String>{};
 });
@@ -98,7 +127,7 @@ final partnerCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
 Future<void> setPartnerHolds(WidgetRef ref, String catalogId, bool holds) async {
   final repo = ref.read(repositoryProvider);
   if (repo is! CapShareSettings) return;
-  await (repo as CapShareSettings).setPartnerHolds(catalogId, holds);
+  await repo.setPartnerHolds(catalogId, holds);
   ref.invalidate(partnerCapCatalogsProvider);
   ref.invalidate(capSnapshotProvider);
 }
