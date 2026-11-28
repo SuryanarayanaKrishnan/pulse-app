@@ -119,6 +119,14 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
     final tx = stack.first;
     Haptics.light();
     await _move(_width * 1.2);
+    if (tx.isOwnTransfer) {
+      await ref
+          .read(repositoryProvider)
+          .resolveTransfer(tx.id, isTransfer: true);
+      ref.read(analyticsProvider).track(AnalyticsEvent.reviewSwiped('right'));
+      _finish(tx, _Dir.right);
+      return;
+    }
     await ref.read(repositoryProvider).setReviewed([tx.id], true);
     unawaited(
       recordConfirmedCategory(
@@ -141,6 +149,17 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
     final tx = stack.first;
     // The card settles back while the choice is made, so nothing is lost if
     // it is dismissed.
+    if (tx.isOwnTransfer) {
+      // One tap, no sheet: it was real spending after all.
+      Haptics.light();
+      await _move(-_width * 1.2);
+      await ref
+          .read(repositoryProvider)
+          .resolveTransfer(tx.id, isTransfer: false);
+      ref.read(analyticsProvider).track(AnalyticsEvent.reviewSwiped('left'));
+      _finish(tx, _Dir.left);
+      return;
+    }
     await _move(0, duration: Motion.fast);
     final fixed = await _fix(tx);
     if (!mounted) return;
@@ -306,7 +325,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
                       children: [
                         Expanded(
                           child: PrimaryButton(
-                            label: 'Fix it',
+                            label: stack.first.isOwnTransfer
+                                ? 'Not a transfer'
+                                : 'Fix it',
                             secondary: true,
                             icon: Icons.arrow_back_rounded,
                             onPressed: swipeLeft,
@@ -315,7 +336,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen>
                         const SizedBox(width: Space.md),
                         Expanded(
                           child: PrimaryButton(
-                            label: 'Looks right',
+                            label: stack.first.isOwnTransfer
+                                ? 'Yes, a transfer'
+                                : 'Looks right',
                             icon: Icons.check_rounded,
                             onPressed: swipeRight,
                           ),
@@ -461,7 +484,10 @@ class _Stack extends StatelessWidget {
                           right: right ? null : Space.lg,
                           child: Opacity(
                             opacity: progress,
-                            child: _Hint(right: right),
+                            child: _Hint(
+                              right: right,
+                              transfer: tx.isOwnTransfer,
+                            ),
                           ),
                         ),
                     ],
@@ -478,8 +504,9 @@ class _Stack extends StatelessWidget {
 
 /// "Looks right" or "Fix it", fading in as the card moves.
 class _Hint extends StatelessWidget {
-  const _Hint({required this.right});
+  const _Hint({required this.right, this.transfer = false});
   final bool right;
+  final bool transfer;
 
   @override
   Widget build(BuildContext context) {
@@ -495,7 +522,9 @@ class _Hint extends StatelessWidget {
         ),
         const SizedBox(width: Space.xs),
         Text(
-          right ? 'Looks right' : 'Fix it',
+          right
+              ? (transfer ? 'Yes, a transfer' : 'Looks right')
+              : (transfer ? 'Not a transfer' : 'Fix it'),
           style: context.tt.labelMedium!.copyWith(color: color),
         ),
       ],
@@ -513,8 +542,9 @@ class _CardFace extends StatelessWidget {
     final c = context.pc;
     final note = rewardsNote(tx, cards);
     return Semantics(
-      label:
-          '${tx.merchant}, ${tx.category.label}. Swipe right if it looks right, left to fix it.',
+      label: tx.isOwnTransfer
+          ? '${tx.merchant}, a payment between your own accounts. Swipe right to confirm, left if it was spending.'
+          : '${tx.merchant}, ${tx.category.label}. Swipe right if it looks right, left to fix it.',
       child: Container(
         padding: const EdgeInsets.all(Space.xl),
         decoration: BoxDecoration(
@@ -550,10 +580,11 @@ class _CardFace extends StatelessWidget {
               animate: false,
             ),
             const SizedBox(height: Space.lg),
-            Pill(
-              tx.category.label,
-              leading: CategoryIcon(tx.category, size: 18),
-            ),
+            if (!tx.isOwnTransfer)
+              Pill(
+                tx.category.label,
+                leading: CategoryIcon(tx.category, size: 18),
+              ),
             const Spacer(),
             _Line(icon: Icons.credit_card_rounded, text: tx.accountLabel),
             if (note != null) _Line(icon: Icons.stars_rounded, text: note),
@@ -563,7 +594,14 @@ class _CardFace extends StatelessWidget {
                   ? 'Captured via ${tx.source.label}'
                   : 'Added by you',
             ),
-            if (tx.confidence < 0.5)
+            if (tx.isOwnTransfer)
+              _Line(
+                icon: Icons.swap_horiz_rounded,
+                text: tx.transferKind == 'card_bill'
+                    ? 'Looks like a card bill payment. Not counted as spending.'
+                    : 'Looks like money moving between your own accounts. Not counted as spending.',
+              )
+            else if (tx.confidence < 0.5)
               _Line(
                 icon: Icons.help_outline_rounded,
                 text: 'Pulse is not sure about this category',
