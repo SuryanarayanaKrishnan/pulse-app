@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:pulse/core/widgets/widgets.dart';
 
 import 'extremes_test.dart' show seedExtremes;
+import 'audit.dart';
 import 'harness.dart';
 
 const _screens = [
@@ -73,10 +74,18 @@ void main() {
           if (app.visibleText.any((t) => t.contains('Something went wrong'))) {
             failures.add('$route tap "$label": error state shown');
           }
+          // Whatever opened (sheet, dialog, screen) must be laid out sanely:
+          // opaque sheets, no text on text, nothing off the edge.
+          if (find.byType(BottomSheet).evaluate().isNotEmpty) {
+            for (final p in auditScreen(tester)) {
+              failures.add('$route tap "$label": $p');
+            }
+          }
         }
       }
       // ignore: avoid_print
       print('QA tapped $taps targets');
+      app.errors.uninstall();
       expect(
         failures.toSet().toList(),
         isEmpty,

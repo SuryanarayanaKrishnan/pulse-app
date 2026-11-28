@@ -866,12 +866,17 @@ class LocalPulseRepository
       budgets,
       _monthKey(today.year, today.month),
     );
+    // Every category with a limit, plus every category that was spent in but
+    // has none: spending must show up in the donut and lists even before the
+    // person has set a budget (it used to read "No spending yet" next to a
+    // non-zero Spent total).
+    final lineKeys = {...limits.keys, ...spentByCat.keys};
     final lines = [
-      for (final e in limits.entries)
+      for (final k in lineKeys)
         BudgetLine(
-          category: _spendCategory(cats[e.key]),
-          planned: _aed(e.value),
-          spent: _aed(spentByCat[e.key] ?? 0),
+          category: _spendCategory(cats[k]),
+          planned: _aed(limits[k] ?? 0),
+          spent: _aed(spentByCat[k] ?? 0),
         ),
     ]..sort((a, b) => b.spent.compareTo(a.spent));
     final planned = limits.values.fold<int>(0, (a, b) => a + b);

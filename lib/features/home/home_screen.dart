@@ -13,6 +13,7 @@ import '../wallet/add_sheets.dart';
 import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_editor.dart';
 import 'dashboard/dashboard_tiles.dart';
+import '../../core/utils/app_clock.dart';
 import 'home_extras.dart';
 import '../coach/coach.dart';
 
@@ -23,7 +24,7 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final now = DateTime.now();
+    final now = AppClock.now();
     // A brand-new on-device ledger has nothing to summarise yet.
     final accounts = ref.watch(bankAccountsProvider).value;
     final cards = ref.watch(myCardsProvider).value;

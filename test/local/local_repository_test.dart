@@ -645,9 +645,12 @@ void main() {
       expect(b.byCard.values.single, 300);
       expect(b.topMerchants.first.merchant, 'Talabat');
       await r.repo.setBudget(SpendCategory.dining, 0);
-      expect((await r.repo.budgetOverview()).lines.map((l) => l.category), [
-        SpendCategory.groceries,
-      ]);
+      // Spending without a limit still shows (planned 0), so the donut and
+      // lists agree with the Spent total.
+      final after = (await r.repo.budgetOverview()).lines;
+      expect(after.map((l) => l.category).toSet(), {SpendCategory.groceries, SpendCategory.dining});
+      expect(after.firstWhere((l) => l.category == SpendCategory.dining).planned, 0);
+      expect(after.firstWhere((l) => l.category == SpendCategory.dining).spent, 200);
     });
 
     test('safe to spend is limited by cash and by budget', () async {

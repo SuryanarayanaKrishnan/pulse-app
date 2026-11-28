@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kReleaseMode;
+import 'package:flutter/foundation.dart' show kReleaseMode, visibleForTesting;
 
 /// Build-time configuration via `--dart-define`.
 class Env {
@@ -61,7 +61,13 @@ class Env {
 
   /// Sample data is for preview/debug builds only. A release build always
   /// runs on the person's own on-device ledger, never on made-up data.
-  static bool get sampleAllowed => demoData || !kReleaseMode;
+  static bool get sampleAllowed =>
+      debugReleaseOverride != null ? !debugReleaseOverride! : (demoData || !kReleaseMode);
+
+  /// Tests only: pretend to be a release build (true) so the guard that keeps
+  /// sample data out of release builds can be exercised. Null in production.
+  @visibleForTesting
+  static bool? debugReleaseOverride;
 
   /// Beta builds enable shake-to-report by default. Pass
   /// `--dart-define=BETA_BUILD=false` for a store build.
