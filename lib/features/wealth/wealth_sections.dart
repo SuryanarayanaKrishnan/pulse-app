@@ -42,7 +42,7 @@ Future<void> showWealthAddMenu(
         padding: EdgeInsets.zero,
         children: [
           ListRow(
-            leading: IconWell(Icons.document_scanner_outlined, color: c.accent),
+            leading: IconWell(Icons.document_scanner_outlined, color: c.calm),
             title: 'Scan a bill or portfolio',
             subtitle:
                 'Gold bill, stock or fund screenshot. Or just describe it',
@@ -81,7 +81,7 @@ Future<void> showWealthAddMenu(
             onTap: () => open((_) => const AddFundSheet()),
           ),
           ListRow(
-            leading: IconWell(Icons.description_outlined, color: c.accent),
+            leading: IconWell(Icons.description_outlined, color: c.calm),
             title: 'Document',
             subtitle: 'Title deed, FD certificate, insurance, passport',
             chevron: true,
@@ -459,7 +459,7 @@ class DocumentsSection extends ConsumerWidget {
                 dense: true,
                 leading: _Thumb(
                   d.filePaths.firstOrNull,
-                  IconWell(docIcon(d.category), color: c.accent, size: 40),
+                  IconWell(docIcon(d.category), color: c.calm, size: 40),
                   document: true,
                 ),
                 title: d.title,

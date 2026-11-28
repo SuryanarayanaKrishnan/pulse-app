@@ -471,7 +471,7 @@ class _AddFundSheetState extends ConsumerState<AddFundSheet> {
             const SizedBox(height: Space.md),
             const Hairline(),
             ListRow(
-              leading: IconWell(Icons.picture_as_pdf_outlined, color: c.accent),
+              leading: IconWell(Icons.picture_as_pdf_outlined, color: c.calm),
               title: 'Import a CAMS or KFintech statement',
               subtitle: 'Brings in every fund at once',
               chevron: true,

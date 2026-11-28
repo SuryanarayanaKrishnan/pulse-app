@@ -15,6 +15,7 @@ import 'core/analytics/analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/router/router.dart';
+import 'core/theme/mood.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_mode.dart';
 import 'data/providers.dart';
@@ -128,12 +129,16 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // Same for sync: the service watches local writes while it is alive.
     ref.watch(syncServiceProvider);
     ref.watch(householdSchedulerProvider);
+    final mood = ref.watch(moodProvider);
     return MaterialApp.router(
       title: Env.appName,
       debugShowCheckedModeBanner: false,
-      theme: PulseTheme.light,
-      darkTheme: PulseTheme.dark,
+      theme: PulseTheme.forMood(mood, dark: false),
+      darkTheme: PulseTheme.forMood(mood, dark: true),
       themeMode: ref.watch(themeModeProvider),
+      // A slow cross-fade so a change of mood is felt, not seen.
+      themeAnimationDuration: const Duration(milliseconds: 700),
+      themeAnimationCurve: Curves.easeInOut,
       routerConfig: _router,
       scaffoldMessengerKey: AutoSettleHost.messengerKey,
       builder: (context, child) => ShakeHost(

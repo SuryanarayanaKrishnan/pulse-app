@@ -87,7 +87,7 @@ class _PlusPaywallScreenState extends ConsumerState<PlusPaywallScreen> {
             children: [
               for (final p in _perks)
                 ListRow(
-                  leading: IconWell(p.$1, color: c.accent),
+                  leading: IconWell(p.$1, color: c.calm),
                   title: p.$2,
                   subtitle: p.$3,
                 ),

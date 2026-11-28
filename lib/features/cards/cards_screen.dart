@@ -245,7 +245,7 @@ class _CardsView extends ConsumerWidget {
                   onTap: () => context.pushOnce(Routes.cardsRanked),
                 ),
                 ListRow(
-                  leading: IconWell(Icons.bolt_rounded, color: c.accent),
+                  leading: IconWell(Icons.bolt_rounded, color: c.calm),
                   title: 'Which card should I use?',
                   subtitle: 'Before you pay',
                   chevron: true,

@@ -190,7 +190,7 @@ class _Body extends ConsumerWidget {
                 ),
             ListRow(
               key: const Key('family_invite'),
-              leading: IconWell(Icons.add_rounded, color: c.accent),
+              leading: IconWell(Icons.add_rounded, color: c.calm),
               title: 'Invite someone',
               titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
               onTap: onInvite,

@@ -96,7 +96,7 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
                   ),
                 ListRow(
                   key: const Key('cant_find_card'),
-                  leading: IconWell(Icons.add_card_outlined, color: c.accent),
+                  leading: IconWell(Icons.add_card_outlined, color: c.calm),
                   title: "I can't find my card",
                   subtitle: 'Add it yourself',
                   chevron: true,

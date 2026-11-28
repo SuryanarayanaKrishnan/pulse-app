@@ -37,7 +37,7 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
       padding: EdgeInsets.zero,
       children: [
         ListRow(
-          leading: IconWell(Icons.credit_card_outlined, color: context.pc.accent),
+          leading: IconWell(Icons.credit_card_outlined, color: context.pc.calm),
           title: 'Credit card',
           subtitle: 'Rewards and due dates, from the card catalog',
           chevron: true,
@@ -47,7 +47,7 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
           },
         ),
         ListRow(
-          leading: IconWell(Icons.account_balance_outlined, color: context.pc.accent),
+          leading: IconWell(Icons.account_balance_outlined, color: context.pc.calm),
           title: 'Bank account or wallet',
           subtitle: 'Balances move as alerts arrive',
           chevron: true,
@@ -57,7 +57,7 @@ Future<void> showAddMenu(BuildContext context) => showPulseSheet<void>(
           },
         ),
         ListRow(
-          leading: IconWell(Icons.diamond_outlined, color: context.pc.accent),
+          leading: IconWell(Icons.diamond_outlined, color: context.pc.calm),
           title: 'Asset or loan',
           subtitle: 'Property, gold, deposits, stocks, debts',
           chevron: true,
@@ -223,7 +223,7 @@ class _AddCardSheetState extends ConsumerState<AddCardSheet> {
                 ];
                 final cantFind = ListRow(
                   key: const Key('cant_find_card'),
-                  leading: IconWell(Icons.add_card_outlined, color: context.pc.accent),
+                  leading: IconWell(Icons.add_card_outlined, color: context.pc.calm),
                   title: "I can't find my card",
                   subtitle: 'Add it yourself',
                   chevron: true,

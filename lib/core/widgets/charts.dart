@@ -19,7 +19,7 @@ class Sparkline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = color ?? context.pc.accent;
+    final c = color ?? context.pc.calm;
     if (values.length < 2) return SizedBox(height: height);
     final minV = values.reduce((a, b) => a < b ? a : b);
     final maxV = values.reduce((a, b) => a > b ? a : b);
