@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' show ImageFilter, PointMode;
 
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
@@ -70,7 +69,8 @@ class CardFace extends StatefulWidget {
 class _CardFaceState extends State<CardFace> {
   bool _attached = false;
 
-  bool get _live => !widget.compact && widget.tilt == null;
+  /// Flat cards do not tilt or catch light.
+  bool get _live => false;
 
   void _sync(bool reduce) {
     final want = _live && !reduce;
@@ -108,10 +108,6 @@ class _CardFaceState extends State<CardFace> {
     final compact = widget.compact;
     final base = context.tt.bodyMedium!;
     final radius = BorderRadius.circular(compact ? 22 : _r);
-    final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
-    final tilt = reduce
-        ? ValueNotifier(CardTilt.rest)
-        : (widget.tilt ?? CardTilt.instance.value);
     final face = SizedBox(
       width: _w,
       height: _h,
@@ -138,11 +134,15 @@ class _CardFaceState extends State<CardFace> {
                 ],
               ),
             ),
-            if (!compact)
-              IgnorePointer(
-                child: CustomPaint(painter: _SpecularPainter(art, tilt, _r)),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.08),
+                  width: 0.8,
+                ),
               ),
-            CustomPaint(painter: _EdgePainter(compact ? 22 : _r)),
+            ),
           ],
         ),
       ),
@@ -152,21 +152,6 @@ class _CardFaceState extends State<CardFace> {
       child: DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(compact ? 3 : _r),
-          boxShadow: widget.elevated
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.22),
-                    blurRadius: 22,
-                    spreadRadius: -2,
-                    offset: const Offset(0, 12),
-                  ),
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    blurRadius: 3,
-                    offset: const Offset(0, 1.5),
-                  ),
-                ]
-              : null,
         ),
         child: MediaQuery(
           data: MediaQuery.of(context)
@@ -203,45 +188,9 @@ class _Content extends StatelessWidget {
     final k = art.emboss;
     final digits = last4 == null || last4!.isEmpty ? '••••' : last4!;
 
-    // Raised (embossed) lettering: light from the top left, so a highlight
-    // on the upper-left edge and a soft shadow lower right.
-    Widget raised(String text, TextStyle style, {double blur = 0.6}) {
-      final shade = (lightText ? Colors.black : const Color(0xFF3A3A3A))
-          .withValues(alpha: (lightText ? 0.55 : 0.32) * k);
-      final hi = (lightText ? Colors.white : Colors.white).withValues(
-        alpha: (lightText ? 0.28 : 0.55) * k,
-      );
-      Widget t(Color c, Offset o, {double b = 0}) => Transform.translate(
-        offset: o,
-        child: b == 0
-            ? Text(text, style: style.copyWith(color: c), maxLines: 1)
-            : ImageFiltered(
-                imageFilter: _blur(b),
-                child: Text(text, style: style.copyWith(color: c), maxLines: 1),
-              ),
-      );
-      return Stack(
-        children: [
-          t(shade, const Offset(0.7, 1.0), b: blur),
-          t(hi, const Offset(-0.55, -0.7)),
-          Text(
-            text,
-            maxLines: 1,
-            style: style.copyWith(
-              foreground: Paint()
-                ..shader = LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Color.lerp(fg, Colors.white, lightText ? 0.18 : 0.0)!,
-                    Color.lerp(fg, Colors.black, lightText ? 0.12 : 0.18)!,
-                  ],
-                ).createShader(const Rect.fromLTWH(0, 0, 300, 24)),
-            ),
-          ),
-        ],
-      );
-    }
+    // Plain lettering: flat, no emboss.
+    Widget raised(String text, TextStyle style, {double blur = 0.6}) =>
+        Text(text, maxLines: 1, style: style.copyWith(color: fg));
 
     final numStyle = PulseTheme.amount(
       fg,
@@ -407,8 +356,6 @@ class _Content extends StatelessWidget {
     );
   }
 }
-
-ImageFilter _blur(double s) => ImageFilter.blur(sigmaX: s, sigmaY: s);
 
 // ---------------------------------------------------------- network marks
 
@@ -705,28 +652,13 @@ class _FacePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
     final stops = [for (final s in art.stops) Color(s)];
+    // Flat: one solid colour, no gloss. The printed motif keeps each card
+    // recognisable.
     canvas.drawRect(
       rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: stops.length == 1 ? [stops.first, stops.first] : stops,
-        ).createShader(rect),
+      Paint()..color = Color.lerp(stops.first, stops.last, 0.4)!,
     );
     _motif(canvas, size);
-    switch (art.resolvedMaterial) {
-      case CardMaterial.brushed:
-        _brushed(canvas, size);
-      case CardMaterial.pearl:
-        _pearl(canvas, size, deep: false);
-      case CardMaterial.blackGloss:
-        _pearl(canvas, size, deep: true);
-      case CardMaterial.softTouch:
-        _softTouch(canvas, size);
-      case CardMaterial.auto:
-        break;
-    }
   }
 
   void _motif(Canvas canvas, Size size) {
@@ -806,353 +738,9 @@ class _FacePainter extends CustomPainter {
     }
   }
 
-  /// Brushed or turned metal: a banded sheen (metal reflects a few distinct
-  /// bands, not a smooth ramp), fine horizontal grain made of many short
-  /// hairlines, and a darker lower edge.
-  void _brushed(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: const Alignment(-1, -0.5),
-          end: const Alignment(1, 0.5),
-          colors: [
-            Colors.white.withValues(alpha: 0.02),
-            Colors.black.withValues(alpha: 0.14),
-            Colors.white.withValues(alpha: 0.13),
-            Colors.black.withValues(alpha: 0.10),
-            Colors.white.withValues(alpha: 0.07),
-            Colors.black.withValues(alpha: 0.16),
-          ],
-          stops: const [0, 0.22, 0.44, 0.62, 0.8, 1],
-        ).createShader(rect),
-    );
-    final rnd = math.Random(11);
-    final g = art.grain;
-    final p = Paint()
-      ..strokeWidth = 0.45
-      ..strokeCap = StrokeCap.butt;
-    final n = (900 * (0.4 + g)).round();
-    for (var i = 0; i < n; i++) {
-      final y = rnd.nextDouble() * size.height;
-      final len = 30 + rnd.nextDouble() * 150;
-      final x = rnd.nextDouble() * (size.width + 60) - 60;
-      final bright = rnd.nextBool();
-      p.color = (bright ? Colors.white : Colors.black).withValues(
-        alpha: (0.03 + rnd.nextDouble() * 0.07) * (0.5 + g),
-      );
-      canvas.drawLine(Offset(x, y), Offset(x + len, y), p);
-    }
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.white.withValues(alpha: 0.08),
-            Colors.transparent,
-            Colors.black.withValues(alpha: 0.22),
-          ],
-        ).createShader(rect),
-    );
-  }
-
-  /// Pearlised or black gloss with a clear coat: a broad soft glow at the
-  /// upper left, a crisp diagonal reflection edge, and a shaded bottom.
-  void _pearl(Canvas canvas, Size size, {required bool deep}) {
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.75, -1.1),
-          radius: 1.2,
-          colors: [
-            Colors.white.withValues(alpha: deep ? 0.16 : 0.26),
-            Colors.white.withValues(alpha: 0),
-          ],
-        ).createShader(rect),
-    );
-    // Clear-coat reflection: a large lighter polygon with a soft hard edge.
-    final path = Path()
-      ..moveTo(0, 0)
-      ..lineTo(size.width * 0.62, 0)
-      ..lineTo(size.width * 0.18, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(
-      path,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: deep ? 0.10 : 0.09),
-            Colors.white.withValues(alpha: 0.015),
-          ],
-        ).createShader(rect),
-    );
-    canvas.drawLine(
-      Offset(size.width * 0.62, 0),
-      Offset(size.width * 0.18, size.height),
-      Paint()
-        ..color = Colors.white.withValues(alpha: deep ? 0.07 : 0.10)
-        ..strokeWidth = 0.7,
-    );
-    if (!deep) {
-      // Pearl: a faint cool-to-warm shift across the surface.
-      canvas.drawRect(
-        rect,
-        Paint()
-          ..shader = LinearGradient(
-            begin: Alignment.topRight,
-            end: Alignment.bottomLeft,
-            colors: [
-              const Color(0xFF8FE6FF).withValues(alpha: 0.07),
-              Colors.transparent,
-              const Color(0xFFFFC9E6).withValues(alpha: 0.07),
-            ],
-          ).createShader(rect),
-      );
-    }
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Colors.transparent,
-            Colors.black.withValues(alpha: deep ? 0.30 : 0.18),
-          ],
-          stops: const [0.45, 1],
-        ).createShader(rect),
-    );
-  }
-
-  /// Soft-touch laminate: no reflections, a fine stipple, and a gentle vignette.
-  void _softTouch(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.3, -0.5),
-          radius: 1.1,
-          colors: [
-            Colors.white.withValues(alpha: 0.06),
-            Colors.black.withValues(alpha: 0.14),
-          ],
-        ).createShader(rect),
-    );
-    final rnd = math.Random(5);
-    final n = (2600 * (0.3 + art.grain)).round();
-    final p = Paint()
-      ..strokeWidth = 0.7
-      ..strokeCap = StrokeCap.round;
-    for (var i = 0; i < n; i++) {
-      p.color = (rnd.nextBool() ? Colors.white : Colors.black).withValues(
-        alpha: 0.02 + rnd.nextDouble() * 0.045,
-      );
-      canvas.drawPoints(PointMode.points, [
-        Offset(rnd.nextDouble() * size.width, rnd.nextDouble() * size.height),
-      ], p);
-    }
-  }
-
   @override
-  bool shouldRepaint(covariant _FacePainter old) => old.art != art;
-}
-
-// ---------------------------------------------------- specular (dynamic)
-
-/// The only layer that moves: one or two gradient fills positioned from the
-/// tilt, plus the hologram. Repaints from [tilt] without rebuilding.
-class _SpecularPainter extends CustomPainter {
-  _SpecularPainter(this.art, this.tilt, this.radius) : super(repaint: tilt);
-  final CardArtSpec art;
-  final ValueListenable<Offset> tilt;
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final t = tilt.value;
-    final k = art.specular;
-    final rect = Offset.zero & size;
-    if (k > 0) {
-      switch (art.resolvedMaterial) {
-        case CardMaterial.brushed:
-          // Anisotropic: a near-vertical streak perpendicular to the grain,
-          // sliding sideways with tilt, with a narrower hot core.
-          final c = 0.5 + t.dx * 0.55;
-          canvas.drawRect(
-            rect,
-            Paint()
-              ..shader = LinearGradient(
-                begin: const Alignment(-1, -0.35),
-                end: const Alignment(1, 0.35),
-                colors: [
-                  Colors.white.withValues(alpha: 0),
-                  Colors.white.withValues(alpha: 0.30 * k),
-                  Colors.white.withValues(alpha: 0.10 * k),
-                  Colors.white.withValues(alpha: 0),
-                ],
-                stops: [
-                  (c - 0.26).clamp(0.0, 1.0),
-                  c.clamp(0.0, 1.0),
-                  (c + 0.1).clamp(0.0, 1.0),
-                  (c + 0.34).clamp(0.0, 1.0),
-                ],
-              ).createShader(rect),
-          );
-        case CardMaterial.pearl:
-        case CardMaterial.blackGloss:
-          final deep = art.resolvedMaterial == CardMaterial.blackGloss;
-          canvas.drawRect(
-            rect,
-            Paint()
-              ..shader = RadialGradient(
-                center: Alignment(t.dx * 1.1, -0.4 + t.dy * 0.9),
-                radius: 0.85,
-                colors: [
-                  Colors.white.withValues(alpha: (deep ? 0.20 : 0.26) * k),
-                  Colors.white.withValues(alpha: 0),
-                ],
-              ).createShader(rect),
-          );
-          // A sharp clear-coat streak that travels with the tilt.
-          final x = size.width * (0.5 + t.dx * 0.5);
-          canvas.drawPath(
-            Path()
-              ..moveTo(x - 20, 0)
-              ..lineTo(x + 6, 0)
-              ..lineTo(x - 54, size.height)
-              ..lineTo(x - 80, size.height)
-              ..close(),
-            Paint()..color = Colors.white.withValues(alpha: 0.07 * k),
-          );
-        case CardMaterial.softTouch:
-        case CardMaterial.auto:
-          canvas.drawRect(
-            rect,
-            Paint()
-              ..shader = RadialGradient(
-                center: Alignment(t.dx, t.dy - 0.2),
-                radius: 1.0,
-                colors: [
-                  Colors.white.withValues(alpha: 0.10 * k),
-                  Colors.white.withValues(alpha: 0),
-                ],
-              ).createShader(rect),
-          );
-      }
-    }
-    if (art.hologram && art.resolvedMaterial != CardMaterial.brushed) {
-      _hologram(canvas, size, t);
-    }
-  }
-
-  void _hologram(Canvas canvas, Size size, Offset t) {
-    final box = RRect.fromRectAndRadius(
-      Rect.fromLTWH(size.width - 22 - 30, 19 + 58, 30, 22),
-      const Radius.circular(4),
-    );
-    final s = (t.dx + 1) / 2;
-    canvas.save();
-    canvas.clipRRect(box);
-    canvas.drawRRect(
-      box,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment(-1 + s, -1),
-          end: Alignment(1 + s, 1),
-          colors: const [
-            Color(0xFFB9C7F2),
-            Color(0xFFF2C9E6),
-            Color(0xFFFFEBB0),
-            Color(0xFFA8EEDB),
-            Color(0xFFB9C7F2),
-          ],
-          stops: const [0, 0.25, 0.5, 0.75, 1],
-          tileMode: TileMode.mirror,
-        ).createShader(box.outerRect),
-    );
-    // A dove-like globe: two crossing arcs and a ring, in a translucent line.
-    final line = Paint()
-      ..color = Colors.white.withValues(alpha: 0.65)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.7;
-    final c = box.outerRect.center;
-    canvas.drawCircle(c, 6.5, line);
-    canvas.drawArc(
-      Rect.fromCenter(center: c, width: 13, height: 6),
-      0,
-      math.pi * 2,
-      false,
-      line,
-    );
-    canvas.drawArc(
-      Rect.fromCenter(center: c, width: 6, height: 13),
-      0,
-      math.pi * 2,
-      false,
-      line,
-    );
-    canvas.restore();
-    canvas.drawRRect(
-      box,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.6
-        ..color = Colors.white.withValues(alpha: 0.5),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _SpecularPainter old) =>
-      old.art != art || old.tilt != tilt;
-}
-
-/// Bevelled edge: a bright rim at the top left fading to a dark rim at the
-/// bottom right, as light catching a cut card edge.
-class _EdgePainter extends CustomPainter {
-  _EdgePainter(this.radius);
-  final double radius;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final rr = RRect.fromRectAndRadius(rect, Radius.circular(radius));
-    canvas.drawRRect(
-      rr.deflate(0.6),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.50),
-            Colors.white.withValues(alpha: 0.10),
-            Colors.black.withValues(alpha: 0.18),
-            Colors.black.withValues(alpha: 0.38),
-          ],
-          stops: const [0, 0.35, 0.7, 1],
-        ).createShader(rect),
-    );
-    canvas.drawRRect(
-      rr.deflate(2),
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 0.5
-        ..color = Colors.white.withValues(alpha: 0.05),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _EdgePainter old) => old.radius != radius;
+  bool shouldRepaint(covariant _FacePainter old) =>
+      old.art != art || old.radius != radius;
 }
 
 /// A plain art direction derived from a card's own gradient, for products

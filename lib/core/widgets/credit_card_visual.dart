@@ -48,44 +48,14 @@ class WalletCardFace extends StatelessWidget {
     return AspectRatio(
       aspectRatio: 1.586,
       child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: radius,
-          boxShadow: elevated
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.28),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ]
-              : null,
-        ),
+        decoration: BoxDecoration(borderRadius: radius),
         child: ClipRRect(
           borderRadius: radius,
           child: Stack(
             fit: StackFit.expand,
             children: [
               DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [a, b],
-                  ),
-                ),
-              ),
-              // Sheen: light falling across the top-left of the card.
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: const Alignment(0.4, 0.2),
-                    colors: [
-                      Colors.white.withValues(alpha: 0.10),
-                      Colors.white.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
+                decoration: BoxDecoration(color: Color.lerp(a, b, 0.4)),
               ),
               DecoratedBox(
                 decoration: BoxDecoration(
@@ -127,12 +97,7 @@ class WalletCardFace extends StatelessWidget {
                           height: 26,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(5),
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withValues(alpha: 0.30),
-                                Colors.white.withValues(alpha: 0.14),
-                              ],
-                            ),
+                            color: Colors.white.withValues(alpha: 0.22),
                             border: Border.all(
                               color: Colors.white.withValues(alpha: 0.2),
                               width: 0.6,

@@ -113,9 +113,9 @@ void main() {
     expect(find.byKey(const Key('connection_gmail_switch')), findsOneWidget);
   });
 
-  testWidgets('wealth surfaces Goals and Household', (tester) async {
+  testWidgets('wealth surfaces Household; Goals is a tile', (tester) async {
     await _pump(tester, '/wealth');
-    expect(find.byKey(const Key('shortcut-goals')), findsOneWidget);
+    expect(find.byKey(const Key('shortcut-goals')), findsNothing);
     expect(find.byKey(const Key('shortcut-household')), findsOneWidget);
   });
 

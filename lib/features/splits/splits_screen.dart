@@ -33,6 +33,7 @@ class SplitsScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 120),
             children: [
               ScreenHeader(
+                showSettings: true,
                 'Splits',
                 subtitle: 'Shared expenses',
                 trailing: [

@@ -33,7 +33,8 @@ bool _inHorizontalScroller(Element e) {
   var found = false;
   e.visitAncestorElements((a) {
     final w = a.widget;
-    if (w is Scrollable && axisDirectionToAxis(w.axisDirection) == Axis.horizontal) {
+    if (w is Scrollable &&
+        axisDirectionToAxis(w.axisDirection) == Axis.horizontal) {
       found = true;
     }
     if (w is PageView) found = true;
@@ -103,7 +104,8 @@ List<String> overlappingText(WidgetTester tester, {Finder? scope}) {
       // Deliberate layering (art on a card face, chart labels, badges).
       bool layered(Element e) => _hasAncestor(
         e,
-        (w) => w.runtimeType.toString().contains('CreditCardVisual') ||
+        (w) =>
+            w.runtimeType.toString().contains('CreditCardVisual') ||
             w.runtimeType.toString().contains('Chart') ||
             w.runtimeType.toString().contains('Sankey'),
       );
@@ -146,7 +148,9 @@ List<String> textOffScreen(WidgetTester tester, {Finder? scope}) {
   for (final s in visibleParagraphs(tester, scope ?? auditScope(tester))) {
     if (_inHorizontalScroller(s.element)) continue;
     if (s.rect.left < -1 || s.rect.right > size.width + 1) {
-      problems.add('text off screen: "${_clip(s.text)}" ${_fmt(s.rect)} in ${_chain(s.element)}');
+      problems.add(
+        'text off screen: "${_clip(s.text)}" ${_fmt(s.rect)} in ${_chain(s.element)}',
+      );
     }
   }
   return problems;
@@ -175,7 +179,9 @@ List<String> tinyTapTargets(WidgetTester tester, {Finder? scope}) {
     if (!r.overlaps(Offset.zero & size)) continue;
     if (_hasAncestor(e, (w) => w is TextField || w is EditableText)) continue;
     if (r.height < 30 && r.width < 30 && r.width > 0 && r.height > 0) {
-      problems.add('tap target ${r.width.round()}x${r.height.round()} at ${_fmt(r)}');
+      problems.add(
+        'tap target ${r.width.round()}x${r.height.round()} at ${_fmt(r)}',
+      );
     }
   }
   return problems;
@@ -185,7 +191,10 @@ List<String> tinyTapTargets(WidgetTester tester, {Finder? scope}) {
 List<String> gluedCards(WidgetTester tester, {Finder? scope}) {
   final boxes = <(Rect, Element, bool)>[];
   final els = find
-      .descendant(of: scope ?? auditScope(tester), matching: find.byType(DecoratedBox))
+      .descendant(
+        of: scope ?? auditScope(tester),
+        matching: find.byType(DecoratedBox),
+      )
       .evaluate();
   final size = tester.view.physicalSize / tester.view.devicePixelRatio;
   for (final e in els) {
@@ -216,8 +225,11 @@ List<String> gluedCards(WidgetTester tester, {Finder? scope}) {
       final xOverlap = math.min(a.right, b.right) - math.max(a.left, b.left);
       if (xOverlap < math.min(a.width, b.width) * 0.6) continue;
       // Vertical neighbours that touch or overlap each other but do not nest.
-      final nested = (a.inflate(1).contains(b.topLeft) && a.inflate(1).contains(b.bottomRight)) ||
-          (b.inflate(1).contains(a.topLeft) && b.inflate(1).contains(a.bottomRight));
+      final nested =
+          (a.inflate(1).contains(b.topLeft) &&
+              a.inflate(1).contains(b.bottomRight)) ||
+          (b.inflate(1).contains(a.topLeft) &&
+              b.inflate(1).contains(a.bottomRight));
       if (nested) continue;
       final gap = a.top < b.top ? b.top - a.bottom : a.top - b.bottom;
       if (gap < 1 && gap > -2) {
@@ -243,7 +255,8 @@ List<String> seeThroughSheets(WidgetTester tester) {
       if (covered) return;
       if (o is RenderBox && o.hasSize && o.attached) {
         final r = o.localToGlobal(Offset.zero) & o.size;
-        final fills = r.width >= sheet.width - 2 && r.height >= sheet.height * 0.9;
+        final fills =
+            r.width >= sheet.width - 2 && r.height >= sheet.height * 0.9;
         if (fills) {
           if (o is RenderDecoratedBox) {
             final d = o.decoration;
@@ -262,7 +275,9 @@ List<String> seeThroughSheets(WidgetTester tester) {
 
     ro.visitChildren(walk);
     if (!covered) {
-      problems.add('sheet ${_fmt(sheet)} has no opaque background (see-through)');
+      problems.add(
+        'sheet ${_fmt(sheet)} has no opaque background (see-through)',
+      );
     }
   }
   return problems;

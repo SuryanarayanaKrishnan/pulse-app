@@ -20,4 +20,5 @@ export 'snap_rail.dart';
 export 'source_badge.dart';
 export 'screen_header.dart';
 export 'surface_card.dart';
+export 'summary_tile.dart';
 export 'currency_prefix.dart';

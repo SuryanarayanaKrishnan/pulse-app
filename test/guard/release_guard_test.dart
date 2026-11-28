@@ -32,14 +32,26 @@ void main() {
         offenders.add(rel);
       }
     }
-    expect(offenders, isEmpty, reason: 'sample data built outside the guarded providers: $offenders');
+    expect(
+      offenders,
+      isEmpty,
+      reason: 'sample data built outside the guarded providers: $offenders',
+    );
   });
 
   test('every sample fallback in providers.dart is guarded', () {
     final src = File('lib/data/providers.dart').readAsStringSync();
-    final fallbacks = RegExp(r'return (MockPulseRepository|demo\w+Store)\(').allMatches(src).length;
-    final guards = RegExp(r'requireSampleAllowed\(').allMatches(src).length - 1; // minus the definition
-    expect(guards, greaterThanOrEqualTo(fallbacks), reason: '$fallbacks sample fallbacks but only $guards guards');
+    final fallbacks = RegExp(r'return (MockPulseRepository|demo\w+Store)\(')
+        .allMatches(src)
+        .length;
+    final guards =
+        RegExp(r'requireSampleAllowed\(').allMatches(src).length -
+        1; // minus the definition
+    expect(
+      guards,
+      greaterThanOrEqualTo(fallbacks),
+      reason: '$fallbacks sample fallbacks but only $guards guards',
+    );
   });
 
   test('in a release build the repository never falls back to sample data', () {

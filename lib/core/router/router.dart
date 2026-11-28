@@ -58,6 +58,7 @@ abstract class Routes {
   static const cards = '/cards';
   static const splits = '/splits';
   static const wealth = '/wealth';
+  static const wealthSection = '/wealth-section';
   static const activity = '/activity';
   static const settings = '/settings';
   static const connections = '/settings/connections';
@@ -328,6 +329,11 @@ GoRouter buildRouter({
         path: Routes.statements,
         name: 'statements',
         builder: (c, s) => const StatementsScreen(),
+      ),
+      GoRoute(
+        path: '${Routes.wealthSection}/:id',
+        name: 'wealth-section',
+        builder: (c, s) => WealthSectionScreen(id: s.pathParameters['id']!),
       ),
       GoRoute(
         path: '${Routes.jewellery}/:id',

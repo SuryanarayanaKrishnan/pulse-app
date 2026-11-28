@@ -3,12 +3,18 @@ import '../discover/feature_shortcuts.dart';
 
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import '../../core/router/router.dart';
 import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../core/engine/valuation.dart' show FundValue;
+import '../../data/goal_models.dart' show GoalView;
+import '../../data/investing_service.dart' show StockView;
 import '../../data/models.dart';
+import '../../data/wealth_service.dart' show FundView;
 import '../../data/providers.dart';
 import '../../core/household/household_engine.dart' show NwScope;
 import '../../household/household_providers.dart';
@@ -55,6 +61,7 @@ class WealthScreen extends ConsumerWidget {
             padding: const EdgeInsets.only(bottom: 120),
             children: [
               ScreenHeader(
+                showSettings: true,
                 'Wealth',
                 subtitle: 'Assets and liabilities',
                 trailing: [
@@ -74,7 +81,7 @@ class WealthScreen extends ConsumerWidget {
                   ),
                 ],
               ),
-              const FeatureShortcuts(ids: ['goals', 'household']),
+              const FeatureShortcuts(ids: ['household']),
               if (joint != null)
                 ScopeToggle(
                   value: scope,
@@ -96,6 +103,35 @@ class WealthScreen extends ConsumerWidget {
                     ),
                   ),
                   const PriceStatusLine(),
+                ],
+                AsyncView<List<Asset>>(
+                  value: assets,
+                  loading: const SkeletonList(rows: 4),
+                  onRetry: () => ref.invalidate(assetsProvider),
+                  builder: (list) => list.isEmpty
+                      ? Column(
+                          children: [
+                            EmptyState(
+                              icon: Icons.account_balance_wallet_outlined,
+                              title: 'Nothing here yet',
+                              message:
+                                  'Add what you own and owe: accounts, property, gold, '
+                                  'deposits, loans. Net worth is worked out on this phone.',
+                              action: PrimaryButton(
+                                label: 'Add to Wealth',
+                                expand: false,
+                                onPressed: () => showWealthAddMenu(
+                                  context,
+                                  assetSheet: (_) => const AddAssetSheet(),
+                                ),
+                              ),
+                            ),
+                            const WealthSections(),
+                          ],
+                        )
+                      : _Body(list),
+                ),
+                if (nw != null) ...[
                   NetWorthHistorySection(
                     fallback:
                         nw.labels.length == nw.series.length &&
@@ -126,33 +162,6 @@ class WealthScreen extends ConsumerWidget {
                         : null,
                   ),
                 ],
-                AsyncView<List<Asset>>(
-                  value: assets,
-                  loading: const SkeletonList(rows: 4),
-                  onRetry: () => ref.invalidate(assetsProvider),
-                  builder: (list) => list.isEmpty
-                      ? Column(
-                          children: [
-                            EmptyState(
-                              icon: Icons.account_balance_wallet_outlined,
-                              title: 'Nothing here yet',
-                              message:
-                                  'Add what you own and owe: accounts, property, gold, '
-                                  'deposits, loans. Net worth is worked out on this phone.',
-                              action: PrimaryButton(
-                                label: 'Add to Wealth',
-                                expand: false,
-                                onPressed: () => showWealthAddMenu(
-                                  context,
-                                  assetSheet: (_) => const AddAssetSheet(),
-                                ),
-                              ),
-                            ),
-                            const WealthSections(),
-                          ],
-                        )
-                      : _Body(list),
-                ),
                 if (nw != null) _LiveValues(nw),
               ],
             ],
@@ -189,37 +198,22 @@ class WealthSections extends StatelessWidget {
   );
 }
 
-class _Body extends ConsumerStatefulWidget {
+/// Wealth overview: how the money is split, then a grid of tiles. Each tile
+/// is one thing you own with its value and how it moved; tap it for the list.
+class _Body extends ConsumerWidget {
   const _Body(this.list);
   final List<Asset> list;
-  @override
-  ConsumerState<_Body> createState() => _BodyState();
-}
 
-/// Wealth opens on the overview: what you own, how it is split, the list.
-/// Goals, dates, jewellery, funds and papers are one tap away on the switch.
-class _BodyState extends ConsumerState<_Body> {
-  List<Asset> get list => widget.list;
-  var _details = false;
-
-  /// Allocation colours: one hue family, stepped in lightness, so the bar
+  /// Allocation colours: one hue family, stepped in lightness, so the chart
   /// reads as proportion rather than a rainbow.
   static Color _shade(PulseColors c, int i, int n) {
     final t = n <= 1 ? 0.0 : i / (n - 1);
     return Color.lerp(c.accent, c.surfaceElevated, t * 0.85)!;
   }
 
-  /// The note, plus how the row is shared when there is a household.
-  static String? _subtitle(JointData? j, Asset a) {
-    final share = j == null ? null : lineCaption(j, a.id);
-    final parts = [if (a.note.isNotEmpty) a.note, ?share];
-    return parts.isEmpty ? null : parts.join(' · ');
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.pc;
-    final joint = ref.watch(jointDataProvider).value;
     final byKind = <AssetKind, List<Asset>>{};
     for (final a in list) {
       byKind.putIfAbsent(a.kind, () => []).add(a);
@@ -232,35 +226,91 @@ class _BodyState extends ConsumerState<_Body> {
             .toList()
           ..sort((a, b) => sum(b).compareTo(sum(a)));
     final totalAssets = kinds.fold(0.0, (a, k) => a + sum(k));
-    // Zero-value kinds (a new account with no balance yet) stay in the lists
-    // below but get no allocation row or slice.
     final allocated = [
       for (final k in kinds)
         if (sum(k) > 0) k,
     ];
-    final liabilities = sum(AssetKind.liability);
-    TextStyle num([Color? col]) => PulseTheme.amount(col ?? c.textPrimary);
+
+    // Gain per kind, from the views that know what was paid.
+    final gold = ref.watch(jewelleryProvider).value ?? const [];
+    // Gold gain over every piece whose cost is known; bars or pieces without
+    // a cost stay out of the percentage rather than skewing it.
+    var goldPaid = 0, goldNow = 0;
+    for (final v in gold) {
+      final p = v.item.purchasePriceMinor;
+      if (p == null || p <= 0) continue;
+      goldPaid += p;
+      goldNow += v.value.valueMinor;
+    }
+    final double? goldGain = goldPaid <= 0
+        ? null
+        : (goldNow - goldPaid) / goldPaid * 100;
+    double? fundGain(Iterable<FundValue> vs) {
+      var cost = 0, gain = 0;
+      for (final v in vs) {
+        final cst = v.costAedMinor, g = v.gainAedMinor;
+        if (cst == null || g == null || cst <= 0) continue;
+        cost += cst;
+        gain += g;
+      }
+      return cost <= 0 ? null : gain / cost * 100;
+    }
+
+    final fundsGain = fundGain([
+      for (final v in ref.watch(fundsProvider).value ?? const <FundView>[])
+        v.value,
+    ]);
+    final stocksGain = fundGain([
+      for (final v
+          in ref.watch(stockViewsProvider).value ?? const <StockView>[])
+        v.value,
+    ]);
+    final goals = (ref.watch(goalsProvider).value ?? const <GoalView>[])
+        .where((g) => !g.state.done)
+        .length;
+    final docs = (ref.watch(documentsProvider).value ?? const []).length;
+    final rules = (ref.watch(ruleViewsProvider).value ?? const []).length;
+
+    double? gainFor(AssetKind k) => switch (k) {
+      AssetKind.gold => goldGain,
+      AssetKind.funds => fundsGain,
+      AssetKind.stocks => stocksGain,
+      _ => null,
+    };
+    String countOf(AssetKind k) {
+      final n = byKind[k]!.length;
+      return '$n ${n == 1 ? 'item' : 'items'}';
+    }
+
+    void open(String id) => context.push('${Routes.wealthSection}/$id');
+    final owned = [
+      ...kinds,
+      if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
+    ];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        AssetsVsLiabilities(list),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.md,
-            Space.gutter,
-            0,
-          ),
-          child: Segmented<bool>(
-            key: const Key('wealth-pane'),
-            segments: const {false: 'Overview', true: 'Investments and papers'},
-            value: _details,
-            onChanged: (v) => setState(() => _details = v),
-          ),
+        const SectionHeader('What you own'),
+        SummaryGrid(
+          key: const Key('wealth-grid'),
+          tiles: [
+            for (final k in owned)
+              SummaryTile(
+                key: Key('wealth-tile-${k.name}'),
+                icon: k.icon,
+                label: k.label,
+                value: Money.aedCompact(sum(k)),
+                caption: totalAssets > 0 && k != AssetKind.liability
+                    ? '${(sum(k) / totalAssets * 100).round()}% of assets'
+                    : countOf(k),
+                deltaPct: gainFor(k),
+                onTap: () => open(k.name),
+              ),
+          ],
         ),
-        if (_details) const WealthSections(),
-        if (!_details) ...[
-          const SectionHeader('Allocation'),
+        AssetsVsLiabilities(list),
+        const SectionHeader('Allocation'),
+        if (allocated.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.fromLTRB(
               Space.gutter,
@@ -273,8 +323,8 @@ class _BodyState extends ConsumerState<_Body> {
                 label:
                     'Allocation of ${Money.aed(totalAssets, decimals: false)} in assets',
                 child: DonutChart(
-                  size: 176,
-                  thickness: 20,
+                  size: 160,
+                  thickness: 18,
                   slices: [
                     for (var i = 0; i < allocated.length; i++)
                       ChartSlice(
@@ -297,62 +347,101 @@ class _BodyState extends ConsumerState<_Body> {
               ),
             ),
           ),
-          if (allocated.isEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                Space.gutter,
-                0,
-                Space.gutter,
-                Space.lg,
-              ),
-              child: Text(
-                'Add an asset or an account balance to see how your money is split.',
-                style: context.tt.bodySmall,
-                textAlign: TextAlign.center,
-              ),
-            )
-          else
-            RowGroup(
-              children: [
-                for (var i = 0; i < allocated.length; i++)
-                  ListRow(
-                    dense: true,
-                    leading: Dot(_shade(c, i, allocated.length), size: 10),
-                    title: allocated[i].label,
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${(sum(allocated[i]) / totalAssets * 100).round()}%',
-                          style: num(c.textSecondary),
-                        ),
-                        const SizedBox(width: Space.lg),
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(minWidth: 104),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            alignment: Alignment.centerRight,
-                            child: Text(
-                              Money.aedCompact(sum(allocated[i])),
-                              style: num(),
-                              maxLines: 1,
-                              textAlign: TextAlign.right,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-              ],
+        ] else
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.lg,
+              Space.gutter,
+              Space.lg,
             ),
-          for (final k in [
-            ...kinds,
-            if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
-          ]) ...[
-            if (byKind[k]!.any((a) => !_inSections(a))) SectionHeader(k.label),
+            child: Text(
+              'Add an asset or an account balance to see how your money is split.',
+              style: context.tt.bodySmall,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        const SectionHeader('Plans and papers'),
+        SummaryGrid(
+          key: const Key('wealth-grid-plans'),
+          tiles: [
+            SummaryTile(
+              key: const Key('wealth-tile-goals'),
+              icon: Icons.flag_outlined,
+              label: 'Goals',
+              value: '$goals',
+              caption: goals == 0 ? 'Set a goal' : 'in progress',
+              onTap: () => open('goals'),
+            ),
+            SummaryTile(
+              key: const Key('wealth-tile-plan'),
+              icon: Icons.autorenew_rounded,
+              label: 'Investing plan',
+              value: '$rules',
+              caption: rules == 0 ? 'Add a rule' : 'rules',
+              onTap: () => open('plan'),
+            ),
+            SummaryTile(
+              key: const Key('wealth-tile-papers'),
+              icon: Icons.description_outlined,
+              label: 'Papers',
+              value: '$docs',
+              caption: docs == 0 ? 'Add a document' : 'documents',
+              onTap: () => open('papers'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// The page behind a Wealth tile: everything in one kind of holding.
+class WealthSectionScreen extends ConsumerWidget {
+  const WealthSectionScreen({super.key, required this.id});
+  final String id;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final plan = switch (id) {
+      'goals' => ('Goals', const <Widget>[GoalsSection()]),
+      'plan' => ('Investing plan', const <Widget>[InvestingPlanSection()]),
+      'papers' => (
+        'Papers',
+        const <Widget>[UpcomingSection(), DocumentsSection()],
+      ),
+      _ => null,
+    };
+    final kind = AssetKind.values.where((k) => k.name == id).firstOrNull;
+    final title = plan?.$1 ?? kind?.label ?? 'Wealth';
+    final joint = ref.watch(jointDataProvider).value;
+    final assets = (ref.watch(assetsProvider).value ?? const <Asset>[])
+        .where((a) => a.kind == kind && !_inSections(a))
+        .toList();
+    final top = switch (kind) {
+      AssetKind.gold => const <Widget>[JewellerySection()],
+      AssetKind.funds => const <Widget>[FundsSection()],
+      AssetKind.stocks => const <Widget>[InvestmentsSection()],
+      _ => const <Widget>[],
+    };
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(title),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 20),
+          onPressed: () => context.popOrHome(Routes.wealth),
+        ),
+      ),
+      body: ListView(
+        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        children: [
+          ...?plan?.$2,
+          ...top,
+          if (assets.isNotEmpty) ...[
+            if (top.isNotEmpty) SectionHeader('Other ${title.toLowerCase()}'),
             RowGroup(
               children: [
-                for (final a in byKind[k]!.where((a) => !_inSections(a)))
+                for (final a in assets)
                   _swipeToDelete(
                     context,
                     ref,
@@ -391,29 +480,28 @@ class _BodyState extends ConsumerState<_Body> {
                           a.isLiability ? -a.value : a.value,
                           decimals: false,
                         ),
-                        style: num(),
+                        style: PulseTheme.amount(context.pc.textPrimary),
                       ),
                     ),
                   ),
               ],
             ),
-          ],
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              Space.gutter,
-              Space.lg,
-              Space.gutter,
-              0,
+          ] else if (plan == null && top.isEmpty)
+            const EmptyState(
+              icon: Icons.account_balance_wallet_outlined,
+              title: 'Nothing here yet',
+              message: 'Add one from the plus on Wealth.',
             ),
-            child: Text(
-              'Assets ${Money.aed(totalAssets, decimals: false)} · '
-              'Liabilities ${Money.aed(liabilities, decimals: false)}',
-              style: context.tt.bodySmall,
-            ),
-          ),
         ],
-      ],
+      ),
     );
+  }
+
+  /// The note, plus how the row is shared when there is a household.
+  static String? _subtitle(JointData? j, Asset a) {
+    final share = j == null ? null : lineCaption(j, a.id);
+    final parts = [if (a.note.isNotEmpty) a.note, ?share];
+    return parts.isEmpty ? null : parts.join(' · ');
   }
 }
 

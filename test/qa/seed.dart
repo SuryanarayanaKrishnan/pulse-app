@@ -37,10 +37,19 @@ Future<void> seedTypical(QaApp app) async {
       kind: BankAccountKind.current,
       balance: 14250,
     );
-    await repo.addAsset(name: 'Gold', kind: AssetKind.values.firstWhere((k) => k.name == 'gold'), value: 18000);
-    await repo.addAsset(name: 'Fixed deposit', kind: AssetKind.fixedDeposit, value: 50000);
+    await repo.addAsset(
+      name: 'Gold',
+      kind: AssetKind.values.firstWhere((k) => k.name == 'gold'),
+      value: 18000,
+    );
+    await repo.addAsset(
+      name: 'Fixed deposit',
+      kind: AssetKind.fixedDeposit,
+      value: 50000,
+    );
     final cats = await repo.categories();
-    SpendCategory cat(String id) => cats.firstWhere((c) => c.id == id, orElse: () => cats.first);
+    SpendCategory cat(String id) =>
+        cats.firstWhere((c) => c.id == id, orElse: () => cats.first);
     for (final (m, a, c) in [
       ('Carrefour', 312.4, 'groceries'),
       ('Talabat', 64.0, 'dining'),

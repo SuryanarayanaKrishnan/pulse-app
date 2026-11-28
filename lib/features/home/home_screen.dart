@@ -1,9 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
@@ -69,6 +67,7 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 ScreenHeader(
                   greeting,
+                  showSettings: !editing,
                   subtitle: DateFormat('EEEE d MMMM').format(now),
                   trailing: editing
                       ? [
@@ -87,14 +86,6 @@ class HomeScreen extends ConsumerWidget {
                             icon: Icons.search_rounded,
                             label: 'Search',
                             onTap: () => showAllFeaturesSheet(context),
-                          ),
-                          CoachTarget(
-                            id: 'settings',
-                            child: RoundIconButton(
-                              icon: Icons.account_circle_outlined,
-                              label: 'Settings',
-                              onTap: () => context.push(Routes.settings),
-                            ),
                           ),
                         ],
                 ),

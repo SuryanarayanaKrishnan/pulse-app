@@ -330,24 +330,6 @@ class TabBackdrop extends StatelessWidget {
         color: c.bg,
         child: Stack(
           children: [
-            Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
-              height: 340,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      c.tabWash(tab),
-                      c.tabWash(tab).withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-            ),
             Theme(
               data: theme.copyWith(scaffoldBackgroundColor: Colors.transparent),
               child: child,
