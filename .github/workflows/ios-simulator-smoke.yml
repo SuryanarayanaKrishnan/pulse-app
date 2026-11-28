@@ -1,13 +1,12 @@
 name: iOS simulator smoke
 
 # Boots an iPhone simulator, launches the real app (real database, real
-# catalog, no mocks) and fails if it errors on start. macOS minutes are free on
-# public repositories; if this repo goes private again, keep this manual
-# (workflow_dispatch) because macOS minutes count 10x.
+# catalog, no mocks) and fails if it errors on start. It runs by hand and once a
+# night, not on every push, so it never burns macOS minutes (10x) per merge.
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '20 1 * * *' # 05:20 Dubai
   workflow_dispatch:
 
 permissions:

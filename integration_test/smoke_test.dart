@@ -18,8 +18,13 @@ void main() {
       prev?.call(d);
     };
     app.main();
-    await tester.pumpAndSettle(const Duration(seconds: 1), EnginePhase.sendSemanticsUpdate, const Duration(seconds: 30));
-    await tester.pump(const Duration(seconds: 3));
+    // The real app never goes idle (animations, timers), so pumpAndSettle
+    // times out. Pump real time instead: at least 8 seconds, then until some
+    // text is on screen (30 seconds at most).
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(seconds: 1));
+      if (i >= 7 && find.byType(Text).evaluate().isNotEmpty) break;
+    }
 
     final texts = [
       for (final w in tester.widgetList<Text>(find.byType(Text)))
