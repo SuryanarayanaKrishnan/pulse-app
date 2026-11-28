@@ -329,8 +329,8 @@ class HelpSettings extends ConsumerWidget {
           ListRow(
             key: const Key('settings_all_features'),
             leading: const IconWell(Icons.apps_rounded),
-            title: 'All features',
-            subtitle: 'Search everything the app can do',
+            title: 'Search',
+            subtitle: 'Find any screen, setting, card or payment',
             chevron: true,
             onTap: () => showAllFeaturesSheet(context),
           ),
