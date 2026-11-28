@@ -8,6 +8,7 @@ import '../../core/engine/merchants.dart';
 import '../../core/engine/next_best.dart' show LedgerSpend;
 import '../../core/engine/rewards.dart';
 import 'database.dart';
+import 'own_transfers_store.dart';
 
 /// A card the user owns: the wallet entry, its account and the catalog
 /// product whose reward rules apply.
@@ -124,8 +125,9 @@ class PartnerSpend {
 
 /// Where partner spend comes from; set once at app start from the household.
 /// Null (the default, and in tests) means no partner spend.
-typedef PartnerSpendSource =
-    Future<List<PartnerSpend>> Function(String catalogId);
+typedef PartnerSpendSource = Future<List<PartnerSpend>> Function(
+  String catalogId,
+);
 PartnerSpendSource? partnerSpendSource;
 
 /// Accounts whose spend counts toward [card]'s caps. Partnership mode: a
@@ -146,11 +148,9 @@ Future<Set<String>> capAccountIds(PulseDatabase db, OwnedCard card) async {
           .get();
   final ids = {for (final r in rows) r.accountId!};
   if (ids.length < 2) return {own};
-  final live =
-      await (db.select(db.accounts)..where(
-            (a) => a.id.isIn(ids.toList()) & a.deletedAt.isNull(),
-          ))
-          .get();
+  final live = await (db.select(
+    db.accounts,
+  )..where((a) => a.id.isIn(ids.toList()) & a.deletedAt.isNull())).get();
   return {own, for (final a in live) a.id};
 }
 
@@ -194,7 +194,7 @@ cycleSpends(
           t.postedAt,
           Spend(
             t.amountMinor,
-            rewardSlug(t.categoryId),
+            rewardSlug(rewardCategoryId(t)),
             merchantKey(t.merchantNormalized ?? t.merchantRaw),
           ),
         ),
@@ -204,9 +204,7 @@ cycleSpends(
   if (src != null && (await partnerCapCatalogs(db)).contains(card.catalog.id)) {
     try {
       for (final p in await src(card.catalog.id)) {
-        if (p.amountMinor <= 0 ||
-            p.at.isBefore(start) ||
-            !p.at.isBefore(end)) {
+        if (p.amountMinor <= 0 || p.at.isBefore(start) || !p.at.isBefore(end)) {
           continue;
         }
         dated.add((

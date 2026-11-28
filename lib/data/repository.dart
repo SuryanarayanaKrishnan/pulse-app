@@ -32,6 +32,12 @@ abstract class PulseRepository {
   /// their own ignore it.
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed);
 
+  /// Answers "is this money moving between my own accounts?" for a line
+  /// flagged as an own-account transfer or card bill payment. Yes keeps it out
+  /// of spending; no counts it as the spending it was captured as. Either way
+  /// the line and its other leg are reviewed.
+  Future<void> resolveTransfer(String txId, {required bool isTransfer});
+
   Future<Transaction> addManualTransaction({
     required String merchant,
     required double amount,
@@ -283,6 +289,9 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}
+
+  @override
+  Future<void> resolveTransfer(String txId, {required bool isTransfer}) async {}
 
   @override
   Future<void> setTransactionNote(String txId, String? note) =>

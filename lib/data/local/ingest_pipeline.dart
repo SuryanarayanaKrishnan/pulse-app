@@ -11,6 +11,7 @@ import '../../core/engine/holds.dart';
 import '../../core/engine/institutions.dart';
 import '../digit_suggestion.dart';
 import '../../core/engine/merchants.dart';
+import '../../core/engine/own_transfers.dart';
 import '../../core/learning/global_merchant_map.dart';
 import '../../core/learning/merchant_memory.dart';
 import '../../core/engine/rewards.dart';
@@ -21,6 +22,7 @@ import '../../core/engine/types.dart';
 import 'card_cycles.dart';
 import 'database.dart';
 import 'ids.dart';
+import 'own_transfers_store.dart';
 
 /// Structured fields supplied by a capture that already knows them (the iOS
 /// Shortcut, a wallet notification parsed natively).
@@ -811,8 +813,20 @@ class IngestPipeline {
     }
     await _markRaw(rawId, 'parsed', txId: txId);
 
+    // Money between the user's own accounts, or paying one of their cards, is
+    // not spending: keep it out of budgets and ask once. A card paid through a
+    // wallet (Tabby repaid from SIB) still earns on the paying card.
+    final transfer = asHold
+        ? null
+        : await detectOwnTransfer(db, txId, text: text);
+    final paysCardBill =
+        transfer?.kind == OwnTransferKind.cardBill &&
+        direction == Direction.debit &&
+        account.type == 'credit_card';
+
     RewardOutcome? reward;
     if (!asHold &&
+        (transfer == null || paysCardBill) &&
         direction == Direction.debit &&
         p.currency == 'AED' &&
         account.type == 'credit_card') {
@@ -833,6 +847,7 @@ class IngestPipeline {
       IngestStatus.stored,
       transactionId: txId,
       reward: reward,
+      reason: transfer == null ? null : 'own_transfer',
     );
   }
 
