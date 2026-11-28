@@ -189,9 +189,18 @@ class WealthSections extends StatelessWidget {
   );
 }
 
-class _Body extends ConsumerWidget {
+class _Body extends ConsumerStatefulWidget {
   const _Body(this.list);
   final List<Asset> list;
+  @override
+  ConsumerState<_Body> createState() => _BodyState();
+}
+
+/// Wealth opens on the overview: what you own, how it is split, the list.
+/// Goals, dates, jewellery, funds and papers are one tap away on the switch.
+class _BodyState extends ConsumerState<_Body> {
+  List<Asset> get list => widget.list;
+  var _details = false;
 
   /// Allocation colours: one hue family, stepped in lightness, so the bar
   /// reads as proportion rather than a rainbow.
@@ -208,7 +217,7 @@ class _Body extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final c = context.pc;
     final joint = ref.watch(jointDataProvider).value;
     final byKind = <AssetKind, List<Asset>>{};
@@ -235,155 +244,174 @@ class _Body extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         AssetsVsLiabilities(list),
-        const SectionHeader('Allocation'),
         Padding(
           padding: const EdgeInsets.fromLTRB(
             Space.gutter,
             Space.md,
             Space.gutter,
-            Space.lg,
+            0,
           ),
-          child: Center(
-            child: Semantics(
-              label:
-                  'Allocation of ${Money.aed(totalAssets, decimals: false)} in assets',
-              child: DonutChart(
-                size: 176,
-                thickness: 20,
-                slices: [
-                  for (var i = 0; i < allocated.length; i++)
-                    ChartSlice(
-                      allocated[i].label,
-                      sum(allocated[i]),
-                      _shade(c, i, allocated.length),
-                    ),
-                ],
-                center: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Assets', style: context.tt.bodySmall),
-                    Text(
-                      Money.aedCompact(totalAssets),
-                      style: PulseTheme.amount(c.textPrimary, size: 22),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          child: Segmented<bool>(
+            key: const Key('wealth-pane'),
+            segments: const {false: 'Overview', true: 'Investments and papers'},
+            value: _details,
+            onChanged: (v) => setState(() => _details = v),
           ),
         ),
-        if (allocated.isEmpty)
+        if (_details) const WealthSections(),
+        if (!_details) ...[
+          const SectionHeader('Allocation'),
           Padding(
             padding: const EdgeInsets.fromLTRB(
               Space.gutter,
-              0,
+              Space.md,
               Space.gutter,
               Space.lg,
             ),
-            child: Text(
-              'Add an asset or an account balance to see how your money is split.',
-              style: context.tt.bodySmall,
-              textAlign: TextAlign.center,
-            ),
-          )
-        else
-          RowGroup(
-            children: [
-              for (var i = 0; i < allocated.length; i++)
-                ListRow(
-                  dense: true,
-                  leading: Dot(_shade(c, i, allocated.length), size: 10),
-                  title: allocated[i].label,
-                  trailing: Row(
+            child: Center(
+              child: Semantics(
+                label:
+                    'Allocation of ${Money.aed(totalAssets, decimals: false)} in assets',
+                child: DonutChart(
+                  size: 176,
+                  thickness: 20,
+                  slices: [
+                    for (var i = 0; i < allocated.length; i++)
+                      ChartSlice(
+                        allocated[i].label,
+                        sum(allocated[i]),
+                        _shade(c, i, allocated.length),
+                      ),
+                  ],
+                  center: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      Text('Assets', style: context.tt.bodySmall),
                       Text(
-                        '${(sum(allocated[i]) / totalAssets * 100).round()}%',
-                        style: num(c.textSecondary),
-                      ),
-                      const SizedBox(width: Space.lg),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(minWidth: 104),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            Money.aedCompact(sum(allocated[i])),
-                            style: num(),
-                            maxLines: 1,
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
+                        Money.aedCompact(totalAssets),
+                        style: PulseTheme.amount(c.textPrimary, size: 22),
                       ),
                     ],
                   ),
                 ),
-            ],
+              ),
+            ),
           ),
-        const WealthSections(),
-        for (final k in [
-          ...kinds,
-          if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
-        ]) ...[
-          if (byKind[k]!.any((a) => !_inSections(a))) SectionHeader(k.label),
-          RowGroup(
-            children: [
-              for (final a in byKind[k]!.where((a) => !_inSections(a)))
-                _swipeToDelete(
-                  context,
-                  ref,
-                  a,
+          if (allocated.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                Space.gutter,
+                0,
+                Space.gutter,
+                Space.lg,
+              ),
+              child: Text(
+                'Add an asset or an account balance to see how your money is split.',
+                style: context.tt.bodySmall,
+                textAlign: TextAlign.center,
+              ),
+            )
+          else
+            RowGroup(
+              children: [
+                for (var i = 0; i < allocated.length; i++)
                   ListRow(
-                    key: Key('asset_${a.id}'),
-                    leading: WealthIcon(WealthKind.forAsset(a.kind), size: 36),
-                    title: a.name,
-                    subtitle: _subtitle(joint, a),
-                    onTap: a.editable
-                        ? () => showEditAssetSheet(
-                            context,
-                            a,
-                            onOwnership: joint == null
+                    dense: true,
+                    leading: Dot(_shade(c, i, allocated.length), size: 10),
+                    title: allocated[i].label,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${(sum(allocated[i]) / totalAssets * 100).round()}%',
+                          style: num(c.textSecondary),
+                        ),
+                        const SizedBox(width: Space.lg),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(minWidth: 104),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              Money.aedCompact(sum(allocated[i])),
+                              style: num(),
+                              maxLines: 1,
+                              textAlign: TextAlign.right,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          for (final k in [
+            ...kinds,
+            if (byKind.containsKey(AssetKind.liability)) AssetKind.liability,
+          ]) ...[
+            if (byKind[k]!.any((a) => !_inSections(a))) SectionHeader(k.label),
+            RowGroup(
+              children: [
+                for (final a in byKind[k]!.where((a) => !_inSections(a)))
+                  _swipeToDelete(
+                    context,
+                    ref,
+                    a,
+                    ListRow(
+                      key: Key('asset_${a.id}'),
+                      leading: WealthIcon(
+                        WealthKind.forAsset(a.kind),
+                        size: 36,
+                      ),
+                      title: a.name,
+                      subtitle: _subtitle(joint, a),
+                      onTap: a.editable
+                          ? () => showEditAssetSheet(
+                              context,
+                              a,
+                              onOwnership: joint == null
+                                  ? null
+                                  : () => showOwnershipSheet(
+                                      context,
+                                      table: 'lines',
+                                      id: a.id,
+                                      title: a.name,
+                                    ),
+                            )
+                          : (joint == null
                                 ? null
                                 : () => showOwnershipSheet(
                                     context,
                                     table: 'lines',
                                     id: a.id,
                                     title: a.name,
-                                  ),
-                          )
-                        : (joint == null
-                              ? null
-                              : () => showOwnershipSheet(
-                                  context,
-                                  table: 'lines',
-                                  id: a.id,
-                                  title: a.name,
-                                )),
-                    trailing: Text(
-                      Money.aed(
-                        a.isLiability ? -a.value : a.value,
-                        decimals: false,
+                                  )),
+                      trailing: Text(
+                        Money.aed(
+                          a.isLiability ? -a.value : a.value,
+                          decimals: false,
+                        ),
+                        style: num(),
                       ),
-                      style: num(),
                     ),
                   ),
-                ),
-            ],
+              ],
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.lg,
+              Space.gutter,
+              0,
+            ),
+            child: Text(
+              'Assets ${Money.aed(totalAssets, decimals: false)} · '
+              'Liabilities ${Money.aed(liabilities, decimals: false)}',
+              style: context.tt.bodySmall,
+            ),
           ),
         ],
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            Space.gutter,
-            Space.lg,
-            Space.gutter,
-            0,
-          ),
-          child: Text(
-            'Assets ${Money.aed(totalAssets, decimals: false)} · '
-            'Liabilities ${Money.aed(liabilities, decimals: false)}',
-            style: context.tt.bodySmall,
-          ),
-        ),
       ],
     );
   }
