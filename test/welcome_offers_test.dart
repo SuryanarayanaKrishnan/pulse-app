@@ -102,6 +102,23 @@ void main() {
     expect(offerEvidence('https://a.ae', null), OfferEvidence.unverified);
   });
 
+  test("an offer's own source and date win over the card's", () {
+    final list = welcomeOffers([
+      card(
+        'own',
+        offer: {
+          'text': 'x',
+          'source_url': 'https://bank.example/promo',
+          'verified_on': '2026-11-27',
+        },
+        checked: DateTime(2026, 1, 1),
+      ),
+    ], now: now);
+    expect(list.single.sourceUrl, 'https://bank.example/promo');
+    expect(list.single.checkedOn, DateTime(2026, 11, 27));
+    expect(list.single.stale, isFalse);
+  });
+
   test('a check older than 45 days is flagged stale', () {
     final list = welcomeOffers([
       card('fresh', offer: {'text': 'x'}, checked: DateTime(2026, 11, 1)),
@@ -171,16 +188,15 @@ void main() {
       }
     });
 
-    test('bank-sourced offers dominate; the rest are labelled, not hidden', () {
-      final bank = all.where((o) => o.evidence == OfferEvidence.bank);
-      expect(bank.length, greaterThan(40));
+    test('every offer has an official source and a check date', () {
+      final bad = [
+        for (final o in all)
+          if (o.evidence != OfferEvidence.bank) o.card.id,
+      ];
+      expect(bad, isEmpty, reason: 'offers without a bank source: $bad');
       for (final o in all) {
-        if (o.evidence == OfferEvidence.unverified) {
-          expect(o.sourceUrl == null || o.checkedOn == null, isTrue);
-        } else {
-          expect(Uri.parse(o.sourceUrl!).scheme, 'https', reason: o.card.id);
-          expect(o.checkedOn, isNotNull, reason: o.card.id);
-        }
+        expect(Uri.parse(o.sourceUrl!).scheme, 'https', reason: o.card.id);
+        expect(o.checkedOn, isNotNull, reason: o.card.id);
       }
     });
 

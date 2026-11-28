@@ -131,7 +131,11 @@ List<WelcomeOffer> welcomeOffers(
       daysLeft = _day(until).difference(today).inDays;
       if (daysLeft < 0) continue; // expired: never listed
     }
-    final checked = card.verifiedOn;
+    // The offer's own source and check date win over the card's.
+    final ownSource = raw['source_url'] as String?;
+    final ownChecked = DateTime.tryParse('${raw['verified_on'] ?? ''}');
+    final source = ownSource ?? card.source;
+    final checked = ownSource != null ? ownChecked : card.verifiedOn;
     out.add(
       WelcomeOffer(
         card: card,
@@ -142,9 +146,9 @@ List<WelcomeOffer> welcomeOffers(
         requiresFeePayment: raw['requires_fee_payment'] == true,
         validUntil: until,
         daysLeft: daysLeft,
-        sourceUrl: card.source,
+        sourceUrl: source,
         checkedOn: checked,
-        evidence: offerEvidence(card.source, checked),
+        evidence: offerEvidence(source, checked),
         stale:
             checked != null &&
             today.difference(_day(checked)).inDays > offerStaleAfterDays,
