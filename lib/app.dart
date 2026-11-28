@@ -1,3 +1,5 @@
+import 'data/welcome_offers_providers.dart';
+
 import 'dart:async';
 
 import 'bugreport/shake_host.dart';
@@ -109,6 +111,13 @@ class _PulseAppState extends ConsumerState<PulseApp>
       await svc.rescheduleReminders();
       final inv = ref.read(investingServiceProvider);
       await inv.rescheduleBuyReminders();
+      try {
+        await ref
+            .read(watchedOffersProvider.notifier)
+            .reschedule(offers: await ref.read(welcomeOffersProvider.future));
+      } on Object {
+        // reminders for offers are best-effort
+      }
       if (svc.prices.canFetch) {
         await inv.refreshPrices();
         await svc.prices.refresh();

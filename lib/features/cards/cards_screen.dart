@@ -22,6 +22,7 @@ import 'credit_capacity.dart';
 import 'digit_widgets.dart';
 import 'quick_pick_sheet.dart';
 import 'suggestion_widgets.dart';
+import 'welcome_offers_section.dart';
 import '../tour/tab_tip.dart';
 import '../tour/tour_progress.dart';
 import '../coach/coach.dart';
@@ -123,7 +124,7 @@ class _CardsScreenState extends ConsumerState<CardsScreen> {
   }
 }
 
-enum _CardsPane { wallet, combos, credit }
+enum _CardsPane { wallet, combos, offers, credit }
 
 class _CardsView extends ConsumerStatefulWidget {
   const _CardsView({super.key});
@@ -165,6 +166,8 @@ class _CardsViewState extends ConsumerState<_CardsView> {
               ),
               const CardSuggestionsSection(),
               const CardCombosSection(),
+              const SectionHeader('Welcome offers'),
+              const WelcomeOffersSection(),
             ],
           );
         }
@@ -205,7 +208,8 @@ class _CardsViewState extends ConsumerState<_CardsView> {
                 key: const Key('cards-pane'),
                 segments: const {
                   _CardsPane.wallet: 'Wallet',
-                  _CardsPane.combos: 'Best combos',
+                  _CardsPane.combos: 'Combos',
+                  _CardsPane.offers: 'Offers',
                   _CardsPane.credit: 'Credit',
                 },
                 value: _pane,
@@ -267,6 +271,7 @@ class _CardsViewState extends ConsumerState<_CardsView> {
                       ),
               ),
             ],
+            if (_pane == _CardsPane.offers) const WelcomeOffersSection(),
             if (_pane == _CardsPane.credit) ...[
               FigureRow([
                 ('Minimum', Money.aed(minDue, decimals: false), null),
