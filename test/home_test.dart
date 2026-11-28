@@ -36,25 +36,33 @@ Future<void> _pump(WidgetTester tester, {String? location}) async {
 }
 
 void main() {
-  testWidgets('home leads with safe to spend, health and which card', (
-    tester,
-  ) async {
-    await _pump(tester);
-    expect(find.text('Safe to spend today'), findsOneWidget);
-    expect(find.text('Which card should I use?'), findsOneWidget);
-    await tester.dragUntilVisible(
-      find.textContaining('Financial health'),
-      find.byType(ListView).first,
-      const Offset(0, -300),
-    );
-    expect(find.textContaining('Financial health'), findsOneWidget);
-    await tester.dragUntilVisible(
-      find.text('Recent'),
-      find.byType(ListView).first,
-      const Offset(0, -300),
-    );
-    expect(find.text('Recent'), findsOneWidget);
-  });
+  testWidgets(
+    'home is calm: safe to spend, which card, nothing else by default',
+    (tester) async {
+      await _pump(tester);
+      expect(find.text('Safe to spend today'), findsOneWidget);
+      expect(find.text('Which card should I use?'), findsOneWidget);
+      // Everything else is opt-in.
+      expect(find.textContaining('Financial health'), findsNothing);
+      expect(find.text('Recent'), findsNothing);
+      expect(find.text('Best moves'), findsNothing);
+      expect(find.text('Family'), findsNothing);
+      expect(find.text('Monthly close'), findsNothing);
+      expect(find.byKey(const Key('capture_nudge')), findsNothing);
+      // At most one insight card sits under the card advice, and each kind is
+      // drawn once.
+      expect(
+        find.byKey(const Key('cap_watch')).evaluate().length,
+        lessThanOrEqualTo(1),
+      );
+      expect(
+        find.byKey(const Key('overrun_home_line')).evaluate().length,
+        lessThanOrEqualTo(1),
+      );
+      // The way to more is one obvious button.
+      expect(find.byKey(const Key('home-add-widget')), findsOneWidget);
+    },
+  );
 
   testWidgets('which card sheet recommends a card for a category', (
     tester,
@@ -138,7 +146,7 @@ void main() {
   });
 
   testWidgets('simulated card tap shows the rewards moment', (tester) async {
-    await _pump(tester, location: '/settings');
+    await _pump(tester, location: '/settings/help');
     await tester.dragUntilVisible(
       find.text('Simulate a card tap'),
       find.byType(ListView).first,

@@ -218,4 +218,8 @@ class PulseTheme {
 
   static ThemeData get dark => build(PulseColors.dark);
   static ThemeData get light => build(PulseColors.light);
+
+  /// The theme for [mood] in the given brightness.
+  static ThemeData forMood(PulseMood mood, {required bool dark}) =>
+      build(PulseColors.of(mood, dark: dark));
 }

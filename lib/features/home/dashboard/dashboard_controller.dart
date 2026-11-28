@@ -28,6 +28,7 @@ class DashboardState {
 /// the phone, nor does analytics see them.
 class DashboardController extends Notifier<DashboardState> {
   static const storageKey = 'home.dashboards';
+  static const calmMigrationKey = 'home.calm_v1';
 
   var _touched = false;
 
@@ -43,7 +44,21 @@ class DashboardController extends Notifier<DashboardState> {
     try {
       final raw = await _kv.read(storageKey);
       if (_touched || !ref.mounted) return;
-      state = state.copyWith(layout: DashboardLayout.decode(raw));
+      var layout = DashboardLayout.decode(raw);
+      // People who set Home up before the calm default keep everything they
+      // used to see: add those always-on rows to their own dashboards once.
+      if (raw != null && raw.isNotEmpty) {
+        final done = await _kv.read(calmMigrationKey);
+        if (done == null) {
+          layout = layout.withLegacyExtras();
+          await _kv.write(storageKey, layout.encode());
+          await _kv.write(calmMigrationKey, '1');
+          if (_touched || !ref.mounted) return;
+        }
+      } else {
+        await _kv.write(calmMigrationKey, '1');
+      }
+      state = state.copyWith(layout: layout);
     } on Object {
       // Storage unavailable: keep the defaults, quietly.
     }

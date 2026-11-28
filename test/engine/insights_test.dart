@@ -27,7 +27,13 @@ void main() {
           for (final c in sc['charges']! as List)
             () {
               final m = mp(c);
-              return Charge(d(m['posted_on']), m['amount_minor']! as int, m['merchant']! as String, m['key']! as String, m['category_slug'] as String?);
+              return Charge(
+                d(m['posted_on']),
+                m['amount_minor']! as int,
+                m['merchant']! as String,
+                m['key']! as String,
+                m['category_slug'] as String?,
+              );
             }(),
         ];
         final got = detect(charges, today);
@@ -52,7 +58,9 @@ void main() {
           expect(s.status, e['status']);
           expect(s.anchorDay, e['anchor_day']);
           expect(s.flags, e['flags']);
-          final pi = e['price_increase'] == null ? null : mp(e['price_increase']);
+          final pi = e['price_increase'] == null
+              ? null
+              : mp(e['price_increase']);
           expect(s.priceIncrease == null, pi == null);
           if (pi != null) {
             expect(s.priceIncrease!.fromMinor, pi['from_minor']);
@@ -64,15 +72,29 @@ void main() {
           expect(forgotten(s, reviewed: true), e['forgotten_reviewed']);
           expect(monthlyCostMinor(s), e['monthly_cost_minor']);
           expect(
-            [for (final x in occurrencesBetween(s, today, today.addDays(100))) x.toIso()],
+            [
+              for (final x in occurrencesBetween(s, today, today.addDays(100)))
+                x.toIso(),
+            ],
             [for (final x in e['occurrences_between']! as List) x],
           );
         }
       });
     }
     test('fixture covers the interesting cases', () {
-      final names = [for (final r in loadFixture('recurring.json')! as List) mp(r)['name']];
-      expect(names, containsAll(['netflix_steady', 'spotify_increase', 'lapsed', 'month_end', 'weekly']));
+      final names = [
+        for (final r in loadFixture('recurring.json')! as List) mp(r)['name'],
+      ];
+      expect(
+        names,
+        containsAll([
+          'netflix_steady',
+          'spotify_increase',
+          'lapsed',
+          'month_end',
+          'weekly',
+        ]),
+      );
     });
   });
 
@@ -106,11 +128,22 @@ void main() {
         expect(got.totalDueMinor, e['total_due_minor']);
         expect(got.remainingMinimumDueMinor, e['remaining_minimum_due_minor']);
         expect(got.remainingTotalDueMinor, e['remaining_total_due_minor']);
-        expect(got.utilisationPct, e['utilisation_pct'] == null ? isNull : closeTo(num_(e['utilisation_pct']), 1e-9));
+        expect(
+          got.utilisationPct,
+          e['utilisation_pct'] == null
+              ? isNull
+              : closeTo(num_(e['utilisation_pct']), 1e-9),
+        );
         expect(got.availableCreditMinor, e['available_credit_minor']);
         final nudges = [for (final n in e['nudges']! as List) mp(n)];
-        expect([for (final n in got.nudges) n.level], [for (final n in nudges) n['level']]);
-        expect([for (final n in got.nudges) n.message], [for (final n in nudges) n['message']]);
+        expect(
+          [for (final n in got.nudges) n.level],
+          [for (final n in nudges) n['level']],
+        );
+        expect(
+          [for (final n in got.nudges) n.message],
+          [for (final n in nudges) n['message']],
+        );
       });
     }
     test('due day rolls to next month and clamps', () {
@@ -128,7 +161,13 @@ void main() {
         for (final f in c['flows']! as List)
           () {
             final m = mp(f);
-            return Flow(d(m['day']), m['amount_minor']! as int, isCredit: m['is_credit']! as bool, slug: m['slug'] as String?, excluded: m['excluded']! as bool);
+            return Flow(
+              d(m['day']),
+              m['amount_minor']! as int,
+              isCredit: m['is_credit']! as bool,
+              slug: m['slug'] as String?,
+              excluded: m['excluded']! as bool,
+            );
           }(),
       ];
       final got = monthlyCashflow(flows, d(c['today']), c['months']! as int);
@@ -137,12 +176,29 @@ void main() {
       for (var i = 0; i < got.length; i++) {
         final e = mp(exp[i]);
         expect(got[i].month, d(e['month']));
-        expect((got[i].incomeMinor, got[i].spendMinor, got[i].savedMinor, got[i].netMinor), (e['income'], e['spend'], e['saved'], e['net']));
-        expect(got[i].savingsRate, e['rate'] == null ? isNull : closeTo(num_(e['rate']), 1e-9));
+        expect(
+          (
+            got[i].incomeMinor,
+            got[i].spendMinor,
+            got[i].savedMinor,
+            got[i].netMinor,
+          ),
+          (e['income'], e['spend'], e['saved'], e['net']),
+        );
+        expect(
+          got[i].savingsRate,
+          e['rate'] == null ? isNull : closeTo(num_(e['rate']), 1e-9),
+        );
       }
       for (final raw in c['months_back']! as List) {
         final m = mp(raw);
-        expect([for (final x in monthsBack(d(m['today']), m['n']! as int)) x.toIso()], [for (final x in m['out']! as List) (x as String).substring(0, 10)]);
+        expect(
+          [
+            for (final x in monthsBack(d(m['today']), m['n']! as int))
+              x.toIso(),
+          ],
+          [for (final x in m['out']! as List) (x as String).substring(0, 10)],
+        );
       }
     });
     test('projection applies daily spend then events', () {
@@ -151,10 +207,21 @@ void main() {
         for (final e in p['events']! as List)
           () {
             final m = mp(e);
-            return FlowEvent(d(m['day']), m['label']! as String, m['amount_minor']! as int, m['kind']! as String);
+            return FlowEvent(
+              d(m['day']),
+              m['label']! as String,
+              m['amount_minor']! as int,
+              m['kind']! as String,
+            );
           }(),
       ];
-      final got = projectBalance(p['start']! as int, d(p['today']), p['days']! as int, events, p['daily']! as int);
+      final got = projectBalance(
+        p['start']! as int,
+        d(p['today']),
+        p['days']! as int,
+        events,
+        p['daily']! as int,
+      );
       final exp = p['out']! as List;
       expect(got.length, exp.length);
       for (var i = 0; i < got.length; i++) {
@@ -169,12 +236,22 @@ void main() {
         for (final c in fx['commitments']! as List)
           () {
             final m = mp(c);
-            return Commitment(m['kind']! as String, m['label']! as String, m['amount_minor']! as int, dn(m['due_on']));
+            return Commitment(
+              m['kind']! as String,
+              m['label']! as String,
+              m['amount_minor']! as int,
+              dn(m['due_on']),
+            );
           }(),
       ];
       for (final raw in fx['safe_to_spend']! as List) {
         final m = mp(raw);
-        final got = computeSafeToSpend(m['liquid'] as int?, items, d(m['today']), d(m['end']));
+        final got = computeSafeToSpend(
+          m['liquid'] as int?,
+          items,
+          d(m['today']),
+          d(m['end']),
+        );
         final e = mp(m['out']);
         expect(got.liquidMinor, e['liquid_minor']);
         expect(got.committedMinor, e['committed_minor']);
@@ -201,13 +278,20 @@ void main() {
   });
 
   group('health score (Python parity)', () {
-    Map<String, Object?> comp(Component c) => {'score': c.score, 'value': c.value, 'detail': c.detail};
+    Map<String, Object?> comp(Component c) => {
+      'score': c.score,
+      'value': c.value,
+      'detail': c.detail,
+    };
     void same(Component c, Object? exp) {
       final e = mp(exp);
       expect(c.key, e['key']);
       expect(c.weight, e['weight']);
       expect(c.score, e['score']);
-      expect(c.value, e['value'] == null ? isNull : closeTo(num_(e['value']), 1e-9));
+      expect(
+        c.value,
+        e['value'] == null ? isNull : closeTo(num_(e['value']), 1e-9),
+      );
       expect(c.detail, e['detail'], reason: '${comp(c)}');
     }
 
@@ -215,7 +299,10 @@ void main() {
       final inp = mp(fx['health_inputs']);
       final out = mp(fx['health_components']);
       int? i(Object? v) => (v as num?)?.toInt();
-      final sav = out['savings']! as List, util = out['util']! as List, ot = out['ontime']! as List, run = out['runway']! as List;
+      final sav = out['savings']! as List,
+          util = out['util']! as List,
+          ot = out['ontime']! as List,
+          run = out['runway']! as List;
       for (final (k, x) in (inp['savings']! as List).indexed) {
         same(savingsComponent((x as num?)?.toDouble()), sav[k]);
       }
@@ -253,8 +340,23 @@ void main() {
       for (final raw in fx['net_worth']! as List) {
         final m = mp(raw);
         final r = computeNetWorth(
-          [for (final a in m['assets']! as List) AssetInput((a as List)[0] as String, a[1] as String, a[2] as int?, a[3] as int?)],
-          [for (final l in m['liabilities']! as List) LiabilityInput((l as List)[0] as String, l[1] as String, l[2] as int)],
+          [
+            for (final a in m['assets']! as List)
+              AssetInput(
+                (a as List)[0] as String,
+                a[1] as String,
+                a[2] as int?,
+                a[3] as int?,
+              ),
+          ],
+          [
+            for (final l in m['liabilities']! as List)
+              LiabilityInput(
+                (l as List)[0] as String,
+                l[1] as String,
+                l[2] as int,
+              ),
+          ],
           fxRates: {for (final e in mp(m['fx']).entries) e.key: num_(e.value)},
         );
         final e = mp(m['out']);
@@ -274,7 +376,12 @@ void main() {
       expect(cases.length, greaterThan(50));
       for (final raw in cases) {
         final m = mp(raw);
-        final got = detectSalary(m['text'] as String?, Direction.tryParse(m['direction'] as String?), m['amount'] as int?, m['sms'] as String?);
+        final got = detectSalary(
+          m['text'] as String?,
+          Direction.tryParse(m['direction'] as String?),
+          m['amount'] as int?,
+          m['sms'] as String?,
+        );
         final e = m['out'] == null ? null : mp(m['out']);
         expect(got?.matchedBy, e?['matched_by'], reason: '$m');
         expect(got?.employer, e?['employer'], reason: '$m');
@@ -283,16 +390,18 @@ void main() {
     test('summary', () {
       for (final raw in fx['salary_summary']! as List) {
         final m = mp(raw);
-        final s = summariseSalary(
-          [
-            for (final p in m['payments']! as List)
-              () {
-                final x = mp(p);
-                return SalaryPayment(d(x['received_on']), x['amount_minor']! as int, x['employer'] as String?, x['currency']! as String);
-              }(),
-          ],
-          d(m['today']),
-        );
+        final s = summariseSalary([
+          for (final p in m['payments']! as List)
+            () {
+              final x = mp(p);
+              return SalaryPayment(
+                d(x['received_on']),
+                x['amount_minor']! as int,
+                x['employer'] as String?,
+                x['currency']! as String,
+              );
+            }(),
+        ], d(m['today']));
         final e = mp(m['out']);
         expect(s.currency, e['currency']);
         expect(s.monthsObserved, e['months_observed']);
@@ -302,8 +411,18 @@ void main() {
         expect(s.nextExpectedOn, dn(e['next_expected_on']));
         expect(s.latestMonthMinor, e['latest_month_minor']);
         expect(s.previousMonthMinor, e['previous_month_minor']);
-        expect([for (final (a, b) in s.monthly) [a.toIso(), b]], [for (final x in e['monthly']! as List) [(x as List)[0].toString().substring(0, 10), x[1]]]);
-        expect([for (final (a, b, c) in s.employers) [a, b, c]], e['employers']);
+        expect(
+          [
+            for (final (a, b) in s.monthly) [a.toIso(), b],
+          ],
+          [
+            for (final x in e['monthly']! as List)
+              [(x as List)[0].toString().substring(0, 10), x[1]],
+          ],
+        );
+        expect([
+          for (final (a, b, c) in s.employers) [a, b, c],
+        ], e['employers']);
       }
     });
   });

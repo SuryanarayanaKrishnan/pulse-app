@@ -21,7 +21,8 @@ import 'package:pulse/core/theme/tokens.dart';
 final _dir = Platform.environment['SCREENS_DIR'];
 
 Future<void> _loadFonts() async {
-  Future<ByteData> bytes(String path) async => ByteData.sublistView(await File(path).readAsBytes());
+  Future<ByteData> bytes(String path) async =>
+      ByteData.sublistView(await File(path).readAsBytes());
   const inter = '/usr/share/fonts/opentype/inter';
   final text = FontLoader('PulseInter');
   for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
@@ -29,7 +30,11 @@ Future<void> _loadFonts() async {
   }
   await text.load();
   final icons = FontLoader('MaterialIcons')
-    ..addFont(bytes('${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf'));
+    ..addFont(
+      bytes(
+        '${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+      ),
+    );
   await icons.load();
 }
 
@@ -39,7 +44,8 @@ class _NoShare implements BugReportTransport {
   @override
   bool get available => true;
   @override
-  Future<SendOutcome> send(BugReport r) async => const SendOutcome.ok(DeliveryMethod.local);
+  Future<SendOutcome> send(BugReport r) async =>
+      const SendOutcome.ok(DeliveryMethod.local);
 }
 
 /// A stand-in for the screen a tester was on (made-up numbers).
@@ -50,7 +56,12 @@ class _FakeHome extends StatelessWidget {
     final c = context.pc;
     Widget row(String a, String b) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(children: [Expanded(child: Text(a)), Text(b, style: context.tt.titleMedium)]),
+      child: Row(
+        children: [
+          Expanded(child: Text(a)),
+          Text(b, style: context.tt.titleMedium),
+        ],
+      ),
     );
     return Scaffold(
       appBar: AppBar(title: const Text('Home')),
@@ -60,7 +71,13 @@ class _FakeHome extends StatelessWidget {
           Text('Safe to spend', style: context.tt.bodyMedium),
           Text('AED 4,280', style: context.tt.headlineMedium),
           const SizedBox(height: 12),
-          Container(height: 120, decoration: BoxDecoration(color: c.accent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16))),
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: c.accent.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
           const SizedBox(height: 16),
           row('Spinneys', '-AED 124.26'),
           row('Careem', '-AED 31.00'),
@@ -82,7 +99,9 @@ void main() {
       addTearDown(() => PulseTheme.testFontFamily = null);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
-      tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
+      tester.platformDispatcher.platformBrightnessTestValue = dark
+          ? Brightness.dark
+          : Brightness.light;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final key = GlobalKey();
@@ -95,10 +114,13 @@ void main() {
       );
 
       // 1. The "screenshot": the fake home screen, captured like the real flow.
-      await tester.pumpWidget(RepaintBoundary(key: shotKey, child: app(const _FakeHome())));
+      await tester.pumpWidget(
+        RepaintBoundary(key: shotKey, child: app(const _FakeHome())),
+      );
       await tester.pump(const Duration(milliseconds: 300));
       final image = (await tester.runAsync(() async {
-        final b = shotKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+        final b =
+            shotKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
         return b.toImage(pixelRatio: 2);
       }))!;
 
@@ -106,10 +128,14 @@ void main() {
       await tester.pumpWidget(
         RepaintBoundary(
           key: key,
-          child: app(Builder(builder: (c) {
-            ctx = c;
-            return const _FakeHome();
-          })),
+          child: app(
+            Builder(
+              builder: (c) {
+                ctx = c;
+                return const _FakeHome();
+              },
+            ),
+          ),
         ),
       );
       await tester.pump(const Duration(milliseconds: 300));
@@ -139,13 +165,16 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 200)));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 200)),
+      );
       await tester.pump();
 
       Future<void> shot(String name) async {
         await tester.pump(const Duration(milliseconds: 600));
         await tester.runAsync(() async {
-          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final b =
+              key.currentContext!.findRenderObject() as RenderRepaintBoundary;
           final img = await b.toImage(pixelRatio: 1);
           final data = await img.toByteData(format: ui.ImageByteFormat.png);
           final f = File('$_dir/$name-$mode.png');
@@ -154,7 +183,10 @@ void main() {
         });
       }
 
-      await tester.enterText(find.byKey(const Key('bug-note')), 'The total looks off after I add a card');
+      await tester.enterText(
+        find.byKey(const Key('bug-note')),
+        'The total looks off after I add a card',
+      );
       await tester.pump();
       await shot('bug-report-sheet');
 
@@ -163,7 +195,11 @@ void main() {
       await tester.tap(find.byKey(const Key('bug-annotate')));
       await tester.pumpAndSettle();
       final canvas = tester.getRect(find.byKey(const Key('bug-canvas')));
-      Future<void> drag(Offset a, Offset b, [List<Offset> via = const []]) async {
+      Future<void> drag(
+        Offset a,
+        Offset b, [
+        List<Offset> via = const [],
+      ]) async {
         final g = await tester.startGesture(canvas.topLeft + a);
         for (final p in [...via, b]) {
           await g.moveTo(canvas.topLeft + p);
@@ -172,10 +208,19 @@ void main() {
         await tester.pump();
       }
 
-      await drag(const Offset(20, 90), const Offset(20, 90), [const Offset(80, 70), const Offset(150, 90), const Offset(130, 130), const Offset(60, 135), const Offset(20, 100)]);
+      await drag(const Offset(20, 90), const Offset(20, 90), [
+        const Offset(80, 70),
+        const Offset(150, 90),
+        const Offset(130, 130),
+        const Offset(60, 135),
+        const Offset(20, 100),
+      ]);
       await tester.tap(find.byKey(const Key('bug-tool-blur')));
       await tester.pump();
-      await drag(const Offset(15, 190), const Offset(190, 250), [const Offset(60, 200), const Offset(120, 230)]);
+      await drag(const Offset(15, 190), const Offset(190, 250), [
+        const Offset(60, 200),
+        const Offset(120, 230),
+      ]);
       await shot('bug-report-annotate');
 
       // 3. Back to the sheet, masked, preview and log visible.

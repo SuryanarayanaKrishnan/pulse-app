@@ -410,7 +410,7 @@ class _RestoreScreenState extends ConsumerState<RestoreScreen> {
           title: 'Restoring',
           subtitle: 'Decrypting and checking every piece. This phone keeps its current data until all of it passes.',
           children: [
-            Meter(value: _progress, color: c.accent, height: 6),
+            Meter(value: _progress, color: c.calm, height: 6),
             const SizedBox(height: Space.md),
             Text('${(_progress * 100).round()}%', style: context.tt.bodyMedium),
           ],

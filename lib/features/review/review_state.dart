@@ -50,7 +50,9 @@ class ReviewDaysController extends AsyncNotifier<Set<CalDate>> {
 }
 
 final reviewDaysProvider =
-    AsyncNotifierProvider<ReviewDaysController, Set<CalDate>>(ReviewDaysController.new);
+    AsyncNotifierProvider<ReviewDaysController, Set<CalDate>>(
+      ReviewDaysController.new,
+    );
 
 /// The current streak, in days.
 final reviewStreakProvider = Provider<int>((ref) {
@@ -68,7 +70,9 @@ String? rewardsNote(Transaction tx, List<CreditCard> cards) {
   final rate = card.categoryRates[tx.category] ?? card.baseRate;
   if (rate <= 0) return null;
   final earned = tx.amount * rate / 100;
-  final amount = earned >= 10 ? earned.toStringAsFixed(0) : earned.toStringAsFixed(2);
+  final amount = earned >= 10
+      ? earned.toStringAsFixed(0)
+      : earned.toStringAsFixed(2);
   return 'Earns about AED $amount on ${card.name} (${_pct(rate)})';
 }
 

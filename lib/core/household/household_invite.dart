@@ -18,7 +18,8 @@ import 'package:crypto/crypto.dart';
 class HouseholdInvite {
   HouseholdInvite({required this.householdId, required List<int> key})
     : key = Uint8List.fromList(key) {
-    if (householdId.length != 32 || !RegExp(r'^[0-9a-f]{32}$').hasMatch(householdId)) {
+    if (householdId.length != 32 ||
+        !RegExp(r'^[0-9a-f]{32}$').hasMatch(householdId)) {
       throw const FormatException('Household id');
     }
     if (key.length != 32) throw const FormatException('Household key');
@@ -33,7 +34,8 @@ class HouseholdInvite {
 
   Uint8List _bytes() {
     final id = <int>[
-      for (var i = 0; i < 32; i += 2) int.parse(householdId.substring(i, i + 2), radix: 16),
+      for (var i = 0; i < 32; i += 2)
+        int.parse(householdId.substring(i, i + 2), radix: 16),
     ];
     final body = [1, ...id, ...key];
     final sum = sha256.convert(body).bytes.sublist(0, 4);

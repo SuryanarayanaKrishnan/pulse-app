@@ -19,24 +19,41 @@ import 'package:pulse/household/household_providers.dart';
 import '../../support/recurring_fixtures.dart';
 import '../recurring/recurring_widget_test.dart' show Rec;
 
-Future<void> open(WidgetTester tester, Rec rec, {bool household = false}) async {
+Future<void> open(
+  WidgetTester tester,
+  Rec rec, {
+  bool household = false,
+}) async {
   PulseTheme.useGoogleFonts = false;
   tester.view.physicalSize = const Size(1170, 2532);
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
-  final store = household ? await demoJoinedHousehold(() async => [], now: DateTime(2026, 11, 14)) : null;
+  final store = household
+      ? await demoJoinedHousehold(() async => [], now: DateTime(2026, 11, 14))
+      : null;
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
+        repositoryProvider.overrideWithValue(
+          MockPulseRepository(latency: Duration.zero),
+        ),
         transactionsProvider.overrideWith((ref) async => syntheticLedger()),
         recurringTodayProvider.overrideWithValue(fixtureToday),
         analyticsProvider.overrideWithValue(rec),
         kvStoreProvider.overrideWithValue(MemoryKvStore()),
-        sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+        sessionProvider.overrideWith(
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
+        ),
         if (store != null) ...[
           householdStoreProvider.overrideWithValue(store),
-          householdKeyStoreProvider.overrideWithValue(MemoryHouseholdKeyStore()..key = Uint8List.fromList(List.filled(32, 7))),
+          householdKeyStoreProvider.overrideWithValue(
+            MemoryHouseholdKeyStore()
+              ..key = Uint8List.fromList(List.filled(32, 7)),
+          ),
         ],
       ],
       child: const PulseApp(initialLocation: '/reports'),
@@ -47,35 +64,49 @@ Future<void> open(WidgetTester tester, Rec rec, {bool household = false}) async 
 }
 
 void main() {
-  testWidgets('shows the month as a treemap with the biggest category first, and counts one view', (tester) async {
-    final rec = Rec();
-    await open(tester, rec);
-    expect(find.text('Reports'), findsWidgets);
-    expect(find.byKey(const Key('treemap')), findsOneWidget);
-    expect(find.text('November 2026'), findsOneWidget);
-    expect(find.byKey(const Key('report_row_rent')), findsOneWidget);
-    final views = rec.events.where((e) => e.name == 'report_viewed').toList();
-    expect(views, hasLength(1));
-    expect(views.single.properties, {'view': 'category'});
-    // No member control outside a household.
-    expect(find.text('By member'), findsNothing);
-  });
+  testWidgets(
+    'shows the month as a treemap with the biggest category first, and counts one view',
+    (tester) async {
+      final rec = Rec();
+      await open(tester, rec);
+      expect(find.text('Reports'), findsWidgets);
+      expect(find.byKey(const Key('treemap')), findsOneWidget);
+      expect(find.text('November 2026'), findsOneWidget);
+      expect(find.byKey(const Key('report_row_rent')), findsOneWidget);
+      final views = rec.events.where((e) => e.name == 'report_viewed').toList();
+      expect(views, hasLength(1));
+      expect(views.single.properties, {'view': 'category'});
+      // No member control outside a household.
+      expect(find.text('By member'), findsNothing);
+    },
+  );
 
-  testWidgets('tapping a tile selects its category; See payments opens Activity filtered by it', (tester) async {
-    await open(tester, Rec());
-    final box = tester.getRect(find.byKey(const Key('treemap')));
-    // Rent is by far the biggest slice, so it owns the top-left corner.
-    await tester.tapAt(box.topLeft + const Offset(20, 20));
-    await tester.pump(const Duration(milliseconds: 400));
-    expect(find.byKey(const Key('report_selected')), findsOneWidget);
-    expect(find.descendant(of: find.byKey(const Key('report_selected')), matching: find.text('Rent & Housing')), findsOneWidget);
-    await tester.tap(find.text('See payments'));
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump(const Duration(seconds: 2));
-    expect(find.text('Activity'), findsWidgets);
-  });
+  testWidgets(
+    'tapping a tile selects its category; See payments opens Activity filtered by it',
+    (tester) async {
+      await open(tester, Rec());
+      final box = tester.getRect(find.byKey(const Key('treemap')));
+      // Rent is by far the biggest slice, so it owns the top-left corner.
+      await tester.tapAt(box.topLeft + const Offset(20, 20));
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(find.byKey(const Key('report_selected')), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('report_selected')),
+          matching: find.text('Rent & Housing'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('See payments'));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Activity'), findsWidgets);
+    },
+  );
 
-  testWidgets('range chips and the month arrows change the period', (tester) async {
+  testWidgets('range chips and the month arrows change the period', (
+    tester,
+  ) async {
     await open(tester, Rec());
     await tester.tap(find.text('3M'));
     await tester.pump(const Duration(milliseconds: 500));
@@ -104,17 +135,26 @@ void main() {
     expect(find.text('Nothing spent in this period'), findsOneWidget);
   });
 
-  testWidgets('in a household there is a by-member view from the shared log, and it is counted as such', (tester) async {
-    final rec = Rec();
-    await open(tester, rec, household: true);
-    expect(find.text('By member'), findsOneWidget);
-    await tester.tap(find.text('By member'));
-    await tester.pump(const Duration(milliseconds: 600));
-    expect(find.text('Household spent'), findsOneWidget);
-    expect(find.byKey(const Key('treemap')), findsOneWidget);
-    expect(find.text('Omar'), findsWidgets);
-    expect(find.textContaining('Private payments are never counted'), findsOneWidget);
-    final props = rec.events.where((e) => e.name == 'report_viewed').map((e) => e.properties['view']).toList();
-    expect(props, ['category', 'member']);
-  });
+  testWidgets(
+    'in a household there is a by-member view from the shared log, and it is counted as such',
+    (tester) async {
+      final rec = Rec();
+      await open(tester, rec, household: true);
+      expect(find.text('By member'), findsOneWidget);
+      await tester.tap(find.text('By member'));
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('Household spent'), findsOneWidget);
+      expect(find.byKey(const Key('treemap')), findsOneWidget);
+      expect(find.text('Omar'), findsWidgets);
+      expect(
+        find.textContaining('Private payments are never counted'),
+        findsOneWidget,
+      );
+      final props = rec.events
+          .where((e) => e.name == 'report_viewed')
+          .map((e) => e.properties['view'])
+          .toList();
+      expect(props, ['category', 'member']);
+    },
+  );
 }

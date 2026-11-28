@@ -127,88 +127,131 @@ class ComboDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.pc;
     // Long notes (the savings working) scroll rather than overflow the sheet.
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-          Space.gutter,
-          Space.sm,
-          Space.gutter,
-          Space.xl,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(combo.title, style: context.tt.headlineSmall),
-            const SizedBox(height: Space.sm),
-            Text(
-              combo.confidenceLabel,
-              style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
-            ),
-            const SizedBox(height: Space.lg),
-            Text(combo.body, style: context.tt.bodyLarge),
-            if (combo.steps.isNotEmpty) ...[
-              const SizedBox(height: Space.md),
-              Text('How it works', style: context.tt.titleSmall),
-              const SizedBox(height: Space.xs),
-              for (final (i, s) in combo.steps.indexed)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Space.xs),
-                  child: Text(
-                    s.counted
-                        ? '${i + 1}. ${s.text}'
-                        : '${i + 1}. ${s.text} Not counted in the figure: ${s.whyNotCounted ?? 'unproven'}',
-                    style: context.tt.bodyMedium!.copyWith(
-                      color: s.counted ? null : c.textSecondary,
-                    ),
-                  ),
-                ),
-            ],
-            if (combo.hasSaving) ...[
-              const SizedBox(height: Space.md),
+    return _OpaqueSheet(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            Space.gutter,
+            Space.sm,
+            Space.gutter,
+            Space.xl,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(combo.title, style: context.tt.headlineSmall),
+              const SizedBox(height: Space.sm),
               Text(
-                'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
-                style: context.tt.titleSmall!.copyWith(color: c.positive),
+                combo.confidenceLabel,
+                style: context.tt.labelMedium!.copyWith(color: c.textSecondary),
               ),
-              if (combo.breakdown.isNotEmpty)
-                for (final b in combo.breakdown)
+              const SizedBox(height: Space.lg),
+              Text(combo.body, style: context.tt.bodyLarge),
+              if (combo.steps.isNotEmpty) ...[
+                const SizedBox(height: Space.md),
+                Text('How it works', style: context.tt.titleSmall),
+                const SizedBox(height: Space.xs),
+                for (final (i, s) in combo.steps.indexed)
                   Padding(
-                    padding: const EdgeInsets.only(top: Space.xs),
+                    padding: const EdgeInsets.only(bottom: Space.xs),
                     child: Text(
-                      '${b.yearlyAed >= 0 ? '+' : '-'} ${Money.aed(b.yearlyAed.abs(), decimals: false)} a year: ${b.label}',
-                      style: context.tt.bodySmall!.copyWith(
-                        color: c.textSecondary,
+                      s.counted
+                          ? '${i + 1}. ${s.text}'
+                          : '${i + 1}. ${s.text} Not counted in the figure: ${s.whyNotCounted ?? 'unproven'}',
+                      style: context.tt.bodyMedium!.copyWith(
+                        color: s.counted ? null : c.textSecondary,
                       ),
                     ),
-                  )
-              else if (combo.savingNote != null)
+                  ),
+              ],
+              if (combo.hasSaving) ...[
+                const SizedBox(height: Space.md),
                 Text(
-                  combo.savingNote!,
+                  'Potential saving: up to ${Money.aed(combo.annualSavingAed!, decimals: false)} a year (estimate)',
+                  style: context.tt.titleSmall!.copyWith(color: c.positive),
+                ),
+                if (combo.breakdown.isNotEmpty)
+                  for (final b in combo.breakdown)
+                    Padding(
+                      padding: const EdgeInsets.only(top: Space.xs),
+                      child: Text(
+                        '${b.yearlyAed >= 0 ? '+' : '-'} ${Money.aed(b.yearlyAed.abs(), decimals: false)} a year: ${b.label}',
+                        style: context.tt.bodySmall!.copyWith(
+                          color: c.textSecondary,
+                        ),
+                      ),
+                    )
+                else if (combo.savingNote != null)
+                  Text(
+                    combo.savingNote!,
+                    style: context.tt.bodySmall!.copyWith(
+                      color: c.textSecondary,
+                    ),
+                  ),
+              ],
+              const SizedBox(height: Space.lg),
+              Wrap(
+                spacing: Space.sm,
+                runSpacing: Space.sm,
+                children: [
+                  for (final id in combo.cardIds) Pill(cardLabel(id, names)),
+                ],
+              ),
+              if (combo.validUntil != null) ...[
+                const SizedBox(height: Space.md),
+                Text(
+                  'Applies until ${combo.validUntil!.day}/${combo.validUntil!.month}/${combo.validUntil!.year}.',
                   style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
                 ),
-            ],
-            const SizedBox(height: Space.lg),
-            Wrap(
-              spacing: Space.sm,
-              runSpacing: Space.sm,
-              children: [
-                for (final id in combo.cardIds) Pill(cardLabel(id, names)),
               ],
-            ),
-            if (combo.validUntil != null) ...[
               const SizedBox(height: Space.md),
               Text(
-                'Applies until ${combo.validUntil!.day}/${combo.validUntil!.month}/${combo.validUntil!.year}.',
-                style: context.tt.bodySmall!.copyWith(color: c.textSecondary),
+                'Terms change. Check the bank before you apply or pay. Not financial advice.',
+                style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
               ),
             ],
-            const SizedBox(height: Space.md),
-            Text(
-              'Terms change. Check the bank before you apply or pay. Not financial advice.',
-              style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+/// Opaque rounded surface for a bottom sheet whose route is transparent, with
+/// a grabber and room under the home indicator / floating tab bar.
+class _OpaqueSheet extends StatelessWidget {
+  const _OpaqueSheet({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.pc;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.isDark ? c.surface : c.bg,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(Radii.lg),
+        ),
+      ),
+      padding: EdgeInsets.only(
+        top: Space.sm,
+        bottom: MediaQuery.viewPaddingOf(context).bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36,
+            height: 5,
+            margin: const EdgeInsets.only(bottom: Space.md),
+            decoration: BoxDecoration(
+              color: c.border,
+              borderRadius: BorderRadius.circular(3),
+            ),
+          ),
+          Flexible(child: child),
+        ],
       ),
     );
   }
@@ -245,15 +288,18 @@ class _AllCombosSheetState extends ConsumerState<AllCombosSheet> {
   Widget build(BuildContext context) {
     final combos = ref.watch(cardCombosProvider).value ?? const [];
     final names = _catalogNames(ref);
-    return ListView(
-      padding: const EdgeInsets.only(bottom: Space.xxxl),
-      children: [
-        const SectionHeader('Card combos', top: Space.md),
-        RowGroup(
-          indent: ListRow.leadingInset,
-          children: [for (final k in combos) ComboRow(k, names: names)],
-        ),
-      ],
+    return _OpaqueSheet(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.only(bottom: Space.xxxl),
+        children: [
+          const SectionHeader('Card combos', top: Space.md),
+          RowGroup(
+            indent: ListRow.leadingInset,
+            children: [for (final k in combos) ComboRow(k, names: names)],
+          ),
+        ],
+      ),
     );
   }
 }

@@ -113,7 +113,7 @@ void main() {
   });
 
   testWidgets('settings toggle sticks after leaving the screen', (tester) async {
-    final app = await launchApp(tester, data: QaData.empty, location: '/settings');
+    final app = await launchApp(tester, data: QaData.empty, location: '/settings/help');
     await qaGuard(app, () async {
       final sw = find.byKey(const Key('settings_shake_switch'));
       await tester.scrollUntilVisible(sw, 300, scrollable: find.byType(Scrollable).first);
@@ -122,7 +122,7 @@ void main() {
       await app.settle(5);
       expect(tester.widget<Switch>(sw).value, !before, reason: 'toggle did not change');
       await app.go('/home');
-      await app.go('/settings');
+      await app.go('/settings/help');
       await tester.scrollUntilVisible(sw, 300, scrollable: find.byType(Scrollable).first);
       expect(tester.widget<Switch>(sw).value, !before, reason: 'toggle forgot its state');
     });

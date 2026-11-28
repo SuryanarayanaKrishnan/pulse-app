@@ -56,7 +56,8 @@ class JewelleryValue {
 
   /// Melt value minus what was paid (total, making charges included). Null
   /// without a purchase price.
-  int? get gainMinor => purchasePriceMinor == null ? null : valueMinor - purchasePriceMinor!;
+  int? get gainMinor =>
+      purchasePriceMinor == null ? null : valueMinor - purchasePriceMinor!;
   double? get gainPct {
     final p = purchasePriceMinor;
     return p == null || p <= 0 ? null : (valueMinor - p) / p * 100;
@@ -104,7 +105,9 @@ class FundValue {
   final int valueNativeMinor;
   final int? costNativeMinor;
 
-  int? get gainAedMinor => valueAedMinor == null || costAedMinor == null ? null : valueAedMinor! - costAedMinor!;
+  int? get gainAedMinor => valueAedMinor == null || costAedMinor == null
+      ? null
+      : valueAedMinor! - costAedMinor!;
   double? get gainPct {
     final c = costNativeMinor;
     return c == null || c <= 0 ? null : (valueNativeMinor - c) / c * 100;

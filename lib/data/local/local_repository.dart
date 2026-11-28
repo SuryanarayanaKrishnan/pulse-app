@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -43,7 +44,20 @@ import 'splits_store.dart';
 import '../digit_suggestion.dart';
 import 'statement_service.dart';
 
-const _months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const _months = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
 
 const _cardGradients = [
   [Color(0xFF0B1F4B), Color(0xFF1E3A8A), Color(0xFFB91C1C)],
@@ -59,14 +73,20 @@ const _accountGradients = [
 
 double _aed(int minor) => minor / 100;
 
-String _monthKey(int year, int month) => '$year-${month.toString().padLeft(2, '0')}-01';
+String _monthKey(int year, int month) =>
+    '$year-${month.toString().padLeft(2, '0')}-01';
 
 /// The on-device data source. Everything personal is computed here from the
 /// encrypted database; nothing leaves the phone. Features that need a server
 /// (splits with other people, family sharing, statement parsing, Gmail) go
 /// to [shared] when a backend is configured and report "not supported"
 /// otherwise.
-class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHistorySource, CapSource {
+class LocalPulseRepository
+    implements
+        PulseRepository,
+        Recategoriser,
+        NetWorthHistorySource,
+        CapSource {
   LocalPulseRepository({
     required this.db,
     required this.catalog,
@@ -125,17 +145,28 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     if (known != null) return known;
     if (c.id == 'other_income') return SpendCategory.income;
     if (c.id == 'transfer') return SpendCategory.cardPayments;
-    return SpendCategory.custom(c.id, c.name, kind: _kind(c.kind), iconKey: c.iconKey);
+    return SpendCategory.custom(
+      c.id,
+      c.name,
+      kind: _kind(c.kind),
+      iconKey: c.iconKey,
+    );
   }
 
-  Transaction _toTx(TxRow t, Map<String, AccountRow> accounts, Map<String, CategoryRow> cats) {
+  Transaction _toTx(
+    TxRow t,
+    Map<String, AccountRow> accounts,
+    Map<String, CategoryRow> cats,
+  ) {
     final income = t.direction == 'credit';
     final acct = accounts[t.accountId];
     final norm = t.merchantNormalized?.trim() ?? '';
     final raw = t.merchantRaw?.trim() ?? '';
     return Transaction(
       id: t.id,
-      merchant: norm.isNotEmpty ? norm : (raw.isNotEmpty ? raw : 'Unknown merchant'),
+      merchant: norm.isNotEmpty
+          ? norm
+          : (raw.isNotEmpty ? raw : 'Unknown merchant'),
       amount: _aed(t.amountMinor),
       category: _spendCategory(cats[t.categoryId], income: income),
       rawDescription: raw.isNotEmpty ? raw : null,
@@ -175,28 +206,49 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     return _txRowsQuery(since: since);
   }
 
-  Future<List<TxRow>> _txRowsQuery({DateTime? since}) => (db.select(db.transactions)
-        ..where((t) => t.deletedAt.isNull() & (since == null ? const Constant(true) : t.postedAt.isBiggerOrEqualValue(since)))
-        ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)]))
-      .get();
+  Future<List<TxRow>> _txRowsQuery({DateTime? since}) =>
+      (db.select(db.transactions)
+            ..where(
+              (t) =>
+                  t.deletedAt.isNull() &
+                  (since == null
+                      ? const Constant(true)
+                      : t.postedAt.isBiggerOrEqualValue(since)),
+            )
+            ..orderBy([
+              (t) => OrderingTerm.desc(t.postedAt),
+              (t) => OrderingTerm.desc(t.id),
+            ]))
+          .get();
 
   Future<Transaction> _txById(String id) async {
-    final row = await (db.select(db.transactions)..where((t) => t.id.equals(id))).getSingle();
+    final row = await (db.select(
+      db.transactions,
+    )..where((t) => t.id.equals(id))).getSingle();
     return _toTx(row, await _accountMap(), await _categoryMap());
   }
 
   /// Row id of the category the UI picked.
   Future<String> _categoryId(SpendCategory c) async {
-    final row = await (db.select(db.categories)..where((t) => t.id.equals(c.id))).getSingleOrNull();
+    final row = await (db.select(
+      db.categories,
+    )..where((t) => t.id.equals(c.id))).getSingleOrNull();
     if (row != null) return row.id;
-    throw ApiException(message: 'No "${c.label}" category exists.', code: 'category_unavailable');
+    throw ApiException(
+      message: 'No "${c.label}" category exists.',
+      code: 'category_unavailable',
+    );
   }
 
   // ---- transactions ------------------------------------------------------------
 
   @override
   Future<List<Transaction>> transactions() async {
-    final (rows, accounts, cats) = await (_txRows(), _accountMap(), _categoryMap()).wait;
+    final (rows, accounts, cats) = await (
+      _txRows(),
+      _accountMap(),
+      _categoryMap(),
+    ).wait;
     return [for (final t in rows) _toTx(t, accounts, cats)];
   }
 
@@ -205,49 +257,87 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     if (cursor == null) await _planSalary();
     final q = db.select(db.transactions)
       ..where((t) => t.deletedAt.isNull())
-      ..orderBy([(t) => OrderingTerm.desc(t.postedAt), (t) => OrderingTerm.desc(t.id)])
+      ..orderBy([
+        (t) => OrderingTerm.desc(t.postedAt),
+        (t) => OrderingTerm.desc(t.id),
+      ])
       ..limit(limit + 1);
     if (cursor != null) {
       final i = cursor.indexOf('|');
-      final at = DateTime.fromMillisecondsSinceEpoch(int.parse(cursor.substring(0, i)), isUtc: true);
+      final at = DateTime.fromMillisecondsSinceEpoch(
+        int.parse(cursor.substring(0, i)),
+        isUtc: true,
+      );
       final id = cursor.substring(i + 1);
-      q.where((t) => t.postedAt.isSmallerThanValue(at) | (t.postedAt.equals(at) & t.id.isSmallerThanValue(id)));
+      q.where(
+        (t) =>
+            t.postedAt.isSmallerThanValue(at) |
+            (t.postedAt.equals(at) & t.id.isSmallerThanValue(id)),
+      );
     }
-    final (rows, accounts, cats) = await (q.get(), _accountMap(), _categoryMap()).wait;
+    final (rows, accounts, cats) = await (
+      q.get(),
+      _accountMap(),
+      _categoryMap(),
+    ).wait;
     final page = rows.take(limit).toList();
-    final next = rows.length > limit ? '${page.last.postedAt.toUtc().millisecondsSinceEpoch}|${page.last.id}' : null;
-    return TxPage([for (final t in page) _toTx(t, accounts, cats)], nextCursor: next);
+    final next = rows.length > limit
+        ? '${page.last.postedAt.toUtc().millisecondsSinceEpoch}|${page.last.id}'
+        : null;
+    return TxPage([
+      for (final t in page) _toTx(t, accounts, cats),
+    ], nextCursor: next);
   }
 
   @override
-  Future<Transaction> recategorise(String txId, SpendCategory category, {bool remember = false}) async {
+  Future<Transaction> recategorise(
+    String txId,
+    SpendCategory category, {
+    bool remember = false,
+  }) async {
     final catId = await _categoryId(category);
-    final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingle();
+    final row = await (db.select(
+      db.transactions,
+    )..where((t) => t.id.equals(txId))).getSingle();
     await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
-      TransactionsCompanion(categoryId: Value(catId), reviewed: const Value(true)),
+      TransactionsCompanion(
+        categoryId: Value(catId),
+        reviewed: const Value(true),
+      ),
     );
     if (remember) {
       final key = merchantKey(row.merchantNormalized ?? row.merchantRaw);
       if (key != null) {
-        final existing = await (db.select(db.merchantRules)..where((r) => r.merchantKey.equals(key))).getSingleOrNull();
+        final existing = await (db.select(
+          db.merchantRules,
+        )..where((r) => r.merchantKey.equals(key))).getSingleOrNull();
         final conditions = jsonEncode([
           {'field': 'merchant', 'op': 'equals', 'value': key},
         ]);
         if (existing != null) {
-          await (db.update(db.merchantRules)..where((r) => r.id.equals(existing.id))).write(
-            MerchantRulesCompanion(categoryId: Value(catId), conditions: Value(conditions)),
-          );
-        } else {
-          await db.into(db.merchantRules).insert(
-            MerchantRulesCompanion.insert(
-              id: newId(),
-              merchantKey: Value(key),
-              name: Value('${row.merchantNormalized ?? row.merchantRaw} is ${category.label}'),
-              priority: const Value(1000),
-              conditions: Value(conditions),
+          await (db.update(
+            db.merchantRules,
+          )..where((r) => r.id.equals(existing.id))).write(
+            MerchantRulesCompanion(
               categoryId: Value(catId),
+              conditions: Value(conditions),
             ),
           );
+        } else {
+          await db
+              .into(db.merchantRules)
+              .insert(
+                MerchantRulesCompanion.insert(
+                  id: newId(),
+                  merchantKey: Value(key),
+                  name: Value(
+                    '${row.merchantNormalized ?? row.merchantRaw} is ${category.label}',
+                  ),
+                  priority: const Value(1000),
+                  conditions: Value(conditions),
+                  categoryId: Value(catId),
+                ),
+              );
         }
       }
     }
@@ -265,10 +355,19 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   );
 
   @override
-  Future<RecatPreview?> previewRecategorise(String txId, SpendCategory to) async {
-    final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingleOrNull();
+  Future<RecatPreview?> previewRecategorise(
+    String txId,
+    SpendCategory to,
+  ) async {
+    final row = await (db.select(
+      db.transactions,
+    )..where((t) => t.id.equals(txId))).getSingleOrNull();
     if (row == null) return null;
-    final key = recategoriseKey(normalized: row.merchantNormalized, raw: row.merchantRaw, direction: Direction.tryParse(row.direction));
+    final key = recategoriseKey(
+      normalized: row.merchantNormalized,
+      raw: row.merchantRaw,
+      direction: Direction.tryParse(row.direction),
+    );
     if (key == null) return null;
     final plan = planRecategorise(
       key: key,
@@ -276,24 +375,46 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       rows: [for (final t in await _txRows()) _recatRow(t)],
       excludeId: txId,
     );
-    return RecatPreview(merchant: row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key, pastCount: plan.pastCount);
+    return RecatPreview(
+      merchant:
+          row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key,
+      pastCount: plan.pastCount,
+    );
   }
 
   @override
-  Future<RecatUndo> recategoriseScoped(String txId, SpendCategory to, RecategoriseScope scope) async {
+  Future<RecatUndo> recategoriseScoped(
+    String txId,
+    SpendCategory to,
+    RecategoriseScope scope,
+  ) async {
     final catId = await _categoryId(to);
     return db.transaction(() async {
-      final row = await (db.select(db.transactions)..where((t) => t.id.equals(txId))).getSingle();
-      await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(TransactionsCompanion(categoryId: Value(catId), reviewed: const Value(true)));
-      final key = recategoriseKey(normalized: row.merchantNormalized, raw: row.merchantRaw, direction: Direction.tryParse(row.direction));
+      final row = await (db.select(
+        db.transactions,
+      )..where((t) => t.id.equals(txId))).getSingle();
+      await (db.update(db.transactions)..where((t) => t.id.equals(txId))).write(
+        TransactionsCompanion(
+          categoryId: Value(catId),
+          reviewed: const Value(true),
+        ),
+      );
+      final key = recategoriseKey(
+        normalized: row.merchantNormalized,
+        raw: row.merchantRaw,
+        direction: Direction.tryParse(row.direction),
+      );
       if (scope == RecategoriseScope.once || key == null) {
         return RecatUndo(txId: txId, txCategoryId: row.categoryId);
       }
-      final label = row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key;
+      final label =
+          row.merchantNormalized ?? normalizeMerchant(row.merchantRaw) ?? key;
       final conditions = jsonEncode([
         {'field': 'merchant', 'op': 'equals', 'value': key},
       ]);
-      final existing = await (db.select(db.merchantRules)..where((r) => r.merchantKey.equals(key))).getSingleOrNull();
+      final existing = await (db.select(
+        db.merchantRules,
+      )..where((r) => r.merchantKey.equals(key))).getSingleOrNull();
       String ruleId;
       Map<String, Object?>? replaced;
       if (existing != null) {
@@ -304,31 +425,49 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
           'name': existing.name,
           'is_active': existing.isActive,
         };
-        await (db.update(db.merchantRules)..where((r) => r.id.equals(existing.id))).write(
-          MerchantRulesCompanion(categoryId: Value(catId), conditions: Value(conditions), isActive: const Value(true)),
+        await (db.update(
+          db.merchantRules,
+        )..where((r) => r.id.equals(existing.id))).write(
+          MerchantRulesCompanion(
+            categoryId: Value(catId),
+            conditions: Value(conditions),
+            isActive: const Value(true),
+          ),
         );
       } else {
         ruleId = newId();
-        await db.into(db.merchantRules).insert(
-          MerchantRulesCompanion.insert(
-            id: ruleId,
-            merchantKey: Value(key),
-            name: Value('$label is ${to.label}'),
-            priority: const Value(1000),
-            conditions: Value(conditions),
-            categoryId: Value(catId),
-          ),
-        );
+        await db
+            .into(db.merchantRules)
+            .insert(
+              MerchantRulesCompanion.insert(
+                id: ruleId,
+                merchantKey: Value(key),
+                name: Value('$label is ${to.label}'),
+                priority: const Value(1000),
+                conditions: Value(conditions),
+                categoryId: Value(catId),
+              ),
+            );
       }
       final before = <String, (String?, String?)>{};
       if (scope == RecategoriseScope.all) {
         final rows = await _txRows();
-        final plan = planRecategorise(key: key, targetCategoryId: catId, rows: [for (final t in rows) _recatRow(t)], excludeId: txId);
+        final plan = planRecategorise(
+          key: key,
+          targetCategoryId: catId,
+          rows: [for (final t in rows) _recatRow(t)],
+          excludeId: txId,
+        );
         final byId = {for (final t in rows) t.id: t};
         for (final id in plan.pastIds) {
           before[id] = (byId[id]!.categoryId, byId[id]!.appliedRuleId);
-          await (db.update(db.transactions)..where((t) => t.id.equals(id))).write(
-            TransactionsCompanion(categoryId: Value(catId), appliedRuleId: Value(ruleId)),
+          await (db.update(
+            db.transactions,
+          )..where((t) => t.id.equals(id))).write(
+            TransactionsCompanion(
+              categoryId: Value(catId),
+              appliedRuleId: Value(ruleId),
+            ),
           );
         }
       }
@@ -345,23 +484,31 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   @override
   Future<void> undoRecategorise(RecatUndo undo) => db.transaction(() async {
     for (final e in undo.pastBefore.entries) {
-      await (db.update(db.transactions)..where((t) => t.id.equals(e.key))).write(
-        TransactionsCompanion(categoryId: Value(e.value.$1), appliedRuleId: Value(e.value.$2)),
+      await (db.update(
+        db.transactions,
+      )..where((t) => t.id.equals(e.key))).write(
+        TransactionsCompanion(
+          categoryId: Value(e.value.$1),
+          appliedRuleId: Value(e.value.$2),
+        ),
       );
     }
-    await (db.update(db.transactions)..where((t) => t.id.equals(undo.txId))).write(
-      TransactionsCompanion(categoryId: Value(undo.txCategoryId)),
-    );
+    await (db.update(db.transactions)..where((t) => t.id.equals(undo.txId)))
+        .write(TransactionsCompanion(categoryId: Value(undo.txCategoryId)));
     final created = undo.createdRuleId;
     if (created != null) {
-      await (db.update(db.transactions)..where((t) => t.appliedRuleId.equals(created))).write(
-        const TransactionsCompanion(appliedRuleId: Value(null)),
-      );
-      await (db.delete(db.merchantRules)..where((r) => r.id.equals(created))).go();
+      await (db.update(db.transactions)
+            ..where((t) => t.appliedRuleId.equals(created)))
+          .write(const TransactionsCompanion(appliedRuleId: Value(null)));
+      await (db.delete(
+        db.merchantRules,
+      )..where((r) => r.id.equals(created))).go();
     }
     final old = undo.replacedRule;
     if (old != null) {
-      await (db.update(db.merchantRules)..where((r) => r.id.equals(old['id']! as String))).write(
+      await (db.update(
+        db.merchantRules,
+      )..where((r) => r.id.equals(old['id']! as String))).write(
         MerchantRulesCompanion(
           categoryId: Value(old['category_id'] as String?),
           conditions: Value(old['conditions']! as String),
@@ -373,21 +520,24 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   });
 
   Future<AccountRow> _cashAccount() async {
-    final existing = await (db.select(db.accounts)
-          ..where((a) => a.type.equals('cash') & a.deletedAt.isNull())
-          ..limit(1))
-        .getSingleOrNull();
+    final existing =
+        await (db.select(db.accounts)
+              ..where((a) => a.type.equals('cash') & a.deletedAt.isNull())
+              ..limit(1))
+            .getSingleOrNull();
     if (existing != null) return existing;
     final id = newId();
-    await db.into(db.accounts).insert(
-      AccountsCompanion.insert(
-        id: id,
-        type: 'cash',
-        name: 'Cash',
-        // No anchor: every transaction on the pot counts.
-        balanceAnchorMinor: const Value(0),
-      ),
-    );
+    await db
+        .into(db.accounts)
+        .insert(
+          AccountsCompanion.insert(
+            id: id,
+            type: 'cash',
+            name: 'Cash',
+            // No anchor: every transaction on the pot counts.
+            balanceAnchorMinor: const Value(0),
+          ),
+        );
     return (db.select(db.accounts)..where((a) => a.id.equals(id))).getSingle();
   }
 
@@ -403,22 +553,26 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final catId = await _categoryId(category);
     final id = newId();
     final name = merchant.trim();
-    await db.into(db.transactions).insert(
-      TransactionsCompanion.insert(
-        id: id,
-        accountId: acct.id,
-        amountMinor: (amount.abs() * 100).round(),
-        direction: category.isIncome ? 'credit' : 'debit',
-        categoryId: Value(catId),
-        merchantRaw: Value(name),
-        merchantNormalized: Value(name),
-        notes: Value(note == null || note.trim().isEmpty ? null : note.trim()),
-        postedAt: (date ?? _clock()).toUtc(),
-        source: 'manual',
-        sources: const Value('["manual"]'),
-        reviewed: const Value(true),
-      ),
-    );
+    await db
+        .into(db.transactions)
+        .insert(
+          TransactionsCompanion.insert(
+            id: id,
+            accountId: acct.id,
+            amountMinor: (amount.abs() * 100).round(),
+            direction: category.isIncome ? 'credit' : 'debit',
+            categoryId: Value(catId),
+            merchantRaw: Value(name),
+            merchantNormalized: Value(name),
+            notes: Value(
+              note == null || note.trim().isEmpty ? null : note.trim(),
+            ),
+            postedAt: (date ?? _clock()).toUtc(),
+            source: 'manual',
+            sources: const Value('["manual"]'),
+            reviewed: const Value(true),
+          ),
+        );
     return _txById(id);
   }
 
@@ -448,7 +602,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     try {
       final m = jsonDecode(raw) as Map;
       final a = m['amountMinor'] as int, d = m['day'] as int;
-      return a > 0 && d >= 1 && d <= 31 ? ManualSalary(amountMinor: a, day: d) : null;
+      return a > 0 && d >= 1 && d <= 31
+          ? ManualSalary(amountMinor: a, day: d)
+          : null;
     } on Object {
       return null;
     }
@@ -458,7 +614,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<void> setManualSalary(ManualSalary? salary) async {
     await db.putSetting(
       _salaryKey,
-      salary == null ? '' : jsonEncode({'amountMinor': salary.amountMinor, 'day': salary.day}),
+      salary == null
+          ? ''
+          : jsonEncode({'amountMinor': salary.amountMinor, 'day': salary.day}),
     );
     await _planSalary();
   }
@@ -469,83 +627,124 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<void> _planSalary() async {
     final s = await manualSalary();
     final today = _today;
-    final monthStart = DateTime.utc(today.year, today.month, 1).subtract(const Duration(hours: 4));
-    final planId = 'salary-plan-${today.year}-${today.month.toString().padLeft(2, '0')}';
-    final plan = await (db.select(db.transactions)..where((t) => t.id.equals(planId))).getSingleOrNull();
+    final monthStart = DateTime.utc(
+      today.year,
+      today.month,
+      1,
+    ).subtract(const Duration(hours: 4));
+    final planId =
+        'salary-plan-${today.year}-${today.month.toString().padLeft(2, '0')}';
+    final plan = await (db.select(
+      db.transactions,
+    )..where((t) => t.id.equals(planId))).getSingleOrNull();
     if (s == null) {
-      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
+      if (plan != null && plan.deletedAt == null)
+        await deleteTransaction(planId);
       return;
     }
-    final real = await (db.select(db.transactions)
-          ..where((t) =>
-              t.categoryId.equals('salary') &
-              t.direction.equals('credit') &
-              t.deletedAt.isNull() &
-              t.postedAt.isBiggerOrEqualValue(monthStart) &
-              t.id.equals(planId).not())
-          ..limit(1))
-        .getSingleOrNull();
+    final real =
+        await (db.select(db.transactions)
+              ..where(
+                (t) =>
+                    t.categoryId.equals('salary') &
+                    t.direction.equals('credit') &
+                    t.deletedAt.isNull() &
+                    t.postedAt.isBiggerOrEqualValue(monthStart) &
+                    t.id.equals(planId).not(),
+              )
+              ..limit(1))
+            .getSingleOrNull();
     if (real != null) {
-      if (plan != null && plan.deletedAt == null) await deleteTransaction(planId);
-      if (real.amountMinor != s.amountMinor && real.amountMinor >= 50000 && real.currency == 'AED') {
-        await db.putSetting(_salaryKey, jsonEncode({'amountMinor': real.amountMinor, 'day': s.day}));
+      if (plan != null && plan.deletedAt == null)
+        await deleteTransaction(planId);
+      if (real.amountMinor != s.amountMinor &&
+          real.amountMinor >= 50000 &&
+          real.currency == 'AED') {
+        await db.putSetting(
+          _salaryKey,
+          jsonEncode({'amountMinor': real.amountMinor, 'day': s.day}),
+        );
       }
       return;
     }
     if (plan != null) return;
-    final day = math.min(s.day, DateUtils.getDaysInMonth(today.year, today.month));
+    final day = math.min(
+      s.day,
+      DateUtils.getDaysInMonth(today.year, today.month),
+    );
     if (today.day < day) return;
     final acct = await _cashAccount();
-    await db.into(db.transactions).insert(
-      TransactionsCompanion.insert(
-        id: planId,
-        accountId: acct.id,
-        amountMinor: s.amountMinor,
-        direction: 'credit',
-        categoryId: Value(await _categoryId(SpendCategory.salary)),
-        merchantRaw: const Value('Salary'),
-        merchantNormalized: const Value('Salary'),
-        notes: const Value('Added from the salary you entered. Replaced when the real credit arrives.'),
-        postedAt: DateTime.utc(today.year, today.month, day, 4),
-        source: 'manual',
-        sources: const Value('["salary_plan"]'),
-        reviewed: const Value(true),
-      ),
-    );
+    await db
+        .into(db.transactions)
+        .insert(
+          TransactionsCompanion.insert(
+            id: planId,
+            accountId: acct.id,
+            amountMinor: s.amountMinor,
+            direction: 'credit',
+            categoryId: Value(await _categoryId(SpendCategory.salary)),
+            merchantRaw: const Value('Salary'),
+            merchantNormalized: const Value('Salary'),
+            notes: const Value(
+              'Added from the salary you entered. Replaced when the real credit arrives.',
+            ),
+            postedAt: DateTime.utc(today.year, today.month, day, 4),
+            source: 'manual',
+            sources: const Value('["salary_plan"]'),
+            reviewed: const Value(true),
+          ),
+        );
   }
 
   @override
   Future<int> importTransactions(List<ImportedTransaction> txs) async {
     if (txs.isEmpty) return 0;
     final acct = await _cashAccount();
-    String key(DateTime d, int minor, String name, String cat) => '${d.year}-${d.month}-${d.day}|$minor|${name.toLowerCase()}|$cat';
+    String key(DateTime d, int minor, String name, String cat) =>
+        '${d.year}-${d.month}-${d.day}|$minor|${name.toLowerCase()}|$cat';
     final existing = <String>{
-      for (final r in await (db.select(db.transactions)..where((t) => t.sources.equals('["import"]'))).get())
-        key(r.postedAt.toLocal(), r.amountMinor, r.merchantRaw ?? '', r.categoryId ?? ''),
+      for (final r in await (db.select(
+        db.transactions,
+      )..where((t) => t.sources.equals('["import"]'))).get())
+        key(
+          r.postedAt.toLocal(),
+          r.amountMinor,
+          r.merchantRaw ?? '',
+          r.categoryId ?? '',
+        ),
     };
     var added = 0;
     await db.transaction(() async {
       for (final t in txs) {
         if (t.amountMinor <= 0) continue;
         final catId = await _categoryId(t.category);
-        final name = t.merchant.trim().isEmpty ? t.category.label : t.merchant.trim();
+        final name = t.merchant.trim().isEmpty
+            ? t.category.label
+            : t.merchant.trim();
         final k = key(t.date, t.amountMinor, name, catId);
         if (!existing.add(k)) continue;
-        await db.into(db.transactions).insert(
-          TransactionsCompanion.insert(
-            id: newId(),
-            accountId: acct.id,
-            amountMinor: t.amountMinor,
-            direction: t.isIncome ? 'credit' : 'debit',
-            categoryId: Value(catId),
-            merchantRaw: Value(name),
-            merchantNormalized: Value(name),
-            postedAt: DateTime(t.date.year, t.date.month, t.date.day, 12).toUtc(),
-            source: 'manual',
-            sources: const Value('["import"]'),
-            reviewed: const Value(true),
-          ),
-        );
+        await db
+            .into(db.transactions)
+            .insert(
+              TransactionsCompanion.insert(
+                id: newId(),
+                accountId: acct.id,
+                amountMinor: t.amountMinor,
+                direction: t.isIncome ? 'credit' : 'debit',
+                categoryId: Value(catId),
+                merchantRaw: Value(name),
+                merchantNormalized: Value(name),
+                postedAt: DateTime(
+                  t.date.year,
+                  t.date.month,
+                  t.date.day,
+                  12,
+                ).toUtc(),
+                source: 'manual',
+                sources: const Value('["import"]'),
+                reviewed: const Value(true),
+              ),
+            );
         added++;
       }
     });
@@ -556,36 +755,58 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   @override
   Future<List<SpendCategory>> categories() async {
-    final rows = await (db.select(db.categories)..where((c) => c.isHidden.equals(false) & c.isCustom.equals(true))).get();
+    final rows = await (db.select(
+      db.categories,
+    )..where((c) => c.isHidden.equals(false) & c.isCustom.equals(true))).get();
     return [
       ...SpendCategory.defaults,
-      for (final r in rows) SpendCategory.custom(r.id, r.name, kind: _kind(r.kind), iconKey: r.iconKey),
+      for (final r in rows)
+        SpendCategory.custom(
+          r.id,
+          r.name,
+          kind: _kind(r.kind),
+          iconKey: r.iconKey,
+        ),
     ];
   }
 
   @override
-  Future<SpendCategory> createCategory({required String name, CategoryKind kind = CategoryKind.expense, String? iconKey}) async {
+  Future<SpendCategory> createCategory({
+    required String name,
+    CategoryKind kind = CategoryKind.expense,
+    String? iconKey,
+  }) async {
     final id = newId('c_');
-    await db.into(db.categories).insert(
-      CategoriesCompanion.insert(
-        id: id,
-        name: name.trim(),
-        kind: Value(kind.name),
-        isCustom: const Value(true),
-        sortOrder: const Value(1000),
-        iconKey: Value(iconKey),
-      ),
-    );
+    await db
+        .into(db.categories)
+        .insert(
+          CategoriesCompanion.insert(
+            id: id,
+            name: name.trim(),
+            kind: Value(kind.name),
+            isCustom: const Value(true),
+            sortOrder: const Value(1000),
+            iconKey: Value(iconKey),
+          ),
+        );
     return SpendCategory.custom(id, name.trim(), kind: kind, iconKey: iconKey);
   }
 
   @override
-  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async {
+  Future<SpendCategory> setCategoryIcon(
+    SpendCategory category,
+    String iconKey,
+  ) async {
     if (!category.custom) return category;
-    await (db.update(db.categories)..where((c) => c.id.equals(category.id) & c.isCustom.equals(true))).write(
-      CategoriesCompanion(iconKey: Value(iconKey)),
+    await (db.update(db.categories)
+          ..where((c) => c.id.equals(category.id) & c.isCustom.equals(true)))
+        .write(CategoriesCompanion(iconKey: Value(iconKey)));
+    return SpendCategory.custom(
+      category.id,
+      category.label,
+      kind: category.kind,
+      iconKey: iconKey,
     );
-    return SpendCategory.custom(category.id, category.label, kind: category.kind, iconKey: iconKey);
   }
 
   /// Limit per category in force for [month] (`yyyy-MM-01`): the latest
@@ -595,7 +816,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     for (final b in all) {
       if (b.month.compareTo(month) > 0) continue;
       final cur = best[b.categoryId];
-      if (cur == null || b.month.compareTo(cur.month) > 0) best[b.categoryId] = b;
+      if (cur == null || b.month.compareTo(cur.month) > 0)
+        best[b.categoryId] = b;
     }
     return {
       for (final e in best.entries)
@@ -604,7 +826,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   bool _countsAsSpend(TxRow t, Map<String, CategoryRow> cats) {
-    if (t.direction != 'debit' || t.excludeFromBudget || t.currency != 'AED') return false;
+    if (t.direction != 'debit' || t.excludeFromBudget || t.currency != 'AED')
+      return false;
     final kind = cats[t.categoryId]?.kind ?? 'expense';
     return kind == 'expense';
   }
@@ -613,7 +836,11 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<BudgetOverview> budgetOverview() async {
     final today = _today;
     final dim = daysInMonth(today.year, today.month);
-    final since = DateTime.utc(today.year, today.month - 5, 1).subtract(const Duration(days: 1));
+    final since = DateTime.utc(
+      today.year,
+      today.month - 5,
+      1,
+    ).subtract(const Duration(days: 1));
     final (rows, accounts, cats, budgets) = await (
       _txRows(since: since),
       _accountMap(),
@@ -622,15 +849,23 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     ).wait;
     final thisMonth = [
       for (final t in rows)
-        if (toDubaiDate(t.postedAt).year == today.year && toDubaiDate(t.postedAt).month == today.month) t,
+        if (toDubaiDate(t.postedAt).year == today.year &&
+            toDubaiDate(t.postedAt).month == today.month)
+          t,
     ];
-    final spend = [for (final t in thisMonth) if (_countsAsSpend(t, cats)) t];
+    final spend = [
+      for (final t in thisMonth)
+        if (_countsAsSpend(t, cats)) t,
+    ];
     final spentByCat = <String, int>{};
     for (final t in spend) {
       final k = t.categoryId ?? 'other';
       spentByCat[k] = (spentByCat[k] ?? 0) + t.amountMinor;
     }
-    final limits = _effectiveBudgets(budgets, _monthKey(today.year, today.month));
+    final limits = _effectiveBudgets(
+      budgets,
+      _monthKey(today.year, today.month),
+    );
     // Every category with a limit, plus every category that was spent in but
     // has none: spending must show up in the donut and lists even before the
     // person has set a budget (it used to read "No spending yet" next to a
@@ -654,9 +889,13 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       var s = 0;
       for (final t in rows) {
         final d = toDubaiDate(t.postedAt);
-        if (d.year == y && d.month == m && _countsAsSpend(t, cats)) s += t.amountMinor;
+        if (d.year == y && d.month == m && _countsAsSpend(t, cats))
+          s += t.amountMinor;
       }
-      final p = _effectiveBudgets(budgets, _monthKey(y, m)).values.fold<int>(0, (a, b) => a + b);
+      final p = _effectiveBudgets(
+        budgets,
+        _monthKey(y, m),
+      ).values.fold<int>(0, (a, b) => a + b);
       trend.add(MonthlyTotal(_months[m - 1], _aed(s), _aed(p)));
     }
 
@@ -665,12 +904,19 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     for (final t in spend) {
       final tx = _toTx(t, accounts, cats);
       final cur = byMerchant[tx.merchant];
-      byMerchant[tx.merchant] = (cur?.$1 ?? tx.category, (cur?.$2 ?? 0) + t.amountMinor, (cur?.$3 ?? 0) + 1);
-      final target = accounts[t.accountId]?.type == 'credit_card' ? byCard : byAccount;
+      byMerchant[tx.merchant] = (
+        cur?.$1 ?? tx.category,
+        (cur?.$2 ?? 0) + t.amountMinor,
+        (cur?.$3 ?? 0) + 1,
+      );
+      final target = accounts[t.accountId]?.type == 'credit_card'
+          ? byCard
+          : byAccount;
       target[tx.accountLabel] = (target[tx.accountLabel] ?? 0) + tx.amount;
     }
     final merchants = [
-      for (final e in byMerchant.entries) MerchantTotal(e.key, e.value.$1, _aed(e.value.$2), e.value.$3),
+      for (final e in byMerchant.entries)
+        MerchantTotal(e.key, e.value.$1, _aed(e.value.$2), e.value.$3),
     ]..sort((a, b) => b.total.compareTo(a.total));
 
     return BudgetOverview(
@@ -694,32 +940,68 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final today = _today;
     final month = _monthKey(today.year, today.month);
     final minor = monthly <= 0 ? 0 : (monthly * 100).round();
-    final existing = await (db.select(db.budgets)..where((b) => b.categoryId.equals(catId) & b.month.equals(month))).getSingleOrNull();
+    final existing =
+        await (db.select(
+              db.budgets,
+            )..where((b) => b.categoryId.equals(catId) & b.month.equals(month)))
+            .getSingleOrNull();
     if (existing != null) {
-      await (db.update(db.budgets)..where((b) => b.id.equals(existing.id))).write(BudgetsCompanion(limitMinor: Value(minor)));
+      await (db.update(db.budgets)..where((b) => b.id.equals(existing.id)))
+          .write(BudgetsCompanion(limitMinor: Value(minor)));
     } else {
       if (minor == 0) {
         // Nothing in force to clear, unless an earlier month's budget carries over.
-        final carried = _effectiveBudgets(await db.select(db.budgets).get(), month)[catId];
+        final carried = _effectiveBudgets(
+          await db.select(db.budgets).get(),
+          month,
+        )[catId];
         if (carried == null) return;
       }
-      await db.into(db.budgets).insert(BudgetsCompanion.insert(id: newId(), categoryId: catId, month: month, limitMinor: minor));
+      await db
+          .into(db.budgets)
+          .insert(
+            BudgetsCompanion.insert(
+              id: newId(),
+              categoryId: catId,
+              month: month,
+              limitMinor: minor,
+            ),
+          );
     }
   }
 
   // ---- automations -----------------------------------------------------------------
 
   Future<Map<String, AccountDto>> _accountDtos() async => {
-    for (final a in (await db.select(db.accounts).get()).where((a) => a.deletedAt == null))
-      a.id: AccountDto(id: a.id, type: a.type, name: a.name, institution: a.institution, last4: a.last4),
+    for (final a in (await db.select(db.accounts).get()).where(
+      (a) => a.deletedAt == null,
+    ))
+      a.id: AccountDto(
+        id: a.id,
+        type: a.type,
+        name: a.name,
+        institution: a.institution,
+        last4: a.last4,
+      ),
   };
 
   Future<Map<String, CategoryDto>> _categoryDtos() async => {
     for (final c in await db.select(db.categories).get())
-      c.id: CategoryDto(id: c.id, name: c.name, kind: c.kind, slug: c.slug, userId: c.isCustom ? 'me' : null, isHidden: c.isHidden),
+      c.id: CategoryDto(
+        id: c.id,
+        name: c.name,
+        kind: c.kind,
+        slug: c.slug,
+        userId: c.isCustom ? 'me' : null,
+        isHidden: c.isHidden,
+      ),
   };
 
-  AutomationRule? _ruleFromRow(RuleRow r, Map<String, CategoryDto> cats, Map<String, AccountDto> accounts) => ruleFromJson(
+  AutomationRule? _ruleFromRow(
+    RuleRow r,
+    Map<String, CategoryDto> cats,
+    Map<String, AccountDto> accounts,
+  ) => ruleFromJson(
     {
       'id': r.id,
       'conditions': jsonDecode(r.conditions),
@@ -736,7 +1018,11 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   @override
   Future<List<AutomationRule>> rules() async {
     final (rows, cats, accounts) = await (
-      (db.select(db.merchantRules)..orderBy([(r) => OrderingTerm.asc(r.priority), (r) => OrderingTerm.asc(r.createdAt)])).get(),
+      (db.select(db.merchantRules)..orderBy([
+            (r) => OrderingTerm.asc(r.priority),
+            (r) => OrderingTerm.asc(r.createdAt),
+          ]))
+          .get(),
       _categoryDtos(),
       _accountDtos(),
     ).wait;
@@ -747,7 +1033,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final accounts = await _accountDtos();
     return ruleToJson(
       rule,
-      categoryId: rule.category == null ? null : await _categoryId(rule.category!),
+      categoryId: rule.category == null
+          ? null
+          : await _categoryId(rule.category!),
       accounts: accounts.values,
     );
   }
@@ -766,35 +1054,49 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<RulePreviewSummary?> previewRule(AutomationRule rule) async {
     final body = await _ruleBody(rule);
     final compiled = eng.compileRule(
-      [for (final c in body['conditions']! as List) Map<String, Object?>.from(c as Map)],
+      [
+        for (final c in body['conditions']! as List)
+          Map<String, Object?>.from(c as Map),
+      ],
       categoryId: body['category_id'] as String?,
       renameMerchant: body['rename_merchant'] as String?,
       excludeFromBudget: body['exclude_from_budget'] == true,
     );
     final rows = await _txRows();
-    final p = eng.previewRule(compiled, [for (final t in rows) (id: t.id, facts: _facts(t), categoryId: t.categoryId)]);
-    return RulePreviewSummary(matched: p.matchedCount, wouldChange: p.wouldChangeIds.length);
+    final p = eng.previewRule(compiled, [
+      for (final t in rows)
+        (id: t.id, facts: _facts(t), categoryId: t.categoryId),
+    ]);
+    return RulePreviewSummary(
+      matched: p.matchedCount,
+      wouldChange: p.wouldChangeIds.length,
+    );
   }
 
   @override
   Future<AutomationRule> saveRule(AutomationRule rule) async {
     final body = await _ruleBody(rule);
     final id = newId();
-    await db.into(db.merchantRules).insert(
-      MerchantRulesCompanion.insert(
-        id: id,
-        name: Value(body['name'] as String?),
-        priority: const Value(100),
-        isActive: Value(body['is_active'] != false),
-        conditions: Value(jsonEncode(body['conditions'])),
-        categoryId: Value(body['category_id'] as String?),
-        renameMerchant: Value(body['rename_merchant'] as String?),
-        excludeFromBudget: Value(body['exclude_from_budget'] == true),
-      ),
-    );
-    final row = await (db.select(db.merchantRules)..where((r) => r.id.equals(id))).getSingle();
+    await db
+        .into(db.merchantRules)
+        .insert(
+          MerchantRulesCompanion.insert(
+            id: id,
+            name: Value(body['name'] as String?),
+            priority: const Value(100),
+            isActive: Value(body['is_active'] != false),
+            conditions: Value(jsonEncode(body['conditions'])),
+            categoryId: Value(body['category_id'] as String?),
+            renameMerchant: Value(body['rename_merchant'] as String?),
+            excludeFromBudget: Value(body['exclude_from_budget'] == true),
+          ),
+        );
+    final row = await (db.select(
+      db.merchantRules,
+    )..where((r) => r.id.equals(id))).getSingle();
     if (row.isActive) await _applyRuleToHistory(row);
-    return _ruleFromRow(row, await _categoryDtos(), await _accountDtos()) ?? rule.copyWith(id: id);
+    return _ruleFromRow(row, await _categoryDtos(), await _accountDtos()) ??
+        rule.copyWith(id: id);
   }
 
   Future<void> _applyRuleToHistory(RuleRow row) async {
@@ -803,11 +1105,19 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     await db.transaction(() async {
       for (final t in rows) {
         if (!compiled.matches(_facts(t))) continue;
-        await (db.update(db.transactions)..where((x) => x.id.equals(t.id))).write(
+        await (db.update(
+          db.transactions,
+        )..where((x) => x.id.equals(t.id))).write(
           TransactionsCompanion(
-            categoryId: row.categoryId == null ? const Value.absent() : Value(row.categoryId),
-            merchantNormalized: row.renameMerchant == null ? const Value.absent() : Value(row.renameMerchant),
-            excludeFromBudget: row.excludeFromBudget ? const Value(true) : const Value.absent(),
+            categoryId: row.categoryId == null
+                ? const Value.absent()
+                : Value(row.categoryId),
+            merchantNormalized: row.renameMerchant == null
+                ? const Value.absent()
+                : Value(row.renameMerchant),
+            excludeFromBudget: row.excludeFromBudget
+                ? const Value(true)
+                : const Value.absent(),
             appliedRuleId: Value(row.id),
           ),
         );
@@ -817,9 +1127,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   @override
   Future<void> deleteRule(String id) async {
-    await (db.update(db.transactions)..where((t) => t.appliedRuleId.equals(id))).write(
-      const TransactionsCompanion(appliedRuleId: Value(null)),
-    );
+    await (db.update(db.transactions)..where((t) => t.appliedRuleId.equals(id)))
+        .write(const TransactionsCompanion(appliedRuleId: Value(null)));
     await (db.delete(db.merchantRules)..where((r) => r.id.equals(id))).go();
   }
 
@@ -836,8 +1145,14 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   /// Credits minus debits on [a] after its balance anchor (AED only).
   Future<int> _netSince(AccountRow a) async {
     final q = db.select(db.transactions)
-      ..where((t) => t.accountId.equals(a.id) & t.deletedAt.isNull() & t.currency.equals('AED'));
-    if (a.balanceAnchorAt != null) q.where((t) => t.postedAt.isBiggerThanValue(a.balanceAnchorAt!));
+      ..where(
+        (t) =>
+            t.accountId.equals(a.id) &
+            t.deletedAt.isNull() &
+            t.currency.equals('AED'),
+      );
+    if (a.balanceAnchorAt != null)
+      q.where((t) => t.postedAt.isBiggerThanValue(a.balanceAnchorAt!));
     var net = 0;
     for (final t in await q.get()) {
       net += t.direction == 'credit' ? t.amountMinor : -t.amountMinor;
@@ -855,7 +1170,8 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   static String _highlight(CardSpec s) {
     final best = [...s.rules]..sort((a, b) => b.rate.compareTo(a.rate));
-    if (best.isEmpty) return 'Earns ${_pct(s.baseRate, s).toStringAsFixed(1)}% on everything';
+    if (best.isEmpty)
+      return 'Earns ${_pct(s.baseRate, s).toStringAsFixed(1)}% on everything';
     return '${_pct(best.first.rate, s).toStringAsFixed(1)}% on ${best.first.name.toLowerCase()}';
   }
 
@@ -913,7 +1229,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       dueDate: dueDate ?? DateTime(_clock().year + 1, _clock().month, 1),
       hasDueDate: dueDate != null,
       minDue: 0,
-      rewardsLabel: spec.isCashback ? 'Cashback this cycle' : 'Points this cycle',
+      rewardsLabel: spec.isCashback
+          ? 'Cashback this cycle'
+          : 'Points this cycle',
       rewardPoints: spec.isCashback ? 0 : earnedUnits.round(),
       rewardValueAed: cycle == null ? 0 : _aed(cycle.earnedValueMinor(spec)),
       categoryRates: rates,
@@ -923,7 +1241,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       statementDate: statementDate,
       baseRate: _pct(spec.baseRate, spec),
       caps: caps,
-      rulesVerifiedOn: cat.verifiedOn == null ? null : DateTime.tryParse(cat.verifiedOn!),
+      rulesVerifiedOn: cat.verifiedOn == null
+          ? null
+          : DateTime.tryParse(cat.verifiedOn!),
       catalogId: cat.id,
       art: _artOf(cat),
     );
@@ -956,6 +1276,9 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       dueDate: due,
       statementDate: stmt,
       cycle: cycle,
+    ).copyWith(
+      statementDay: c.account.statementDay,
+      dueDay: c.account.dueDay == 0 ? null : c.account.dueDay,
     );
   }
 
@@ -972,9 +1295,46 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
-  Future<List<CreditCard>> myCards() async => [
-    for (final c in await loadOwnedCards(db)) await _ownedToModel(c),
-  ];
+  Future<List<CreditCard>> myCards() async {
+    unawaited(fillCardsFromEmailedStatements());
+    return [for (final c in await loadOwnedCards(db)) await _ownedToModel(c)];
+  }
+
+  DateTime? _lastEmailFill;
+
+  /// Emailed statements (Gmail) are read on the server; their summary fills a
+  /// card's empty limit, statement day and due day the same way an uploaded
+  /// statement does. Best effort and at most every ten minutes: offline or
+  /// signed out, it does nothing.
+  Future<void> fillCardsFromEmailedStatements({bool force = false}) async {
+    final server = shared;
+    if (server == null) return;
+    final now = _clock();
+    final last = _lastEmailFill;
+    if (!force &&
+        last != null &&
+        now.difference(last) < const Duration(minutes: 10))
+      return;
+    _lastEmailFill = now;
+    try {
+      for (final st in await server.statements()) {
+        if (st.source != 'gmail' || st.parse != ParseStatus.parsed) continue;
+        final m = st.summary;
+        int? day(Object? iso) =>
+            iso is String ? DateTime.tryParse(iso)?.day : null;
+        await fillCardFromSummary(
+          db,
+          last4: m['last4'] as String?,
+          institution: st.institution,
+          limitMinor: (m['credit_limit_minor'] as num?)?.toInt(),
+          statementDay: day(m['statement_date']),
+          dueDay: day(m['due_date']),
+        );
+      }
+    } on Object {
+      // Offline, signed out or a bad payload: the cards stay as they are.
+    }
+  }
 
   @override
   Future<List<CreditCard>> cardCatalog() async {
@@ -982,21 +1342,42 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final out = <CreditCard>[];
     for (final (i, r) in rows.indexed) {
       try {
-        final spec = parseStructure(Map<String, Object?>.from(jsonDecode(r.rewardStructure) as Map));
-        out.add(_cardModel(id: r.id, issuer: r.issuer, name: r.name, last4: '----', cat: r, spec: spec, index: i, owned: false));
+        final spec = parseStructure(
+          Map<String, Object?>.from(jsonDecode(r.rewardStructure) as Map),
+        );
+        out.add(
+          _cardModel(
+            id: r.id,
+            issuer: r.issuer,
+            name: r.name,
+            last4: '----',
+            cat: r,
+            spec: spec,
+            index: i,
+            owned: false,
+          ),
+        );
       } on Object {
         continue;
       }
     }
-    out.sort((a, b) => '${a.issuer} ${a.name}'.compareTo('${b.issuer} ${b.name}'));
+    out.sort(
+      (a, b) => '${a.issuer} ${a.name}'.compareTo('${b.issuer} ${b.name}'),
+    );
     return out;
   }
 
   @override
-  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) async {
+  Future<CreditCard> addCustomCatalogCard({
+    required String issuer,
+    required String name,
+  }) async {
     final i = issuer.trim(), n = name.trim();
     if (i.isEmpty || n.isEmpty) {
-      throw const ApiException(message: 'Enter the bank and the card name.', code: 'invalid_card');
+      throw const ApiException(
+        message: 'Enter the bank and the card name.',
+        code: 'invalid_card',
+      );
     }
     final id = 'custom-${newId()}';
     const structure = {
@@ -1006,17 +1387,34 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       'rules': <Object>[],
       'excluded_categories': ['fees', 'cc_payment', 'transfer'],
     };
-    await db.into(db.catalogCards).insert(
-      CatalogCardsCompanion.insert(
-        id: id,
-        issuer: i,
-        name: n,
-        rewardStructure: Value(jsonEncode(structure)),
-        perks: Value(jsonEncode({'notes': 'Added by you. Pulse does not know this card\'s rewards, so it tracks spending only.'})),
-      ),
+    await db
+        .into(db.catalogCards)
+        .insert(
+          CatalogCardsCompanion.insert(
+            id: id,
+            issuer: i,
+            name: n,
+            rewardStructure: Value(jsonEncode(structure)),
+            perks: Value(
+              jsonEncode({
+                'notes': 'Added by you. Pulse does not know this card\'s rewards, so it tracks spending only.',
+              }),
+            ),
+          ),
+        );
+    final row = await (db.select(
+      db.catalogCards,
+    )..where((c) => c.id.equals(id))).getSingle();
+    return _cardModel(
+      id: id,
+      issuer: i,
+      name: n,
+      last4: '----',
+      cat: row,
+      spec: parseStructure(structure),
+      index: 0,
+      owned: false,
     );
-    final row = await (db.select(db.catalogCards)..where((c) => c.id.equals(id))).getSingle();
-    return _cardModel(id: id, issuer: i, name: n, last4: '----', cat: row, spec: parseStructure(structure), index: 0, owned: false);
   }
 
   @override
@@ -1028,58 +1426,132 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     int? dueDay,
     double owed = 0,
   }) async {
-    final cat = await (db.select(db.catalogCards)..where((c) => c.id.equals(catalogId))).getSingleOrNull();
-    if (cat == null) throw const ApiException(message: 'That card is not in the catalog.', code: 'unknown_card');
+    final cat = await (db.select(
+      db.catalogCards,
+    )..where((c) => c.id.equals(catalogId))).getSingleOrNull();
+    if (cat == null)
+      throw const ApiException(
+        message: 'That card is not in the catalog.',
+        code: 'unknown_card',
+      );
     // Empty is fine: quick-add skips the digits and they can be added later.
     if (last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
-      throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
+      throw const ApiException(
+        message: 'Enter the last four digits of the card.',
+        code: 'invalid_last4',
+      );
     }
     final accountId = newId();
     final count = (await db.select(db.userCards).get()).length;
     await db.transaction(() async {
-      await db.into(db.accounts).insert(
-        AccountsCompanion.insert(
-          id: accountId,
-          type: 'credit_card',
-          name: cat.name,
-          institution: Value(cat.issuer),
-          last4: Value(last4.isEmpty ? null : last4),
-          creditLimitMinor: Value(limit == null ? null : (limit * 100).round()),
-          statementDay: Value(statementDay),
-          dueDay: Value(dueDay),
-          balanceAnchorMinor: Value((owed * 100).round()),
-          balanceAnchorAt: Value(_clock().toUtc()),
-        ),
-      );
-      await db.into(db.userCards).insert(
-        UserCardsCompanion.insert(id: newId(), catalogCardId: catalogId, accountId: Value(accountId), colorIndex: Value(count)),
-      );
+      await db
+          .into(db.accounts)
+          .insert(
+            AccountsCompanion.insert(
+              id: accountId,
+              type: 'credit_card',
+              name: cat.name,
+              institution: Value(cat.issuer),
+              last4: Value(last4.isEmpty ? null : last4),
+              creditLimitMinor: Value(
+                limit == null ? null : (limit * 100).round(),
+              ),
+              statementDay: Value(statementDay),
+              dueDay: Value(dueDay),
+              balanceAnchorMinor: Value((owed * 100).round()),
+              balanceAnchorAt: Value(_clock().toUtc()),
+            ),
+          );
+      await db
+          .into(db.userCards)
+          .insert(
+            UserCardsCompanion.insert(
+              id: newId(),
+              catalogCardId: catalogId,
+              accountId: Value(accountId),
+              colorIndex: Value(count),
+            ),
+          );
     });
     await pipeline.reprocessPending();
     return (await myCards()).firstWhere((c) => c.id == accountId);
   }
 
   @override
-  Future<void> setCardLast4(String accountId, String last4) async {
-    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
-      throw const ApiException(message: 'Enter the last four digits of the card.', code: 'invalid_last4');
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  }) async {
+    if (last4 != null &&
+        last4.isNotEmpty &&
+        !RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(
+        message: 'Enter all four digits, or leave this empty.',
+        code: 'invalid_last4',
+      );
     }
-    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(AccountsCompanion(last4: Value(last4)));
+    for (final d in [statementDay, dueDay]) {
+      if (d != null && (d < 1 || d > 31)) {
+        throw const ApiException(
+          message: 'A day of the month is 1 to 31.',
+          code: 'invalid_day',
+        );
+      }
+    }
+    if (limit != null && limit < 0) {
+      throw const ApiException(
+        message: 'The limit cannot be negative.',
+        code: 'invalid_limit',
+      );
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(
+      AccountsCompanion(
+        last4: Value(last4 == null || last4.isEmpty ? null : last4),
+        creditLimitMinor: Value(limit == null ? null : (limit * 100).round()),
+        statementDay: Value(statementDay),
+        dueDay: Value(dueDay),
+      ),
+    );
     await pipeline.reprocessPending();
   }
 
   @override
-  Future<List<DigitSuggestion>> digitSuggestions() => pipeline.digitSuggestions();
+  Future<void> setCardLast4(String accountId, String last4) async {
+    if (!RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(
+        message: 'Enter the last four digits of the card.',
+        code: 'invalid_last4',
+      );
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(
+      AccountsCompanion(last4: Value(last4)),
+    );
+    await pipeline.reprocessPending();
+  }
+
+  @override
+  Future<List<DigitSuggestion>> digitSuggestions() =>
+      pipeline.digitSuggestions();
 
   @override
   Future<void> removeCard(String id) async {
     final now = _clock().toUtc();
-    await (db.update(db.userCards)..where((u) => u.accountId.equals(id))).write(UserCardsCompanion(deletedAt: Value(now)));
-    await (db.update(db.accounts)..where((a) => a.id.equals(id))).write(AccountsCompanion(deletedAt: Value(now)));
+    await (db.update(db.userCards)..where((u) => u.accountId.equals(id))).write(
+      UserCardsCompanion(deletedAt: Value(now)),
+    );
+    await (db.update(db.accounts)..where((a) => a.id.equals(id))).write(
+      AccountsCompanion(deletedAt: Value(now)),
+    );
   }
 
   @override
-  Future<List<BestCardPick>> bestCard(SpendCategory category, double amount) async {
+  Future<List<BestCardPick>> bestCard(
+    SpendCategory category,
+    double amount,
+  ) async {
     final cards = await loadOwnedCards(db);
     if (cards.isEmpty) return const [];
     final amountMinor = (amount * 100).round();
@@ -1093,20 +1565,33 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         BestCardPick(
           cardId: r.card.id,
           name: r.card.title,
-          ratePct: amountMinor == 0 ? 0 : r.quote.valueMinor / amountMinor * 100,
+          ratePct: amountMinor == 0
+              ? 0
+              : r.quote.valueMinor / amountMinor * 100,
           estimate: _aed(r.quote.valueMinor),
           hitsCap: r.quote.capped,
-          verified: cards.firstWhere((c) => c.account.id == r.card.id).catalog.verifiedOn != null,
+          verified:
+              cards
+                  .firstWhere((c) => c.account.id == r.card.id)
+                  .catalog
+                  .verifiedOn !=
+              null,
         ),
     ];
   }
 
   // ---- accounts & wealth ---------------------------------------------------------------
 
-  Future<List<AccountRow>> _liquidAccounts() => (db.select(db.accounts)
-        ..where((a) => a.deletedAt.isNull() & a.type.isNotValue('credit_card'))
-        ..orderBy([(a) => OrderingTerm.asc(a.createdAt), (a) => OrderingTerm.asc(a.id)]))
-      .get();
+  Future<List<AccountRow>> _liquidAccounts() =>
+      (db.select(db.accounts)
+            ..where(
+              (a) => a.deletedAt.isNull() & a.type.isNotValue('credit_card'),
+            )
+            ..orderBy([
+              (a) => OrderingTerm.asc(a.createdAt),
+              (a) => OrderingTerm.asc(a.id),
+            ]))
+          .get();
 
   /// Account balance in minor units. The Cash pot never goes below zero: money
   /// spent in cash with no float entered is spending, not an overdrawn account.
@@ -1118,7 +1603,10 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   static BankAccountKind _accountKind(AccountRow a) => switch (a.type) {
     'wallet' => BankAccountKind.wallet,
     'cash' => BankAccountKind.cash,
-    _ => a.name.toLowerCase().contains('saving') ? BankAccountKind.savings : BankAccountKind.current,
+    _ =>
+      a.name.toLowerCase().contains('saving')
+          ? BankAccountKind.savings
+          : BankAccountKind.current,
   };
 
   @override
@@ -1128,9 +1616,14 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final out = <BankAccount>[];
     for (final (i, a) in accounts.indexed) {
       var inflow = 0, outflow = 0;
-      final rows = await (db.select(db.transactions)
-            ..where((t) => t.accountId.equals(a.id) & t.deletedAt.isNull() & t.currency.equals('AED')))
-          .get();
+      final rows =
+          await (db.select(db.transactions)..where(
+                (t) =>
+                    t.accountId.equals(a.id) &
+                    t.deletedAt.isNull() &
+                    t.currency.equals('AED'),
+              ))
+              .get();
       for (final t in rows) {
         final d = toDubaiDate(t.postedAt);
         if (d.year != today.year || d.month != today.month) continue;
@@ -1144,8 +1637,11 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       out.add(
         BankAccount(
           id: a.id,
-          bank: a.institution ?? (kind == BankAccountKind.cash ? 'Cash' : a.name),
-          name: a.institution == null ? (kind == BankAccountKind.cash ? 'On hand' : kind.label) : a.name,
+          bank:
+              a.institution ?? (kind == BankAccountKind.cash ? 'Cash' : a.name),
+          name: a.institution == null
+              ? (kind == BankAccountKind.cash ? 'On hand' : kind.label)
+              : a.name,
           kind: kind,
           last4: a.last4,
           balance: _aed(await _balance(a)),
@@ -1168,8 +1664,13 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     String? last4,
     double balance = 0,
   }) async {
-    if (last4 != null && last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
-      throw const ApiException(message: 'Enter the last four digits, or leave it empty.', code: 'invalid_last4');
+    if (last4 != null &&
+        last4.isNotEmpty &&
+        !RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(
+        message: 'Enter the last four digits, or leave it empty.',
+        code: 'invalid_last4',
+      );
     }
     final id = newId();
     final type = switch (kind) {
@@ -1177,18 +1678,24 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       BankAccountKind.cash => 'cash',
       _ => 'bank',
     };
-    final label = kind == BankAccountKind.savings && !name.toLowerCase().contains('saving') ? 'Savings $name'.trim() : name.trim();
-    await db.into(db.accounts).insert(
-      AccountsCompanion.insert(
-        id: id,
-        type: type,
-        name: label.isEmpty ? kind.label : label,
-        institution: Value(bank.trim().isEmpty ? null : bank.trim()),
-        last4: Value(last4 == null || last4.isEmpty ? null : last4),
-        balanceAnchorMinor: Value((balance * 100).round()),
-        balanceAnchorAt: Value(_clock().toUtc()),
-      ),
-    );
+    final label =
+        kind == BankAccountKind.savings &&
+            !name.toLowerCase().contains('saving')
+        ? 'Savings $name'.trim()
+        : name.trim();
+    await db
+        .into(db.accounts)
+        .insert(
+          AccountsCompanion.insert(
+            id: id,
+            type: type,
+            name: label.isEmpty ? kind.label : label,
+            institution: Value(bank.trim().isEmpty ? null : bank.trim()),
+            last4: Value(last4 == null || last4.isEmpty ? null : last4),
+            balanceAnchorMinor: Value((balance * 100).round()),
+            balanceAnchorAt: Value(_clock().toUtc()),
+          ),
+        );
     await pipeline.reprocessPending();
     return (await bankAccounts()).firstWhere((a) => a.id == id);
   }
@@ -1212,44 +1719,75 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   };
 
   @override
-  Future<Asset> addAsset({required String name, required AssetKind kind, required double value}) async {
+  Future<Asset> addAsset({
+    required String name,
+    required AssetKind kind,
+    required double value,
+  }) async {
     if (kind == AssetKind.liability) {
       final id = newId();
-      await db.into(db.liabilities).insert(
-        LiabilitiesCompanion.insert(id: id, kind: 'other', name: name.trim(), outstandingMinor: (value * 100).round()),
-      );
+      await db
+          .into(db.liabilities)
+          .insert(
+            LiabilitiesCompanion.insert(
+              id: id,
+              kind: 'other',
+              name: name.trim(),
+              outstandingMinor: (value * 100).round(),
+            ),
+          );
       return Asset(id: id, name: name.trim(), kind: kind, value: value);
     }
     final id = newId();
-    await db.into(db.assets).insert(
-      AssetsCompanion.insert(
-        id: id,
-        kind: _assetWire(kind),
-        name: name.trim(),
-        manualValueMinor: Value((value * 100).round()),
-        valuedAt: Value(_clock().toUtc()),
-      ),
-    );
+    await db
+        .into(db.assets)
+        .insert(
+          AssetsCompanion.insert(
+            id: id,
+            kind: _assetWire(kind),
+            name: name.trim(),
+            manualValueMinor: Value((value * 100).round()),
+            valuedAt: Value(_clock().toUtc()),
+          ),
+        );
     return Asset(id: id, name: name.trim(), kind: kind, value: value);
   }
 
   @override
-  Future<void> updateAsset(String id, {required String name, required double value}) async {
+  Future<void> updateAsset(
+    String id, {
+    required String name,
+    required double value,
+  }) async {
     final label = name.trim();
     if (label.isEmpty) throw const ApiException(message: 'Give it a name');
     final minor = (value * 100).round();
     if (id.startsWith('account:')) {
-      await (db.update(db.accounts)..where((a) => a.id.equals(id.substring(8)))).write(
-        AccountsCompanion(name: Value(label), balanceAnchorMinor: Value(minor), balanceAnchorAt: Value(_clock().toUtc())),
+      await (db.update(
+        db.accounts,
+      )..where((a) => a.id.equals(id.substring(8)))).write(
+        AccountsCompanion(
+          name: Value(label),
+          balanceAnchorMinor: Value(minor),
+          balanceAnchorAt: Value(_clock().toUtc()),
+        ),
       );
       return;
     }
-    final updated = await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(
-      LiabilitiesCompanion(name: Value(label), outstandingMinor: Value(minor)),
-    );
+    final updated =
+        await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(
+          LiabilitiesCompanion(
+            name: Value(label),
+            outstandingMinor: Value(minor),
+          ),
+        );
     if (updated > 0) return;
     await (db.update(db.assets)..where((a) => a.id.equals(id))).write(
-      AssetsCompanion(name: Value(label), manualValueMinor: Value(minor), valuedAt: Value(_clock().toUtc())),
+      AssetsCompanion(
+        name: Value(label),
+        manualValueMinor: Value(minor),
+        valuedAt: Value(_clock().toUtc()),
+      ),
     );
   }
 
@@ -1257,19 +1795,27 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<void> deleteAsset(String id) async {
     final now = Value(_clock().toUtc());
     if (id.startsWith('account:')) {
-      await (db.update(db.accounts)..where((a) => a.id.equals(id.substring(8)))).write(AccountsCompanion(deletedAt: now));
+      await (db.update(db.accounts)..where((a) => a.id.equals(id.substring(8))))
+          .write(AccountsCompanion(deletedAt: now));
       return;
     }
-    final updated = await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(LiabilitiesCompanion(deletedAt: now));
+    final updated =
+        await (db.update(db.liabilities)..where((l) => l.id.equals(id))).write(
+          LiabilitiesCompanion(deletedAt: now),
+        );
     if (updated > 0) return;
-    await (db.update(db.assets)..where((a) => a.id.equals(id))).write(AssetsCompanion(deletedAt: now));
+    await (db.update(
+      db.assets,
+    )..where((a) => a.id.equals(id))).write(AssetsCompanion(deletedAt: now));
   }
 
   @override
   Future<List<Asset>> assets() async {
     final (assetRows, liabilityRows, accounts, cards) = await (
       (db.select(db.assets)..where((a) => a.deletedAt.isNull())).get(),
-      (db.select(db.liabilities)..where((l) => l.deletedAt.isNull() & l.accountId.isNull())).get(),
+      (db.select(
+        db.liabilities,
+      )..where((l) => l.deletedAt.isNull() & l.accountId.isNull())).get(),
       _liquidAccounts(),
       loadOwnedCards(db),
     ).wait;
@@ -1278,18 +1824,53 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       final balance = await _balance(a);
       // An empty Cash pot is just a place for cash expenses; it is not an asset yet.
       if (a.type == 'cash' && balance <= 0) continue;
-      out.add(Asset(id: 'account:${a.id}', name: _label(a), kind: AssetKind.cash, value: _aed(balance), note: 'Account balance', editable: true));
+      out.add(
+        Asset(
+          id: 'account:${a.id}',
+          name: _label(a),
+          kind: AssetKind.cash,
+          value: _aed(balance),
+          note: 'Account balance',
+          editable: true,
+        ),
+      );
     }
     for (final a in assetRows) {
-      out.add(Asset(id: a.id, name: a.name, kind: _assetKind(a.kind), value: _aed(a.manualValueMinor ?? a.costBasisMinor ?? 0), editable: true));
+      out.add(
+        Asset(
+          id: a.id,
+          name: a.name,
+          kind: _assetKind(a.kind),
+          value: _aed(a.manualValueMinor ?? a.costBasisMinor ?? 0),
+          editable: true,
+        ),
+      );
     }
     if (wealth != null) out.addAll(await wealth!.assets());
     for (final l in liabilityRows) {
-      out.add(Asset(id: l.id, name: l.name, kind: AssetKind.liability, value: _aed(l.outstandingMinor), note: l.lender ?? '', editable: true));
+      out.add(
+        Asset(
+          id: l.id,
+          name: l.name,
+          kind: AssetKind.liability,
+          value: _aed(l.outstandingMinor),
+          note: l.lender ?? '',
+          editable: true,
+        ),
+      );
     }
     for (final c in cards) {
       final owed = await _owed(c.account);
-      if (owed > 0) out.add(Asset(id: 'card:${c.account.id}', name: c.title, kind: AssetKind.liability, value: _aed(owed), note: 'Card balance'));
+      if (owed > 0)
+        out.add(
+          Asset(
+            id: 'card:${c.account.id}',
+            name: c.title,
+            kind: AssetKind.liability,
+            value: _aed(owed),
+            note: 'Card balance',
+          ),
+        );
     }
     return out;
   }
@@ -1298,12 +1879,22 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<NetWorth> netWorth() async {
     final all = await assets();
     final result = computeNetWorth(
-      [for (final a in all) if (!a.isLiability) AssetInput('asset', 'AED', (a.value * 100).round())],
-      [for (final a in all) if (a.isLiability) LiabilityInput('liability', 'AED', (a.value * 100).round())],
+      [
+        for (final a in all)
+          if (!a.isLiability)
+            AssetInput('asset', 'AED', (a.value * 100).round()),
+      ],
+      [
+        for (final a in all)
+          if (a.isLiability)
+            LiabilityInput('liability', 'AED', (a.value * 100).round()),
+      ],
     );
     final today = _today;
     await _saveSnapshot(today, result);
-    final snaps = await (db.select(db.netWorthSnapshots)..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
+    final snaps = await (db.select(
+      db.netWorthSnapshots,
+    )..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
     final series = <double>[], labels = <String>[];
     for (var i = 5; i >= 0; i--) {
       final idx = today.year * 12 + today.month - 1 - i;
@@ -1314,9 +1905,15 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
         continue;
       }
       final end = '$y-${m.toString().padLeft(2, '0')}-31';
-      final before = snaps.where((s) => s.snapshotDate.compareTo(end) <= 0).toList();
+      final before = snaps
+          .where((s) => s.snapshotDate.compareTo(end) <= 0)
+          .toList();
       // No history yet: hold the current value flat rather than invent one.
-      series.add(before.isEmpty ? _aed(result.netWorthMinor) : _aed(before.last.netWorthMinor));
+      series.add(
+        before.isEmpty
+            ? _aed(result.netWorthMinor)
+            : _aed(before.last.netWorthMinor),
+      );
     }
     final prev = series.length > 1 ? series[series.length - 2] : series.last;
     final change = series.last - prev;
@@ -1329,26 +1926,33 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       changePct: prev == 0 ? 0 : change / prev.abs() * 100,
       updatedAt: book?.fetchedAt,
       prices: book == null ? const [] : priceInputs(book),
-      pricesLive: book != null && !book.isStale && book.origin == PriceOrigin.fetched,
+      pricesLive:
+          book != null && !book.isStale && book.origin == PriceOrigin.fetched,
     );
   }
 
   /// Stores (or refreshes) today's snapshot. At most one row a day.
   Future<void> _saveSnapshot(CalDate today, NetWorthResult result) async {
     final todayIso = today.toIso();
-    final existing = await (db.select(db.netWorthSnapshots)..where((s) => s.snapshotDate.equals(todayIso))).getSingleOrNull();
+    final existing = await (db.select(
+      db.netWorthSnapshots,
+    )..where((s) => s.snapshotDate.equals(todayIso))).getSingleOrNull();
     if (existing == null) {
-      await db.into(db.netWorthSnapshots).insert(
-        NetWorthSnapshotsCompanion.insert(
-          id: newId(),
-          snapshotDate: todayIso,
-          assetsMinor: result.totalAssetsMinor,
-          liabilitiesMinor: result.totalLiabilitiesMinor,
-          netWorthMinor: result.netWorthMinor,
-        ),
-      );
+      await db
+          .into(db.netWorthSnapshots)
+          .insert(
+            NetWorthSnapshotsCompanion.insert(
+              id: newId(),
+              snapshotDate: todayIso,
+              assetsMinor: result.totalAssetsMinor,
+              liabilitiesMinor: result.totalLiabilitiesMinor,
+              netWorthMinor: result.netWorthMinor,
+            ),
+          );
     } else {
-      await (db.update(db.netWorthSnapshots)..where((s) => s.id.equals(existing.id))).write(
+      await (db.update(
+        db.netWorthSnapshots,
+      )..where((s) => s.id.equals(existing.id))).write(
         NetWorthSnapshotsCompanion(
           assetsMinor: Value(result.totalAssetsMinor),
           liabilitiesMinor: Value(result.totalLiabilitiesMinor),
@@ -1365,13 +1969,23 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<List<NwPoint>> netWorthHistory() async {
     final all = await assets();
     final result = computeNetWorth(
-      [for (final a in all) if (!a.isLiability) AssetInput('asset', 'AED', (a.value * 100).round())],
-      [for (final a in all) if (a.isLiability) LiabilityInput('liability', 'AED', (a.value * 100).round())],
+      [
+        for (final a in all)
+          if (!a.isLiability)
+            AssetInput('asset', 'AED', (a.value * 100).round()),
+      ],
+      [
+        for (final a in all)
+          if (a.isLiability)
+            LiabilityInput('liability', 'AED', (a.value * 100).round()),
+      ],
     );
     final today = _today;
     await _saveSnapshot(today, result);
     await _backfillSnapshots(today, result);
-    final snaps = await (db.select(db.netWorthSnapshots)..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
+    final snaps = await (db.select(
+      db.netWorthSnapshots,
+    )..orderBy([(s) => OrderingTerm.asc(s.snapshotDate)])).get();
     return [
       for (final s in snaps)
         NwPoint(
@@ -1389,20 +2003,35 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   /// ledger's reach changes.
   Future<void> _backfillSnapshots(CalDate today, NetWorthResult result) async {
     final accounts = await _accountMap();
-    final rows = await (db.select(db.transactions)..where((t) => t.deletedAt.isNull() & t.currency.equals('AED'))).get();
+    final rows = await (db.select(
+      db.transactions,
+    )..where((t) => t.deletedAt.isNull() & t.currency.equals('AED'))).get();
     final flows = <NwFlow>[];
     for (final t in rows) {
       final a = accounts[t.accountId];
       if (a == null || a.deletedAt != null) continue;
       // Anything before the account's balance anchor is already in it.
-      if (a.balanceAnchorAt != null && !t.postedAt.isAfter(a.balanceAnchorAt!)) continue;
-      flows.add(NwFlow(toDubaiDate(t.postedAt), t.direction == 'credit' ? t.amountMinor : -t.amountMinor, isCard: a.type == 'credit_card'));
+      if (a.balanceAnchorAt != null && !t.postedAt.isAfter(a.balanceAnchorAt!))
+        continue;
+      flows.add(
+        NwFlow(
+          toDubaiDate(t.postedAt),
+          t.direction == 'credit' ? t.amountMinor : -t.amountMinor,
+          isCard: a.type == 'credit_card',
+        ),
+      );
     }
     final snaps = await db.select(db.netWorthSnapshots).get();
-    final real = [for (final s in snaps) if (!s.breakdown.contains(_backfillMark)) s.snapshotDate]..sort();
+    final real = [
+      for (final s in snaps)
+        if (!s.breakdown.contains(_backfillMark)) s.snapshotDate,
+    ]..sort();
     final firstReal = real.isEmpty ? today : CalDate.parse(real.first);
-    final earliest = flows.isEmpty ? null : flows.map((f) => f.date).reduce((a, b) => a < b ? a : b);
-    final sig = '${earliest?.toIso()}|${firstReal.toIso()}|${flows.length ~/ 25}';
+    final earliest = flows.isEmpty
+        ? null
+        : flows.map((f) => f.date).reduce((a, b) => a < b ? a : b);
+    final sig =
+        '${earliest?.toIso()}|${firstReal.toIso()}|${flows.length ~/ 25}';
     if (await db.setting('nw_backfill_sig') == sig) return;
     final points = backfill(
       assetsNowMinor: result.totalAssetsMinor,
@@ -1464,12 +2093,25 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   Future<Cashflow> cashflow() async {
     final now = _clock();
     final today = _today;
-    final since = DateTime.utc(today.year, today.month - 5, 1).subtract(const Duration(days: 1));
-    final (rows, accounts, cats, cash) = await (_txRows(since: since), _accountMap(), _categoryMap(), _cash()).wait;
-    final domain = [for (final t in rows) if (t.currency == 'AED') _toTx(t, accounts, cats)];
+    final since = DateTime.utc(
+      today.year,
+      today.month - 5,
+      1,
+    ).subtract(const Duration(days: 1));
+    final (rows, accounts, cats, cash) = await (
+      _txRows(since: since),
+      _accountMap(),
+      _categoryMap(),
+      _cash(),
+    ).wait;
+    final domain = [
+      for (final t in rows)
+        if (t.currency == 'AED') _toTx(t, accounts, cats),
+    ];
     final months = cashflowFromTransactions(domain, now: now);
     final end = DateTime(today.year, today.month + 1, 0);
-    final dues = (await _dueBefore(end)).fold<double>(0, (a, c) => a + c.totalDue);
+    final dues = (await _dueBefore(end))
+        .fold<double>(0, (a, c) => a + c.totalDue);
     final bills = _aed(await _billsLeft(rows));
     final committed = dues + bills;
     return Cashflow(
@@ -1489,7 +2131,11 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   @override
   Future<CategoryTrends> categoryTrends() async {
     final today = _today;
-    final since = DateTime.utc(today.year, today.month - 5, 1).subtract(const Duration(days: 1));
+    final since = DateTime.utc(
+      today.year,
+      today.month - 5,
+      1,
+    ).subtract(const Duration(days: 1));
     final (rows, cats) = await (_txRows(since: since), _categoryMap()).wait;
     final monthIdx = [
       for (var i = 5; i >= 0; i--) today.year * 12 + today.month - 1 - i,
@@ -1500,12 +2146,17 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       final d = toDubaiDate(t.postedAt);
       final i = monthIdx.indexOf(d.year * 12 + d.month - 1);
       if (i < 0) continue;
-      (by[t.categoryId ?? 'other'] ??= List.filled(6, 0.0))[i] += _aed(t.amountMinor);
+      (by[t.categoryId ?? 'other'] ??= List.filled(6, 0.0))[i] += _aed(
+        t.amountMinor,
+      );
     }
     final series = [
-      for (final e in by.entries) CategoryTrend(_spendCategory(cats[e.key]), e.value),
+      for (final e in by.entries)
+        CategoryTrend(_spendCategory(cats[e.key]), e.value),
     ]..sort((a, b) => b.values.last.compareTo(a.values.last));
-    return CategoryTrends([for (final i in monthIdx) _months[i % 12]], series.take(6).toList());
+    return CategoryTrends([
+      for (final i in monthIdx) _months[i % 12],
+    ], series.take(6).toList());
   }
 
   /// Known recurring payments still to come before month end.
@@ -1518,14 +2169,27 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final charges = [
       for (final t in rows)
         if (t.direction == 'debit' && t.currency == 'AED')
-          if (merchantKey(t.merchantNormalized ?? t.merchantRaw) case final key?)
-            recurring.Charge(toDubaiDate(t.postedAt), t.amountMinor, t.merchantNormalized ?? t.merchantRaw ?? key, key, t.categoryId),
+          if (merchantKey(t.merchantNormalized ?? t.merchantRaw)
+              case final key?)
+            recurring.Charge(
+              toDubaiDate(t.postedAt),
+              t.amountMinor,
+              t.merchantNormalized ?? t.merchantRaw ?? key,
+              key,
+              t.categoryId,
+            ),
     ];
-    final end = CalDate(today.year, today.month, daysInMonth(today.year, today.month));
+    final end = CalDate(
+      today.year,
+      today.month,
+      daysInMonth(today.year, today.month),
+    );
     var total = 0;
     for (final s in recurring.detect(charges, today)) {
       if (dismissed.contains(s.key) || s.status == 'lapsed') continue;
-      total += recurring.occurrencesBetween(s, today, end).length * s.typicalAmountMinor;
+      total +=
+          recurring.occurrencesBetween(s, today, end).length *
+          s.typicalAmountMinor;
     }
     return total;
   }
@@ -1537,8 +2201,13 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final goals = await store.goals();
     if (goals.isEmpty) return const [];
     final contribs = await store.contributions();
-    final linked = goals.any((g) => g.linkedRef != null) ? {for (final a in await assets()) a.id: a} : <String, Asset>{};
-    return goalReservations(GoalService.inputs(goals, contribs, linked), _today);
+    final linked = goals.any((g) => g.linkedRef != null)
+        ? {for (final a in await assets()) a.id: a}
+        : <String, Asset>{};
+    return goalReservations(
+      GoalService.inputs(goals, contribs, linked),
+      _today,
+    );
   }
 
   @override
@@ -1562,25 +2231,41 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       cardDues: dues.fold<double>(0, (a, c) => a + c.totalDue),
       goals: _aed(totalReserved(goals)),
       daysLeft: budget.daysLeft,
-      goalLines: [for (final g in goals) GoalLine(g.goalId, g.name, _aed(g.amountMinor))],
+      goalLines: [
+        for (final g in goals) GoalLine(g.goalId, g.name, _aed(g.amountMinor)),
+      ],
     );
   }
 
   @override
   Future<HealthScore> healthScore() async {
-    final (flowData, cards, accounts) = await (cashflow(), myCards(), _liquidAccounts()).wait;
-    final active = flowData.months.where((m) => m.income > 0 || m.spend > 0).toList();
+    final (flowData, cards, accounts) = await (
+      cashflow(),
+      myCards(),
+      _liquidAccounts(),
+    ).wait;
+    final active = flowData.months
+        .where((m) => m.income > 0 || m.spend > 0)
+        .toList();
     if (accounts.isEmpty || active.isEmpty) {
-      return const HealthScore(0, [], 'Add an account and some spending to see a score.', insufficient: true);
+      return const HealthScore(
+        0,
+        [],
+        'Add an account and some spending to see a score.',
+        insufficient: true,
+      );
     }
-    final full = flowData.months.length > 1 ? flowData.months[flowData.months.length - 2] : flowData.months.last;
+    final full = flowData.months.length > 1
+        ? flowData.months[flowData.months.length - 2]
+        : flowData.months.last;
     final limits = cards.fold<double>(0, (a, c) => a + c.limit);
     final balances = cards.fold<double>(0, (a, c) => a + c.balance);
     final avg = active.fold<double>(0, (a, m) => a + m.spend) / active.length;
     return computeHealthScore(
       savingsRate: full.savingsRate,
       utilisation: limits == 0 ? 0 : balances / limits,
-      onTimeRate: 1, // Needs statement history; neutral until statements are added.
+      onTimeRate:
+          1, // Needs statement history; neutral until statements are added.
       runwayMonths: avg == 0 ? 0 : flowData.balanceNow / avg,
     );
   }
@@ -1592,9 +2277,14 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   @override
   Future<Transaction> simulateCapture() async {
     final cards = await loadOwnedCards(db);
-    final accounts = cards.isNotEmpty ? [for (final c in cards) c.account] : await _liquidAccounts();
+    final accounts = cards.isNotEmpty
+        ? [for (final c in cards) c.account]
+        : await _liquidAccounts();
     if (accounts.isEmpty) {
-      throw const ApiException(message: 'Add a card or account first, then try again.', code: 'not_supported');
+      throw const ApiException(
+        message: 'Add a card or account first, then try again.',
+        code: 'not_supported',
+      );
     }
     final now = _clock();
     final pick = accounts[now.millisecond % accounts.length];
@@ -1622,7 +2312,10 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     );
     final id = outcome.transactionId;
     if (id == null) {
-      throw const ApiException(message: 'The tap could not be matched to an account.', code: 'not_matched');
+      throw const ApiException(
+        message: 'The tap could not be matched to an account.',
+        code: 'not_matched',
+      );
     }
     return _txById(id);
   }
@@ -1636,14 +2329,18 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final id = o.transactionId;
     if (r == null || id == null) return null;
     final tx = await _txById(id);
-    final card = (await myCards()).where((c) => c.id == r.accountId).firstOrNull;
+    final card = (await myCards())
+        .where((c) => c.id == r.accountId)
+        .firstOrNull;
     if (card == null) return null;
     return RewardMomentData(
       tx: tx,
       card: card,
       earned: _aed(r.earnedValueMinor),
       ratePct: r.ratePct,
-      cap: r.capLimitAed == null ? null : RewardCap(limit: r.capLimitAed!, used: r.capUsedAed ?? 0),
+      cap: r.capLimitAed == null
+          ? null
+          : RewardCap(limit: r.capLimitAed!, used: r.capUsedAed ?? 0),
       nudge: r.nudge,
       check: r.check,
     );
@@ -1651,7 +2348,10 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
 
   // ---- needs a server ---------------------------------------------------------------------------
 
-  Future<T> _needsServer<T>(String what, Future<T> Function(PulseRepository s) call) {
+  Future<T> _needsServer<T>(
+    String what,
+    Future<T> Function(PulseRepository s) call,
+  ) {
     final s = shared;
     if (s == null) {
       return Future.error(NeedsSignInException(what));
@@ -1659,7 +2359,10 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     return call(s);
   }
 
-  Future<T> _orDefault<T>(T fallback, Future<T> Function(PulseRepository s) call) async {
+  Future<T> _orDefault<T>(
+    T fallback,
+    Future<T> Function(PulseRepository s) call,
+  ) async {
     final s = shared;
     if (s == null) return fallback;
     try {
@@ -1676,9 +2379,16 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   @override
   Future<List<SplitGroup>> splitGroups() async {
     final mine = await _splits.groups();
-    final remote = await _orDefault(const <SplitGroup>[], (s) => s.splitGroups());
+    final remote = await _orDefault(
+      const <SplitGroup>[],
+      (s) => s.splitGroups(),
+    );
     final ids = {for (final g in mine) g.id};
-    return [...mine, for (final g in remote) if (!ids.contains(g.id)) g];
+    return [
+      ...mine,
+      for (final g in remote)
+        if (!ids.contains(g.id)) g,
+    ];
   }
 
   @override
@@ -1693,7 +2403,11 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     final s = shared;
     if (s != null && _cloudReady()) {
       try {
-        return await s.createSplitGroup(name: name, emoji: emoji, members: members);
+        return await s.createSplitGroup(
+          name: name,
+          emoji: emoji,
+          members: members,
+        );
       } on ApiException catch (e) {
         // A rejected request (bad phone number, ...) is the person's to fix.
         if (e.isPermanent) rethrow;
@@ -1705,93 +2419,175 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
-  Future<SplitExpense> addSplitExpense(String groupId, SplitExpense expense) async {
-    if (await _splits.hasGroup(groupId)) return _splits.addExpense(groupId, expense);
-    return _needsServer('Splitting with others', (s) => s.addSplitExpense(groupId, expense));
+  Future<SplitExpense> addSplitExpense(
+    String groupId,
+    SplitExpense expense,
+  ) async {
+    if (await _splits.hasGroup(groupId))
+      return _splits.addExpense(groupId, expense);
+    return _needsServer(
+      'Splitting with others',
+      (s) => s.addSplitExpense(groupId, expense),
+    );
   }
 
   @override
-  Future<Member> addMember(String groupId, {required String name, String? phone}) async {
-    if (await _splits.hasGroup(groupId)) return _splits.addMember(groupId, name: name, phone: phone);
-    return _needsServer('Splitting with others', (s) => s.addMember(groupId, name: name, phone: phone));
+  Future<Member> addMember(
+    String groupId, {
+    required String name,
+    String? phone,
+  }) async {
+    if (await _splits.hasGroup(groupId))
+      return _splits.addMember(groupId, name: name, phone: phone);
+    return _needsServer(
+      'Splitting with others',
+      (s) => s.addMember(groupId, name: name, phone: phone),
+    );
   }
 
   @override
-  Future<Set<String>> matchContacts(List<String> phoneHashes) => _orDefault(<String>{}, (s) => s.matchContacts(phoneHashes));
+  Future<Set<String>> matchContacts(List<String> phoneHashes) =>
+      _orDefault(<String>{}, (s) => s.matchContacts(phoneHashes));
 
   @override
-  Future<SettlementRecord> markSettlementPaid(String groupId, {required String from, required String to, required double amount}) async {
-    if (await _splits.hasGroup(groupId)) return _splits.markPaid(groupId, from: from, to: to, amount: amount);
-    return _needsServer('Settling up', (s) => s.markSettlementPaid(groupId, from: from, to: to, amount: amount));
+  Future<SettlementRecord> markSettlementPaid(
+    String groupId, {
+    required String from,
+    required String to,
+    required double amount,
+  }) async {
+    if (await _splits.hasGroup(groupId))
+      return _splits.markPaid(groupId, from: from, to: to, amount: amount);
+    return _needsServer(
+      'Settling up',
+      (s) => s.markSettlementPaid(groupId, from: from, to: to, amount: amount),
+    );
   }
 
   @override
-  Future<SettlementRecord> confirmSettlement(String groupId, String settlementId) async {
-    if (await _splits.hasGroup(groupId)) return _splits.confirm(groupId, settlementId);
-    return _needsServer('Settling up', (s) => s.confirmSettlement(groupId, settlementId));
+  Future<SettlementRecord> confirmSettlement(
+    String groupId,
+    String settlementId,
+  ) async {
+    if (await _splits.hasGroup(groupId))
+      return _splits.confirm(groupId, settlementId);
+    return _needsServer(
+      'Settling up',
+      (s) => s.confirmSettlement(groupId, settlementId),
+    );
   }
 
   @override
   Future<void> undoSettlement(String groupId, String settlementId) async {
-    if (await _splits.hasGroup(groupId)) return _splits.undo(groupId, settlementId);
-    return _needsServer('Settling up', (s) => s.undoSettlement(groupId, settlementId));
+    if (await _splits.hasGroup(groupId))
+      return _splits.undo(groupId, settlementId);
+    return _needsServer(
+      'Settling up',
+      (s) => s.undoSettlement(groupId, settlementId),
+    );
   }
 
   @override
   Future<List<Statement>> statements() {
     final svc = statementService;
-    return svc != null ? svc.statements() : _orDefault(const [], (s) => s.statements());
+    return svc != null
+        ? svc.statements()
+        : _orDefault(const [], (s) => s.statements());
   }
 
   @override
   Future<Reconciliation> reconciliation(String statementId) {
     final svc = statementService;
-    return svc != null ? svc.reconciliation(statementId) : _needsServer('Statements', (s) => s.reconciliation(statementId));
+    return svc != null
+        ? svc.reconciliation(statementId)
+        : _needsServer('Statements', (s) => s.reconciliation(statementId));
   }
 
   @override
-  Future<UploadResult> uploadStatement({required Uint8List bytes, required String filename, String? institution}) async {
+  Future<UploadResult> uploadStatement({
+    required Uint8List bytes,
+    required String filename,
+    String? institution,
+  }) async {
     final svc = statementService;
     if (svc == null) {
-      return _needsServer('Statement upload', (s) => s.uploadStatement(bytes: bytes, filename: filename, institution: institution));
+      return _needsServer(
+        'Statement upload',
+        (s) => s.uploadStatement(
+          bytes: bytes,
+          filename: filename,
+          institution: institution,
+        ),
+      );
     }
-    final r = await svc.upload(bytes: bytes, filename: filename, institution: institution);
+    final r = await svc.upload(
+      bytes: bytes,
+      filename: filename,
+      institution: institution,
+    );
     return UploadResult(id: r.id, duplicate: r.duplicate);
   }
 
   @override
   Future<void> reprocessStatement(String statementId) {
     final svc = statementService;
-    return svc != null ? svc.reprocess(statementId) : _needsServer('Statements', (s) => s.reprocessStatement(statementId));
+    return svc != null
+        ? svc.reprocess(statementId)
+        : _needsServer('Statements', (s) => s.reprocessStatement(statementId));
   }
 
   @override
-  Future<List<StatementPassword>> statementPasswords() => _orDefault(const [], (s) => s.statementPasswords());
+  Future<List<StatementPassword>> statementPasswords() =>
+      _orDefault(const [], (s) => s.statementPasswords());
 
   @override
   Future<void> setStatementPassword(String institution, String password) =>
-      _needsServer('Statement passwords', (s) => s.setStatementPassword(institution, password));
+      _needsServer(
+        'Statement passwords',
+        (s) => s.setStatementPassword(institution, password),
+      );
 
   @override
-  Future<Uri?> startGmailConnect() => _needsServer('Gmail', (s) => s.startGmailConnect());
+  Future<Uri?> startGmailConnect() =>
+      _needsServer('Gmail', (s) => s.startGmailConnect());
 
   @override
-  Future<List<EmailConnection>> emailConnections() => _orDefault(const [], (s) => s.emailConnections());
+  Future<List<EmailConnection>> emailConnections() =>
+      _orDefault(const [], (s) => s.emailConnections());
+
+  @override
+  Future<void> disconnectEmail(String connectionId) =>
+      _needsServer('Gmail', (s) => s.disconnectEmail(connectionId));
 
   @override
   Future<Household> household() async {
     final b = await budgetOverview();
     return Household('Household', [
-      FamilyMember(id: 'me', name: 'You', relation: 'You', sharing: SharingLevel.totals, isYou: true, spent: b.spent, budget: b.planned),
+      FamilyMember(
+        id: 'me',
+        name: 'You',
+        relation: 'You',
+        sharing: SharingLevel.totals,
+        isYou: true,
+        spent: b.spent,
+        budget: b.planned,
+      ),
     ]);
   }
 
   @override
-  Future<FamilyMember> inviteFamilyMember({required String name, required String phone, required String relation}) =>
-      _needsServer('Family sharing', (s) => s.inviteFamilyMember(name: name, phone: phone, relation: relation));
+  Future<FamilyMember> inviteFamilyMember({
+    required String name,
+    required String phone,
+    required String relation,
+  }) => _needsServer(
+    'Family sharing',
+    (s) => s.inviteFamilyMember(name: name, phone: phone, relation: relation),
+  );
 
   @override
-  Future<void> setSharing(String memberId, SharingLevel level) => _needsServer('Family sharing', (s) => s.setSharing(memberId, level));
+  Future<void> setSharing(String memberId, SharingLevel level) =>
+      _needsServer('Family sharing', (s) => s.setSharing(memberId, level));
 }
 
 /// Everything the reward banner needs for one capture.

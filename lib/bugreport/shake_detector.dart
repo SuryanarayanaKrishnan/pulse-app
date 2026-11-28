@@ -33,7 +33,8 @@ class ShakeDetector {
 
   /// Returns true when this sample completes a shake.
   bool add(Accel a, DateTime at) {
-    if (_lastFired != null && at.difference(_lastFired!) < cooldown) return false;
+    if (_lastFired != null && at.difference(_lastFired!) < cooldown)
+      return false;
     if (force(a) < thresholdG) return false;
     if (_hits.isNotEmpty && at.difference(_hits.last) < minGap) return false;
     _hits.add(at);
@@ -76,9 +77,13 @@ class ShakeListener {
     // inside the plugin, asynchronously. Shake-to-report is a convenience
     // (Settings has a button too), so that must never become an app error.
     runZonedGuarded(() {
-      _sub = source().listen((a) {
-        if (detector.add(a, _now())) onShake();
-      }, onError: (Object _) {}, cancelOnError: false);
+      _sub = source().listen(
+        (a) {
+          if (detector.add(a, _now())) onShake();
+        },
+        onError: (Object _) {},
+        cancelOnError: false,
+      );
     }, (Object _, StackTrace _) {});
   }
 

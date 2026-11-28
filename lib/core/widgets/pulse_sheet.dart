@@ -101,29 +101,29 @@ class SheetScaffold extends StatelessWidget {
           Flexible(
             child: SingleChildScrollView(
               child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 5,
-                margin: const EdgeInsets.only(bottom: Space.lg),
-                decoration: BoxDecoration(
-                  color: c.border,
-                  borderRadius: BorderRadius.circular(3),
-                ),
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 36,
+                      height: 5,
+                      margin: const EdgeInsets.only(bottom: Space.lg),
+                      decoration: BoxDecoration(
+                        color: c.border,
+                        borderRadius: BorderRadius.circular(3),
+                      ),
+                    ),
+                  ),
+                  Text(title, style: context.tt.headlineMedium),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: Space.xs),
+                    Text(subtitle!, style: context.tt.bodyMedium),
+                  ],
+                  const SizedBox(height: Space.xl),
+                  child,
+                ],
               ),
-            ),
-            Text(title, style: context.tt.headlineMedium),
-            if (subtitle != null) ...[
-              const SizedBox(height: Space.xs),
-              Text(subtitle!, style: context.tt.bodyMedium),
-            ],
-            const SizedBox(height: Space.xl),
-            child,
-          ],
-        ),
             ),
           ),
           if (footer != null) ...[const SizedBox(height: Space.lg), footer!],

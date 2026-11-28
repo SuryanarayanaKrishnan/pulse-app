@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'bugreport/shake_host.dart';
 import 'core/learning/learning_controller.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,6 +16,7 @@ import 'core/analytics/analytics.dart';
 import 'core/analytics/privacy_controller.dart';
 import 'core/env/env.dart';
 import 'core/router/router.dart';
+import 'core/theme/mood.dart';
 import 'core/theme/theme.dart';
 import 'core/theme/theme_mode.dart';
 import 'data/providers.dart';
@@ -48,7 +50,10 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // No-op off Android. Drains buffered SMS/notifications into the offline
     // queue and uploads them.
     ref.read(captureServiceProvider).start();
-    _confirmSub = ref.read(captureConfirmerProvider).replies.listen(_onCaptureReply);
+    _confirmSub = ref
+        .read(captureConfirmerProvider)
+        .replies
+        .listen(_onCaptureReply);
     _refreshWealth();
     _noteOpen();
     _vaultCheckIn();
@@ -77,7 +82,12 @@ class _PulseAppState extends ConsumerState<PulseApp>
   /// restarts). Never blocks and never throws.
   void _vaultCheckIn() {
     try {
-      unawaited(ref.read(vaultServiceProvider).checkIn().catchError((Object e) => debugPrint('Vault check-in skipped: $e')));
+      unawaited(
+        ref
+            .read(vaultServiceProvider)
+            .checkIn()
+            .catchError((Object e) => debugPrint('Vault check-in skipped: $e')),
+      );
     } on Object catch (e) {
       debugPrint('Vault check-in skipped: $e');
     }
@@ -86,7 +96,8 @@ class _PulseAppState extends ConsumerState<PulseApp>
   /// Day-1 / day-7 return buckets (only while sharing is on).
   void _noteOpen() {
     final b = ref.read(privacyControllerProvider).returnBucket();
-    if (b != null) ref.read(analyticsProvider).track(AnalyticsEvent.appReturned(b));
+    if (b != null)
+      ref.read(analyticsProvider).track(AnalyticsEvent.appReturned(b));
   }
 
   /// In the background on open and resume: re-register reminders, fetch fresh
@@ -128,12 +139,16 @@ class _PulseAppState extends ConsumerState<PulseApp>
     // Same for sync: the service watches local writes while it is alive.
     ref.watch(syncServiceProvider);
     ref.watch(householdSchedulerProvider);
+    final mood = ref.watch(moodProvider);
     return MaterialApp.router(
       title: Env.appName,
       debugShowCheckedModeBanner: false,
-      theme: PulseTheme.light,
-      darkTheme: PulseTheme.dark,
+      theme: PulseTheme.forMood(mood, dark: false),
+      darkTheme: PulseTheme.forMood(mood, dark: true),
       themeMode: ref.watch(themeModeProvider),
+      // A slow cross-fade so a change of mood is felt, not seen.
+      themeAnimationDuration: const Duration(milliseconds: 700),
+      themeAnimationCurve: Curves.easeInOut,
       routerConfig: _router,
       scaffoldMessengerKey: AutoSettleHost.messengerKey,
       builder: (context, child) => ShakeHost(

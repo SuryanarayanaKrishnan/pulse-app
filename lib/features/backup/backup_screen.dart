@@ -197,7 +197,7 @@ class _Enabled extends ConsumerWidget {
               ),
               if (s.running) ...[
                 const SizedBox(height: Space.lg),
-                Meter(value: s.progress, color: c.accent),
+                Meter(value: s.progress, color: c.calm),
               ],
               if (failing && s.cloud) ...[
                 const SizedBox(height: Space.lg),

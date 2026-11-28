@@ -52,7 +52,12 @@ class Device {
     return engine.sync();
   }
 
-  void edit(String table, String id, Map<String, Object?> values, [int advanceMs = 1000]) {
+  void edit(
+    String table,
+    String id,
+    Map<String, Object?> values, [
+    int advanceMs = 1000,
+  ]) {
     nowMs += advanceMs;
     bridge.put(table, id, values);
   }

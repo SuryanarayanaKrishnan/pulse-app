@@ -122,7 +122,12 @@ class BudgetPlanService {
   }
 
   /// What [c] plans for [month], before moves.
-  static int basePlanned(CategoryPlan c, List<LimitRow> limits, String month, String anchor) {
+  static int basePlanned(
+    CategoryPlan c,
+    List<LimitRow> limits,
+    String month,
+    String anchor,
+  ) {
     if (c.group == BudgetGroup.nonMonthly && c.cycleCostMinor > 0) {
       return sinkingContribution(
         costMinor: c.cycleCostMinor,
@@ -139,7 +144,11 @@ class BudgetPlanService {
   static Map<String, Map<String, int>> spendByMonth(Iterable<Transaction> txs) {
     final out = <String, Map<String, int>>{};
     for (final t in txs) {
-      if (t.isIncome || t.excluded || t.category.isTransfer || t.category.isIncome) continue;
+      if (t.isIncome ||
+          t.excluded ||
+          t.category.isTransfer ||
+          t.category.isIncome)
+        continue;
       final m = monthKeyFor(t.date);
       final byMonth = out.putIfAbsent(t.category.id, () => {});
       byMonth[m] = (byMonth[m] ?? 0) + (t.amount * 100).round();
@@ -160,7 +169,8 @@ class BudgetPlanService {
     final firstLimit = <String, String>{};
     for (final l in limits) {
       final cur = firstLimit[l.categoryId];
-      if (cur == null || l.month.compareTo(cur) < 0) firstLimit[l.categoryId] = l.month;
+      if (cur == null || l.month.compareTo(cur) < 0)
+        firstLimit[l.categoryId] = l.month;
     }
     final here = monthIndex(key);
 
@@ -168,7 +178,13 @@ class BudgetPlanService {
     Map<String, int> plannedIn(String m) {
       final base = <String, int>{
         for (final c in cats)
-          if (c.isExpense && !c.hidden) c.id: basePlanned(c, limits, m, c.rolloverStart ?? firstLimit[c.id] ?? key),
+          if (c.isExpense && !c.hidden)
+            c.id: basePlanned(
+              c,
+              limits,
+              m,
+              c.rolloverStart ?? firstLimit[c.id] ?? key,
+            ),
       };
       return applyMoves(base, moves, month: m, scope: MoveScope.mine);
     }
@@ -192,16 +208,26 @@ class BudgetPlanService {
                 spend[c.id]?[monthKeyOf(i)] ?? 0,
               ),
           ];
-          carry = rolloverChain(plans, openingMinor: from == start ? c.rolloverStartMinor : 0).last.closingMinor;
+          carry = rolloverChain(
+            plans,
+            openingMinor: from == start ? c.rolloverStartMinor : 0,
+          ).last.closingMinor;
         } else if (start == here) {
           carry = c.rolloverStartMinor;
         }
       }
       final planned = plannedHere[c.id] ?? 0;
       final spent = spend[c.id]?[key] ?? 0;
-      final moved = moveDeltas(moves, month: key, scope: MoveScope.mine)[c.id] ?? 0;
+      final moved =
+          moveDeltas(moves, month: key, scope: MoveScope.mine)[c.id] ?? 0;
       if (planned == 0 && spent == 0 && carry == 0 && moved == 0) continue;
-      final line = PlanLine(id: c.id, group: c.group, plannedMinor: planned, spentMinor: spent, rolloverInMinor: carry);
+      final line = PlanLine(
+        id: c.id,
+        group: c.group,
+        plannedMinor: planned,
+        spentMinor: spent,
+        rolloverInMinor: carry,
+      );
       rows.add(
         PlanRow(
           id: c.id,
@@ -244,24 +270,39 @@ class BudgetPlanService {
   /// the last six months of plan against spend. [marked] holds the months the
   /// person called a one-off, by category id. Non-monthly (sinking fund)
   /// categories are left out: they are meant to swing.
-  Future<OverrunReport> overruns({Map<String, Set<String>> marked = const {}}) async {
+  Future<OverrunReport> overruns({
+    Map<String, Set<String>> marked = const {},
+  }) async {
     final key = monthKeyFor(_clock());
-    final (cats, limits, moves, txs) = await (store.categories(), store.limits(), store.moves(), transactions()).wait;
+    final (cats, limits, moves, txs) = await (
+      store.categories(),
+      store.limits(),
+      store.moves(),
+      transactions(),
+    ).wait;
     final spend = spendByMonth(txs);
     final firstLimit = <String, String>{};
     for (final l in limits) {
       final cur = firstLimit[l.categoryId];
-      if (cur == null || l.month.compareTo(cur) < 0) firstLimit[l.categoryId] = l.month;
+      if (cur == null || l.month.compareTo(cur) < 0)
+        firstLimit[l.categoryId] = l.month;
     }
     final here = monthIndex(key);
-    final keys = [for (var i = overrunLookback; i >= 0; i--) monthKeyOf(here - i)];
+    final keys = [
+      for (var i = overrunLookback; i >= 0; i--) monthKeyOf(here - i),
+    ];
     final planned = {
       for (final m in keys)
         m: applyMoves(
           {
             for (final c in cats)
               if (c.isExpense && !c.hidden && c.group != BudgetGroup.nonMonthly)
-                c.id: basePlanned(c, limits, m, c.rolloverStart ?? firstLimit[c.id] ?? key),
+                c.id: basePlanned(
+                  c,
+                  limits,
+                  m,
+                  c.rolloverStart ?? firstLimit[c.id] ?? key,
+                ),
           },
           moves,
           month: m,
@@ -279,26 +320,48 @@ class BudgetPlanService {
     final catOf = <String, SpendCategory>{};
     final txsBy = <String, List<OverrunTx>>{};
     for (final t in txs) {
-      if (t.isIncome || t.excluded || t.pendingHold || t.category.isTransfer || t.category.isIncome) continue;
+      if (t.isIncome ||
+          t.excluded ||
+          t.pendingHold ||
+          t.category.isTransfer ||
+          t.category.isIncome)
+        continue;
       final m = monthKeyFor(t.date);
       if (!window.contains(m)) continue;
       catOf[t.category.id] = t.category;
-      txsBy.putIfAbsent(t.category.id, () => []).add(
-        OverrunTx(id: t.id, month: m, merchant: t.merchant, amountMinor: (t.amount * 100).round()),
-      );
+      txsBy
+          .putIfAbsent(t.category.id, () => [])
+          .add(
+            OverrunTx(
+              id: t.id,
+              month: m,
+              merchant: t.merchant,
+              amountMinor: (t.amount * 100).round(),
+            ),
+          );
     }
     final inputs = <OverrunInput>[];
     final slack = <Slack>[];
     for (final c in cats) {
-      if (!c.isExpense || c.hidden || c.group == BudgetGroup.nonMonthly) continue;
+      if (!c.isExpense || c.hidden || c.group == BudgetGroup.nonMonthly)
+        continue;
       final months = [
         for (final m in keys)
-          if (firstSeen != null && m.compareTo(firstSeen) >= 0) MonthAmount(m, planned[m]?[c.id] ?? 0, spend[c.id]?[m] ?? 0),
+          if (firstSeen != null && m.compareTo(firstSeen) >= 0)
+            MonthAmount(m, planned[m]?[c.id] ?? 0, spend[c.id]?[m] ?? 0),
       ];
-      inputs.add(OverrunInput(categoryId: c.id, months: months, txs: txsBy[c.id] ?? const [], markedOneOff: marked[c.id] ?? const {}));
+      inputs.add(
+        OverrunInput(
+          categoryId: c.id,
+          months: months,
+          txs: txsBy[c.id] ?? const [],
+          markedOneOff: marked[c.id] ?? const {},
+        ),
+      );
       if (months.isEmpty || months.last.month != key) continue;
       final now = months.last;
-      if (c.group == BudgetGroup.flexible && now.plannedMinor > now.spentMinor) {
+      if (c.group == BudgetGroup.flexible &&
+          now.plannedMinor > now.spentMinor) {
         slack.add(Slack(c.id, now.plannedMinor - now.spentMinor));
       }
     }
@@ -311,7 +374,11 @@ class BudgetPlanService {
             catOf[o.categoryId]!,
             o.suggestedCeilingMinor == null
                 ? null
-                : fundingHint(extraMinor: o.suggestedCeilingMinor! - o.plannedMinor, slack: slack, exceptId: o.categoryId),
+                : fundingHint(
+                    extraMinor: o.suggestedCeilingMinor! - o.plannedMinor,
+                    slack: slack,
+                    exceptId: o.categoryId,
+                  ),
           ),
     ]);
     return report;
@@ -329,8 +396,16 @@ class BudgetPlanService {
     int? sourcePlannedMinor,
   }) async {
     final key = monthKeyFor(month);
-    final source = sourcePlannedMinor ?? (await view(month)).row(fromId)?.plannedMinor ?? 0;
-    final problem = checkMove(fromId: fromId, toId: toId, amountMinor: amountMinor, sourcePlannedMinor: source);
+    final source =
+        sourcePlannedMinor ??
+        (await view(month)).row(fromId)?.plannedMinor ??
+        0;
+    final problem = checkMove(
+      fromId: fromId,
+      toId: toId,
+      amountMinor: amountMinor,
+      sourcePlannedMinor: source,
+    );
     if (problem != null) return (null, problem);
     final m = BudgetMove(
       id: newId('mv_'),

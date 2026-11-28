@@ -55,7 +55,9 @@ void main() {
         addTearDown(() => PulseTheme.testFontFamily = null);
         tester.view.physicalSize = const Size(390 * 3, 844 * 3);
         tester.view.devicePixelRatio = 3;
-        tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
+        tester.platformDispatcher.platformBrightnessTestValue = dark
+            ? Brightness.dark
+            : Brightness.light;
         addTearDown(tester.view.reset);
         addTearDown(tester.platformDispatcher.clearAllTestValues);
         final kv = MemoryKvStore();
@@ -69,10 +71,18 @@ void main() {
             child: ProviderScope(
               overrides: [
                 tourKvProvider.overrideWithValue(kv),
-                repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
+                repositoryProvider.overrideWithValue(
+                  MockPulseRepository(latency: Duration.zero),
+                ),
                 analyticsProvider.overrideWithValue(NoopAnalytics()),
                 kvStoreProvider.overrideWithValue(MemoryKvStore()),
-                sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+                sessionProvider.overrideWith(
+                  (ref) => SessionController(
+                    onboarded: true,
+                    signedIn: true,
+                    connected: true,
+                  ),
+                ),
               ],
               child: const PulseApp(),
             ),
@@ -88,7 +98,8 @@ void main() {
         Future<void> shot(String name) async {
           await tester.pump(const Duration(milliseconds: 600));
           await tester.runAsync(() async {
-            final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+            final b =
+                key.currentContext!.findRenderObject() as RenderRepaintBoundary;
             final img = await b.toImage(pixelRatio: 1);
             final data = await img.toByteData(format: ui.ImageByteFormat.png);
             final f = File('$_dir/$name-$mode.png');

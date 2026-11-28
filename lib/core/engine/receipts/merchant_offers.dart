@@ -53,12 +53,20 @@ class MerchantOffers {
         if (raw is! Map) continue;
         final rate = (raw['rate'] as num?)?.toDouble();
         final merchant = raw['merchant'];
-        if (rate == null || rate <= 0 || rate > 1 || merchant is! String || merchant.isEmpty) continue;
+        if (rate == null ||
+            rate <= 0 ||
+            rate > 1 ||
+            merchant is! String ||
+            merchant.isEmpty)
+          continue;
         out.add(
           MerchantOffer(
             id: '${raw['id']}',
             merchant: merchant.toLowerCase(),
-            cardTitleContains: [for (final s in (raw['card_title_contains'] as List? ?? const [])) '$s'],
+            cardTitleContains: [
+              for (final s in (raw['card_title_contains'] as List? ?? const []))
+                '$s',
+            ],
             rate: rate,
             label: '${raw['label'] ?? ''}',
           ),
@@ -95,7 +103,10 @@ CardSpec _withOffer(CardSpec s, MerchantOffer o) {
     pointValueAed: s.pointValueAed,
     baseRate: s.baseRate,
     // A merchant rule is picked before category rules, so it goes first.
-    rules: [RuleSpec(name: o.label, rate: units, merchants: [o.merchant]), ...s.rules],
+    rules: [
+      RuleSpec(name: o.label, rate: units, merchants: [o.merchant]),
+      ...s.rules,
+    ],
     excludedCategories: s.excludedCategories,
     minMonthlySpendMinor: s.minMonthlySpendMinor,
     feeWaiverSpendMinor: s.feeWaiverSpendMinor,
@@ -113,14 +124,18 @@ OfferHint? merchantCardHint({
   String? category,
 }) {
   final key = merchantKey.toLowerCase();
-  final relevant = offers.offers.where((o) => key.contains(o.merchant)).toList();
+  final relevant = offers.offers
+      .where((o) => key.contains(o.merchant))
+      .toList();
   if (relevant.isEmpty) return null;
   final boosted = [
     for (final c in cards)
       RankableCard(
         id: c.id,
         title: c.title,
-        spec: relevant.where((o) => o.appliesTo(c.title)).fold(c.spec, _withOffer),
+        spec: relevant
+            .where((o) => o.appliesTo(c.title))
+            .fold(c.spec, _withOffer),
         state: c.state,
         createdOrder: c.createdOrder,
       ),

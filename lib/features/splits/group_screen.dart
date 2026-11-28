@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../core/router/router.dart';
+
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:share_plus/share_plus.dart';
@@ -148,7 +150,7 @@ class _Body extends ConsumerWidget {
           children: [
             for (final m in others) memberRow(m),
             ListRow(
-              leading: IconWell(Icons.person_add_alt_outlined, color: c.accent),
+              leading: IconWell(Icons.person_add_alt_outlined, color: c.calm),
               title: 'Add people',
               titleStyle: context.tt.bodyLarge!.copyWith(color: c.accent),
               onTap: () => showPulseSheet<void>(

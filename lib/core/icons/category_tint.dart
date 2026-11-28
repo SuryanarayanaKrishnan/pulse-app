@@ -55,7 +55,16 @@ const defaultCategoryTokens = <String, String>{
 };
 
 /// Custom categories borrow a token, steadily, from their id.
-const _customRotation = ['teal', 'indigo', 'amber', 'rose', 'green', 'violet', 'sky', 'orange'];
+const _customRotation = [
+  'teal',
+  'indigo',
+  'amber',
+  'rose',
+  'green',
+  'violet',
+  'sky',
+  'orange',
+];
 
 String categoryTokenFor(String id, {String? token}) {
   if (token != null && _hues.containsKey(token)) return token;

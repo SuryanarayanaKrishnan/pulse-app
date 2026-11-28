@@ -22,36 +22,50 @@ void main() {
     addTearDown(db.close);
   });
 
-  test('a newer remote catalog without some cards does not hide the bundled ones', () async {
-    final doc = jsonDecode(bundled) as Map<String, Object?>;
-    final remote = {
-      ...doc,
-      'version': (doc['version'] as int) + 5,
-      'cards': [
-        for (final c in doc['cards'] as List)
-          if (!'${(c as Map)['id']}'.startsWith('hsbc') && c['id'] != 'tabby-card') c,
-      ],
-    };
-    final svc = CatalogService(db: db, bundled: () async => jsonEncode(remote));
-    await svc.loadBundled(); // the phone already holds the newer, smaller catalog
-    final ids0 = {for (final r in await db.select(db.catalogCards).get()) r.id};
-    expect(ids0, isNot(contains('tabby-card')));
+  test(
+    'a newer remote catalog without some cards does not hide the bundled ones',
+    () async {
+      final doc = jsonDecode(bundled) as Map<String, Object?>;
+      final remote = {
+        ...doc,
+        'version': (doc['version'] as int) + 5,
+        'cards': [
+          for (final c in doc['cards'] as List)
+            if (!'${(c as Map)['id']}'.startsWith('hsbc') &&
+                c['id'] != 'tabby-card')
+              c,
+        ],
+      };
+      final svc = CatalogService(
+        db: db,
+        bundled: () async => jsonEncode(remote),
+      );
+      await svc
+          .loadBundled(); // the phone already holds the newer, smaller catalog
+      final ids0 = {
+        for (final r in await db.select(db.catalogCards).get()) r.id,
+      };
+      expect(ids0, isNot(contains('tabby-card')));
 
-    final healed = CatalogService(db: db, bundled: () async => bundled);
-    await healed.loadBundled();
-    final ids = {for (final r in await db.select(db.catalogCards).get()) r.id};
-    expect(ids, contains('tabby-card'));
-    expect(ids.where((i) => i.startsWith('hsbc')), isNotEmpty);
-  });
+      final healed = CatalogService(db: db, bundled: () async => bundled);
+      await healed.loadBundled();
+      final ids = {
+        for (final r in await db.select(db.catalogCards).get()) r.id,
+      };
+      expect(ids, contains('tabby-card'));
+      expect(ids.where((i) => i.startsWith('hsbc')), isNotEmpty);
+    },
+  );
 
   test('a stored card is never overwritten by the bundled copy', () async {
     final svc = CatalogService(db: db, bundled: () async => bundled);
     await svc.loadBundled();
-    await (db.update(db.catalogCards)..where((c) => c.id.equals('tabby-card'))).write(
-      const CatalogCardsCompanion(name: Value('Newer name')),
-    );
+    await (db.update(db.catalogCards)..where((c) => c.id.equals('tabby-card')))
+        .write(const CatalogCardsCompanion(name: Value('Newer name')));
     await CatalogService(db: db, bundled: () async => bundled).loadBundled();
-    final row = await (db.select(db.catalogCards)..where((c) => c.id.equals('tabby-card'))).getSingle();
+    final row = await (db.select(
+      db.catalogCards,
+    )..where((c) => c.id.equals('tabby-card'))).getSingle();
     expect(row.name, 'Newer name');
   });
 
@@ -61,13 +75,24 @@ void main() {
     final now = DateTime.utc(2026, 11, 28, 8);
     final pipeline = IngestPipeline(db, clock: () => now);
     addTearDown(pipeline.dispose);
-    final repo = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, clock: () => now);
+    final repo = LocalPulseRepository(
+      db: db,
+      catalog: catalog,
+      pipeline: pipeline,
+      clock: () => now,
+    );
 
-    final card = await repo.addCustomCatalogCard(issuer: ' Some Bank ', name: 'Gold');
+    final card = await repo.addCustomCatalogCard(
+      issuer: ' Some Bank ',
+      name: 'Gold',
+    );
     expect(card.id, startsWith('custom-'));
     expect((await repo.cardCatalog()).map((c) => c.id), contains(card.id));
     await repo.addCard(catalogId: card.id, last4: '4242');
     expect((await repo.myCards()).map((c) => c.id), isNotEmpty);
-    await expectLater(repo.addCustomCatalogCard(issuer: '', name: 'x'), throwsA(anything));
+    await expectLater(
+      repo.addCustomCatalogCard(issuer: '', name: 'x'),
+      throwsA(anything),
+    );
   });
 }

@@ -27,6 +27,7 @@ abstract class PulseRepository {
     SpendCategory category, {
     bool remember = false,
   });
+
   /// Marks transactions reviewed (or not). Repositories without a ledger of
   /// their own ignore it.
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed);
@@ -91,7 +92,10 @@ abstract class PulseRepository {
 
   /// Creates a card the catalog does not list ("I can't find my card"), on
   /// this device only. Its rewards are not tracked (no earn rates are known).
-  Future<CreditCard> addCustomCatalogCard({required String issuer, required String name});
+  Future<CreditCard> addCustomCatalogCard({
+    required String issuer,
+    required String name,
+  });
 
   /// Adds a card from the catalog to the wallet. On-device only.
   Future<CreditCard> addCard({
@@ -105,6 +109,16 @@ abstract class PulseRepository {
 
   /// Removes a card from the wallet (its transactions stay).
   Future<void> removeCard(String id);
+
+  /// Replaces a card's editable details. An empty value clears that detail
+  /// (the next statement can fill it again).
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  });
 
   /// Sets the last four digits of a card and replays alerts that were waiting for it.
   Future<void> setCardLast4(String accountId, String last4);
@@ -130,7 +144,11 @@ abstract class PulseRepository {
 
   /// Renames an [Asset] with `editable` set and sets its value (for an
   /// account, its balance from now on).
-  Future<void> updateAsset(String id, {required String name, required double value});
+  Future<void> updateAsset(
+    String id, {
+    required String name,
+    required double value,
+  });
 
   /// Removes an [Asset] with `editable` set. An account's transactions stay.
   Future<void> deleteAsset(String id);
@@ -206,6 +224,9 @@ abstract class PulseRepository {
   Future<Uri?> startGmailConnect();
   Future<List<EmailConnection>> emailConnections();
 
+  /// Stops reading this Gmail account. Statements already saved stay.
+  Future<void> disconnectEmail(String connectionId);
+
   // ---- insights ----------------------------------------------------------------
 
   /// Income, spend and savings by month, plus the projected month-end balance.
@@ -255,22 +276,28 @@ mixin LocalOnlyFeatures implements PulseRepository {
   }) => _unsupported('Creating groups');
 
   @override
-  Future<SpendCategory> setCategoryIcon(SpendCategory category, String iconKey) async => category;
+  Future<SpendCategory> setCategoryIcon(
+    SpendCategory category,
+    String iconKey,
+  ) async => category;
 
   @override
   Future<void> setReviewed(Iterable<String> txIds, bool reviewed) async {}
 
   @override
-  Future<void> setTransactionNote(String txId, String? note) => _unsupported('Notes');
+  Future<void> setTransactionNote(String txId, String? note) =>
+      _unsupported('Notes');
 
   @override
-  Future<void> deleteTransaction(String txId) => _unsupported('Deleting payments');
+  Future<void> deleteTransaction(String txId) =>
+      _unsupported('Deleting payments');
 
   @override
   Future<ManualSalary?> manualSalary() async => null;
 
   @override
-  Future<void> setManualSalary(ManualSalary? salary) => _unsupported('Setting a salary');
+  Future<void> setManualSalary(ManualSalary? salary) =>
+      _unsupported('Setting a salary');
 
   @override
   Future<CreditCard> addCard({
@@ -286,7 +313,17 @@ mixin LocalOnlyFeatures implements PulseRepository {
   Future<void> removeCard(String id) => _unsupported('Removing cards');
 
   @override
-  Future<void> setCardLast4(String accountId, String last4) => _unsupported('Editing cards');
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  }) => _unsupported('Editing cards');
+
+  @override
+  Future<void> setCardLast4(String accountId, String last4) =>
+      _unsupported('Editing cards');
 
   @override
   Future<List<DigitSuggestion>> digitSuggestions() async => const [];
@@ -308,8 +345,11 @@ mixin LocalOnlyFeatures implements PulseRepository {
   }) => _unsupported('Adding assets');
 
   @override
-  Future<void> updateAsset(String id, {required String name, required double value}) =>
-      _unsupported('Editing assets');
+  Future<void> updateAsset(
+    String id, {
+    required String name,
+    required double value,
+  }) => _unsupported('Editing assets');
 
   @override
   Future<void> deleteAsset(String id) => _unsupported('Deleting assets');

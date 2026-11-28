@@ -3,24 +3,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../capture/providers.dart';
-import '../../core/engine/review.dart';
 import '../../core/router/router.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/widgets/widgets.dart';
 import '../../data/providers.dart';
-import '../cards/best_moves_strip.dart';
-import '../cards/cap_watch_card.dart';
 import '../cards/card_widgets.dart';
 import '../discover/all_features_sheet.dart';
-import '../budgets/overrun_section.dart';
-import '../review/review_state.dart';
 import '../wallet/add_sheets.dart';
 import 'dashboard/dashboard_controller.dart';
 import 'dashboard/dashboard_editor.dart';
 import 'dashboard/dashboard_tiles.dart';
-import 'health_sheet.dart';
 import '../../core/utils/app_clock.dart';
+import 'home_extras.dart';
 import '../coach/coach.dart';
 
 /// Home answers one question: how much can I safely spend today?
@@ -53,6 +47,9 @@ class HomeScreen extends ConsumerWidget {
       screen: CoachScreen.home,
       child: Scaffold(
         body: SafeArea(
+          // Content scrolls under the status bar instead of being sliced off
+          // at the safe-area line (it clipped the dashboard chips).
+          top: false,
           bottom: false,
           child: RefreshIndicator(
             color: c.accent,
@@ -65,7 +62,10 @@ class HomeScreen extends ConsumerWidget {
               invalidateLedger(ref);
             },
             child: ListView(
-              padding: const EdgeInsets.only(bottom: 120),
+              padding: EdgeInsets.only(
+                top: MediaQuery.paddingOf(context).top,
+                bottom: 120,
+              ),
               children: [
                 ScreenHeader(
                   greeting,
@@ -84,22 +84,10 @@ class HomeScreen extends ConsumerWidget {
                       : [
                           RoundIconButton(
                             key: const Key('home-all-features'),
-                            icon: Icons.apps_rounded,
-                            label: 'All features',
+                            icon: Icons.search_rounded,
+                            label: 'Search',
                             onTap: () => showAllFeaturesSheet(context),
                           ),
-                          if (!empty)
-                            CoachTarget(
-                              id: 'customise',
-                              child: RoundIconButton(
-                                icon: Icons.tune_rounded,
-                                label: 'Customise',
-                                onTap: () {
-                                  Haptics.tap();
-                                  dash.setEditing(true);
-                                },
-                              ),
-                            ),
                           CoachTarget(
                             id: 'settings',
                             child: RoundIconButton(
@@ -110,7 +98,6 @@ class HomeScreen extends ConsumerWidget {
                           ),
                         ],
                 ),
-                const _CaptureNudge(),
                 if (empty)
                   const _GetStarted()
                 else ...[
@@ -120,26 +107,33 @@ class HomeScreen extends ConsumerWidget {
                   else ...[
                     for (var i = 0; i < widgets.length; i++) ...[
                       DashTile(widgets[i], key: ValueKey(widgets[i].kind)),
-                      // Which card and health sit right under the lead widget, wherever
-                      // the user has put it.
+                      // The calm part of Home: which card to use and the one
+                      // insight worth knowing, right under the lead widget.
                       if (i == 0) ...[
                         const _WhichCard(),
-                        const CapWatchCard(),
-                        const CapWatchCard(),
-                        const BestMovesStrip(),
-                        const _ReviewCard(),
-                        const OverrunHomeLine(),
-                        const _Health(),
+                        TopInsight(skip: {for (final w in widgets) w.kind}),
                       ],
                     ],
                     if (widgets.isEmpty) ...[
                       const _WhichCard(),
-                      const BestMovesStrip(),
-                      const _ReviewCard(),
-                      const OverrunHomeLine(),
-                      const _Health(),
+                      const TopInsight(),
                     ],
-                    const _Overview(),
+                    Padding(
+                      padding: const EdgeInsets.only(top: Space.xl),
+                      child: Center(
+                        child: CoachTarget(
+                          id: 'customise',
+                          child: TextAction(
+                            'Add to Home',
+                            key: const Key('home-add-widget'),
+                            onTap: () {
+                              Haptics.tap();
+                              dash.setEditing(true);
+                            },
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ],
               ],
@@ -213,174 +207,6 @@ class _WhichCard extends ConsumerWidget {
               ),
             ),
             Icon(Icons.chevron_right_rounded, color: c.textTertiary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// "N to review": one tap to the card stack. Quiet when there is nothing.
-class _ReviewCard extends ConsumerWidget {
-  const _ReviewCard();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
-    final n = ref.watch(reviewCountProvider).value;
-    if (n == null) return const SizedBox.shrink();
-    final streak = streakLabel(ref.watch(reviewStreakProvider));
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Space.gutter,
-        Space.md,
-        Space.gutter,
-        0,
-      ),
-      child: SurfaceCard(
-        key: const ValueKey('review-card-home'),
-        padding: const EdgeInsets.symmetric(
-          horizontal: Space.lg,
-          vertical: Space.md + 2,
-        ),
-        onTap: () => context.push(Routes.review),
-        child: Row(
-          children: [
-            IconWell(
-              n > 0 ? Icons.layers_outlined : Icons.check_rounded,
-              color: n > 0 ? c.accent : c.textSecondary,
-            ),
-            const SizedBox(width: Space.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    n > 0 ? '$n to review' : 'Inbox zero',
-                    style: context.tt.titleSmall,
-                  ),
-                  Text(
-                    n > 0
-                        ? 'Swipe through, one at a time'
-                        : (streak ?? 'All caught up'),
-                    style: context.tt.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: c.textTertiary, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Health extends ConsumerWidget {
-  const _Health();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
-    final h = ref.watch(healthScoreProvider).value;
-    if (h == null || h.insufficient) return const SizedBox.shrink();
-    final tone = h.score >= 60
-        ? c.accent
-        : h.score >= 40
-        ? c.warning
-        : c.negative;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionHeader('Today'),
-        RowGroup(
-          children: [
-            ListRow(
-              leading: ProgressRing(
-                progress: h.score / 100,
-                size: 32,
-                stroke: 3,
-                color: tone,
-              ),
-              title: 'Financial health ${h.score} · ${h.band}',
-              subtitle: h.readiness,
-              chevron: true,
-              onTap: () =>
-                  showPulseSheet<void>(context, builder: (_) => HealthSheet(h)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Secondary figures, one row each, linking to their home.
-class _Overview extends ConsumerWidget {
-  const _Overview();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.pc;
-    final statements = ref.watch(statementsProvider).value;
-    final attention = statements?.where((s) => s.needsAttention).length ?? 0;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SectionHeader('More'),
-        RowGroup(
-          children: [
-            ListRow(
-              title: 'Family',
-              subtitle: 'Shared spending, with privacy per person',
-              chevron: true,
-              onTap: () => context.push(Routes.family),
-            ),
-            if (statements != null)
-              ListRow(
-                title: 'Monthly close',
-                subtitle: attention == 0
-                    ? 'Every statement matches'
-                    : '$attention ${attention == 1 ? 'statement needs' : 'statements need'} you',
-                subtitleColor: attention == 0 ? null : c.warning,
-                chevron: true,
-                onTap: () => context.push(Routes.statements),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-/// Reminder on iPhone while any of the four capture paths is not working yet.
-class _CaptureNudge extends ConsumerWidget {
-  const _CaptureNudge();
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(iosCaptureProvider)) return const SizedBox.shrink();
-    final done = ref.watch(captureProgressProvider).value;
-    if (done == null || done.length >= 4) return const SizedBox.shrink();
-    final c = context.pc;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        Space.gutter,
-        Space.md,
-        Space.gutter,
-        0,
-      ),
-      child: SurfaceCard(
-        key: const Key('capture_nudge'),
-        onTap: () => context.push(Routes.applePaySetup),
-        child: Row(
-          children: [
-            Icon(Icons.bolt_rounded, color: c.accent),
-            const SizedBox(width: Space.md),
-            Expanded(
-              child: Text(
-                'Finish capture setup: ${done.length} of 4 working. '
-                'Payments on the other paths are missed until then.',
-                style: context.tt.bodyMedium,
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: c.textTertiary),
           ],
         ),
       ),

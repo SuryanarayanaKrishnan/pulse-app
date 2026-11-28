@@ -498,6 +498,22 @@ class LocalStatementService {
       );
     });
     await _settleTransfers(id, parsed);
+    await _fillCardFromStatement(parsed, inst);
+  }
+
+  Future<void> _fillCardFromStatement(
+    ParsedStatement parsed,
+    String? inst,
+  ) async {
+    if (parsed.kind != StatementKind.creditCard) return;
+    await fillCardFromSummary(
+      db,
+      last4: parsed.last4,
+      institution: inst,
+      limitMinor: parsed.creditLimitMinor,
+      statementDay: parsed.statementDate?.day,
+      dueDay: parsed.dueDate?.day,
+    );
   }
 
   /// What the reconciliation sheet shows: the statement's balances and how its
@@ -682,3 +698,66 @@ Map<String, Object?> summaryJson(ParsedStatement s) => {
   'total_purchases_minor': s.totalPurchasesMinor,
   'warnings': s.warnings,
 };
+
+/// A card added with only its name gets its limit, statement day and due day
+/// from the first statement that names it, however the statement arrived
+/// (uploaded PDF, or the summary of an emailed one). Only empty fields are
+/// filled, so anything the person typed stays. The card is the one with the
+/// same last four digits, or the only card of that bank still without digits.
+Future<void> fillCardFromSummary(
+  PulseDatabase db, {
+  String? last4,
+  String? institution,
+  int? limitMinor,
+  int? statementDay,
+  int? dueDay,
+}) async {
+  final cards = await (db.select(
+    db.accounts,
+  )..where((a) => a.type.equals('credit_card') & a.deletedAt.isNull())).get();
+  AccountRow? target;
+  if (last4 != null) {
+    target = cards.where((c) => c.last4 == last4).firstOrNull;
+  }
+  if (target == null && institution != null) {
+    // Statements carry a short bank code ("enbd") and the card a display name
+    // ("Emirates NBD"): the code's letters appear in order in the name.
+    bool isSubsequence(String code, String name) {
+      var i = 0;
+      for (final ch in name.split('')) {
+        if (i < code.length && ch == code[i]) i++;
+      }
+      return i == code.length;
+    }
+
+    String key(String v) =>
+        v.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final bank = key(institution);
+    final same = [
+      for (final c in cards)
+        if (c.last4 == null &&
+            bank.isNotEmpty &&
+            isSubsequence(bank, key(c.institution ?? '')))
+          c,
+    ];
+    if (same.length == 1) target = same.single;
+  }
+  if (target == null) return;
+  final t = target;
+  await (db.update(db.accounts)..where((a) => a.id.equals(t.id))).write(
+    AccountsCompanion(
+      last4: t.last4 == null && last4 != null
+          ? Value(last4)
+          : const Value.absent(),
+      creditLimitMinor: t.creditLimitMinor == null && limitMinor != null
+          ? Value(limitMinor)
+          : const Value.absent(),
+      statementDay: t.statementDay == null && statementDay != null
+          ? Value(statementDay)
+          : const Value.absent(),
+      dueDay: t.dueDay == null && dueDay != null
+          ? Value(dueDay)
+          : const Value.absent(),
+    ),
+  );
+}

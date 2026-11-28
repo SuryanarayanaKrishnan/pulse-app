@@ -114,8 +114,14 @@ class ListRow extends StatelessWidget {
               Flexible(
                 flex: 0,
                 child: ConstrainedBox(
-                  constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.45),
-                  child: FittedBox(fit: BoxFit.scaleDown, alignment: Alignment.centerRight, child: trailing!),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.sizeOf(context).width * 0.45,
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: trailing!,
+                  ),
                 ),
               ),
             ],
@@ -195,7 +201,7 @@ class Meter extends StatelessWidget {
               FractionallySizedBox(
                 alignment: Alignment.centerLeft,
                 widthFactor: x,
-                child: ColoredBox(color: color ?? c.accent),
+                child: ColoredBox(color: color ?? c.calm),
               ),
             ],
           ),

@@ -28,7 +28,8 @@ import 'package:pulse/features/transactions/tx_detail_sheet.dart';
 final _dir = Platform.environment['SCREENS_DIR'];
 
 Future<void> _loadFonts() async {
-  Future<ByteData> bytes(String path) async => ByteData.sublistView(await File(path).readAsBytes());
+  Future<ByteData> bytes(String path) async =>
+      ByteData.sublistView(await File(path).readAsBytes());
   const inter = '/usr/share/fonts/opentype/inter';
   final text = FontLoader('PulseInter');
   for (final w in ['Regular', 'Medium', 'SemiBold', 'Bold']) {
@@ -36,7 +37,11 @@ Future<void> _loadFonts() async {
   }
   await text.load();
   final icons = FontLoader('MaterialIcons')
-    ..addFont(bytes('${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf'));
+    ..addFont(
+      bytes(
+        '${Platform.environment['FLUTTER_ROOT'] ?? '/home/user/flutter'}/bin/cache/artifacts/material_fonts/MaterialIcons-Regular.otf',
+      ),
+    );
   await icons.load();
 }
 
@@ -50,7 +55,9 @@ void main() {
       addTearDown(() => PulseTheme.testFontFamily = null);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
-      tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
+      tester.platformDispatcher.platformBrightnessTestValue = dark
+          ? Brightness.dark
+          : Brightness.light;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final key = GlobalKey();
@@ -62,10 +69,21 @@ void main() {
             key: key,
             child: ProviderScope(
               overrides: [
-                repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero, now: DateTime(2026, 11, 14))),
+                repositoryProvider.overrideWithValue(
+                  MockPulseRepository(
+                    latency: Duration.zero,
+                    now: DateTime(2026, 11, 14),
+                  ),
+                ),
                 analyticsProvider.overrideWithValue(NoopAnalytics()),
                 kvStoreProvider.overrideWithValue(MemoryKvStore()),
-                sessionProvider.overrideWith((ref) => SessionController(onboarded: true, signedIn: true, connected: true)),
+                sessionProvider.overrideWith(
+                  (ref) => SessionController(
+                    onboarded: true,
+                    signedIn: true,
+                    connected: true,
+                  ),
+                ),
               ],
               child: home(),
             ),
@@ -79,7 +97,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
         await tester.pump(const Duration(milliseconds: 600));
         await tester.runAsync(() async {
-          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final b =
+              key.currentContext!.findRenderObject() as RenderRepaintBoundary;
           final img = await b.toImage(pixelRatio: 1);
           final data = await img.toByteData(format: ui.ImageByteFormat.png);
           final f = File('$_dir/$name-$mode.png');
@@ -88,9 +107,15 @@ void main() {
         });
       }
 
-      await open(() => const PulseApp(initialLocation: '/settings'));
+      await open(
+        () => const PulseApp(initialLocation: '/settings/connections'),
+      );
       final row = find.byKey(const Key('settings_email_receipts'));
-      await tester.scrollUntilVisible(row, 200, scrollable: find.byType(Scrollable).first);
+      await tester.scrollUntilVisible(
+        row,
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await Scrollable.ensureVisible(tester.element(row), alignment: 0.4);
       await tester.pump(const Duration(milliseconds: 500));
       await shot('settings-email-receipts');
@@ -112,7 +137,9 @@ void main() {
       await open(
         () => MaterialApp(
           theme: dark ? PulseTheme.dark : PulseTheme.light,
-          home: Scaffold(body: SingleChildScrollView(child: TxDetailSheet(tx: tx))),
+          home: Scaffold(
+            body: SingleChildScrollView(child: TxDetailSheet(tx: tx)),
+          ),
         ),
       );
       await shot('transaction-with-receipt');

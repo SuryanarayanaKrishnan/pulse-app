@@ -36,7 +36,9 @@ import '../../features/home/home_screen.dart';
 import '../../features/net_worth/wealth_screen.dart';
 import '../../features/onboarding/connect_screen.dart';
 import '../../features/onboarding/onboarding_screen.dart';
+import '../../features/settings/connections_screen.dart';
 import '../../features/settings/settings_screen.dart';
+import '../../features/settings/settings_sections.dart';
 import '../../features/splits/splits_screen.dart';
 import '../../features/wealth/document_screens.dart';
 import '../../features/wealth/fund_screens.dart';
@@ -58,6 +60,8 @@ abstract class Routes {
   static const wealth = '/wealth';
   static const activity = '/activity';
   static const settings = '/settings';
+  static const connections = '/settings/connections';
+  static String settingsSection(String s) => '/settings/$s';
   static const applePaySetup = '/apple-pay-setup';
   static const bankSmsSetup = '/bank-sms-setup';
   static const appleIngest = '/apple-ingest';
@@ -264,6 +268,16 @@ GoRouter buildRouter({
         path: Routes.settings,
         name: 'settings',
         builder: (c, s) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: Routes.connections,
+        name: 'connections',
+        builder: (c, s) => const ConnectionsScreen(),
+      ),
+      GoRoute(
+        path: '/settings/:section',
+        name: 'settings-section',
+        builder: (c, s) => SettingsSectionScreen(s.pathParameters['section']!),
       ),
       GoRoute(
         path: Routes.tour,

@@ -3,6 +3,8 @@ import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pulse/features/home/dashboard/dashboard_controller.dart';
+import 'package:pulse/features/home/dashboard/dashboard_layout.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:pulse/app.dart';
 import 'package:pulse/capture/kv_store.dart';
@@ -95,6 +97,12 @@ void main() {
       Brightness brightness = Brightness.light,
     }) async {
       PulseTheme.useGoogleFonts = false;
+      // Best moves is an opt-in Home widget: this Home has the full set.
+      final store = kv ?? MemoryKvStore();
+      store.data.putIfAbsent(
+        DashboardController.storageKey,
+        () => DashboardLayout.defaults().withLegacyExtras().encode(),
+      );
       tester.view.physicalSize = size * dpr;
       tester.view.devicePixelRatio = dpr;
       tester.platformDispatcher.textScaleFactorTestValue = textScale;
@@ -105,7 +113,7 @@ void main() {
         ProviderScope(
           overrides: [
             tourKvProvider.overrideWithValue(tourKv()),
-            kvStoreProvider.overrideWithValue(kv ?? MemoryKvStore()),
+            kvStoreProvider.overrideWithValue(store),
             // The shipped bundle, read straight from disk (no async asset load).
             cardCombosProvider.overrideWith(
               (ref) async => parseCombos(

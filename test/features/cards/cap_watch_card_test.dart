@@ -5,6 +5,7 @@ import 'package:pulse/core/engine/cap_tracker.dart';
 import 'package:pulse/core/engine/dates.dart';
 import 'package:pulse/core/engine/next_best.dart';
 import 'package:pulse/core/theme/theme.dart';
+import 'package:pulse/core/theme/tokens.dart';
 import 'package:pulse/data/cap_providers.dart';
 import 'package:pulse/features/cards/cap_watch_card.dart';
 
@@ -91,6 +92,17 @@ void main() {
     expect(find.text('Close to a cashback cap'), findsOneWidget);
     expect(find.textContaining('cashback left'), findsOneWidget);
     expect(find.byKey(const Key('cap_next_best')), findsNothing);
+  });
+
+  testWidgets('sits inside the screen gutters like the other home cards', (
+    tester,
+  ) async {
+    await _pump(tester, [_status(260)], null);
+    final rect = tester.getRect(find.byKey(const Key('cap_watch')));
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    expect(rect.left, Space.gutter);
+    expect(rect.right, screen.width - Space.gutter);
+    expect(rect.top, Space.md);
   });
 
   for (final b in Brightness.values) {

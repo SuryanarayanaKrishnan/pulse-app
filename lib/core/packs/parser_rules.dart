@@ -18,7 +18,11 @@ class RemoteSmsRule {
     if (raw is! Map) return null;
     final inst = raw['institution'];
     final pat = raw['pattern'];
-    if (inst is! String || inst.isEmpty || pat is! String || !pat.contains('{AMT}') || pat.length > 600) {
+    if (inst is! String ||
+        inst.isEmpty ||
+        pat is! String ||
+        !pat.contains('{AMT}') ||
+        pat.length > 600) {
       return null;
     }
     final dir = switch (raw['direction']) {

@@ -17,20 +17,38 @@ Future<LocalPulseRepository> _repo() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('test/fixtures/catalog/cards_small.json').readAsStringSync());
+  final catalog = CatalogService(
+    db: db,
+    bundled: () async =>
+        File('test/fixtures/catalog/cards_small.json').readAsStringSync(),
+  );
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db, clock: () => _now);
   addTearDown(pipeline.dispose);
-  final repo = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, clock: () => _now);
-  await repo.addCard(catalogId: 'emirates-nbd-skywards-infinite', last4: '1234', limit: 20000, statementDay: 1, dueDay: 25);
+  final repo = LocalPulseRepository(
+    db: db,
+    catalog: catalog,
+    pipeline: pipeline,
+    clock: () => _now,
+  );
+  await repo.addCard(
+    catalogId: 'emirates-nbd-skywards-infinite',
+    last4: '1234',
+    limit: 20000,
+    statementDay: 1,
+    dueDay: 25,
+  );
   for (final (i, place) in ['CARREFOUR, DUBAI', 'STARBUCKS, DUBAI'].indexed) {
-    await pipeline.ingest(IngestInput(
-      channel: TxnSource.sms,
-      rawText: 'Purchase of AED 45.00 with Credit Card ending 1234 at $place.',
-      sender: 'ENBD',
-      receivedAt: DateTime.utc(2026, 3, 12, 9, i),
-      externalId: 'r$i',
-    ));
+    await pipeline.ingest(
+      IngestInput(
+        channel: TxnSource.sms,
+        rawText:
+            'Purchase of AED 45.00 with Credit Card ending 1234 at $place.',
+        sender: 'ENBD',
+        receivedAt: DateTime.utc(2026, 3, 12, 9, i),
+        externalId: 'r$i',
+      ),
+    );
   }
   return repo;
 }
@@ -39,7 +57,11 @@ void main() {
   test('captured payments start unreviewed, typed ones are reviewed', () async {
     final r = await _repo();
     expect((await r.transactions()).every((t) => !t.reviewed), isTrue);
-    final manual = await r.addManualTransaction(merchant: 'Lunch', amount: 30, category: SpendCategory.dining);
+    final manual = await r.addManualTransaction(
+      merchant: 'Lunch',
+      amount: 30,
+      category: SpendCategory.dining,
+    );
     expect(manual.reviewed, isTrue);
   });
 
@@ -61,14 +83,20 @@ void main() {
     final a = txs.firstWhere((t) => t.merchant == 'Carrefour');
     final b = txs.firstWhere((t) => t.merchant == 'Starbucks');
     await r.recategorise(a.id, SpendCategory.shopping);
-    await r.recategoriseScoped(b.id, SpendCategory.entertainment, RecategoriseScope.once);
+    await r.recategoriseScoped(
+      b.id,
+      SpendCategory.entertainment,
+      RecategoriseScope.once,
+    );
     final after = await r.transactions();
     expect(after.every((t) => t.reviewed), isTrue);
   });
 
   test('a rule-made category is more confident than a bare guess', () async {
     final r = await _repo();
-    final before = (await r.transactions()).firstWhere((t) => t.merchant == 'Carrefour').confidence;
+    final before = (await r.transactions())
+        .firstWhere((t) => t.merchant == 'Carrefour')
+        .confidence;
     expect(before, lessThan(0.95));
   });
 }

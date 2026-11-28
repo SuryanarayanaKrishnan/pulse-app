@@ -292,7 +292,9 @@ final livePriceServiceProvider = Provider<LivePriceService>((ref) {
 });
 
 /// Stored end-of-day quotes (with the previous close) for the day change.
-final liveQuotesProvider = FutureProvider<Map<String, LiveQuote>>((ref) => ref.watch(livePriceServiceProvider).quotes());
+final liveQuotesProvider = FutureProvider<Map<String, LiveQuote>>(
+  (ref) => ref.watch(livePriceServiceProvider).quotes(),
+);
 
 final stockQuoteServiceProvider = Provider<StockQuoteService>(
   (ref) => StockQuoteService(Env.useApi ? ref.watch(dioProvider) : null),
@@ -550,6 +552,7 @@ final Provider<LocalStatementService?> localStatementServiceProvider =
 final statementPasswordsProvider = FutureProvider<List<StatementPassword>>(
   (ref) => ref.watch(statementPasswordStoreProvider).saved(),
 );
+
 /// The salary typed in by hand (amount + payday), if any.
 final manualSalaryProvider = FutureProvider<ManualSalary?>(
   (ref) => ref.watch(repositoryProvider).manualSalary(),

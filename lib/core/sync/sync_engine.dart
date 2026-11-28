@@ -14,7 +14,8 @@ class SyncException implements Exception {
   final String reason;
   final String message;
   @override
-  String toString() => 'Sync stopped ($reason)${message.isEmpty ? '' : ': $message'}';
+  String toString() =>
+      'Sync stopped ($reason)${message.isEmpty ? '' : ': $message'}';
 }
 
 class SyncReport {
@@ -78,7 +79,8 @@ class SyncEngine {
   String? get deviceId => _state?.deviceId;
 
   /// Runs one sync; a call made while one is running joins it.
-  Future<SyncReport> sync() => _running ??= _run().whenComplete(() => _running = null);
+  Future<SyncReport> sync() =>
+      _running ??= _run().whenComplete(() => _running = null);
 
   Future<SyncReport> _run() async {
     try {
@@ -87,7 +89,11 @@ class SyncEngine {
       throw SyncException('signed_out', e.message);
     }
     final state = _state ??= (await store.load()) ?? SyncState(_newDeviceId());
-    final codec = _codec ??= await SegmentCodec.forDataKey(_dataKey, purpose: keyPurpose, ns: namespace);
+    final codec = _codec ??= await SegmentCodec.forDataKey(
+      _dataKey,
+      purpose: keyPurpose,
+      ns: namespace,
+    );
     final report = SyncReport();
 
     if (state.bootstrapped) await _capture(state, report);
@@ -115,7 +121,8 @@ class SyncEngine {
   ) async {
     if (keys.isEmpty) return;
     final writes = [
-      for (final k in keys) RowWrite(k.table, k.id, state.materialize(k.table, k.id)),
+      for (final k in keys)
+        RowWrite(k.table, k.id, state.materialize(k.table, k.id)),
     ];
     final failed = await bridge.write(writes);
     report.rowsWritten += writes.length - failed.length;
@@ -124,7 +131,11 @@ class SyncEngine {
       ..addAll(failed);
   }
 
-  Future<void> _pull(SyncState state, SegmentCodec codec, SyncReport report) async {
+  Future<void> _pull(
+    SyncState state,
+    SegmentCodec codec,
+    SyncReport report,
+  ) async {
     final byDevice = <String, List<int>>{};
     for (final name in await transport.list(SegmentName.prefixOf(namespace))) {
       final p = SegmentName.parse(name, ns: namespace);
@@ -155,12 +166,18 @@ class SyncEngine {
           try {
             seg = await codec.decode(name, blob);
           } on BackupIntegrityError {
-            throw SyncException('integrity', 'A stored change failed its check.');
+            throw SyncException(
+              'integrity',
+              'A stored change failed its check.',
+            );
           } on FormatException {
             throw SyncException('integrity', 'A stored change is malformed.');
           }
           if (seg.schemaVersion > bridge.schemaVersion) {
-            throw const SyncException('too_new', 'Another device runs a newer version of Pulse.');
+            throw const SyncException(
+              'too_new',
+              'Another device runs a newer version of Pulse.',
+            );
           }
           for (final c in seg.changes) {
             state.clock.observe(c.hlc, _now());
@@ -180,7 +197,11 @@ class SyncEngine {
     }
   }
 
-  Future<void> _push(SyncState state, SegmentCodec codec, SyncReport report) async {
+  Future<void> _push(
+    SyncState state,
+    SegmentCodec codec,
+    SyncReport report,
+  ) async {
     while (true) {
       final fresh = state.inflight == null;
       final seg = state.nextSegment(maxPerSegment);
@@ -194,7 +215,10 @@ class SyncEngine {
           changes: seg.changes,
         ),
       );
-      await transport.write(SegmentName.of(state.deviceId, seg.seq, ns: namespace), bytes);
+      await transport.write(
+        SegmentName.of(state.deviceId, seg.seq, ns: namespace),
+        bytes,
+      );
       state.segmentPushed();
       report.pushedSegments++;
       report.pushedChanges += seg.changes.length;

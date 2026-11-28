@@ -45,10 +45,14 @@ class RemoteConfig {
     version: (j['version'] as num).toInt(),
     flags: {
       for (final e in ((j['flags'] as Map?) ?? const {}).entries)
-        e.key as String: RemoteFlag.fromJson(Map<String, Object?>.from(e.value as Map)),
+        e.key as String: RemoteFlag.fromJson(
+          Map<String, Object?>.from(e.value as Map),
+        ),
     },
     params: Map<String, Object?>.from((j['params'] as Map?) ?? const {}),
-    killSwitches: [for (final k in (j['kill_switches'] as List?) ?? const []) '$k'],
+    killSwitches: [
+      for (final k in (j['kill_switches'] as List?) ?? const []) '$k',
+    ],
     minSupportedBuild: (j['min_supported_build'] as num?)?.toInt() ?? 0,
   );
 }
@@ -88,7 +92,10 @@ Future<bool> verifyConfigSignature({
       utf8.encode(canonicalJson(payload)),
       signature: Signature(
         base64.decode(signatureB64),
-        publicKey: SimplePublicKey(base64.decode(publicKeyB64), type: KeyPairType.ed25519),
+        publicKey: SimplePublicKey(
+          base64.decode(publicKeyB64),
+          type: KeyPairType.ed25519,
+        ),
       ),
     );
   } on Object {
@@ -131,7 +138,9 @@ class RemoteConfigService {
   Future<void> load() async {
     _installId = await kv.read(_idKey) ?? '';
     if (_installId.isEmpty) {
-      _installId = randomId?.call() ?? DateTime.now().microsecondsSinceEpoch.toRadixString(36);
+      _installId =
+          randomId?.call() ??
+          DateTime.now().microsecondsSinceEpoch.toRadixString(36);
       await kv.write(_idKey, _installId);
     }
     final bundledCfg = await _parse(await (bundled ?? _bundledAsset)());
@@ -144,11 +153,14 @@ class RemoteConfigService {
     _config = best ?? _config;
   }
 
-  Future<String> _bundledAsset() => rootBundle.loadString('assets/config/remote_config.json');
+  Future<String> _bundledAsset() =>
+      rootBundle.loadString('assets/config/remote_config.json');
 
   Future<RemoteConfig?> _parse(String raw) async {
     try {
-      return RemoteConfig.fromJson(Map<String, Object?>.from(jsonDecode(raw) as Map));
+      return RemoteConfig.fromJson(
+        Map<String, Object?>.from(jsonDecode(raw) as Map),
+      );
     } on Object {
       return null;
     }
@@ -159,7 +171,9 @@ class RemoteConfigService {
   /// Key order: one baked into the build, else the one pinned on first
   /// contact (trust on first use), else - first fetch only - the key the
   /// server sent, which is then pinned if the signature matches it.
-  Future<Map<String, Object?>?> verifyEnvelope(Map<String, Object?> data) async {
+  Future<Map<String, Object?>?> verifyEnvelope(
+    Map<String, Object?> data,
+  ) async {
     final payload = Map<String, Object?>.from(data['payload'] as Map);
     final sig = data['signature'] as String?;
     final pinned = await kv.read(_pinKey);
@@ -167,7 +181,12 @@ class RemoteConfigService {
     final offered = data['public_key'] as String?;
     final candidate = key.isNotEmpty ? key : (offered ?? '');
     if (candidate.isNotEmpty) {
-      if (sig == null || !await verifyConfigSignature(payload: payload, signatureB64: sig, publicKeyB64: candidate)) {
+      if (sig == null ||
+          !await verifyConfigSignature(
+            payload: payload,
+            signatureB64: sig,
+            publicKeyB64: candidate,
+          )) {
         return null;
       }
       if (key.isEmpty) await kv.write(_pinKey, candidate);

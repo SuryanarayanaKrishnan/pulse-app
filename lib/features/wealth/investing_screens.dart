@@ -494,7 +494,7 @@ class _ConfirmBuySheetState extends ConsumerState<ConfirmBuySheet> {
             decoration: InputDecoration(
               hintText: 'Amount invested',
               prefixIcon: CurrencyPrefix(r.currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -714,7 +714,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
             decoration: InputDecoration(
               hintText: 'Average cost per share (optional)',
               prefixIcon: CurrencyPrefix(_currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           const SizedBox(height: Space.md),
@@ -726,7 +726,7 @@ class _AddHoldingSheetState extends ConsumerState<AddHoldingSheet> {
                   ? 'Price (blank = fetch live)'
                   : 'Current price',
               prefixIcon: CurrencyPrefix(_currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           const FieldLabel('Currency'),
@@ -1076,7 +1076,7 @@ class _AddRuleSheetState extends ConsumerState<AddRuleSheet> {
             decoration: InputDecoration(
               hintText: 'Amount each time',
               prefixIcon: CurrencyPrefix(_currency),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
             onChanged: (_) => setState(() {}),
           ),

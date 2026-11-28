@@ -8,7 +8,12 @@ import 'types.dart';
 
 /// One day of net worth. All minor units, liabilities positive.
 class NwPoint {
-  const NwPoint(this.date, this.assetsMinor, this.liabilitiesMinor, {this.estimated = false});
+  const NwPoint(
+    this.date,
+    this.assetsMinor,
+    this.liabilitiesMinor, {
+    this.estimated = false,
+  });
   final CalDate date;
   final int assetsMinor, liabilitiesMinor;
 
@@ -24,7 +29,8 @@ class NwPoint {
       other.liabilitiesMinor == liabilitiesMinor &&
       other.estimated == estimated;
   @override
-  int get hashCode => Object.hash(date, assetsMinor, liabilitiesMinor, estimated);
+  int get hashCode =>
+      Object.hash(date, assetsMinor, liabilitiesMinor, estimated);
 }
 
 enum NwRange {
@@ -49,10 +55,21 @@ List<NwPoint> pointsFor(List<NwPoint> all, NwRange range, CalDate today) {
   final days = range.days;
   if (days == null || sorted.isEmpty) return sorted;
   final start = today.addDays(-days);
-  final inside = [for (final p in sorted) if (p.date >= start && p.date <= today) p];
+  final inside = [
+    for (final p in sorted)
+      if (p.date >= start && p.date <= today) p,
+  ];
   final before = sorted.where((p) => p.date < start).lastOrNull;
   if (before != null) {
-    inside.insert(0, NwPoint(start, before.assetsMinor, before.liabilitiesMinor, estimated: before.estimated));
+    inside.insert(
+      0,
+      NwPoint(
+        start,
+        before.assetsMinor,
+        before.liabilitiesMinor,
+        estimated: before.estimated,
+      ),
+    );
   }
   return inside;
 }
@@ -130,7 +147,14 @@ List<NwPoint> backfill({
     liabilities += card[d] ?? 0;
     final prev = d.addDays(-1);
     if (prev <= stop && prev >= limit) {
-      out.add(NwPoint(prev, assets, liabilities < 0 ? 0 : liabilities, estimated: true));
+      out.add(
+        NwPoint(
+          prev,
+          assets,
+          liabilities < 0 ? 0 : liabilities,
+          estimated: true,
+        ),
+      );
     }
   }
   out.sort((a, b) => a.date.compareTo(b.date));
@@ -138,4 +162,5 @@ List<NwPoint> backfill({
 }
 
 /// Share of [part] in [whole] as a fraction 0..1 (0 when whole is 0).
-double share(int part, int whole) => whole <= 0 ? 0 : (part / whole).clamp(0, 1).toDouble();
+double share(int part, int whole) =>
+    whole <= 0 ? 0 : (part / whole).clamp(0, 1).toDouble();
