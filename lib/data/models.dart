@@ -341,6 +341,8 @@ class CreditCard {
     this.catalogId,
     this.art,
     this.hasDueDate = true,
+    this.statementDay,
+    this.dueDay,
   });
 
   final String id;
@@ -352,6 +354,9 @@ class CreditCard {
   /// False when the card has no due day set: [dueDate] is then a placeholder
   /// and must not be shown or counted in upcoming dues.
   final bool hasDueDate;
+
+  /// Day of the month the statement closes and the payment falls due, when set.
+  final int? statementDay, dueDay;
 
   /// The catalog product this card is, when known; picks the card's art.
   final String? catalogId;
@@ -393,7 +398,7 @@ class CreditCard {
   double get utilisation => limit == 0 ? 0 : balance / limit;
   double get totalDue => statementBalance ?? balance;
 
-  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate, String? last4, double? limit, bool? owned}) =>
+  CreditCard copyWith({double? balance, Map<SpendCategory, RewardCap>? caps, bool? hasDueDate, String? last4, double? limit, bool? owned, int? statementDay, int? dueDay}) =>
       CreditCard(
         id: id,
         issuer: issuer,
@@ -420,6 +425,8 @@ class CreditCard {
         catalogId: catalogId,
         art: art,
         hasDueDate: hasDueDate ?? this.hasDueDate,
+        statementDay: statementDay ?? this.statementDay,
+        dueDay: dueDay ?? this.dueDay,
       );
 }
 

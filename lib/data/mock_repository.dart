@@ -279,6 +279,28 @@ class MockPulseRepository with LocalOnlyFeatures implements PulseRepository, Rec
     return _d(card);
   }
   @override
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  }) async {
+    _owned = [
+      for (final c in _owned)
+        if (c.id == accountId)
+          c.copyWith(
+            last4: last4 == null || last4.isEmpty ? '----' : last4,
+            limit: limit ?? 0,
+            statementDay: statementDay,
+            dueDay: dueDay,
+          )
+        else
+          c,
+    ];
+  }
+
+  @override
   Future<List<CreditCard>> cardCatalog() => _d(_catalog);
   @override
   Future<CreditCard> addCustomCatalogCard({required String issuer, required String name}) =>

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
@@ -951,7 +952,7 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
       dueDate: due,
       statementDate: stmt,
       cycle: cycle,
-    );
+    ).copyWith(statementDay: c.account.statementDay, dueDay: c.account.dueDay == 0 ? null : c.account.dueDay);
   }
 
   @override
@@ -967,9 +968,42 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
   }
 
   @override
-  Future<List<CreditCard>> myCards() async => [
-    for (final c in await loadOwnedCards(db)) await _ownedToModel(c),
-  ];
+  Future<List<CreditCard>> myCards() async {
+    unawaited(fillCardsFromEmailedStatements());
+    return [for (final c in await loadOwnedCards(db)) await _ownedToModel(c)];
+  }
+
+  DateTime? _lastEmailFill;
+
+  /// Emailed statements (Gmail) are read on the server; their summary fills a
+  /// card's empty limit, statement day and due day the same way an uploaded
+  /// statement does. Best effort and at most every ten minutes: offline or
+  /// signed out, it does nothing.
+  Future<void> fillCardsFromEmailedStatements({bool force = false}) async {
+    final server = shared;
+    if (server == null) return;
+    final now = _clock();
+    final last = _lastEmailFill;
+    if (!force && last != null && now.difference(last) < const Duration(minutes: 10)) return;
+    _lastEmailFill = now;
+    try {
+      for (final st in await server.statements()) {
+        if (st.source != 'gmail' || st.parse != ParseStatus.parsed) continue;
+        final m = st.summary;
+        int? day(Object? iso) => iso is String ? DateTime.tryParse(iso)?.day : null;
+        await fillCardFromSummary(
+          db,
+          last4: m['last4'] as String?,
+          institution: st.institution,
+          limitMinor: (m['credit_limit_minor'] as num?)?.toInt(),
+          statementDay: day(m['statement_date']),
+          dueDay: day(m['due_date']),
+        );
+      }
+    } on Object {
+      // Offline, signed out or a bad payload: the cards stay as they are.
+    }
+  }
 
   @override
   Future<List<CreditCard>> cardCatalog() async {
@@ -1052,6 +1086,36 @@ class LocalPulseRepository implements PulseRepository, Recategoriser, NetWorthHi
     });
     await pipeline.reprocessPending();
     return (await myCards()).firstWhere((c) => c.id == accountId);
+  }
+
+  @override
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  }) async {
+    if (last4 != null && last4.isNotEmpty && !RegExp(r'^\d{4}$').hasMatch(last4)) {
+      throw const ApiException(message: 'Enter all four digits, or leave this empty.', code: 'invalid_last4');
+    }
+    for (final d in [statementDay, dueDay]) {
+      if (d != null && (d < 1 || d > 31)) {
+        throw const ApiException(message: 'A day of the month is 1 to 31.', code: 'invalid_day');
+      }
+    }
+    if (limit != null && limit < 0) {
+      throw const ApiException(message: 'The limit cannot be negative.', code: 'invalid_limit');
+    }
+    await (db.update(db.accounts)..where((a) => a.id.equals(accountId))).write(
+      AccountsCompanion(
+        last4: Value(last4 == null || last4.isEmpty ? null : last4),
+        creditLimitMinor: Value(limit == null ? null : (limit * 100).round()),
+        statementDay: Value(statementDay),
+        dueDay: Value(dueDay),
+      ),
+    );
+    await pipeline.reprocessPending();
   }
 
   @override

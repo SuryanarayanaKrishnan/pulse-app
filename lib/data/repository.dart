@@ -106,6 +106,16 @@ abstract class PulseRepository {
   /// Removes a card from the wallet (its transactions stay).
   Future<void> removeCard(String id);
 
+  /// Replaces a card's editable details. An empty value clears that detail
+  /// (the next statement can fill it again).
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  });
+
   /// Sets the last four digits of a card and replays alerts that were waiting for it.
   Future<void> setCardLast4(String accountId, String last4);
 
@@ -284,6 +294,15 @@ mixin LocalOnlyFeatures implements PulseRepository {
 
   @override
   Future<void> removeCard(String id) => _unsupported('Removing cards');
+
+  @override
+  Future<void> updateCardDetails(
+    String accountId, {
+    String? last4,
+    double? limit,
+    int? statementDay,
+    int? dueDay,
+  }) => _unsupported('Editing cards');
 
   @override
   Future<void> setCardLast4(String accountId, String last4) => _unsupported('Editing cards');

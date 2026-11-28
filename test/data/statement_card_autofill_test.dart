@@ -6,7 +6,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pdfrx/pdfrx.dart' show pdfrxInitialize;
 import 'package:pulse/core/engine/statement_parser.dart';
 import 'package:pulse/data/local/database.dart';
+import 'package:pulse/data/local/catalog_service.dart';
+import 'package:pulse/data/local/ingest_pipeline.dart';
+import 'package:pulse/data/local/local_repository.dart';
 import 'package:pulse/data/local/statement_service.dart';
+import 'package:pulse/data/mock_repository.dart';
+import 'package:pulse/data/statements.dart';
 import 'package:pulse/data/statement_password_store.dart';
 
 /// A card added with only its name gets limit, statement day and due day from
@@ -25,7 +30,12 @@ void main() {
   });
   tearDown(() => db.close());
 
-  Future<void> card(String id, {String? last4, int? limit, int? statementDay}) => db
+  Future<void> card(
+    String id, {
+    String? last4,
+    int? limit,
+    int? statementDay,
+  }) => db
       .into(db.accounts)
       .insert(
         AccountsCompanion.insert(
@@ -40,20 +50,25 @@ void main() {
       );
 
   Future<void> upload() => svc.upload(
-    bytes: File('test/fixtures/statements/synthetic_card_open.pdf').readAsBytesSync(),
+    bytes: File('test/fixtures/statements/synthetic_card_open.pdf')
+        .readAsBytesSync(),
     filename: 's.pdf',
   );
 
-  Future<AccountRow> row(String id) => (db.select(db.accounts)..where((a) => a.id.equals(id))).getSingle();
+  Future<AccountRow> row(String id) =>
+      (db.select(db.accounts)..where((a) => a.id.equals(id))).getSingle();
 
-  test('matching digits: empty limit and days are filled from the statement', () async {
-    await card('a', last4: '1234');
-    await upload();
-    final a = await row('a');
-    expect(a.creditLimitMinor, 2000000);
-    expect(a.statementDay, 25);
-    expect(a.dueDay, 19);
-  });
+  test(
+    'matching digits: empty limit and days are filled from the statement',
+    () async {
+      await card('a', last4: '1234');
+      await upload();
+      final a = await row('a');
+      expect(a.creditLimitMinor, 2000000);
+      expect(a.statementDay, 25);
+      expect(a.dueDay, 19);
+    },
+  );
 
   test('a value the person entered is kept', () async {
     await card('a', last4: '1234', limit: 5000000, statementDay: 3);
@@ -64,13 +79,16 @@ void main() {
     expect(a.dueDay, 19);
   });
 
-  test('the only card of that bank without digits gets the digits too', () async {
-    await card('a');
-    await upload();
-    final a = await row('a');
-    expect(a.last4, '1234');
-    expect(a.creditLimitMinor, 2000000);
-  });
+  test(
+    'the only card of that bank without digits gets the digits too',
+    () async {
+      await card('a');
+      await upload();
+      final a = await row('a');
+      expect(a.last4, '1234');
+      expect(a.creditLimitMinor, 2000000);
+    },
+  );
 
   test('two digit-less cards of the bank: nothing is guessed', () async {
     await card('a');
@@ -87,7 +105,74 @@ void main() {
   });
 
   test('SIB summary row carries the limit', () {
-    final text = File('test/fixtures/statements/layouts/sib_card.txt').readAsStringSync();
+    final text = File('test/fixtures/statements/layouts/sib_card.txt')
+        .readAsStringSync();
     expect(parseStatement(text, institution: 'sib')!.creditLimitMinor, 1000000);
   });
+
+  group('emailed statement (read on the server)', () {
+    late LocalPulseRepository repo;
+
+    Future<void> setUpRepo(List<Statement> fromServer) async {
+      final catalog = CatalogService(
+        db: db,
+        bundled: () async =>
+            File('assets/catalog/cards.json').readAsStringSync(),
+      );
+      await catalog.loadBundled();
+      final pipeline = IngestPipeline(db, clock: DateTime.now);
+      addTearDown(pipeline.dispose);
+      repo = LocalPulseRepository(
+        db: db,
+        catalog: catalog,
+        pipeline: pipeline,
+        clock: DateTime.now,
+        shared: _Server(fromServer),
+      );
+    }
+
+    Statement gmail({String source = 'gmail'}) => Statement(
+      id: 's1',
+      institution: 'enbd',
+      accountLabel: 'ENBD',
+      parse: ParseStatus.parsed,
+      recon: ReconStatus.matched,
+      source: source,
+      summary: {
+        'last4': '1234',
+        'credit_limit_minor': 2000000,
+        'statement_date': '2026-03-25',
+        'due_date': '2026-04-19',
+      },
+    );
+
+    test('its summary fills the card the same way', () async {
+      await card('a', last4: '1234');
+      await setUpRepo([gmail()]);
+      await repo.fillCardsFromEmailedStatements(force: true);
+      final a = await row('a');
+      expect((a.creditLimitMinor, a.statementDay, a.dueDay), (2000000, 25, 19));
+    });
+
+    test('an uploaded-source statement on the server is not used', () async {
+      await card('a', last4: '1234');
+      await setUpRepo([gmail(source: 'upload')]);
+      await repo.fillCardsFromEmailedStatements(force: true);
+      expect((await row('a')).creditLimitMinor, isNull);
+    });
+
+    test('a server error leaves the card alone', () async {
+      await card('a', last4: '1234');
+      await setUpRepo([]);
+      await repo.fillCardsFromEmailedStatements(force: true);
+      expect((await row('a')).creditLimitMinor, isNull);
+    });
+  });
+}
+
+class _Server extends MockPulseRepository {
+  _Server(this._statements) : super(latency: Duration.zero);
+  final List<Statement> _statements;
+  @override
+  Future<List<Statement>> statements() async => _statements;
 }
