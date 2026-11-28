@@ -1220,7 +1220,11 @@ class LocalPulseRepository
     return CreditCard(
       id: id,
       issuer: issuer,
-      name: name,
+      // "Tabby" + "Tabby Card" would read "Tabby Tabby Card": show it once.
+      name: name.toLowerCase().startsWith('${issuer.toLowerCase()} ') &&
+              name.length > issuer.length + 1
+          ? name.substring(issuer.length + 1)
+          : name,
       last4: last4,
       network: _network(cat.network),
       gradient: _cardGradients[index % _cardGradients.length],
