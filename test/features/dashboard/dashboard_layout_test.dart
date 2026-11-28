@@ -225,4 +225,24 @@ void main() {
       }
     },
   );
+
+  group('calm default', () {
+    test(
+      'a new install shows only safe to spend, everything else is opt-in',
+      () {
+        final l = DashboardLayout.defaults();
+        expect(l.active.widgets.map((w) => w.kind), [DashKind.safeToSpend]);
+        expect(l.active.available, contains(DashKind.review));
+        expect(l.active.available, contains(DashKind.health));
+      },
+    );
+
+    test('legacy extras keep an older Home looking the same, once', () {
+      final once = DashboardLayout.defaults().withLegacyExtras();
+      final kinds = once.active.widgets.map((w) => w.kind).toList();
+      expect(kinds.first, DashKind.safeToSpend);
+      expect(kinds, containsAll([DashKind.review, DashKind.health]));
+      expect(once.withLegacyExtras(), once, reason: 'idempotent');
+    });
+  });
 }

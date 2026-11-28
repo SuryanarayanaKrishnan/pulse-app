@@ -95,9 +95,16 @@ class ConnectionsScreen extends ConsumerWidget {
                   subtitle: ref
                       .watch(captureProgressProvider)
                       .maybeWhen(
-                        data: (d) => '${d.length} of 4 working',
+                        data: (d) => d.length >= 4
+                            ? 'All 4 working'
+                            : '${d.length} of 4 working. Finish setup so payments are not missed.',
                         orElse: () => 'Shortcuts that send alerts to Pulse',
                       ),
+                  subtitleColor:
+                      (ref.watch(captureProgressProvider).value?.length ?? 4) <
+                          4
+                      ? c.warning
+                      : null,
                   chevron: true,
                   onTap: () => context.push(Routes.applePaySetup),
                 ),

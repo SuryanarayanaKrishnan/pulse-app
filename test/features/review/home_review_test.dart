@@ -10,6 +10,8 @@ import 'package:pulse/core/widgets/widgets.dart';
 import 'package:pulse/data/mock_repository.dart';
 import 'package:pulse/data/providers.dart';
 import 'package:pulse/features/auth/session.dart';
+import 'package:pulse/features/home/dashboard/dashboard_controller.dart';
+import 'package:pulse/features/home/dashboard/dashboard_layout.dart';
 
 late MockPulseRepository repo;
 
@@ -28,7 +30,12 @@ Future<void> pumpHome(WidgetTester t, {bool allReviewed = false}) async {
       overrides: [
         repositoryProvider.overrideWithValue(repo),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
-        kvStoreProvider.overrideWithValue(MemoryKvStore()),
+        kvStoreProvider.overrideWithValue(
+          MemoryKvStore()
+            ..data[DashboardController.storageKey] = DashboardLayout.defaults()
+                .withLegacyExtras()
+                .encode(),
+        ),
         sessionProvider.overrideWith(
           (ref) => SessionController(
             onboarded: true,
@@ -55,6 +62,10 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('$n to review'), findsOneWidget);
+    // Lift it clear of the floating tab bar before tapping.
+    await t.ensureVisible(find.text('$n to review'));
+    await t.drag(find.byType(Scrollable).first, const Offset(0, -120));
+    await t.pumpAndSettle();
     await t.tap(find.text('$n to review'));
     await t.pumpAndSettle();
     expect(find.text('$n left'), findsOneWidget);
