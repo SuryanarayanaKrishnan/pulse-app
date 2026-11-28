@@ -12,6 +12,7 @@ import 'package:crypto/crypto.dart';
 import 'dates.dart';
 import 'fuzzy.dart';
 import 'merchants.dart';
+import 'superapps.dart';
 import 'types.dart';
 
 const dateWindowDays = 3;
@@ -29,6 +30,8 @@ int? merchantScore(String? a, String? b) {
   if (a == null || a.isEmpty || b == null || b.isEmpty) return null;
   final ea = matchEntry(a), eb = matchEntry(b);
   if (ea != null && identical(ea, eb)) return 100;
+  // "NOON.COM" and "Noon Food" are one merchant seen through two channels.
+  if (sameFamily(a, b)) return 100;
   final ca = cleanDescriptor(a).toLowerCase();
   final cb = cleanDescriptor(b).toLowerCase();
   if (ca.isEmpty || cb.isEmpty) return null;

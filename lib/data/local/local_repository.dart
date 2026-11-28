@@ -36,7 +36,8 @@ import '../rules.dart';
 import '../statements.dart';
 import '../../core/engine/card_value.dart';
 import 'card_cycles.dart';
-import 'card_cycles.dart' as cc
+import 'card_cycles.dart'
+    as cc
     show separateCapCatalogs, setCapShared, partnerCapCatalogs, setPartnerHolds;
 import 'card_value_report.dart';
 import 'catalog_service.dart';
@@ -193,6 +194,7 @@ class LocalPulseRepository
         learned: t.tags.contains('"${eng.learnedTag}"'),
       ),
       learned: t.tags.contains('"${eng.learnedTag}"'),
+      guess: t.tags.contains('"guess_category"'),
     );
   }
 

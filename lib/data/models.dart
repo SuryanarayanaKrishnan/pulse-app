@@ -170,6 +170,7 @@ class Transaction {
     this.pendingHold = false,
     this.note,
     this.learned = false,
+    this.guess = false,
   });
 
   final String id;
@@ -178,6 +179,10 @@ class Transaction {
   /// The category was filled in from this person's own earlier choice for the
   /// same merchant (not a rule, not a default).
   final bool learned;
+
+  /// The category is a best guess for a super-app (Noon, Careem...) and
+  /// the row shows one-tap category chips until it is confirmed.
+  final bool guess;
 
   /// Your own note on this payment. Null when there is none.
   final String? note;
@@ -241,6 +246,8 @@ class Transaction {
     receiptNotes: receiptNotes,
     receiptRef: receiptRef,
     pendingHold: pendingHold,
+    learned: learned,
+    guess: guess,
     note: clearNote ? null : (note ?? this.note),
   );
 }

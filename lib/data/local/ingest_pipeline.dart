@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/engine/card_value.dart';
 import '../../core/engine/dates.dart';
 import '../../core/engine/dedupe.dart';
+import '../../core/engine/habit_model.dart';
 import '../../core/engine/holds.dart';
 import '../../core/engine/institutions.dart';
 import '../digit_suggestion.dart';
@@ -17,6 +18,7 @@ import '../../core/engine/rewards.dart';
 import '../../core/engine/rule_engine.dart';
 import '../../core/engine/salary.dart';
 import '../../core/engine/sms_parser.dart';
+import '../../core/engine/superapps.dart';
 import '../../core/engine/types.dart';
 import 'card_cycles.dart';
 import 'database.dart';
@@ -749,8 +751,42 @@ class IngestPipeline {
         ...(dupe.sources.isEmpty ? [dupe.source.wire] : dupe.sources),
         channel.wire,
       }.toList();
-      await (db.update(db.transactions)..where((t) => t.id.equals(dupe.id)))
-          .write(TransactionsCompanion(sources: Value(jsonEncode(sources))));
+      final row = await (db.select(
+        db.transactions,
+      )..where((t) => t.id.equals(dupe.id))).getSingleOrNull();
+      final up = mergeUpgrade(
+        existingMerchant: dupe.merchantNormalized ?? dupe.merchantRaw,
+        incomingMerchant: p.merchantRaw,
+        existingReviewed: row?.reviewed ?? true,
+      );
+      String? upCat;
+      if (up.categorySlug != null) {
+        upCat =
+            (await (db.select(db.categories)
+                      ..where((c) => c.slug.equals(up.categorySlug!)))
+                    .getSingleOrNull())
+                ?.id;
+      }
+      var tags = row == null
+          ? <Object?>[]
+          : (jsonDecode(row.tags) as List).cast<Object?>();
+      if (upCat != null)
+        tags = [
+          for (final t in tags)
+            if (t != guessTag) t,
+        ];
+      await (db.update(
+        db.transactions,
+      )..where((t) => t.id.equals(dupe.id))).write(
+        TransactionsCompanion(
+          sources: Value(jsonEncode(sources)),
+          merchantNormalized: up.merchantName == null
+              ? const Value.absent()
+              : Value(up.merchantName),
+          categoryId: upCat == null ? const Value.absent() : Value(upCat),
+          tags: upCat == null ? const Value.absent() : Value(jsonEncode(tags)),
+        ),
+      );
       await _markRaw(rawId, 'parsed', txId: dupe.id);
       return IngestOutcome(IngestStatus.merged, transactionId: dupe.id);
     }
@@ -768,6 +804,34 @@ class IngestPipeline {
       ),
     );
     var categoryId = enrichment.categoryId;
+    final tagList = [...enrichment.tags, if (asHold) holdTag];
+    // A super-app (Noon, Careem...) names no sub-service in a bank text: use
+    // an explicit hint, then this person's habit for that size of payment,
+    // and otherwise mark the category a guess so the row offers one-tap chips.
+    final sa = superAppFor(p.merchantRaw);
+    if (sa != null &&
+        direction == Direction.debit &&
+        enrichment.ruleId == null) {
+      final cats = await db.select(db.categories).get();
+      String? idFor(String slug) =>
+          cats.where((c) => c.slug == slug).firstOrNull?.id;
+      final hint = hintFrom(p.merchantRaw);
+      final habit = memory?.habits.predict(
+        sa.key,
+        p.amountMinor,
+        dubaiHour(postedAt),
+      );
+      if (hint != null && idFor(hint.category) != null) {
+        categoryId = idFor(hint.category);
+      } else if (habit != null && idFor(habit.category) != null) {
+        categoryId = idFor(habit.category);
+        tagList.add(learnedTag);
+        unawaited(memory?.bump(autoApplied: 1) ?? Future<void>.value());
+      } else {
+        tagList.add(guessTag);
+        unawaited(memory?.bump(chipsShown: 1) ?? Future<void>.value());
+      }
+    }
     final salary = detectSalary(p.merchantRaw, direction, p.amountMinor, text);
     if (salary != null && categoryId == null) categoryId = 'salary';
 
@@ -788,7 +852,7 @@ class IngestPipeline {
             source: channel.wire,
             externalHash: const Value.absent(),
             excludeFromBudget: Value(enrichment.excludeFromBudget || asHold),
-            tags: Value(jsonEncode([...enrichment.tags, if (asHold) holdTag])),
+            tags: Value(jsonEncode(tagList)),
             sources: Value(jsonEncode([channel.wire])),
             appliedRuleId: Value(enrichment.ruleId),
           ),

@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../capture/kv_store.dart';
 import '../engine/fuzzy.dart' as fuzzy;
+import '../engine/habit_model.dart';
 import '../engine/merchants.dart' show merchantKey, normalizeMerchant;
 
 /// Memory is used from this confidence up (two agreeing confirmations, or one
@@ -98,6 +99,8 @@ class MerchantMemory extends ChangeNotifier {
   /// Reads what was saved. A damaged value is dropped, never thrown.
   Future<void> load() async {
     try {
+      habits.load(await _kv.read(habitsKey));
+      stats.load(await _kv.read(statsKey));
       final raw = await _kv.read(storageKey);
       _entries.clear();
       if (raw != null && raw.isNotEmpty) {
@@ -145,6 +148,53 @@ class MerchantMemory extends ChangeNotifier {
     await _save();
   }
 
+  /// How this person uses super-apps (Noon, Careem...), by payment size and
+  /// time of day. Saved next to the merchant votes, on this phone only.
+  final HabitModel habits = HabitModel();
+
+  static const habitsKey = 'learning.super_app_habits';
+  static const statsKey = 'learning.super_app_stats';
+
+  /// Counts of chips shown, tapped and corrected, for retuning from real use.
+  final HabitStats stats = HabitStats();
+
+  /// Adds to a counter and saves. Never throws.
+  Future<void> bump({
+    int chipsShown = 0,
+    int chipTaps = 0,
+    int topChipTaps = 0,
+    int autoApplied = 0,
+    int autoCorrected = 0,
+  }) async {
+    stats.chipsShown += chipsShown;
+    stats.chipTaps += chipTaps;
+    stats.topChipTaps += topChipTaps;
+    stats.autoApplied += autoApplied;
+    stats.autoCorrected += autoCorrected;
+    try {
+      await _kv.write(statsKey, stats.encode());
+    } on Object catch (e) {
+      debugPrint('Habit stats not saved: $e');
+    }
+  }
+
+  /// The person confirmed [category] for a payment at a super-app. [weight]
+  /// is 1 for a tap on a chip, 2 for a deliberate fix.
+  Future<void> confirmHabit(
+    String app,
+    int amountMinor,
+    DateTime when,
+    String category, {
+    double weight = 1,
+  }) async {
+    habits.confirm(app, amountMinor, dubaiHour(when), category, weight: weight);
+    try {
+      await _kv.write(habitsKey, habits.encode());
+    } on Object catch (e) {
+      debugPrint('Habits not saved: $e');
+    }
+  }
+
   /// The entry as stored, for undo. A copy.
   MemoryEntry? snapshot(String? merchant) => _entries[keyFor(merchant)]?.copy();
 
@@ -164,6 +214,12 @@ class MerchantMemory extends ChangeNotifier {
 
   Future<void> clear() async {
     _entries.clear();
+    habits.clear();
+    try {
+      await _kv.write(habitsKey, '');
+    } on Object {
+      // ignore
+    }
     await _save();
   }
 
