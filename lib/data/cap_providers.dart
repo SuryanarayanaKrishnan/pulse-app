@@ -68,6 +68,24 @@ CardCapStatus _fromModel(CreditCard c, CalDate start, CalDate end) {
   );
 }
 
+/// Catalog products whose cap sharing the user turned off. Empty by default:
+/// a primary and its supplementary card pool one cap.
+final separateCapCatalogsProvider = FutureProvider<Set<String>>((ref) async {
+  final repo = ref.watch(repositoryProvider);
+  if (repo is CapShareSettings) {
+    return (repo as CapShareSettings).separateCapCatalogs();
+  }
+  return <String>{};
+});
+
+Future<void> setCapShared(WidgetRef ref, String catalogId, bool shared) async {
+  final repo = ref.read(repositoryProvider);
+  if (repo is! CapShareSettings) return;
+  await (repo as CapShareSettings).setCapShared(catalogId, shared);
+  ref.invalidate(separateCapCatalogsProvider);
+  ref.invalidate(capSnapshotProvider);
+}
+
 /// Combos the user holds at least two cards of, with their legs' caps added.
 final capStacksProvider = FutureProvider<List<(String, StackCapStatus)>>((
   ref,

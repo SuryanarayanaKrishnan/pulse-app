@@ -59,6 +59,56 @@ Future<List<OwnedCard>> loadOwnedCards(PulseDatabase db) async {
   return out;
 }
 
+/// Setting key: JSON list of catalog card ids whose caps are NOT shared
+/// between cards of the same product in the wallet.
+const capSeparateKey = 'caps.separate_catalogs';
+
+Future<Set<String>> separateCapCatalogs(PulseDatabase db) async {
+  try {
+    final raw = await db.setting(capSeparateKey);
+    if (raw == null) return {};
+    return {for (final x in jsonDecode(raw) as List) '$x'};
+  } on Object {
+    return {};
+  }
+}
+
+Future<void> setCapShared(
+  PulseDatabase db,
+  String catalogId,
+  bool shared,
+) async {
+  final cur = await separateCapCatalogs(db);
+  shared ? cur.remove(catalogId) : cur.add(catalogId);
+  await db.putSetting(capSeparateKey, jsonEncode(cur.toList()..sort()));
+}
+
+/// Accounts whose spend counts toward [card]'s caps. Partnership mode: a
+/// primary card and its supplementary card are two wallet entries of the same
+/// catalog product; the issuer pays one cap to the primary's account, so
+/// their spend is pooled unless the user turned sharing off for that product.
+/// Always contains the card's own account.
+Future<Set<String>> capAccountIds(PulseDatabase db, OwnedCard card) async {
+  final own = card.account.id;
+  if ((await separateCapCatalogs(db)).contains(card.catalog.id)) return {own};
+  final rows =
+      await (db.select(db.userCards)..where(
+            (u) =>
+                u.catalogCardId.equals(card.catalog.id) &
+                u.deletedAt.isNull() &
+                u.accountId.isNotNull(),
+          ))
+          .get();
+  final ids = {for (final r in rows) r.accountId!};
+  if (ids.length < 2) return {own};
+  final live =
+      await (db.select(db.accounts)..where(
+            (a) => a.id.isIn(ids.toList()) & a.deletedAt.isNull(),
+          ))
+          .get();
+  return {own, for (final a in live) a.id};
+}
+
 /// One card's spends in the reward cycle around [today], oldest first, with
 /// the cycle's dates and basis (calendar or statement, see [resolveCycle]).
 Future<({List<Spend> spends, CalDate start, CalDate end, CycleBasis basis})>
@@ -75,11 +125,12 @@ cycleSpends(
   );
   final start = atDate(from).subtract(const Duration(hours: 12));
   final end = atDate(to).add(const Duration(hours: 12));
+  final accounts = (await capAccountIds(db, card)).toList();
   final rows =
       await (db.select(db.transactions)
             ..where(
               (t) =>
-                  t.accountId.equals(card.account.id) &
+                  t.accountId.isIn(accounts) &
                   t.deletedAt.isNull() &
                   t.direction.equals('debit') &
                   t.currency.equals('AED') &
@@ -128,7 +179,9 @@ Future<List<CardCapStatus>> capStatuses(
   for (final c in cards)
     await () async {
       final cy = await cycleSpends(db, c, today);
+      final group = (await capAccountIds(db, c)).toList()..sort();
       return cardCapStatus(
+        sharedWith: group.length > 1 ? group : const [],
         cardId: c.account.id,
         catalogId: c.catalog.id,
         title: c.title,

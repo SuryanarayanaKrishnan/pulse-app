@@ -34,3 +34,11 @@ class CapSnapshot {
 abstract interface class CapSource {
   Future<CapSnapshot> capSnapshot();
 }
+
+/// Partnership mode: whether cards of the same product in the wallet (a
+/// primary and a supplementary) pool their spend under one cashback cap.
+abstract interface class CapShareSettings {
+  /// Catalog ids the user turned sharing off for.
+  Future<Set<String>> separateCapCatalogs();
+  Future<void> setCapShared(String catalogId, bool shared);
+}

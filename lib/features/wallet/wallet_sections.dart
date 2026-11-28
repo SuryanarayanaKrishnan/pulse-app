@@ -8,6 +8,7 @@ import '../../core/theme/theme.dart';
 import '../../core/theme/tokens.dart';
 import '../../core/utils/money.dart';
 import '../../core/widgets/widgets.dart';
+import '../../data/cap_providers.dart';
 import '../../data/card_ranking.dart';
 import '../../data/models.dart';
 import '../../data/providers.dart';
@@ -209,6 +210,7 @@ class CardDetailBody extends ConsumerWidget {
             ),
           ],
         ),
+        _SharedCapRow(card),
         CardValueSection(card.id),
         const SectionHeader('Payment'),
         PaymentDetails(card),
@@ -286,3 +288,42 @@ Future<void> openAccountDetail(
   title: (i) => accounts[i].label,
   sections: (_, i) => [AccountDetailBody(accounts[i])],
 );
+
+/// Partnership mode: when the wallet holds two cards of this product (a
+/// primary and its supplementary), one switch decides whether their spend
+/// counts toward the same cashback cap.
+class _SharedCapRow extends ConsumerWidget {
+  const _SharedCapRow(this.card);
+  final CreditCard card;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final id = card.catalogId;
+    if (id == null) return const SizedBox.shrink();
+    final cards = ref.watch(myCardsProvider).value ?? const <CreditCard>[];
+    if (cards.where((c) => c.catalogId == id).length < 2) {
+      return const SizedBox.shrink();
+    }
+    final separate = ref.watch(separateCapCatalogsProvider).value ?? const {};
+    final shared = !separate.contains(id);
+    final c = context.pc;
+    return RowGroup(
+      indent: ListRow.leadingInset,
+      children: [
+        SwitchListTile.adaptive(
+          key: const Key('shared_cap_switch'),
+          secondary: IconWell(Icons.people_outline_rounded, color: c.calm),
+          title: const Text('Share cashback cap with the other card'),
+          subtitle: Text(
+            shared
+                ? 'Both cards\' spend counts toward one cap, as the bank '
+                      'credits cashback to the primary account'
+                : 'Each card has its own cap',
+          ),
+          value: shared,
+          onChanged: (v) => setCapShared(ref, id, v),
+        ),
+      ],
+    );
+  }
+}
