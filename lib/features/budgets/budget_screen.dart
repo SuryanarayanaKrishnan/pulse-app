@@ -224,83 +224,74 @@ class _Body extends ConsumerWidget {
             // With no budget yet, building or importing one is the whole point.
             initiallyOpen: o.planned == 0,
             primary: [
-              ListRow(
-                leading: const IconWell(Icons.category_outlined),
-                title: 'Categories & budgets',
-                subtitle: 'Add your own, set budgets and icons',
-                chevron: true,
+              SummaryTile.link(
+                icon: Icons.category_outlined,
+                label: 'Categories & budgets',
+                caption: '${lines.length} categories',
                 onTap: () => context.push(Routes.categories),
               ),
-              ListRow(
+              SummaryTile.link(
                 key: const Key('manage_recurring'),
-                leading: const IconWell(Icons.event_repeat_rounded),
-                title: 'Recurring',
-                subtitle: 'Bills and subscriptions',
-                chevron: true,
+                icon: Icons.event_repeat_rounded,
+                label: 'Recurring',
+                caption: 'Bills and subscriptions',
                 onTap: () => context.push(Routes.recurring),
               ),
-              ListRow(
+              SummaryTile.link(
                 key: const Key('manage_reports'),
-                leading: const IconWell(Icons.grid_view_rounded),
-                title: 'Reports',
-                subtitle: 'Where the month went',
-                chevron: true,
+                icon: Icons.grid_view_rounded,
+                label: 'Reports',
+                caption: 'Where the month went',
                 onTap: () => context.push(Routes.reports),
               ),
-            ],
-            more: [
-              ListRow(
-                key: const Key('manage_build'),
-                leading: const IconWell(Icons.auto_awesome_outlined),
-                title: 'Build my budget',
-                subtitle: 'A full month from a few answers',
-                chevron: true,
-                onTap: () => context.push(Routes.budgetSetup),
-              ),
-              ListRow(
-                key: const Key('manage_import'),
-                leading: const IconWell(Icons.upload_file_outlined),
-                title: 'Import my sheet',
-                subtitle: 'Excel, Google Sheets or CSV',
-                chevron: true,
-                onTap: () => context.push(Routes.budgetImport),
-              ),
-              ListRow(
-                key: const Key('manage_export'),
-                leading: const IconWell(Icons.ios_share_rounded),
-                title: 'Export to Excel',
-                subtitle: 'Budget and every payment, all columns',
-                chevron: true,
-                onTap: () => exportSpreadsheet(context, ref, ExportFormat.xlsx),
-              ),
-              ListRow(
-                key: const Key('manage_export_csv'),
-                leading: const IconWell(Icons.table_chart_outlined),
-                title: 'Export as CSV',
-                subtitle: 'For Google Sheets (File, Import)',
-                chevron: true,
-                onTap: () => exportSpreadsheet(context, ref, ExportFormat.csv),
-              ),
-              ListRow(
-                leading: const IconWell(Icons.auto_mode_rounded),
-                title: 'Automations',
-                subtitle: rules == null
-                    ? null
-                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
-                chevron: true,
-                onTap: () => context.push(Routes.automations),
-              ),
-              ListRow(
-                leading: const IconWell(Icons.fact_check_outlined),
-                title: 'Monthly close',
-                subtitle: statements == null
+              SummaryTile.link(
+                icon: Icons.fact_check_outlined,
+                label: 'Monthly close',
+                caption: statements == null
                     ? null
                     : (attention == 0
                           ? 'All statements match'
                           : '$attention need you'),
-                subtitleColor: attention == 0 ? null : c.warning,
-                chevron: true,
+                captionColor: attention == 0 ? null : c.warning,
                 onTap: () => context.push(Routes.statements),
+              ),
+            ],
+            more: [
+              SummaryTile.link(
+                key: const Key('manage_build'),
+                icon: Icons.auto_awesome_outlined,
+                label: 'Build my budget',
+                caption: 'From a few answers',
+                onTap: () => context.push(Routes.budgetSetup),
+              ),
+              SummaryTile.link(
+                key: const Key('manage_import'),
+                icon: Icons.upload_file_outlined,
+                label: 'Import my sheet',
+                caption: 'Excel, Sheets or CSV',
+                onTap: () => context.push(Routes.budgetImport),
+              ),
+              SummaryTile.link(
+                key: const Key('manage_export'),
+                icon: Icons.ios_share_rounded,
+                label: 'Export to Excel',
+                caption: 'Budget and every payment',
+                onTap: () => exportSpreadsheet(context, ref, ExportFormat.xlsx),
+              ),
+              SummaryTile.link(
+                key: const Key('manage_export_csv'),
+                icon: Icons.table_chart_outlined,
+                label: 'Export as CSV',
+                caption: 'For Google Sheets',
+                onTap: () => exportSpreadsheet(context, ref, ExportFormat.csv),
+              ),
+              SummaryTile.link(
+                icon: Icons.auto_mode_rounded,
+                label: 'Automations',
+                caption: rules == null
+                    ? null
+                    : '${rules.length} ${rules.length == 1 ? 'rule' : 'rules'}',
+                onTap: () => context.push(Routes.automations),
               ),
             ],
           ),
@@ -524,8 +515,8 @@ class _WhereItWentState extends State<_WhereItWent> {
   }
 }
 
-/// The tools under Budget. The few used most are always there; the rest sit
-/// behind "More tools" so the tab is not a long menu.
+/// The tools under Budget, as tiles. The few used most are always there; the
+/// rest sit behind "More tools" so the tab is not a long menu.
 class _ManageGroup extends StatefulWidget {
   const _ManageGroup({
     required this.primary,
@@ -543,18 +534,15 @@ class _ManageGroupState extends State<_ManageGroup> {
   late var _open = widget.initiallyOpen;
 
   @override
-  Widget build(BuildContext context) => RowGroup(
-    indent: ListRow.leadingInset,
-    children: [
+  Widget build(BuildContext context) => SummaryGrid(
+    tiles: [
       ...widget.primary,
       if (_open) ...widget.more,
-      ListRow(
+      SummaryTile.link(
         key: const Key('manage_more'),
-        leading: IconWell(
-          _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
-        ),
-        title: _open ? 'Fewer tools' : 'More tools',
-        subtitle: _open ? null : 'Build, import, export, rules, monthly close',
+        icon: _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+        label: _open ? 'Fewer tools' : 'More tools',
+        caption: _open ? null : 'Build, import, export, rules',
         onTap: () => setState(() => _open = !_open),
       ),
     ],

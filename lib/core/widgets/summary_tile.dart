@@ -12,82 +12,106 @@ class SummaryTile extends StatelessWidget {
     super.key,
     required this.icon,
     required this.label,
-    required this.value,
+    required String this.value,
     this.caption,
     this.deltaPct,
-    required this.onTap,
+    this.onTap,
+    this.captionColor,
+    this.valueColor,
   });
+
+  /// A tile that is a doorway rather than a number: icon, name, one quiet line.
+  const SummaryTile.link({
+    super.key,
+    required this.icon,
+    required this.label,
+    this.caption,
+    this.captionColor,
+    required this.onTap,
+  }) : valueColor = null,
+       value = null,
+       deltaPct = null;
 
   final IconData icon;
   final String label;
 
   /// The headline: an amount or a count.
-  final String value;
+  final String? value;
 
   /// A quiet line under the value ("3 pieces", "Add one").
   final String? caption;
 
   /// Percent up or down; null shows nothing.
   final double? deltaPct;
-  final VoidCallback onTap;
+
+  /// Null makes the tile a plain readout.
+  final VoidCallback? onTap;
+
+  /// Colour of the headline, for a state (over budget, a gain).
+  final Color? valueColor;
+
+  /// Overrides the quiet colour of [caption] (a warning, say).
+  final Color? captionColor;
 
   @override
   Widget build(BuildContext context) {
     final c = context.pc;
     final d = deltaPct;
-    return Semantics(
-      button: true,
-      label: '$label, $value${d == null ? '' : ', ${_pct(d)}'}',
-      excludeSemantics: true,
-      child: Pressable(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(Space.lg),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(Radii.lg),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              IconWell(icon),
-              const SizedBox(height: Space.md),
-              Text(
-                label,
-                style: context.tt.bodyMedium,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: Space.xs),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  value,
-                  style: PulseTheme.amount(c.textPrimary, size: 22),
-                  maxLines: 1,
-                ),
-              ),
-              const SizedBox(height: 2),
-              if (d != null)
-                Text(
-                  _pct(d),
-                  style: context.tt.bodySmall!.copyWith(
-                    color: d >= 0 ? c.positive : c.negative,
-                    fontWeight: FontWeight.w600,
-                  ),
-                )
-              else
-                Text(
-                  caption ?? ' ',
-                  style: context.tt.bodySmall,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-            ],
-          ),
-        ),
+    final box = Container(
+      padding: const EdgeInsets.all(Space.lg),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(Radii.lg),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          IconWell(icon),
+          const SizedBox(height: Space.md),
+          Text(
+            label,
+            style: value == null
+                ? context.tt.titleSmall
+                : context.tt.bodyMedium,
+            maxLines: value == null ? 2 : 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: Space.xs),
+          if (value != null)
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                value!,
+                style: PulseTheme.amount(valueColor ?? c.textPrimary, size: 22),
+                maxLines: 1,
+              ),
+            ),
+          if (value != null) const SizedBox(height: 2),
+          if (d != null)
+            Text(
+              _pct(d),
+              style: context.tt.bodySmall!.copyWith(
+                color: d >= 0 ? c.positive : c.negative,
+                fontWeight: FontWeight.w600,
+              ),
+            )
+          else
+            Text(
+              caption ?? ' ',
+              style: context.tt.bodySmall!.copyWith(color: captionColor),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
+    );
+    return Semantics(
+      button: onTap != null,
+      label:
+          '$label${value == null ? '' : ', $value'}${d == null ? '' : ', ${_pct(d)}'}',
+      excludeSemantics: true,
+      child: onTap == null ? box : Pressable(onTap: onTap, child: box),
     );
   }
 

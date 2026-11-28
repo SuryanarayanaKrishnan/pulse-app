@@ -269,19 +269,32 @@ class _CardsViewState extends ConsumerState<_CardsView> {
               ),
             ],
             if (_pane == _CardsPane.credit) ...[
-              FigureRow([
-                ('Minimum', Money.aed(minDue, decimals: false), null),
-                (
-                  'Utilisation',
-                  '${(u * 100).round()}%',
-                  u > 0.5 ? c.negative : (u > 0.3 ? c.warning : null),
-                ),
-                (
-                  'Rewards this month',
-                  Money.aed(earned, decimals: false),
-                  c.positive,
-                ),
-              ]),
+              SummaryGrid(
+                tiles: [
+                  SummaryTile(
+                    icon: Icons.payments_outlined,
+                    label: 'Minimum',
+                    value: Money.aed(minDue, decimals: false),
+                    caption: 'due across cards',
+                  ),
+                  SummaryTile(
+                    icon: Icons.speed_rounded,
+                    label: 'Utilisation',
+                    value: '${(u * 100).round()}%',
+                    valueColor: u > 0.5
+                        ? c.negative
+                        : (u > 0.3 ? c.warning : null),
+                    caption: u > 0.3 ? 'Aim for under 30%' : 'Healthy',
+                  ),
+                  SummaryTile(
+                    icon: Icons.redeem_outlined,
+                    label: 'Rewards this month',
+                    value: Money.aed(earned, decimals: false),
+                    valueColor: c.positive,
+                    caption: 'earned so far',
+                  ),
+                ],
+              ),
               const SectionHeader('Utilisation'),
               UtilisationChart(list),
               const CreditCapacitySection(),
@@ -336,15 +349,27 @@ class _AccountsView extends ConsumerWidget {
               caption:
                   'Across ${list.length} ${list.length == 1 ? 'account' : 'accounts'}',
             ),
-            FigureRow([
-              ('In this month', Money.aed(inflow, decimals: false), null),
-              ('Out', Money.aed(outflow, decimals: false), null),
-              (
-                'Net',
-                '${net >= 0 ? '+' : '−'}${Money.aed(net.abs(), decimals: false)}',
-                net >= 0 ? c.positive : c.negative,
-              ),
-            ]),
+            SummaryGrid(
+              tiles: [
+                SummaryTile(
+                  icon: Icons.south_west_rounded,
+                  label: 'In this month',
+                  value: Money.aed(inflow, decimals: false),
+                ),
+                SummaryTile(
+                  icon: Icons.north_east_rounded,
+                  label: 'Out',
+                  value: Money.aed(outflow, decimals: false),
+                ),
+                SummaryTile(
+                  icon: Icons.swap_vert_rounded,
+                  label: 'Net',
+                  value:
+                      '${net >= 0 ? '+' : '−'}${Money.aed(net.abs(), decimals: false)}',
+                  valueColor: net >= 0 ? c.positive : c.negative,
+                ),
+              ],
+            ),
             const SectionHeader('Your accounts'),
             const SizedBox(height: Space.sm),
             WalletStack(

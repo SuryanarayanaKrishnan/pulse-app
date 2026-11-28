@@ -233,11 +233,16 @@ class _Body extends ConsumerWidget {
 
     // Gain per kind, from the views that know what was paid.
     final gold = ref.watch(jewelleryProvider).value ?? const [];
-    final goldPaid = gold.every((v) => v.item.purchasePriceMinor != null)
-        ? gold.fold<int>(0, (a, v) => a + v.item.purchasePriceMinor!)
-        : 0;
-    final goldNow = gold.fold<int>(0, (a, v) => a + v.value.valueMinor);
-    final double? goldGain = gold.isEmpty || goldPaid <= 0
+    // Gold gain over every piece whose cost is known; bars or pieces without
+    // a cost stay out of the percentage rather than skewing it.
+    var goldPaid = 0, goldNow = 0;
+    for (final v in gold) {
+      final p = v.item.purchasePriceMinor;
+      if (p == null || p <= 0) continue;
+      goldPaid += p;
+      goldNow += v.value.valueMinor;
+    }
+    final double? goldGain = goldPaid <= 0
         ? null
         : (goldNow - goldPaid) / goldPaid * 100;
     double? fundGain(Iterable<FundValue> vs) {

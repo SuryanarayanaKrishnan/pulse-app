@@ -105,8 +105,14 @@ void main() {
       }
 
       await shot('home');
+      await tab('Budget');
+      await shot('budget');
       await tab('Cards');
       await shot('cards');
+      await tester.tap(find.text('Credit'));
+      await shot('cards-credit');
+      await tester.tap(find.text('Accounts'));
+      await shot('accounts');
       await tab('Wealth');
       await shot('wealth');
       final gold = find.byKey(const Key('wealth-tile-gold'));
