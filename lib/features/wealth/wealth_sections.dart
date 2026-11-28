@@ -144,7 +144,7 @@ class _PriceStatusLineState extends ConsumerState<PriceStatusLine> {
         at != null && DateTime.now().difference(at) < const Duration(hours: 1);
     final (label, color) = book.origin == PriceOrigin.bundled
         ? (
-            'Gold: demo value · funds and stocks update from public sources',
+            'Gold price is an estimate for now · funds and stocks update from public sources',
             c.warning,
           )
         : fresh
