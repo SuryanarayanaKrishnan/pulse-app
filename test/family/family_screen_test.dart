@@ -19,11 +19,17 @@ Future<void> _pump(WidgetTester tester, KvStore kv) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero)),
+        repositoryProvider.overrideWithValue(
+          MockPulseRepository(latency: Duration.zero),
+        ),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         kvStoreProvider.overrideWithValue(kv),
         sessionProvider.overrideWith(
-          (ref) => SessionController(onboarded: true, signedIn: true, connected: true),
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
         ),
       ],
       child: const PulseApp(initialLocation: '/family'),
@@ -34,25 +40,36 @@ Future<void> _pump(WidgetTester tester, KvStore kv) async {
 }
 
 void main() {
-  testWidgets('shows no demo members and lists a pending invite once, then cancels it', (tester) async {
-    final kv = MemoryKvStore();
-    final store = PendingInvites(kv);
-    await store.add(name: 'Animulla', relation: 'Other', phoneInput: '0501234567');
-    await store.add(name: 'Animulla', relation: 'Other', phoneInput: '050 123 4567');
-    await _pump(tester, kv);
+  testWidgets(
+    'shows no demo members and lists a pending invite once, then cancels it',
+    (tester) async {
+      final kv = MemoryKvStore();
+      final store = PendingInvites(kv);
+      await store.add(
+        name: 'Animulla',
+        relation: 'Other',
+        phoneInput: '0501234567',
+      );
+      await store.add(
+        name: 'Animulla',
+        relation: 'Other',
+        phoneInput: '050 123 4567',
+      );
+      await _pump(tester, kv);
 
-    for (final demo in ['Sara', 'Khalid', 'Noor']) {
-      expect(find.textContaining(demo), findsNothing);
-    }
-    expect(find.text('Waiting to join'), findsOneWidget);
-    expect(find.text('Animulla'), findsOneWidget);
-    expect(find.textContaining('not joined yet'), findsOneWidget);
+      for (final demo in ['Sara', 'Khalid', 'Noor']) {
+        expect(find.textContaining(demo), findsNothing);
+      }
+      expect(find.text('Waiting to join'), findsOneWidget);
+      expect(find.text('Animulla'), findsOneWidget);
+      expect(find.textContaining('not joined yet'), findsOneWidget);
 
-    await tester.tap(find.text('Cancel'));
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(find.text('Animulla'), findsNothing);
-    expect(find.text('Waiting to join'), findsNothing);
-    expect(await store.all(), isEmpty);
-  });
+      await tester.tap(find.text('Cancel'));
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('Animulla'), findsNothing);
+      expect(find.text('Waiting to join'), findsNothing);
+      expect(await store.all(), isEmpty);
+    },
+  );
 }

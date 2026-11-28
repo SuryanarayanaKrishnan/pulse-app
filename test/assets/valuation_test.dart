@@ -20,34 +20,76 @@ void main() {
       final v = valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 22);
       expect(v.valueMinor, 366667);
       expect(v.pureGrams, closeTo(9.16667, 1e-4));
-      expect(valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 24).valueMinor, 400000);
-      expect(valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 18).valueMinor, 300000);
+      expect(
+        valueJewellery(
+          weightGrams: 10,
+          aedPerGram24: 400,
+          karat: 24,
+        ).valueMinor,
+        400000,
+      );
+      expect(
+        valueJewellery(
+          weightGrams: 10,
+          aedPerGram24: 400,
+          karat: 18,
+        ).valueMinor,
+        300000,
+      );
       expect(valueJewellery(weightGrams: 0, aedPerGram24: 400).valueMinor, 0);
     });
 
     test('an explicit fineness overrides the karat', () {
-      final v = valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 22, purity: 0.9);
+      final v = valueJewellery(
+        weightGrams: 10,
+        aedPerGram24: 400,
+        karat: 22,
+        purity: 0.9,
+      );
       expect(v.valueMinor, 360000);
     });
 
     test('gain and loss against the purchase price', () {
-      final up = valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 22, purchasePriceMinor: 340000, makingChargesMinor: 30000);
+      final up = valueJewellery(
+        weightGrams: 10,
+        aedPerGram24: 400,
+        karat: 22,
+        purchasePriceMinor: 340000,
+        makingChargesMinor: 30000,
+      );
       expect(up.gainMinor, 26667);
       expect(up.gainPct, closeTo(7.84, 0.01));
-      final down = valueJewellery(weightGrams: 10, aedPerGram24: 400, karat: 22, purchasePriceMinor: 400000);
+      final down = valueJewellery(
+        weightGrams: 10,
+        aedPerGram24: 400,
+        karat: 22,
+        purchasePriceMinor: 400000,
+      );
       expect(down.gainMinor, -33333);
       expect(down.gainPct!, lessThan(0));
       final none = valueJewellery(weightGrams: 10, aedPerGram24: 400);
       expect(none.gainMinor, isNull);
       expect(none.gainPct, isNull);
-      expect(valueJewellery(weightGrams: 1, aedPerGram24: 1, purchasePriceMinor: 0).gainPct, isNull);
+      expect(
+        valueJewellery(
+          weightGrams: 1,
+          aedPerGram24: 1,
+          purchasePriceMinor: 0,
+        ).gainPct,
+        isNull,
+      );
     });
   });
 
   group('fund valuation', () {
     test('units x NAV converted to AED', () {
       // 100.5 units at INR 52.30 = INR 5,256.15; at 0.0425 = AED 223.39
-      final v = valueFund(units: 100.5, nav: 52.30, avgCostNav: 40, fxToAed: 0.0425);
+      final v = valueFund(
+        units: 100.5,
+        nav: 52.30,
+        avgCostNav: 40,
+        fxToAed: 0.0425,
+      );
       expect(v.valueNativeMinor, 525615);
       expect(v.costNativeMinor, 402000);
       expect(v.valueAedMinor, 22339);
@@ -55,24 +97,47 @@ void main() {
       expect(v.gainAedMinor, 22339 - 17085);
     });
 
-    test('an AED fund needs no conversion; a missing rate gives no AED value', () {
-      final aed = valueFund(units: 10, nav: 12.5, fxToAed: 1);
-      expect(aed.valueAedMinor, 12500);
-      expect(aed.gainPct, isNull);
-      final unknown = valueFund(units: 10, nav: 12.5, avgCostNav: 10, fxToAed: null);
-      expect(unknown.valueAedMinor, isNull);
-      expect(unknown.gainAedMinor, isNull);
-      expect(unknown.gainPct, closeTo(25, 1e-9));
-    });
+    test(
+      'an AED fund needs no conversion; a missing rate gives no AED value',
+      () {
+        final aed = valueFund(units: 10, nav: 12.5, fxToAed: 1);
+        expect(aed.valueAedMinor, 12500);
+        expect(aed.gainPct, isNull);
+        final unknown = valueFund(
+          units: 10,
+          nav: 12.5,
+          avgCostNav: 10,
+          fxToAed: null,
+        );
+        expect(unknown.valueAedMinor, isNull);
+        expect(unknown.gainAedMinor, isNull);
+        expect(unknown.gainPct, closeTo(25, 1e-9));
+      },
+    );
   });
 
   group('SIP and reminders', () {
     test('next SIP date rolls over months and clamps short months', () {
-      expect(nextSipDate(5, const CalDate(2026, 11, 3)), const CalDate(2026, 11, 5));
-      expect(nextSipDate(5, const CalDate(2026, 11, 5)), const CalDate(2026, 11, 5));
-      expect(nextSipDate(5, const CalDate(2026, 11, 6)), const CalDate(2026, 12, 5));
-      expect(nextSipDate(5, const CalDate(2026, 12, 20)), const CalDate(2027, 1, 5));
-      expect(nextSipDate(31, const CalDate(2027, 2, 10)), const CalDate(2027, 2, 28));
+      expect(
+        nextSipDate(5, const CalDate(2026, 11, 3)),
+        const CalDate(2026, 11, 5),
+      );
+      expect(
+        nextSipDate(5, const CalDate(2026, 11, 5)),
+        const CalDate(2026, 11, 5),
+      );
+      expect(
+        nextSipDate(5, const CalDate(2026, 11, 6)),
+        const CalDate(2026, 12, 5),
+      );
+      expect(
+        nextSipDate(5, const CalDate(2026, 12, 20)),
+        const CalDate(2027, 1, 5),
+      );
+      expect(
+        nextSipDate(31, const CalDate(2027, 2, 10)),
+        const CalDate(2027, 2, 28),
+      );
     });
 
     test('due status and text', () {
@@ -88,8 +153,14 @@ void main() {
 
     test('reminder fires at 09:00, N days before, and never in the past', () {
       final now = DateTime(2026, 11, 24, 12);
-      expect(reminderTime(const CalDate(2026, 12, 24), 30, now), isNull); // 09:00 today has passed
-      expect(reminderTime(const CalDate(2027, 1, 10), 14, now), DateTime(2026, 12, 27, 9));
+      expect(
+        reminderTime(const CalDate(2026, 12, 24), 30, now),
+        isNull,
+      ); // 09:00 today has passed
+      expect(
+        reminderTime(const CalDate(2027, 1, 10), 14, now),
+        DateTime(2026, 12, 27, 9),
+      );
       expect(reminderTime(const CalDate(2026, 11, 30), 14, now), isNull);
     });
 
@@ -116,7 +187,12 @@ void main() {
         },
       },
       'fx': [
-        {'currency': 'INR', 'aed_per_unit': '0.0427', 'status': 'live', 'source': 'open.er-api.com'},
+        {
+          'currency': 'INR',
+          'aed_per_unit': '0.0427',
+          'status': 'live',
+          'source': 'open.er-api.com',
+        },
         {'currency': 'EUR', 'aed_per_unit': 4.3, 'status': 'unavailable'},
       ],
     };
@@ -127,7 +203,10 @@ void main() {
       expect(book.gold24, 480.5);
       expect(book.goldPerGram(22), 440.46);
       expect(book.goldPerGram(21), closeTo(480.5 * 21 / 24, 1e-9)); // derived
-      expect(book.goldPerGram(18), closeTo(480.5 * 18 / 24, 1e-9)); // bad entry skipped
+      expect(
+        book.goldPerGram(18),
+        closeTo(480.5 * 18 / 24, 1e-9),
+      ); // bad entry skipped
       expect(book.fx('INR'), 0.0427);
       expect(book.fx('EUR'), isNull);
       expect(book.fx('AED'), 1);
@@ -138,7 +217,12 @@ void main() {
 
     test('garbage and unavailable gold yield nothing', () {
       expect(parseSnapshot('x', fetchedAt: at), isEmpty);
-      expect(parseSnapshot({'gold': {'status': 'unavailable', 'per_gram': {}}}, fetchedAt: at), isEmpty);
+      expect(
+        parseSnapshot({
+          'gold': {'status': 'unavailable', 'per_gram': {}},
+        }, fetchedAt: at),
+        isEmpty,
+      );
     });
 
     test('the bundled fallback has gold and is marked stale', () {
@@ -146,7 +230,13 @@ void main() {
       expect(b.gold24, isNotNull);
       expect(b.isStale, isTrue);
       expect(b.fx('INR'), isNotNull);
-      final merged = mergeBooks(PriceBook(parseSnapshot(json, fetchedAt: at), origin: PriceOrigin.fetched), b);
+      final merged = mergeBooks(
+        PriceBook(
+          parseSnapshot(json, fetchedAt: at),
+          origin: PriceOrigin.fetched,
+        ),
+        b,
+      );
       expect(merged.gold24, 480.5);
       expect(merged.fx('GBP'), isNotNull); // filled from the bundle
       expect(merged.origin, PriceOrigin.fetched);

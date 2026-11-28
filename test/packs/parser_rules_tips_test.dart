@@ -5,7 +5,8 @@ import 'package:pulse/core/packs/parser_rules.dart';
 import 'package:pulse/core/packs/tips.dart';
 
 void main() {
-  const text = 'Dear customer, Dhs 42.50 was settled via your ENBD wallet ending 1234 towards Spinneys';
+  const text =
+      'Dear customer, Dhs 42.50 was settled via your ENBD wallet ending 1234 towards Spinneys';
 
   ParserRegistry fresh() => buildDefaultRegistry();
 
@@ -18,7 +19,8 @@ void main() {
         {
           'institution': 'enbd',
           'direction': 'debit',
-          'pattern': r'{AMT} was settled via your enbd wallet ending {L4} towards {M}',
+          'pattern':
+              r'{AMT} was settled via your enbd wallet ending {L4} towards {M}',
         },
       ],
     });
@@ -34,7 +36,11 @@ void main() {
     final reg = fresh();
     applyParserRules(reg, {
       'sms': [
-        {'institution': 'enbd', 'pattern': '{AMT} was settled via your enbd wallet ending {L4} towards {M}'},
+        {
+          'institution': 'enbd',
+          'pattern':
+              '{AMT} was settled via your enbd wallet ending {L4} towards {M}',
+        },
       ],
     });
     expect(reg.parse(text, institution: 'enbd'), isNotNull);
@@ -64,15 +70,29 @@ void main() {
         {'institution': 'enbd', 'pattern': '{AMT} otp {M}'},
       ],
     });
-    expect(reg.parse('AED 10 OTP 123456 do not share', institution: 'enbd'), isNull);
+    expect(
+      reg.parse('AED 10 OTP 123456 do not share', institution: 'enbd'),
+      isNull,
+    );
   });
 
   test('tips: valid entries kept, malformed and non-https links dropped', () {
     final tips = tipsFromPack({
       'version': 2,
       'items': [
-        {'id': 'a', 'title': 'Annual fee changed', 'body': 'Card X now AED 300', 'audience': 'all', 'url': 'https://example.com/x'},
-        {'id': 'b', 'title': 'Plain', 'body': 'No link', 'url': 'javascript:alert(1)'},
+        {
+          'id': 'a',
+          'title': 'Annual fee changed',
+          'body': 'Card X now AED 300',
+          'audience': 'all',
+          'url': 'https://example.com/x',
+        },
+        {
+          'id': 'b',
+          'title': 'Plain',
+          'body': 'No link',
+          'url': 'javascript:alert(1)',
+        },
         {'id': 'c', 'title': 'Other audience', 'body': 'x', 'audience': 'plus'},
         {'title': 'no id', 'body': 'x'},
         42,

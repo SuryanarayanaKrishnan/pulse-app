@@ -13,7 +13,10 @@ Future<LocalPulseRepository> _repo() async {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   final db = PulseDatabase(NativeDatabase.memory());
   addTearDown(db.close);
-  final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
+  final catalog = CatalogService(
+    db: db,
+    bundled: () async => File('assets/catalog/cards.json').readAsStringSync(),
+  );
   await catalog.loadBundled();
   final pipeline = IngestPipeline(db, clock: DateTime.now);
   addTearDown(pipeline.dispose);
@@ -30,27 +33,49 @@ void main() {
     expect(listed.custom, isTrue);
   });
 
-  test('without a pick it stays null (generic tag); defaults are untouched', () async {
-    final r = await _repo();
-    final made = await r.createCategory(name: 'Misc things');
-    expect(made.iconKey, isNull);
-    expect((await r.categories()).where((c) => !c.custom).map((c) => c.iconKey), everyElement(isNull));
-  });
+  test(
+    'without a pick it stays null (generic tag); defaults are untouched',
+    () async {
+      final r = await _repo();
+      final made = await r.createCategory(name: 'Misc things');
+      expect(made.iconKey, isNull);
+      expect(
+        (await r.categories()).where((c) => !c.custom).map((c) => c.iconKey),
+        everyElement(isNull),
+      );
+    },
+  );
 
-  test('setCategoryIcon changes a custom category and ignores defaults', () async {
-    final r = await _repo();
-    final made = await r.createCategory(name: 'Pets', iconKey: 'paw');
-    final changed = await r.setCategoryIcon(made, 'leaf');
-    expect(changed.iconKey, 'leaf');
-    expect((await r.categories()).firstWhere((c) => c.id == made.id).iconKey, 'leaf');
-    await r.setCategoryIcon(SpendCategory.groceries, 'leaf');
-    expect((await r.categories()).firstWhere((c) => c.id == 'groceries').iconKey, isNull);
-  });
+  test(
+    'setCategoryIcon changes a custom category and ignores defaults',
+    () async {
+      final r = await _repo();
+      final made = await r.createCategory(name: 'Pets', iconKey: 'paw');
+      final changed = await r.setCategoryIcon(made, 'leaf');
+      expect(changed.iconKey, 'leaf');
+      expect(
+        (await r.categories()).firstWhere((c) => c.id == made.id).iconKey,
+        'leaf',
+      );
+      await r.setCategoryIcon(SpendCategory.groceries, 'leaf');
+      expect(
+        (await r.categories()).firstWhere((c) => c.id == 'groceries').iconKey,
+        isNull,
+      );
+    },
+  );
 
-  test('a transaction in a custom category carries its icon to the row', () async {
-    final r = await _repo();
-    final made = await r.createCategory(name: 'Pets', iconKey: 'paw');
-    final tx = await r.addManualTransaction(merchant: 'Vet', amount: 120, category: made);
-    expect(tx.category.iconKey, 'paw');
-  });
+  test(
+    'a transaction in a custom category carries its icon to the row',
+    () async {
+      final r = await _repo();
+      final made = await r.createCategory(name: 'Pets', iconKey: 'paw');
+      final tx = await r.addManualTransaction(
+        merchant: 'Vet',
+        amount: 120,
+        category: made,
+      );
+      expect(tx.category.iconKey, 'paw');
+    },
+  );
 }

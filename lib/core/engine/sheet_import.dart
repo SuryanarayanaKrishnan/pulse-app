@@ -91,7 +91,8 @@ Map<String, List<List<String>>> readXlsx(Uint8List bytes) {
   }
 
   final wb = read('xl/workbook.xml');
-  if (wb == null) throw const FormatException('That file is not an Excel workbook.');
+  if (wb == null)
+    throw const FormatException('That file is not an Excel workbook.');
   final rels = read('xl/_rels/workbook.xml.rels');
   final relTarget = <String, String>{};
   if (rels != null) {
@@ -112,7 +113,10 @@ Map<String, List<List<String>>> readXlsx(Uint8List bytes) {
     n++;
     if ((s.getAttribute('state') ?? 'visible') != 'visible') continue;
     final name = s.getAttribute('name') ?? 'Sheet$n';
-    final rid = s.attributes.where((a) => a.name.local == 'id').firstOrNull?.value;
+    final rid = s.attributes
+        .where((a) => a.name.local == 'id')
+        .firstOrNull
+        ?.value;
     var target = rid == null ? null : relTarget[rid];
     target ??= 'worksheets/sheet$n.xml';
     target = target.startsWith('/') ? target.substring(1) : 'xl/$target';
@@ -160,7 +164,9 @@ List<List<String>> _sheetRows(String xml, List<String> shared) {
       }
       if (text.isNotEmpty) cells[col] = text;
     }
-    final width = cells.isEmpty ? 0 : cells.keys.reduce((a, b) => a > b ? a : b) + 1;
+    final width = cells.isEmpty
+        ? 0
+        : cells.keys.reduce((a, b) => a > b ? a : b) + 1;
     final row = [for (var i = 0; i < width; i++) cells[i] ?? ''];
     if (idx != null) {
       while (rows.length < idx - 1) {
@@ -184,7 +190,9 @@ int? parseAmountMinor(String raw) {
     neg = true;
     s = s.substring(1, s.length - 1);
   }
-  s = s.replaceAll(RegExp(r'aed|dhs?|د\.إ', caseSensitive: false), '').replaceAll(RegExp(r'[\s\u00A0]'), '');
+  s = s
+      .replaceAll(RegExp(r'aed|dhs?|د\.إ', caseSensitive: false), '')
+      .replaceAll(RegExp(r'[\s\u00A0]'), '');
   if (s.startsWith('-')) {
     neg = true;
     s = s.substring(1);
@@ -202,7 +210,9 @@ int? parseAmountMinor(String raw) {
     final after = s.length - lastComma - 1;
     final single = s.indexOf(',') == lastComma;
     // "1,234" and "1,234,567" are thousands; "12,50" is a decimal comma.
-    s = (!single || (after == 3 && lastComma <= 3)) ? s.replaceAll(',', '') : s.replaceAll(',', '.');
+    s = (!single || (after == 3 && lastComma <= 3))
+        ? s.replaceAll(',', '')
+        : s.replaceAll(',', '.');
   } else if (lastDot >= 0 && s.indexOf('.') != lastDot) {
     s = s.replaceAll('.', '');
   }
@@ -213,19 +223,41 @@ int? parseAmountMinor(String raw) {
 }
 
 const _months = {
-  'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-  'jul': 7, 'aug': 8, 'sep': 9, 'sept': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+  'jan': 1,
+  'feb': 2,
+  'mar': 3,
+  'apr': 4,
+  'may': 5,
+  'jun': 6,
+  'jul': 7,
+  'aug': 8,
+  'sep': 9,
+  'sept': 9,
+  'oct': 10,
+  'nov': 11,
+  'dec': 12,
 };
 
 int? _monthOfName(String s) {
   final t = s.trim().toLowerCase().replaceAll('.', '');
   if (t.isEmpty) return null;
-  final m = _months[t.length > 3 ? t.substring(0, t.startsWith('sept') ? 4 : 3) : t];
+  final m =
+      _months[t.length > 3 ? t.substring(0, t.startsWith('sept') ? 4 : 3) : t];
   if (m == null) return null;
   // Only a month name on its own, or the full name: not "marketing".
   const full = [
-    'january', 'february', 'march', 'april', 'may', 'june', 'july', 'august',
-    'september', 'october', 'november', 'december',
+    'january',
+    'february',
+    'march',
+    'april',
+    'may',
+    'june',
+    'july',
+    'august',
+    'september',
+    'october',
+    'november',
+    'december',
   ];
   return (t.length <= 4 || full.contains(t)) ? m : null;
 }
@@ -242,7 +274,8 @@ DateTime? parseDateCell(String raw, {bool dayFirst = true}) {
     return DateTime(d.year, d.month, d.day);
   }
   var m = RegExp(r'^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})').firstMatch(s);
-  if (m != null) return _ymd(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
+  if (m != null)
+    return _ymd(int.parse(m[1]!), int.parse(m[2]!), int.parse(m[3]!));
   m = RegExp(r'^(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})').firstMatch(s);
   if (m != null) {
     final a = int.parse(m[1]!), b = int.parse(m[2]!);
@@ -250,7 +283,8 @@ DateTime? parseDateCell(String raw, {bool dayFirst = true}) {
     if (y < 100) y += 2000;
     return dayFirst ? _ymd(y, b, a) : _ymd(y, a, b);
   }
-  m = RegExp(r'^(\d{1,2})[\s-]+([A-Za-z]{3,9})\.?,?[\s-]+(\d{2,4})').firstMatch(s);
+  m = RegExp(r'^(\d{1,2})[\s-]+([A-Za-z]{3,9})\.?,?[\s-]+(\d{2,4})')
+      .firstMatch(s);
   if (m != null) {
     final mo = _monthOfName(m[2]!);
     var y = int.parse(m[3]!);
@@ -294,28 +328,194 @@ bool detectDayFirst(Iterable<String> cells) {
 /// Pulse default category id → words that mean it. Whole-word, lower case.
 const _aliases = <String, List<String>>{
   'salary': ['salary', 'wages', 'paycheck', 'payroll', 'income'],
-  'other_income': ['bonus', 'freelance', 'side income', 'commission', 'other income', 'rental income', 'interest'],
-  'groceries': ['groceries', 'grocery', 'supermarket', 'carrefour', 'lulu', 'spinneys', 'waitrose', 'kibsons', 'food shopping'],
-  'dining': ['restaurants', 'restaurant', 'dining', 'eating out', 'takeaway', 'delivery', 'talabat', 'deliveroo', 'cafe', 'coffee', 'food'],
-  'transport': [
-    'transport', 'fuel', 'petrol', 'gas station', 'salik', 'parking', 'taxi', 'uber', 'careem', 'nol', 'metro', 'charging',
-    'ev charging', 'car maintenance', 'car wash', 'cleaning', 'service',
+  'other_income': [
+    'bonus',
+    'freelance',
+    'side income',
+    'commission',
+    'other income',
+    'rental income',
+    'interest',
   ],
-  'car_loan': ['car loan', 'auto loan', 'car finance', 'car emi', 'vehicle loan', 'car installment', 'car insurance'],
+  'groceries': [
+    'groceries',
+    'grocery',
+    'supermarket',
+    'carrefour',
+    'lulu',
+    'spinneys',
+    'waitrose',
+    'kibsons',
+    'food shopping',
+  ],
+  'dining': [
+    'restaurants',
+    'restaurant',
+    'dining',
+    'eating out',
+    'takeaway',
+    'delivery',
+    'talabat',
+    'deliveroo',
+    'cafe',
+    'coffee',
+    'food',
+  ],
+  'transport': [
+    'transport',
+    'fuel',
+    'petrol',
+    'gas station',
+    'salik',
+    'parking',
+    'taxi',
+    'uber',
+    'careem',
+    'nol',
+    'metro',
+    'charging',
+    'ev charging',
+    'car maintenance',
+    'car wash',
+    'cleaning',
+    'service',
+  ],
+  'car_loan': [
+    'car loan',
+    'auto loan',
+    'car finance',
+    'car emi',
+    'vehicle loan',
+    'car installment',
+    'car insurance',
+  ],
   'home_loan': ['mortgage', 'home loan', 'housing loan'],
-  'rent': ['rent', 'housing', 'ejari', 'accommodation', 'maintenance fee', 'service charge'],
-  'utilities': ['utilities', 'dewa', 'sewa', 'addc', 'aadc', 'electricity', 'water', 'gas', 'empower', 'district cooling', 'chiller'],
-  'telecom': ['telecom', 'internet', 'wifi', 'etisalat', 'e&', 'du', 'cell phone', 'mobile', 'phone', 'recharge', 'recharges', 'mis recharges'],
-  'fixed_expenses': ['subscriptions', 'subscription', 'gym', 'membership', 'insurance', 'netflix', 'spotify', 'fixed'],
-  'education': ['education', 'school', 'tuition', 'nursery', 'university', 'school fees', 'courses'],
-  'health': ['health', 'medical', 'doctor', 'pharmacy', 'dental', 'clinic', 'hospital', 'protein', 'supplements', 'haircut', 'salon', 'grooming'],
-  'shopping': ['shopping', 'clothes', 'clothing', 'amazon', 'noon', 'gifts', 'gift', 'electronics', 'home goods', 'furniture'],
-  'travel': ['travel', 'trips', 'trip', 'flights', 'holiday', 'vacation', 'hotel', 'airfare'],
-  'entertainment': ['entertainment', 'fun', 'movies', 'cinema', 'activities', 'overall fun', 'leisure', 'hobbies', 'outings'],
-  'family': ['family', 'remittance', 'remittances', 'parents', 'money home', 'support'],
-  'savings': ['savings', 'investing', 'investments', 'investment', 'sip', 'emergency fund'],
+  'rent': [
+    'rent',
+    'housing',
+    'ejari',
+    'accommodation',
+    'maintenance fee',
+    'service charge',
+  ],
+  'utilities': [
+    'utilities',
+    'dewa',
+    'sewa',
+    'addc',
+    'aadc',
+    'electricity',
+    'water',
+    'gas',
+    'empower',
+    'district cooling',
+    'chiller',
+  ],
+  'telecom': [
+    'telecom',
+    'internet',
+    'wifi',
+    'etisalat',
+    'e&',
+    'du',
+    'cell phone',
+    'mobile',
+    'phone',
+    'recharge',
+    'recharges',
+    'mis recharges',
+  ],
+  'fixed_expenses': [
+    'subscriptions',
+    'subscription',
+    'gym',
+    'membership',
+    'insurance',
+    'netflix',
+    'spotify',
+    'fixed',
+  ],
+  'education': [
+    'education',
+    'school',
+    'tuition',
+    'nursery',
+    'university',
+    'school fees',
+    'courses',
+  ],
+  'health': [
+    'health',
+    'medical',
+    'doctor',
+    'pharmacy',
+    'dental',
+    'clinic',
+    'hospital',
+    'protein',
+    'supplements',
+    'haircut',
+    'salon',
+    'grooming',
+  ],
+  'shopping': [
+    'shopping',
+    'clothes',
+    'clothing',
+    'amazon',
+    'noon',
+    'gifts',
+    'gift',
+    'electronics',
+    'home goods',
+    'furniture',
+  ],
+  'travel': [
+    'travel',
+    'trips',
+    'trip',
+    'flights',
+    'holiday',
+    'vacation',
+    'hotel',
+    'airfare',
+  ],
+  'entertainment': [
+    'entertainment',
+    'fun',
+    'movies',
+    'cinema',
+    'activities',
+    'overall fun',
+    'leisure',
+    'hobbies',
+    'outings',
+  ],
+  'family': [
+    'family',
+    'remittance',
+    'remittances',
+    'parents',
+    'money home',
+    'support',
+  ],
+  'savings': [
+    'savings',
+    'investing',
+    'investments',
+    'investment',
+    'sip',
+    'emergency fund',
+  ],
   'fees': ['fees', 'bank charges', 'charges', 'fines', 'interest charges'],
-  'other': ['other', 'misc', 'miscellaneous', 'others', 'uncategorised', 'uncategorized'],
+  'other': [
+    'other',
+    'misc',
+    'miscellaneous',
+    'others',
+    'uncategorised',
+    'uncategorized',
+  ],
 };
 
 /// Pulse default ids and their display names, for matching a label that is
@@ -343,7 +543,12 @@ const _defaultNames = <String, String>{
   'other': 'Other',
 };
 
-String _norm(String s) => s.toLowerCase().replaceAll('&', ' and ').replaceAll(RegExp(r'[^a-z0-9 ]'), ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+String _norm(String s) => s
+    .toLowerCase()
+    .replaceAll('&', ' and ')
+    .replaceAll(RegExp(r'[^a-z0-9 ]'), ' ')
+    .replaceAll(RegExp(r'\s+'), ' ')
+    .trim();
 
 class CategoryMatch {
   const CategoryMatch(this.id, {required this.exact});
@@ -358,9 +563,11 @@ class CategoryMatch {
 /// The longest matching alias wins, so "Car loan" is not Transport.
 CategoryMatch? matchCategory(String label, {bool income = false}) {
   final m = _match(label);
-  if (m == null) return income ? const CategoryMatch('other_income', exact: false) : null;
+  if (m == null)
+    return income ? const CategoryMatch('other_income', exact: false) : null;
   // Money coming in never lands in an expense category.
-  if (income && m.id != 'salary' && m.id != 'other_income') return const CategoryMatch('other_income', exact: false);
+  if (income && m.id != 'salary' && m.id != 'other_income')
+    return const CategoryMatch('other_income', exact: false);
   return m;
 }
 
@@ -378,7 +585,8 @@ CategoryMatch? _match(String label) {
       final a = _norm(w);
       if (a.isEmpty) continue;
       final isExact = a == n;
-      final contained = isExact || RegExp('(^| )${RegExp.escape(a)}( |\$)').hasMatch(n);
+      final contained =
+          isExact || RegExp('(^| )${RegExp.escape(a)}( |\$)').hasMatch(n);
       if (!contained) continue;
       final score = a.length + (isExact ? 100 : 0);
       if (score > bestLen) {
@@ -415,7 +623,13 @@ class SheetLabel {
 }
 
 class SheetTx {
-  const SheetTx({required this.date, required this.label, required this.note, required this.minor, required this.isIncome});
+  const SheetTx({
+    required this.date,
+    required this.label,
+    required this.note,
+    required this.minor,
+    required this.isIncome,
+  });
   final DateTime date;
   final String label;
   final String note;
@@ -449,15 +663,25 @@ class SheetAnalysis {
   List<SheetLabel> get orderedLabels => labels.values.toList();
 }
 
-String monthKey(int y, int m) => '${y.toString().padLeft(4, '0')}-${m.toString().padLeft(2, '0')}-01';
+String monthKey(int y, int m) =>
+    '${y.toString().padLeft(4, '0')}-${m.toString().padLeft(2, '0')}-01';
 
-bool _isIncomeText(String s) => RegExp(r'\b(income|salary|salaries|earnings?|wages?|bonus)\b', caseSensitive: false).hasMatch(s);
+bool _isIncomeText(String s) => RegExp(
+  r'\b(income|salary|salaries|earnings?|wages?|bonus)\b',
+  caseSensitive: false,
+).hasMatch(s);
 
-final _totalRow = RegExp(r'^(grand\s+)?(total|sub\s?total|net|balance|surplus|deficit|difference|remaining|left)\b', caseSensitive: false);
+final _totalRow = RegExp(
+  r'^(grand\s+)?(total|sub\s?total|net|balance|surplus|deficit|difference|remaining|left)\b',
+  caseSensitive: false,
+);
 
 /// Reads every sheet of [sheets] and merges what it finds. [year] fills in
 /// grids that do not say which year they are for.
-SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year}) {
+SheetAnalysis analyzeSheets(
+  Map<String, List<List<String>>> sheets, {
+  int? year,
+}) {
   final out = SheetAnalysis();
   final fallbackYear = year ?? DateTime.now().year;
   // Read ledgers first: their payments take precedence over a grid's Actual
@@ -484,7 +708,10 @@ SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year})
     switch (r.$1) {
       case SheetKind.ledger:
         for (final t in (r.$2 as _Ledger).txs) {
-          final l = out.labels.putIfAbsent(_key(t.label), () => SheetLabel(t.label, isIncome: t.isIncome));
+          final l = out.labels.putIfAbsent(
+            _key(t.label),
+            () => SheetLabel(t.label, isIncome: t.isIncome),
+          );
           l.txCount++;
           l.txTotalMinor += t.minor;
           out.transactions.add(t);
@@ -493,7 +720,10 @@ SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year})
       case SheetKind.monthlyGrid:
         final g = r.$2 as _Grid;
         for (final it in g.items) {
-          final l = out.labels.putIfAbsent(_key(it.label), () => SheetLabel(it.label, group: it.group, isIncome: it.isIncome));
+          final l = out.labels.putIfAbsent(
+            _key(it.label),
+            () => SheetLabel(it.label, group: it.group, isIncome: it.isIncome),
+          );
           if (l.group.isEmpty) l.group = it.group;
           l.isIncome = l.isIncome || it.isIncome;
           it.budget.forEach((k, v) => l.budget[k] = v);
@@ -502,7 +732,10 @@ SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year})
       case SheetKind.flatList:
         final now = DateTime.now();
         for (final it in (r.$2 as _Flat).items) {
-          final l = out.labels.putIfAbsent(_key(it.label), () => SheetLabel(it.label, group: it.group, isIncome: it.isIncome));
+          final l = out.labels.putIfAbsent(
+            _key(it.label),
+            () => SheetLabel(it.label, group: it.group, isIncome: it.isIncome),
+          );
           l.budget[monthKey(now.year, now.month)] = it.minor;
         }
       case SheetKind.unknown:
@@ -510,7 +743,9 @@ SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year})
     }
   });
   if (out.isEmpty) {
-    out.warnings.add('We could not find a budget or a list of payments in that file.');
+    out.warnings.add(
+      'We could not find a budget or a list of payments in that file.',
+    );
   }
   // An item the ledger knows by a different case/spacing than the grid's
   // label is the same item: merged above through _key.
@@ -520,7 +755,8 @@ SheetAnalysis analyzeSheets(Map<String, List<List<String>>> sheets, {int? year})
 String _key(String label) => _norm(label);
 
 /// Convenience for a single CSV: one sheet.
-SheetAnalysis analyzeCsv(String text, {int? year}) => analyzeSheets({'Sheet1': parseCsv(text)}, year: year);
+SheetAnalysis analyzeCsv(String text, {int? year}) =>
+    analyzeSheets({'Sheet1': parseCsv(text)}, year: year);
 
 // ---- Monthly grid -----------------------------------------------------------------
 
@@ -536,8 +772,14 @@ class _Grid {
   final List<_GridItem> items;
 }
 
-bool _isBudgetWord(String s) => RegExp(r'^(budget|budgeted|planned|plan|target|limit)\b', caseSensitive: false).hasMatch(s.trim());
-bool _isActualWord(String s) => RegExp(r'^(actual|actuals|spent|spend|real)\b', caseSensitive: false).hasMatch(s.trim());
+bool _isBudgetWord(String s) => RegExp(
+  r'^(budget|budgeted|planned|plan|target|limit)\b',
+  caseSensitive: false,
+).hasMatch(s.trim());
+bool _isActualWord(String s) => RegExp(
+  r'^(actual|actuals|spent|spend|real)\b',
+  caseSensitive: false,
+).hasMatch(s.trim());
 
 _Grid? _readGrid(List<List<String>> rows, int fallbackYear) {
   // Header: the first of the top rows with three or more month names.
@@ -579,7 +821,10 @@ _Grid? _readGrid(List<List<String>> rows, int fallbackYear) {
       break;
     }
   }
-  final labelCols = [for (var c = 0; c < firstMonthCol; c++) if (c != typeCol) c];
+  final labelCols = [
+    for (var c = 0; c < firstMonthCol; c++)
+      if (c != typeCol) c,
+  ];
   if (labelCols.isEmpty) return null;
   final itemCol = labelCols.last;
   final groupCol = labelCols.length > 1 ? labelCols.first : null;
@@ -591,10 +836,13 @@ _Grid? _readGrid(List<List<String>> rows, int fallbackYear) {
   for (var r = hdr + 1; r < rows.length; r++) {
     final row = rows[r];
     if (row.every((c) => c.trim().isEmpty)) continue;
-    if (groupCol != null && cell(row, groupCol).isNotEmpty) group = cell(row, groupCol);
+    if (groupCol != null && cell(row, groupCol).isNotEmpty)
+      group = cell(row, groupCol);
     var label = cell(row, itemCol);
     final type = typeCol == null ? 'budget' : cell(row, typeCol);
-    final hasNumbers = monthCols.keys.any((c) => parseAmountMinor(cell(row, c)) != null);
+    final hasNumbers = monthCols.keys.any(
+      (c) => parseAmountMinor(cell(row, c)) != null,
+    );
     if (label.isEmpty) {
       // Actual row under a Budget row: same item.
       if (typeCol == null || current == null) continue;
@@ -610,7 +858,14 @@ _Grid? _readGrid(List<List<String>> rows, int fallbackYear) {
         continue;
       }
       final key = _key(label);
-      current = items.putIfAbsent(key, () => _GridItem(label, group, _isIncomeText(group) || (_isIncomeText(label) && group.isEmpty)));
+      current = items.putIfAbsent(
+        key,
+        () => _GridItem(
+          label,
+          group,
+          _isIncomeText(group) || (_isIncomeText(label) && group.isEmpty),
+        ),
+      );
     }
     final item = current;
     final isActual = typeCol != null && _isActualWord(type);
@@ -622,7 +877,13 @@ _Grid? _readGrid(List<List<String>> rows, int fallbackYear) {
       (isActual ? item.actual : item.budget)[monthKey(year, m)] = v.abs();
     });
   }
-  final used = items.values.where((i) => i.budget.values.any((v) => v > 0) || i.actual.values.any((v) => v > 0)).toList();
+  final used = items.values
+      .where(
+        (i) =>
+            i.budget.values.any((v) => v > 0) ||
+            i.actual.values.any((v) => v > 0),
+      )
+      .toList();
   return used.isEmpty ? null : _Grid(used);
 }
 
@@ -634,7 +895,8 @@ class _Ledger {
   final List<String> warnings;
 }
 
-bool _has(String h, List<String> words) => words.any((w) => RegExp('(^|[^a-z])$w([^a-z]|\$)').hasMatch(h));
+bool _has(String h, List<String> words) =>
+    words.any((w) => RegExp('(^|[^a-z])$w([^a-z]|\$)').hasMatch(h));
 
 _Ledger? _readLedger(List<List<String>> rows) {
   int? hdr;
@@ -659,16 +921,36 @@ _Ledger? _readLedger(List<List<String>> rows) {
       amountCol = a;
       debitCol = db;
       creditCol = cr;
-      itemCol = find(['item', 'category', 'description', 'merchant', 'payee', 'name', 'details', 'narration', 'particulars'], skip: d);
+      itemCol = find([
+        'item',
+        'category',
+        'description',
+        'merchant',
+        'payee',
+        'name',
+        'details',
+        'narration',
+        'particulars',
+      ], skip: d);
       groupCol = find(['group', 'bucket', 'section'], skip: itemCol);
-      noteCol = find(['comment', 'comments', 'note', 'notes', 'memo', 'remarks'], skip: itemCol);
+      noteCol = find([
+        'comment',
+        'comments',
+        'note',
+        'notes',
+        'memo',
+        'remarks',
+      ], skip: itemCol);
       typeCol = find(['type', 'kind', 'direction']);
       break;
     }
   }
   if (hdr == null || itemCol < 0) return null;
-  String cell(List<String> row, int c) => c >= 0 && c < row.length ? row[c].trim() : '';
-  final dateCells = [for (var r = hdr + 1; r < rows.length; r++) cell(rows[r], dateCol)];
+  String cell(List<String> row, int c) =>
+      c >= 0 && c < row.length ? row[c].trim() : '';
+  final dateCells = [
+    for (var r = hdr + 1; r < rows.length; r++) cell(rows[r], dateCol),
+  ];
   final dayFirst = detectDayFirst(dateCells);
   final txs = <SheetTx>[];
   var skipped = 0;
@@ -691,7 +973,12 @@ _Ledger? _readLedger(List<List<String>> rows) {
         income = true;
       }
     }
-    if (typeCol >= 0 && RegExp(r'income|credit|deposit', caseSensitive: false).hasMatch(cell(row, typeCol))) income = true;
+    if (typeCol >= 0 &&
+        RegExp(
+          r'income|credit|deposit',
+          caseSensitive: false,
+        ).hasMatch(cell(row, typeCol)))
+      income = true;
     final label = cell(row, itemCol);
     if (date == null || minor == null || minor == 0 || label.isEmpty) {
       if (row.any((c) => c.trim().isNotEmpty)) skipped++;
@@ -699,10 +986,20 @@ _Ledger? _readLedger(List<List<String>> rows) {
     }
     final group = cell(row, groupCol);
     if (_isIncomeText(group)) income = true;
-    txs.add(SheetTx(date: date, label: label, note: cell(row, noteCol), minor: minor, isIncome: income));
+    txs.add(
+      SheetTx(
+        date: date,
+        label: label,
+        note: cell(row, noteCol),
+        minor: minor,
+        isIncome: income,
+      ),
+    );
   }
   if (txs.isEmpty) return null;
-  return _Ledger(txs, [if (skipped > 0) '$skipped rows had no date or amount and were left out.']);
+  return _Ledger(txs, [
+    if (skipped > 0) '$skipped rows had no date or amount and were left out.',
+  ]);
 }
 
 // ---- Flat list -------------------------------------------------------------------------
@@ -722,18 +1019,34 @@ class _Flat {
 _Flat? _readFlat(List<List<String>> rows) {
   for (var r = 0; r < rows.length && r < 8; r++) {
     final h = [for (final c in rows[r]) c.trim().toLowerCase()];
-    final amt = h.indexWhere((x) => _has(x, ['budget', 'amount', 'monthly', 'limit', 'planned', 'aed', 'per month']));
-    final cat = h.indexWhere((x) => _has(x, ['category', 'item', 'name', 'expense', 'description']));
+    final amt = h.indexWhere(
+      (x) => _has(x, [
+        'budget',
+        'amount',
+        'monthly',
+        'limit',
+        'planned',
+        'aed',
+        'per month',
+      ]),
+    );
+    final cat = h.indexWhere(
+      (x) => _has(x, ['category', 'item', 'name', 'expense', 'description']),
+    );
     if (amt < 0 || cat < 0 || amt == cat) continue;
     final grp = h.indexWhere((x) => _has(x, ['group', 'type', 'section']));
     final items = <_FlatItem>[];
     for (var i = r + 1; i < rows.length; i++) {
-      String cell(int c) => c >= 0 && c < rows[i].length ? rows[i][c].trim() : '';
+      String cell(int c) =>
+          c >= 0 && c < rows[i].length ? rows[i][c].trim() : '';
       final label = cell(cat);
       final v = parseAmountMinor(cell(amt));
-      if (label.isEmpty || v == null || v <= 0 || _totalRow.hasMatch(label)) continue;
+      if (label.isEmpty || v == null || v <= 0 || _totalRow.hasMatch(label))
+        continue;
       final g = cell(grp);
-      items.add(_FlatItem(label, g, v, _isIncomeText(g) || _isIncomeText(label)));
+      items.add(
+        _FlatItem(label, g, v, _isIncomeText(g) || _isIncomeText(label)),
+      );
     }
     if (items.length >= 2) return _Flat(items);
   }

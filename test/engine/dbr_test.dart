@@ -35,12 +35,21 @@ void main() {
   });
 
   test('tight band', () {
-    final r = computeDbr(cards: const [], salaryMinor: 1000000, loanEmisMinor: 420000);
+    final r = computeDbr(
+      cards: const [],
+      salaryMinor: 1000000,
+      loanEmisMinor: 420000,
+    );
     expect(r.level, DbrLevel.tight);
   });
 
   test('no salary: totals only, level unknown', () {
-    final r = computeDbr(cards: const [DbrCard(name: 'A', limitMinor: 500000), DbrCard(name: 'Z', limitMinor: 0)]);
+    final r = computeDbr(
+      cards: const [
+        DbrCard(name: 'A', limitMinor: 500000),
+        DbrCard(name: 'Z', limitMinor: 0),
+      ],
+    );
     expect(r.totalLimitMinor, 500000);
     expect(r.cards.length, 1);
     expect(r.dbrPct, isNull);
@@ -49,7 +58,10 @@ void main() {
   });
 
   test('new card check', () {
-    final r = computeDbr(cards: const [DbrCard(name: 'A', limitMinor: 1000000)], salaryMinor: 1000000);
+    final r = computeDbr(
+      cards: const [DbrCard(name: 'A', limitMinor: 1000000)],
+      salaryMinor: 1000000,
+    );
     // headroom 5,000 - 500 = 4,500; a 100,000 card adds 5,000.
     expect(newCardBreaksCap(r, 10000000), isTrue);
     expect(newCardBreaksCap(r, 5000000), isFalse);

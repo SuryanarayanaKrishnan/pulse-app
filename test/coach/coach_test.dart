@@ -24,8 +24,11 @@ Future<void> pumpApp(WidgetTester tester, MemoryKvStore kv) async {
         ),
         analyticsProvider.overrideWithValue(NoopAnalytics()),
         sessionProvider.overrideWith(
-          (ref) =>
-              SessionController(onboarded: true, signedIn: true, connected: true),
+          (ref) => SessionController(
+            onboarded: true,
+            signedIn: true,
+            connected: true,
+          ),
         ),
       ],
       child: const PulseApp(),

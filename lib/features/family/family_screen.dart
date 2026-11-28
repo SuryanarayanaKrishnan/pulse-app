@@ -293,7 +293,8 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
     super.dispose();
   }
 
-  bool get _phoneOk => _phone.text.trim().isNotEmpty && toE164(_phone.text) != null;
+  bool get _phoneOk =>
+      _phone.text.trim().isNotEmpty && toE164(_phone.text) != null;
   bool get _valid =>
       _name.text.trim().isNotEmpty &&
       (_phone.text.trim().isEmpty || _phoneOk) &&
@@ -306,7 +307,10 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
       final code = await _codeFor(ref, myName: _me.text.trim());
       if (!mounted) return;
       if (code == null) {
-        _toast(context, 'This phone needs a new household code first. Open Household.');
+        _toast(
+          context,
+          'This phone needs a new household code first. Open Household.',
+        );
         return;
       }
       final r = await ref
@@ -320,10 +324,19 @@ class _InviteSheetState extends ConsumerState<InviteSheet> {
       Navigator.of(context).pop();
       if (r.alreadyPending) {
         messenger.showSnackBar(
-          SnackBar(content: Text('${r.invite.name} is already invited. Sharing the code again.')),
+          SnackBar(
+            content: Text(
+              '${r.invite.name} is already invited. Sharing the code again.',
+            ),
+          ),
         );
       }
-      await _shareInvite(name: r.invite.name, code: code, phone: phone, whatsapp: whatsapp);
+      await _shareInvite(
+        name: r.invite.name,
+        code: code,
+        phone: phone,
+        whatsapp: whatsapp,
+      );
     } on Object catch (e) {
       if (mounted) _toast(context, 'Could not prepare the invite. $e');
     } finally {

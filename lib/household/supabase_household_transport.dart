@@ -16,7 +16,11 @@ import '../core/sync/sync_transport.dart';
 ///
 /// Compiled but NOT exercised against a real Supabase project.
 class SupabaseHouseholdTransport implements SyncTransport {
-  SupabaseHouseholdTransport(this._client, {required this.householdId, this.bucket = 'pulse-households'});
+  SupabaseHouseholdTransport(
+    this._client, {
+    required this.householdId,
+    this.bucket = 'pulse-households',
+  });
   final SupabaseClient _client;
   final String householdId;
   final String bucket;
@@ -67,7 +71,9 @@ class SupabaseHouseholdTransport implements SyncTransport {
       return await _store.download('$_root/$name');
     } on StorageException catch (e) {
       if (e.statusCode == '404' ||
-          e.statusCode == '400' && (e.message.contains('not found') || e.message.contains('Object'))) {
+          e.statusCode == '400' &&
+              (e.message.contains('not found') ||
+                  e.message.contains('Object'))) {
         return null;
       }
       rethrow;
@@ -79,7 +85,10 @@ class SupabaseHouseholdTransport implements SyncTransport {
     await _store.uploadBinary(
       '$_root/$name',
       bytes,
-      fileOptions: const FileOptions(upsert: true, contentType: 'application/octet-stream'),
+      fileOptions: const FileOptions(
+        upsert: true,
+        contentType: 'application/octet-stream',
+      ),
     );
   }
 }

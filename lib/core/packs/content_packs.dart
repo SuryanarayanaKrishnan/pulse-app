@@ -37,14 +37,16 @@ class ContentPackService {
     for (final n in names) {
       Map<String, Object?>? best = _decode(await _bundled(n));
       final cached = _decode(await kv.read('pack.$n'));
-      if (cached != null && (best == null || _v(cached) >= _v(best))) best = cached;
+      if (cached != null && (best == null || _v(cached) >= _v(best)))
+        best = cached;
       if (best != null) _packs[n] = best;
     }
   }
 
   Future<String?> _bundled(String n) async {
     try {
-      return await (bundled ?? (name) => rootBundle.loadString('assets/packs/$name.json'))(n);
+      return await (bundled ??
+          (name) => rootBundle.loadString('assets/packs/$name.json'))(n);
     } on Object {
       return null; // no bundled copy for this pack
     }
@@ -74,16 +76,24 @@ class ContentPackService {
     try {
       final res = await client.get<Object?>(basePath);
       if (res.data is! Map) return const [];
-      final manifest = await config.verifyEnvelope(Map<String, Object?>.from(res.data! as Map));
-      final listed = Map<String, Object?>.from((manifest?['packs'] as Map?) ?? const {});
+      final manifest = await config.verifyEnvelope(
+        Map<String, Object?>.from(res.data! as Map),
+      );
+      final listed = Map<String, Object?>.from(
+        (manifest?['packs'] as Map?) ?? const {},
+      );
       for (final e in listed.entries) {
         final remoteVersion = (e.value as Map)['version'];
         final have = _packs[e.key];
-        if (remoteVersion is! int || (have != null && remoteVersion <= _v(have))) continue;
+        if (remoteVersion is! int ||
+            (have != null && remoteVersion <= _v(have)))
+          continue;
         try {
           final r = await client.get<Object?>('$basePath/${e.key}');
           if (r.data is! Map) continue;
-          final body = await config.verifyEnvelope(Map<String, Object?>.from(r.data! as Map));
+          final body = await config.verifyEnvelope(
+            Map<String, Object?>.from(r.data! as Map),
+          );
           if (body == null || body['version'] is! int) continue;
           await kv.write('pack.${e.key}', jsonEncode(body));
           _packs[e.key] = body;

@@ -53,7 +53,8 @@ class MemoryBridge implements SyncBridge {
   Future<LocalSnapshot> read() async => {
     for (final t in tables.entries)
       t.key: {
-        for (final r in t.value.entries) r.key: Map<String, Object?>.of(r.value),
+        for (final r in t.value.entries)
+          r.key: Map<String, Object?>.of(r.value),
       },
   };
 

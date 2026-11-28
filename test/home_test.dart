@@ -138,7 +138,7 @@ void main() {
   });
 
   testWidgets('simulated card tap shows the rewards moment', (tester) async {
-    await _pump(tester, location: '/settings');
+    await _pump(tester, location: '/settings/help');
     await tester.dragUntilVisible(
       find.text('Simulate a card tap'),
       find.byType(ListView).first,

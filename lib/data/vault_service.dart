@@ -378,7 +378,9 @@ class VaultService {
     if (!sealed) return;
     final st = await status();
     final now = _clock();
-    final heads = st.releaseAt.subtract(const Duration(days: reminderWindowDays));
+    final heads = st.releaseAt.subtract(
+      const Duration(days: reminderWindowDays),
+    );
     final eve = st.releaseAt.subtract(const Duration(days: 1));
     if (heads.isAfter(now)) {
       await r.schedule(

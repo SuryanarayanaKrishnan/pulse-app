@@ -8,7 +8,11 @@ class _Adapter implements HttpClientAdapter {
   final ResponseBody Function(RequestOptions) handler;
   int calls = 0;
   @override
-  Future<ResponseBody> fetch(RequestOptions o, Stream<List<int>>? s, Future<void>? c) async {
+  Future<ResponseBody> fetch(
+    RequestOptions o,
+    Stream<List<int>>? s,
+    Future<void>? c,
+  ) async {
     calls++;
     return handler(o);
   }
@@ -18,10 +22,12 @@ class _Adapter implements HttpClientAdapter {
 }
 
 ResponseBody _json(String body, [int status = 200]) => ResponseBody.fromString(
-      body,
-      status,
-      headers: {Headers.contentTypeHeader: ['application/json']},
-    );
+  body,
+  status,
+  headers: {
+    Headers.contentTypeHeader: ['application/json'],
+  },
+);
 
 void main() {
   test('dev auth is off unless built with DEV_AUTH', () {
@@ -49,10 +55,12 @@ void main() {
 
   test('interceptor attaches the dev token as bearer', () async {
     final a = _Adapter((o) {
-      if (o.path.endsWith('/v1/dev/token')) return _json('{"access_token":"abc"}');
+      if (o.path.endsWith('/v1/dev/token'))
+        return _json('{"access_token":"abc"}');
       return _json('{"auth":"${o.headers['Authorization']}"}');
     });
-    final tokenDio = Dio(BaseOptions(baseUrl: 'http://x'))..httpClientAdapter = a;
+    final tokenDio = Dio(BaseOptions(baseUrl: 'http://x'))
+      ..httpClientAdapter = a;
     final dio = Dio(BaseOptions(baseUrl: 'http://x'))..httpClientAdapter = a;
     dio.interceptors.add(AuthInterceptor(devTokens: DevTokenSource(tokenDio)));
     final r = await dio.get<Map<String, dynamic>>('/v1/me');

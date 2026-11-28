@@ -86,7 +86,8 @@ class PrivacyController extends ChangeNotifier {
         'onboarding_completed', 'first_capture', 'first_card_added', //
         'first_budget_set', 'first_split_settled',
       ]) {
-        if (await _kv.read(_milestoneKey(k)) == '1') _flags.add(_milestoneKey(k));
+        if (await _kv.read(_milestoneKey(k)) == '1')
+          _flags.add(_milestoneKey(k));
       }
       for (final b in ['d1', 'd7']) {
         if (await _kv.read(_returnKey(b)) == '1') _flags.add(_returnKey(b));
@@ -153,9 +154,11 @@ class PrivacyController extends ChangeNotifier {
     if (!sharing) return null;
     final a = _firstOpen!.toLocal();
     final b = now.toLocal();
-    final days = DateTime(b.year, b.month, b.day)
-        .difference(DateTime(a.year, a.month, a.day))
-        .inDays;
+    final days = DateTime(
+      b.year,
+      b.month,
+      b.day,
+    ).difference(DateTime(a.year, a.month, a.day)).inDays;
     final bucket = days == 1 ? 'd1' : (days >= 7 && days < 14 ? 'd7' : null);
     if (bucket == null || !_flags.add(_returnKey(bucket))) return null;
     _write(_returnKey(bucket), '1');

@@ -33,7 +33,11 @@ class TreemapView extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, box) {
         final size = Size(box.maxWidth, height);
-        final tiles = layoutTreemap([for (final e in entries) TreemapInput(e.id, e.value)], size.width, size.height);
+        final tiles = layoutTreemap(
+          [for (final e in entries) TreemapInput(e.id, e.value)],
+          size.width,
+          size.height,
+        );
         final byId = {for (final e in entries) e.id: e};
         return Semantics(
           container: true,
@@ -101,13 +105,22 @@ class TreemapPainter extends CustomPainter {
   /// neutral surface.
   Color fill(int i, int n) {
     final t = n <= 1 ? 0.0 : i / (n - 1);
-    return Color.lerp(accent.withValues(alpha: dark ? 0.78 : 0.9), base, t * 0.85)!;
+    return Color.lerp(
+      accent.withValues(alpha: dark ? 0.78 : 0.9),
+      base,
+      t * 0.85,
+    )!;
   }
 
   @override
   void paint(Canvas canvas, Size size) {
     for (final (i, t) in tiles.indexed) {
-      final rect = Rect.fromLTWH(t.left, t.top, t.width, t.height).deflate(gap / 2);
+      final rect = Rect.fromLTWH(
+        t.left,
+        t.top,
+        t.width,
+        t.height,
+      ).deflate(gap / 2);
       final rr = RRect.fromRectAndRadius(rect, const Radius.circular(Radii.sm));
       final color = fill(i, tiles.length);
       canvas.drawRRect(rr, Paint()..color = color);
@@ -117,17 +130,24 @@ class TreemapPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2.5
-            ..color = dark ? Colors.white : Colors.black.withValues(alpha: 0.75),
+            ..color = dark
+                ? Colors.white
+                : Colors.black.withValues(alpha: 0.75),
         );
       }
       final e = entries[t.id];
       if (e == null || rect.width < 54 || rect.height < 34) continue;
-      final fg = ThemeData.estimateBrightnessForColor(Color.alphaBlend(color, bg)) == Brightness.dark
+      final fg =
+          ThemeData.estimateBrightnessForColor(Color.alphaBlend(color, bg)) ==
+              Brightness.dark
           ? Colors.white
           : const Color(0xFF101413);
       void text(String s, TextStyle st, double dy) {
         final tp = TextPainter(
-          text: TextSpan(text: s, style: st.copyWith(color: fg)),
+          text: TextSpan(
+            text: s,
+            style: st.copyWith(color: fg),
+          ),
           textDirection: TextDirection.ltr,
           maxLines: 1,
           ellipsis: '…',
@@ -142,5 +162,8 @@ class TreemapPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TreemapPainter old) =>
-      old.tiles != tiles || old.selectedId != selectedId || old.accent != accent || old.dark != dark;
+      old.tiles != tiles ||
+      old.selectedId != selectedId ||
+      old.accent != accent ||
+      old.dark != dark;
 }

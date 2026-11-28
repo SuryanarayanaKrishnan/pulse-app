@@ -31,7 +31,8 @@ class SessionController extends ChangeNotifier {
 
   /// Sign-in blocks the app only when a backend needs it, or when a feature
   /// that needs an account asked for it.
-  bool get mustSignIn => !signedIn && (_signInRequested || (requireSignIn && !_signInSkipped));
+  bool get mustSignIn =>
+      !signedIn && (_signInRequested || (requireSignIn && !_signInSkipped));
 
   /// "Not now" on the sign-in screen: the app opens without an account (the
   /// shared features stay "available once you're signed in") and the screen

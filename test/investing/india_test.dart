@@ -423,15 +423,18 @@ NAV ₹110.00
 
 void typedFundServiceTests() {
   final now = DateTime(2026, 11, 25, 8);
-  test('a typed "about 1 lakh" entry becomes units at the official NAV', () async {
-    final t = build(now);
-    final r = await t.svc.applyCapture(
-      parseApproximate('about ₹1 lakh in Parag Parikh Flexi Cap'),
-    );
-    expect((r.fundsAdded, r.fundsUnmatched), (1, 0));
-    final f = (await t.wealth.fundViews()).single.holding;
-    expect(f.schemeCode, '122639');
-    expect(f.units, closeTo(100000 / 82.5, 1e-9));
-    expect(f.avgCostNav, isNull); // cost unknown: no invented P&L
-  });
+  test(
+    'a typed "about 1 lakh" entry becomes units at the official NAV',
+    () async {
+      final t = build(now);
+      final r = await t.svc.applyCapture(
+        parseApproximate('about ₹1 lakh in Parag Parikh Flexi Cap'),
+      );
+      expect((r.fundsAdded, r.fundsUnmatched), (1, 0));
+      final f = (await t.wealth.fundViews()).single.holding;
+      expect(f.schemeCode, '122639');
+      expect(f.units, closeTo(100000 / 82.5, 1e-9));
+      expect(f.avgCostNav, isNull); // cost unknown: no invented P&L
+    },
+  );
 }

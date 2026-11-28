@@ -24,7 +24,9 @@ class CatalogService {
     CatalogLoader? bundled,
     this.dio,
     this.remotePath = '/v1/catalog/cards',
-  }) : _bundled = bundled ?? (() => rootBundle.loadString('assets/catalog/cards.json'));
+  }) : _bundled =
+           bundled ??
+           (() => rootBundle.loadString('assets/catalog/cards.json'));
 
   final PulseDatabase db;
   final CatalogLoader _bundled;
@@ -35,7 +37,8 @@ class CatalogService {
 
   static const versionKey = 'catalog.version';
 
-  Future<int> currentVersion() async => int.tryParse(await db.setting(versionKey) ?? '') ?? 0;
+  Future<int> currentVersion() async =>
+      int.tryParse(await db.setting(versionKey) ?? '') ?? 0;
 
   /// Loads the bundled catalog when it is newer than what the database has
   /// (first run, or an app update that ships a newer catalog), and ALWAYS
@@ -43,7 +46,9 @@ class CatalogService {
   /// to block the bundled one for good, so cards the server did not list (HSBC,
   /// Tabby) never reached the phone.
   Future<CardCatalog> loadBundled() async {
-    final catalog = CardCatalog.fromJson(jsonDecode(await _bundled()) as Map<String, Object?>);
+    final catalog = CardCatalog.fromJson(
+      jsonDecode(await _bundled()) as Map<String, Object?>,
+    );
     if (catalog.version > await currentVersion() || await _isEmpty()) {
       await apply(catalog);
     } else {
@@ -56,32 +61,42 @@ class CatalogService {
   /// card, so a newer remote version of a card wins over the bundled one.
   Future<void> _addMissing(CardCatalog catalog) async {
     final have = {for (final r in await db.select(db.catalogCards).get()) r.id};
-    final missing = [for (final c in catalog.cards) if (!have.contains(c.id)) c];
+    final missing = [
+      for (final c in catalog.cards)
+        if (!have.contains(c.id)) c,
+    ];
     if (missing.isEmpty) return;
     await db.transaction(() async {
       for (final c in missing) {
-        await db.into(db.catalogCards).insert(
-          CatalogCardsCompanion.insert(
-            id: c.id,
-            issuer: c.issuer,
-            name: c.name,
-            network: Value(c.network),
-            annualFeeMinor: Value(c.annualFeeMinor),
-            minSalaryMinor: Value(c.minSalaryMinor),
-            rewardStructure: Value(jsonEncode(c.rewardStructure)),
-            perks: Value(jsonEncode(c.perks)),
-            verifiedOn: Value(c.verifiedOn?.toIso8601String().substring(0, 10)),
-            source: Value(c.source),
-            catalogVersion: Value(catalog.version),
-          ),
-        );
+        await db
+            .into(db.catalogCards)
+            .insert(
+              CatalogCardsCompanion.insert(
+                id: c.id,
+                issuer: c.issuer,
+                name: c.name,
+                network: Value(c.network),
+                annualFeeMinor: Value(c.annualFeeMinor),
+                minSalaryMinor: Value(c.minSalaryMinor),
+                rewardStructure: Value(jsonEncode(c.rewardStructure)),
+                perks: Value(jsonEncode(c.perks)),
+                verifiedOn: Value(
+                  c.verifiedOn?.toIso8601String().substring(0, 10),
+                ),
+                source: Value(c.source),
+                catalogVersion: Value(catalog.version),
+              ),
+            );
       }
     });
   }
 
   Future<bool> _isEmpty() async =>
-      (await (db.selectOnly(db.catalogCards)..addColumns([db.catalogCards.id.count()])).getSingle())
-          .read(db.catalogCards.id.count()) ==
+      (await (db.selectOnly(
+        db.catalogCards,
+      )..addColumns([db.catalogCards.id.count()])).getSingle()).read(
+        db.catalogCards.id.count(),
+      ) ==
       0;
 
   /// Asks the backend for a newer catalog. Returns true when one was applied.
@@ -94,7 +109,8 @@ class CatalogService {
       final data = res.data;
       if (data is! Map) return false;
       final remote = CardCatalog.fromJson(Map<String, Object?>.from(data));
-      if (remote.cards.isEmpty || remote.version <= await currentVersion()) return false;
+      if (remote.cards.isEmpty || remote.version <= await currentVersion())
+        return false;
       await apply(remote);
       return true;
     } on Object {
@@ -108,21 +124,25 @@ class CatalogService {
   Future<void> apply(CardCatalog catalog) async {
     await db.transaction(() async {
       for (final c in catalog.cards) {
-        await db.into(db.catalogCards).insertOnConflictUpdate(
-          CatalogCardsCompanion.insert(
-            id: c.id,
-            issuer: c.issuer,
-            name: c.name,
-            network: Value(c.network),
-            annualFeeMinor: Value(c.annualFeeMinor),
-            minSalaryMinor: Value(c.minSalaryMinor),
-            rewardStructure: Value(jsonEncode(c.rewardStructure)),
-            perks: Value(jsonEncode(c.perks)),
-            verifiedOn: Value(c.verifiedOn?.toIso8601String().substring(0, 10)),
-            source: Value(c.source),
-            catalogVersion: Value(catalog.version),
-          ),
-        );
+        await db
+            .into(db.catalogCards)
+            .insertOnConflictUpdate(
+              CatalogCardsCompanion.insert(
+                id: c.id,
+                issuer: c.issuer,
+                name: c.name,
+                network: Value(c.network),
+                annualFeeMinor: Value(c.annualFeeMinor),
+                minSalaryMinor: Value(c.minSalaryMinor),
+                rewardStructure: Value(jsonEncode(c.rewardStructure)),
+                perks: Value(jsonEncode(c.perks)),
+                verifiedOn: Value(
+                  c.verifiedOn?.toIso8601String().substring(0, 10),
+                ),
+                source: Value(c.source),
+                catalogVersion: Value(catalog.version),
+              ),
+            );
       }
       await db.putSetting(versionKey, '${catalog.version}');
       await db.putSetting('catalog.updated_on', catalog.updatedOn);
@@ -131,7 +151,12 @@ class CatalogService {
 
   /// The catalog as stored.
   Future<List<CatalogCard>> cards() async {
-    final rows = await (db.select(db.catalogCards)..orderBy([(t) => OrderingTerm.asc(t.issuer), (t) => OrderingTerm.asc(t.name)])).get();
+    final rows =
+        await (db.select(db.catalogCards)..orderBy([
+              (t) => OrderingTerm.asc(t.issuer),
+              (t) => OrderingTerm.asc(t.name),
+            ]))
+            .get();
     final out = <CatalogCard>[];
     for (final r in rows) {
       try {
@@ -142,9 +167,13 @@ class CatalogService {
           network: r.network,
           annualFeeMinor: r.annualFeeMinor,
           minSalaryMinor: r.minSalaryMinor,
-          rewardStructure: Map<String, Object?>.from(jsonDecode(r.rewardStructure) as Map),
+          rewardStructure: Map<String, Object?>.from(
+            jsonDecode(r.rewardStructure) as Map,
+          ),
           perks: Map<String, Object?>.from(jsonDecode(r.perks) as Map),
-          verifiedOn: r.verifiedOn == null ? null : DateTime.parse(r.verifiedOn!),
+          verifiedOn: r.verifiedOn == null
+              ? null
+              : DateTime.parse(r.verifiedOn!),
           source: r.source,
         );
         card.spec;

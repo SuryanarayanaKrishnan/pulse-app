@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../cards/digit_widgets.dart';
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/theme/theme.dart';
@@ -200,7 +202,10 @@ class CardDetailBody extends ConsumerWidget {
               title: 'Edit details',
               subtitle: 'Limit, statement day, due day, last 4 digits',
               chevron: true,
-              onTap: () => showPulseSheet<void>(context, builder: (_) => EditCardSheet(card: card)),
+              onTap: () => showPulseSheet<void>(
+                context,
+                builder: (_) => EditCardSheet(card: card),
+              ),
             ),
           ],
         ),

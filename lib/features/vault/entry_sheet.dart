@@ -250,7 +250,7 @@ class _EntrySheetState extends ConsumerState<EntrySheet> {
             decoration: const InputDecoration(
               hintText: 'Rough value',
               prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           GuardNote(_issues),

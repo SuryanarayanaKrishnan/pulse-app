@@ -42,7 +42,10 @@ class ImportResult {
     required this.transactionsAdded,
     required this.transactionsSkipped,
   });
-  final int limitsSet, categoriesCreated, transactionsAdded, transactionsSkipped;
+  final int limitsSet,
+      categoriesCreated,
+      transactionsAdded,
+      transactionsSkipped;
 }
 
 /// Turns a sheet analysis into Pulse categories, monthly limits and history,
@@ -58,7 +61,11 @@ class BudgetImportService {
     final now = monthKeyFor(DateTime.now());
     // This month is not finished; leave it out.
     return typicalMonthly({
-      for (final e in byMonth.entries) e.key: {for (final m in e.value.entries) if (m.key != now) m.key: m.value},
+      for (final e in byMonth.entries)
+        e.key: {
+          for (final m in e.value.entries)
+            if (m.key != now) m.key: m.value,
+        },
     });
   }
 
@@ -76,9 +83,14 @@ class BudgetImportService {
   /// Default mapping for every label in [a]. With [keepOwnNames] only a label
   /// that is already a category's own name goes to it; every other label becomes a category of
   /// its own, so a detailed sheet keeps its detail.
-  Future<List<LabelMapping>> proposeMappings(SheetAnalysis a, {bool keepOwnNames = false}) async {
+  Future<List<LabelMapping>> proposeMappings(
+    SheetAnalysis a, {
+    bool keepOwnNames = false,
+  }) async {
     final custom = await repo.categories();
-    final byName = {for (final c in [...SpendCategory.defaults, ...custom]) _n(c.label): c};
+    final byName = {
+      for (final c in [...SpendCategory.defaults, ...custom]) _n(c.label): c,
+    };
     final out = <LabelMapping>[];
     for (final l in a.orderedLabels) {
       final own = byName[_n(l.label)];
@@ -97,11 +109,17 @@ class BudgetImportService {
     return out;
   }
 
-  static const _otherIncome = SpendCategory('other_income', 'Other Income', kind: CategoryKind.income);
-  static SpendCategory? _defaultById(String id) =>
-      id == 'other_income' ? _otherIncome : SpendCategory.defaults.where((c) => c.id == id).firstOrNull;
+  static const _otherIncome = SpendCategory(
+    'other_income',
+    'Other Income',
+    kind: CategoryKind.income,
+  );
+  static SpendCategory? _defaultById(String id) => id == 'other_income'
+      ? _otherIncome
+      : SpendCategory.defaults.where((c) => c.id == id).firstOrNull;
 
-  static String _n(String s) => s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+  static String _n(String s) =>
+      s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
   /// Writes the plan: new categories, monthly limits where the amount
   /// changes (a limit carries forward until the next one), and history.
@@ -140,7 +158,9 @@ class BudgetImportService {
       final cat = resolved[_k(m.label)];
       if (cat == null || cat.isIncome || cat.isTransfer) continue;
       final sums = perCat.putIfAbsent(cat.id, () => {});
-      m.label.budget.forEach((month, v) => sums[month] = (sums[month] ?? 0) + v);
+      m.label.budget.forEach(
+        (month, v) => sums[month] = (sums[month] ?? 0) + v,
+      );
     }
     var limits = 0;
     for (final e in perCat.entries) {
@@ -150,7 +170,8 @@ class BudgetImportService {
         final v = e.value[month]!;
         if (v == prev) continue;
         prev = v;
-        final y = int.parse(month.substring(0, 4)), mo = int.parse(month.substring(5, 7));
+        final y = int.parse(month.substring(0, 4)),
+            mo = int.parse(month.substring(5, 7));
         await plan.setMonthly(e.key, DateTime(y, mo), v);
         limits++;
       }
@@ -163,27 +184,32 @@ class BudgetImportService {
       for (final t in a.transactions) {
         final cat = resolved[_n(t.label)];
         if (cat == null) continue;
-        txs.add(ImportedTransaction(
-          date: t.date,
-          merchant: t.note.isNotEmpty ? '${t.label} · ${t.note}' : t.label,
-          amountMinor: t.minor,
-          category: cat,
-          isIncome: t.isIncome || cat.isIncome,
-        ));
+        txs.add(
+          ImportedTransaction(
+            date: t.date,
+            merchant: t.note.isNotEmpty ? '${t.label} · ${t.note}' : t.label,
+            amountMinor: t.minor,
+            category: cat,
+            isIncome: t.isIncome || cat.isIncome,
+          ),
+        );
       }
       for (final m in mappings) {
         final cat = resolved[_k(m.label)];
         if (cat == null) continue;
         m.label.actual.forEach((month, v) {
           if (v <= 0) return;
-          final y = int.parse(month.substring(0, 4)), mo = int.parse(month.substring(5, 7));
-          txs.add(ImportedTransaction(
-            date: DateTime(y, mo, 15),
-            merchant: '${m.label.label} (from your sheet)',
-            amountMinor: v,
-            category: cat,
-            isIncome: m.label.isIncome || cat.isIncome,
-          ));
+          final y = int.parse(month.substring(0, 4)),
+              mo = int.parse(month.substring(5, 7));
+          txs.add(
+            ImportedTransaction(
+              date: DateTime(y, mo, 15),
+              merchant: '${m.label.label} (from your sheet)',
+              amountMinor: v,
+              category: cat,
+              isIncome: m.label.isIncome || cat.isIncome,
+            ),
+          );
         });
       }
       added = await repo.importTransactions(txs);

@@ -42,7 +42,10 @@ class MilestoneRingView extends StatelessWidget {
             size: 52,
             stroke: 5,
             color: color,
-            child: Text('${(ring.fraction * 100).round()}%', style: context.tt.labelSmall),
+            child: Text(
+              '${(ring.fraction * 100).round()}%',
+              style: context.tt.labelSmall,
+            ),
           ),
           const SizedBox(width: Space.md),
           Expanded(
@@ -89,7 +92,10 @@ class CardValueSection extends ConsumerWidget {
             children: [
               for (final h in x.hints)
                 ListRow(
-                  leading: IconWell(Icons.hourglass_empty_rounded, color: c.warning),
+                  leading: IconWell(
+                    Icons.hourglass_empty_rounded,
+                    color: c.warning,
+                  ),
                   title: h.message,
                 ),
             ],
@@ -129,7 +135,12 @@ class CardValueSection extends ConsumerWidget {
         ],
         if (x.estimated)
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, 0),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              0,
+            ),
             child: Text(
               'Estimates from catalog figures that are not yet verified against the issuer.',
               style: context.tt.bodySmall!.copyWith(color: c.textTertiary),
@@ -169,19 +180,25 @@ class NetValueRanking extends ConsumerWidget {
                 key: ValueKey('net-${v.id}'),
                 leading: SizedBox(
                   width: 24,
-                  child: Text('${i + 1}', style: PulseTheme.amount(c.textTertiary, size: 15)),
+                  child: Text(
+                    '${i + 1}',
+                    style: PulseTheme.amount(c.textTertiary, size: 15),
+                  ),
                 ),
                 title: v.title,
                 subtitle: [
                   '${_signed(v.annualRewardsMinor)} rewards',
-                  if (v.annualBenefitsMinor > 0) '${_signed(v.annualBenefitsMinor)} benefits',
+                  if (v.annualBenefitsMinor > 0)
+                    '${_signed(v.annualBenefitsMinor)} benefits',
                   if (v.annualFeeMinor > 0) '${_signed(v.annualFeeMinor)} fee',
                   if (v.feeWaived) 'fee waived',
                   if (v.estimated) 'unverified terms',
                 ].join(' · '),
                 trailing: Text(
                   _signed(v.netAnnualMinor),
-                  style: PulseTheme.amount(v.netAnnualMinor < 0 ? c.negative : c.textPrimary),
+                  style: PulseTheme.amount(
+                    v.netAnnualMinor < 0 ? c.negative : c.textPrimary,
+                  ),
                 ),
               ),
           ],

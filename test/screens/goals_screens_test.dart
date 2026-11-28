@@ -54,7 +54,9 @@ void main() {
       addTearDown(() => PulseTheme.testFontFamily = null);
       tester.view.physicalSize = const Size(390 * 3, 844 * 3);
       tester.view.devicePixelRatio = 3;
-      tester.platformDispatcher.platformBrightnessTestValue = dark ? Brightness.dark : Brightness.light;
+      tester.platformDispatcher.platformBrightnessTestValue = dark
+          ? Brightness.dark
+          : Brightness.light;
       addTearDown(tester.view.reset);
       addTearDown(tester.platformDispatcher.clearAllTestValues);
       final key = GlobalKey();
@@ -68,11 +70,17 @@ void main() {
             child: ProviderScope(
               overrides: [
                 goalStoreProvider.overrideWithValue(store),
-                repositoryProvider.overrideWithValue(MockPulseRepository(latency: Duration.zero, goals: store)),
+                repositoryProvider.overrideWithValue(
+                  MockPulseRepository(latency: Duration.zero, goals: store),
+                ),
                 analyticsProvider.overrideWithValue(NoopAnalytics()),
                 kvStoreProvider.overrideWithValue(MemoryKvStore()),
                 sessionProvider.overrideWith(
-                  (ref) => SessionController(onboarded: true, signedIn: true, connected: true),
+                  (ref) => SessionController(
+                    onboarded: true,
+                    signedIn: true,
+                    connected: true,
+                  ),
                 ),
               ],
               child: PulseApp(initialLocation: location),
@@ -87,7 +95,8 @@ void main() {
         await tester.pump(const Duration(milliseconds: 600));
         await tester.pump(const Duration(milliseconds: 600));
         await tester.runAsync(() async {
-          final b = key.currentContext!.findRenderObject() as RenderRepaintBoundary;
+          final b =
+              key.currentContext!.findRenderObject() as RenderRepaintBoundary;
           final img = await b.toImage(pixelRatio: 1);
           final data = await img.toByteData(format: ui.ImageByteFormat.png);
           final f = File('$_dir/$name-$mode.png');
@@ -103,7 +112,10 @@ void main() {
       await shot('goal-detail-on-track');
       await tester.tap(find.byKey(const Key('goal_add')));
       await tester.pump(const Duration(milliseconds: 600));
-      await tester.enterText(find.byKey(const Key('contribution_amount')), '2500');
+      await tester.enterText(
+        find.byKey(const Key('contribution_amount')),
+        '2500',
+      );
       await shot('goal-add-money');
 
       await open('/goals/g_japan');
@@ -116,7 +128,10 @@ void main() {
       await tester.tap(find.byIcon(Icons.add_rounded));
       await tester.pump(const Duration(milliseconds: 600));
       await shot('goal-create');
-      await tester.enterText(find.byKey(const Key('goal_name')), 'Emergency fund');
+      await tester.enterText(
+        find.byKey(const Key('goal_name')),
+        'Emergency fund',
+      );
       await tester.enterText(find.byKey(const Key('goal_target')), '30000');
       await tester.enterText(find.byKey(const Key('goal_monthly')), '2000');
       await shot('goal-create-filled');

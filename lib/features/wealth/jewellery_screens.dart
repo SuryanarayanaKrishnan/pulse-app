@@ -274,7 +274,7 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             decoration: const InputDecoration(
               hintText: 'Total paid',
               prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
             onChanged: (_) => setState(() {}),
           ),
@@ -285,7 +285,7 @@ class _AddJewellerySheetState extends ConsumerState<AddJewellerySheet> {
             decoration: const InputDecoration(
               hintText: 'Making charges (included above)',
               prefixIcon: CurrencyPrefix('AED'),
- prefixIconConstraints: kCurrencyPrefixConstraints,
+              prefixIconConstraints: kCurrencyPrefixConstraints,
             ),
           ),
           const SizedBox(height: Space.md),

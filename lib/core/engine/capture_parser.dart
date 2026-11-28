@@ -595,7 +595,13 @@ HoldingDraft? _holdingFromBlock(String sym, String block) {
   final listing = listingOf(sym);
   final name = firstLine
       .replaceAll(RegExp(r'\$?' + RegExp.escape(listing.base)), '')
-      .replaceAll(RegExp(r'\.(?:NS|NSE|BO|BSE|DFM|ADX)\b|\b(?:NSE|BSE|DFM|ADX):', caseSensitive: false), '')
+      .replaceAll(
+        RegExp(
+          r'\.(?:NS|NSE|BO|BSE|DFM|ADX)\b|\b(?:NSE|BSE|DFM|ADX):',
+          caseSensitive: false,
+        ),
+        '',
+      )
       .replaceAll(RegExp(r'[\d.,$%+\-]+'), '')
       .trim();
   var currency = 'USD';
@@ -813,7 +819,10 @@ bool _isFundNameLine(String l) {
   if (l.length < 10) return false;
   final digits = RegExp(r'\d').allMatches(l).length;
   if (digits > 4) return false;
-  if (RegExp(r'^(?:invested|current|nav|units?|sip|returns?|xirr)\b', caseSensitive: false).hasMatch(l))
+  if (RegExp(
+    r'^(?:invested|current|nav|units?|sip|returns?|xirr)\b',
+    caseSensitive: false,
+  ).hasMatch(l))
     return false;
   return _fundNameRe.hasMatch(l);
 }
@@ -833,10 +842,19 @@ double? _moneyAfter(String block, RegExp label) {
   return n == null ? null : parseLooseNumber(n[0]!);
 }
 
-final _unitsRe = RegExp(r'\bunits?\b(?:\s*held)?\s*[:\-]?', caseSensitive: false);
+final _unitsRe = RegExp(
+  r'\bunits?\b(?:\s*held)?\s*[:\-]?',
+  caseSensitive: false,
+);
 final _navRe = RegExp(r'\bnav\b', caseSensitive: false);
-final _investedRe = RegExp(r'\binvest(?:ed|ment)\b(?:\s*(?:amount|value))?\s*[:\-]?', caseSensitive: false);
-final _currentRe = RegExp(r'\b(?:current|market)\s*value\b\s*[:\-]?|\bcurrent\b\s*[:\-]?', caseSensitive: false);
+final _investedRe = RegExp(
+  r'\binvest(?:ed|ment)\b(?:\s*(?:amount|value))?\s*[:\-]?',
+  caseSensitive: false,
+);
+final _currentRe = RegExp(
+  r'\b(?:current|market)\s*value\b\s*[:\-]?|\bcurrent\b\s*[:\-]?',
+  caseSensitive: false,
+);
 
 /// Reads Indian mutual fund lines (fund name, units, NAV, invested, current
 /// value, an active SIP) from an MF app or statement screenshot.
@@ -870,7 +888,10 @@ List<FundDraft> parseMutualFunds(String text) {
       name = '$name ${lines[bodyFrom]}';
       bodyFrom++;
     }
-    name = name.replaceAll(RegExp(r'\s+'), ' ').replaceAll(RegExp(r'[\s\-–]+$'), '').trim();
+    name = name
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .replaceAll(RegExp(r'[\s\-–]+$'), '')
+        .trim();
     final body = lines.sublist(bodyFrom, end).join('\n');
     final d = _fundFromBlock(name, body);
     if (d != null) out.add(d);
@@ -896,10 +917,16 @@ FundDraft? _fundFromBlock(String name, String body) {
   if (sm != null) {
     final line = sm[0]!;
     final amounts = numbersIn(
-      line.replaceAll(RegExp(r'\d{1,2}(?:st|nd|rd|th)\b', caseSensitive: false), ''),
+      line.replaceAll(
+        RegExp(r'\d{1,2}(?:st|nd|rd|th)\b', caseSensitive: false),
+        '',
+      ),
     ).where((v) => v >= 100);
     if (amounts.isNotEmpty) sip = _toMinor(amounts.first);
-    final dm = RegExp(r'(\d{1,2})(?:st|nd|rd|th)\b', caseSensitive: false).firstMatch(line);
+    final dm = RegExp(
+      r'(\d{1,2})(?:st|nd|rd|th)\b',
+      caseSensitive: false,
+    ).firstMatch(line);
     if (dm != null) {
       final v = int.parse(dm[1]!);
       if (v >= 1 && v <= 31) sipDay = v;
@@ -981,7 +1008,11 @@ FundDraft? parseApproximateFund(String text) {
     caseSensitive: false,
   ).firstMatch(rest);
   if (sm != null) {
-    final v = _rupees(_moneyWordsRe.firstMatch(sm[0]!.replaceFirst(RegExp(r'sip\s*(?:of)?', caseSensitive: false), ''))!);
+    final v = _rupees(
+      _moneyWordsRe.firstMatch(
+        sm[0]!.replaceFirst(RegExp(r'sip\s*(?:of)?', caseSensitive: false), ''),
+      )!,
+    );
     if (v != null && v >= 100) sip = (v * 100).round();
     rest = rest.replaceFirst(sm[0]!, ' ');
   }
@@ -1001,7 +1032,8 @@ FundDraft? parseApproximateFund(String text) {
   }
   if (am != null) rest = rest.replaceFirst(am[0]!, ' ');
 
-  final putIn = RegExp(r'\b(?:invested|bought|put|worth of|paid)\b').hasMatch(lower);
+  final putIn = RegExp(r'\b(?:invested|bought|put|worth of|paid)\b')
+      .hasMatch(lower);
   var name = rest
       .replaceAll(
         RegExp(

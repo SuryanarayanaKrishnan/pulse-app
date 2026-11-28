@@ -10,7 +10,9 @@ import '../../data/digit_suggestion.dart';
 import '../../data/providers.dart';
 
 /// Digits the user said "not mine" to. Kept across restarts; Settings can undo.
-final dismissedDigitsProvider = NotifierProvider<DismissedDigits, Set<String>>(DismissedDigits.new);
+final dismissedDigitsProvider = NotifierProvider<DismissedDigits, Set<String>>(
+  DismissedDigits.new,
+);
 
 class DismissedDigits extends Notifier<Set<String>> {
   static const _key = 'dismissed_digits';
@@ -47,13 +49,20 @@ class DismissedDigits extends Notifier<Set<String>> {
   }
 }
 
-Future<void> _assign(BuildContext context, WidgetRef ref, String accountId, String last4) async {
+Future<void> _assign(
+  BuildContext context,
+  WidgetRef ref,
+  String accountId,
+  String last4,
+) async {
   try {
     await ref.read(repositoryProvider).setCardLast4(accountId, last4);
     invalidateWallet(ref);
   } on Object catch (e) {
     if (context.mounted) {
-      final msg = e is ApiException ? e.message : 'That did not work. Try again.';
+      final msg = e is ApiException
+          ? e.message
+          : 'That did not work. Try again.';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
     }
   }
@@ -67,14 +76,21 @@ class DigitSuggestionBanner extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final dismissed = ref.watch(dismissedDigitsProvider);
     final list = [
-      for (final s in ref.watch(digitSuggestionsProvider).value ?? const <DigitSuggestion>[])
+      for (final s
+          in ref.watch(digitSuggestionsProvider).value ??
+              const <DigitSuggestion>[])
         if (!dismissed.contains(s.last4)) s,
     ];
     if (list.isEmpty) return const SizedBox.shrink();
     final s = list.first;
     final c = context.pc;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(Space.gutter, 0, Space.gutter, Space.lg),
+      padding: const EdgeInsets.fromLTRB(
+        Space.gutter,
+        0,
+        Space.gutter,
+        Space.lg,
+      ),
       child: Container(
         padding: const EdgeInsets.all(Space.lg),
         decoration: BoxDecoration(
@@ -101,7 +117,10 @@ class DigitSuggestionBanner extends ConsumerWidget {
                       if (s.candidates.length == 1) {
                         _assign(context, ref, s.candidates.single.id, s.last4);
                       } else {
-                        showPulseSheet<void>(context, builder: (_) => _WhichCardSheet(s));
+                        showPulseSheet<void>(
+                          context,
+                          builder: (_) => _WhichCardSheet(s),
+                        );
                       }
                     },
                   ),
@@ -111,7 +130,8 @@ class DigitSuggestionBanner extends ConsumerWidget {
                   child: PrimaryButton(
                     label: 'Not mine',
                     secondary: true,
-                    onPressed: () => ref.read(dismissedDigitsProvider.notifier).add(s.last4),
+                    onPressed: () =>
+                        ref.read(dismissedDigitsProvider.notifier).add(s.last4),
                   ),
                 ),
               ],
@@ -183,13 +203,19 @@ class _AddDigitsSheetState extends ConsumerState<_AddDigitsSheet> {
           controller: _ctl,
           autofocus: true,
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(4)],
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(4),
+          ],
           decoration: const InputDecoration(hintText: '1234'),
           onChanged: (_) => setState(() {}),
           onSubmitted: (_) => _ctl.text.length == 4 ? _save() : null,
         ),
         const SizedBox(height: Space.lg),
-        PrimaryButton(label: 'Save', onPressed: _ctl.text.trim().length == 4 ? _save : null),
+        PrimaryButton(
+          label: 'Save',
+          onPressed: _ctl.text.trim().length == 4 ? _save : null,
+        ),
       ],
     ),
   );

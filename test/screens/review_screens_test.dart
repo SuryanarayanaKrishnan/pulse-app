@@ -134,7 +134,10 @@ void main() {
       await tester.tapAt(const Offset(195, 15));
       await tester.pump(const Duration(seconds: 1));
 
-      while (find.widgetWithText(PrimaryButton, 'Looks right').evaluate().isNotEmpty) {
+      while (find
+          .widgetWithText(PrimaryButton, 'Looks right')
+          .evaluate()
+          .isNotEmpty) {
         await tester.tap(find.widgetWithText(PrimaryButton, 'Looks right'));
         await tester.pump(const Duration(seconds: 1));
       }

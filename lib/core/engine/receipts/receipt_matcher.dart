@@ -46,7 +46,12 @@ class Charge {
 enum MatchKind { matched, ambiguous, none, alreadyLinked }
 
 class MatchResult {
-  const MatchResult(this.kind, {this.charge, this.score = 0, this.candidates = const []});
+  const MatchResult(
+    this.kind, {
+    this.charge,
+    this.score = 0,
+    this.candidates = const [],
+  });
   final MatchKind kind;
   final Charge? charge;
   final double score;
@@ -54,9 +59,27 @@ class MatchResult {
 }
 
 const _aliases = {
-  MerchantKind.noon: ['noon', 'noon com', 'noon food', 'noon supermall', 'noon minutes', 'noon dubai'],
-  MerchantKind.talabat: ['talabat', 'talabat mart', 'talabat dubai', 'talabat uae'],
-  MerchantKind.careem: ['careem', 'careem food', 'careem quik', 'careem dubai', 'careem now'],
+  MerchantKind.noon: [
+    'noon',
+    'noon com',
+    'noon food',
+    'noon supermall',
+    'noon minutes',
+    'noon dubai',
+  ],
+  MerchantKind.talabat: [
+    'talabat',
+    'talabat mart',
+    'talabat dubai',
+    'talabat uae',
+  ],
+  MerchantKind.careem: [
+    'careem',
+    'careem food',
+    'careem quik',
+    'careem dubai',
+    'careem now',
+  ],
 };
 
 /// 0..100 for how much the bank's merchant text looks like the receipt's.
@@ -74,7 +97,9 @@ double merchantSimilarity(ParsedReceipt r, String chargeMerchant) {
     if (nn.isEmpty) continue;
     final base = tokenSetRatio(nn, c);
     // "NOON.COM DUBAI AE" holds the brand as a whole token.
-    final contains = RegExp('(^| )${RegExp.escape(nn)}( |\$)').hasMatch(c) ? 100.0 : 0.0;
+    final contains = RegExp('(^| )${RegExp.escape(nn)}( |\$)').hasMatch(c)
+        ? 100.0
+        : 0.0;
     final v = base > contains ? base : contains;
     if (v > best) best = v;
   }
@@ -96,7 +121,8 @@ double _amountScore(ParsedReceipt r, int charge) {
 }
 
 double _dayDistance(DateTime a, DateTime b) {
-  final x = DateTime(a.year, a.month, a.day), y = DateTime(b.year, b.month, b.day);
+  final x = DateTime(a.year, a.month, a.day),
+      y = DateTime(b.year, b.month, b.day);
   return x.difference(y).inDays.abs().toDouble();
 }
 
@@ -107,8 +133,11 @@ double? scoreCharge(ParsedReceipt r, Charge c) {
   if (days > matchWindowDays) return null;
   final sim = merchantSimilarity(r, c.merchant);
   if (sim < 60) return null;
-  if (r.cardLast4 != null && c.cardLast4 != null && r.cardLast4 != c.cardLast4) return null;
-  final cardBonus = (r.cardLast4 != null && c.cardLast4 == r.cardLast4) ? 0.15 : 0.0;
+  if (r.cardLast4 != null && c.cardLast4 != null && r.cardLast4 != c.cardLast4)
+    return null;
+  final cardBonus = (r.cardLast4 != null && c.cardLast4 == r.cardLast4)
+      ? 0.15
+      : 0.0;
   final dateScore = 1 - days * 0.15;
   if (r.hasAmount) {
     final a = _amountScore(r, c.amountMinor);
@@ -148,7 +177,16 @@ MatchResult matchReceipt(ParsedReceipt r, List<Charge> charges) {
   final tied = scored.where((s) => top.$2 - s.$2 < 0.08).toList();
   if (tied.length > 1) {
     // Two charges of the same size on the same day: the user decides.
-    return MatchResult(MatchKind.ambiguous, score: top.$2, candidates: [for (final t in tied) t.$1]);
+    return MatchResult(
+      MatchKind.ambiguous,
+      score: top.$2,
+      candidates: [for (final t in tied) t.$1],
+    );
   }
-  return MatchResult(MatchKind.matched, charge: top.$1, score: top.$2, candidates: [top.$1]);
+  return MatchResult(
+    MatchKind.matched,
+    charge: top.$1,
+    score: top.$2,
+    candidates: [top.$1],
+  );
 }

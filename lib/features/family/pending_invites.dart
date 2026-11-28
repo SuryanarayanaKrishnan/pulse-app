@@ -59,7 +59,8 @@ class PendingInvite {
   }
 }
 
-String _norm(String s) => s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
+String _norm(String s) =>
+    s.trim().toLowerCase().replaceAll(RegExp(r'\s+'), ' ');
 
 /// Whether an invite is already answered by a member who has joined (the
 /// first name matches, ignoring case).
@@ -91,9 +92,7 @@ class PendingInvites {
     try {
       final list = jsonDecode(raw);
       if (list is! List) return const [];
-      return [
-        for (final e in list) ?PendingInvite.fromJson(e),
-      ];
+      return [for (final e in list) ?PendingInvite.fromJson(e)];
     } on FormatException {
       return const [];
     }
@@ -130,13 +129,18 @@ class PendingInvites {
     return InviteResult(p, alreadyPending: false);
   }
 
-  Future<void> cancel(String id) async =>
-      _save([for (final p in await all()) if (p.id != id) p]);
+  Future<void> cancel(String id) async => _save([
+    for (final p in await all())
+      if (p.id != id) p,
+  ]);
 
   /// Drops the invites that [memberNames] have answered.
   Future<void> dropJoined(Iterable<String> memberNames) async {
     final list = await all();
-    final keep = [for (final p in list) if (!hasJoined(p, memberNames)) p];
+    final keep = [
+      for (final p in list)
+        if (!hasJoined(p, memberNames)) p,
+    ];
     if (keep.length != list.length) await _save(keep);
   }
 }

@@ -28,7 +28,13 @@ GoalInput save({
   contributions: c,
 );
 
-GoalInput paydown({int owed = 900000, int? linked, CalDate? date, int? monthly, List<ContributionPoint> c = const []}) => GoalInput(
+GoalInput paydown({
+  int owed = 900000,
+  int? linked,
+  CalDate? date,
+  int? monthly,
+  List<ContributionPoint> c = const [],
+}) => GoalInput(
   id: 'p',
   name: 'Card',
   kind: GoalKind.paydown,
@@ -41,12 +47,15 @@ GoalInput paydown({int owed = 900000, int? linked, CalDate? date, int? monthly, 
   contributions: c,
 );
 
-ContributionPoint pt(int daysAgo, int amount) => ContributionPoint(today.addDays(-daysAgo), amount);
+ContributionPoint pt(int daysAgo, int amount) =>
+    ContributionPoint(today.addDays(-daysAgo), amount);
 
 void main() {
   group('state', () {
     test('save: start plus contributions, withdrawals subtract', () {
-      final s = goalState(save(start: 100000, c: [pt(40, 300000), pt(10, -50000)]));
+      final s = goalState(
+        save(start: 100000, c: [pt(40, 300000), pt(10, -50000)]),
+      );
       expect(s.currentMinor, 350000);
       expect(s.remainingMinor, 850000);
       expect(s.progress, closeTo(350000 / 1200000, 1e-9));
@@ -61,7 +70,10 @@ void main() {
     });
 
     test('a linked goal reads the linked value, not contributions', () {
-      expect(goalState(save(linked: 600000, start: 1, c: [pt(3, 999)])).currentMinor, 600000);
+      expect(
+        goalState(save(linked: 600000, start: 1, c: [pt(3, 999)])).currentMinor,
+        600000,
+      );
     });
 
     test('paydown: owed falls with payments; progress is the share paid', () {
@@ -92,12 +104,21 @@ void main() {
 
     test('no date means no suggestion; the planned figure wins when set', () {
       expect(suggestedMonthly(save(), today), isNull);
-      expect(plannedMonthly(save(monthly: 50000, date: CalDate(2027, 5, 24)), today), 50000);
+      expect(
+        plannedMonthly(save(monthly: 50000, date: CalDate(2027, 5, 24)), today),
+        50000,
+      );
       expect(plannedMonthly(save(), today), 0);
     });
 
     test('the plan never exceeds what is left', () {
-      expect(plannedMonthly(save(target: 100000, start: 80000, monthly: 500000), today), 20000);
+      expect(
+        plannedMonthly(
+          save(target: 100000, start: 80000, monthly: 500000),
+          today,
+        ),
+        20000,
+      );
     });
   });
 
@@ -123,7 +144,10 @@ void main() {
     });
 
     test('addMonths clamps to the end of a short month', () {
-      expect(addMonths(const CalDate(2026, 1, 31), 1), const CalDate(2026, 2, 28));
+      expect(
+        addMonths(const CalDate(2026, 1, 31), 1),
+        const CalDate(2026, 2, 28),
+      );
     });
 
     test('done goals have no projection', () {
@@ -141,7 +165,10 @@ void main() {
     final deadline = CalDate(2027, 5, 24); // 6 months
 
     test('on track when the pace finishes by the date', () {
-      final g = save(date: deadline, c: [pt(80, 300000), pt(45, 300000), pt(10, 300000)]);
+      final g = save(
+        date: deadline,
+        c: [pt(80, 300000), pt(45, 300000), pt(10, 300000)],
+      );
       expect(goalPace(g, today), GoalPace.onTrack);
     });
 
@@ -151,7 +178,10 @@ void main() {
     });
 
     test('paused, done, no date, nothing yet', () {
-      expect(goalPace(save(paused: true, monthly: 1000), today), GoalPace.paused);
+      expect(
+        goalPace(save(paused: true, monthly: 1000), today),
+        GoalPace.paused,
+      );
       expect(goalPace(save(target: 5, start: 5), today), GoalPace.done);
       expect(goalPace(save(c: [pt(5, 1000)]), today), GoalPace.noDeadline);
       expect(goalPace(save(), today), GoalPace.noPace);
@@ -168,18 +198,29 @@ void main() {
         save(id: 'a', monthly: 100000),
         save(id: 'b', target: 600000, date: date),
       ], today);
-      expect({for (final e in r) e.goalId: e.amountMinor}, {'a': 100000, 'b': 100000});
+      expect(
+        {for (final e in r) e.goalId: e.amountMinor},
+        {'a': 100000, 'b': 100000},
+      );
       expect(totalReserved(r), 200000);
     });
 
     test('a paused goal reserves nothing, and resuming brings it back', () {
       final paused = save(id: 'a', monthly: 100000, paused: true);
       expect(goalReservations([paused], today), isEmpty);
-      expect(totalReserved(goalReservations([save(id: 'a', monthly: 100000)], today)), 100000);
+      expect(
+        totalReserved(
+          goalReservations([save(id: 'a', monthly: 100000)], today),
+        ),
+        100000,
+      );
     });
 
     test('a finished goal reserves nothing', () {
-      expect(goalReservations([save(target: 100, start: 100, monthly: 50)], today), isEmpty);
+      expect(
+        goalReservations([save(target: 100, start: 100, monthly: 50)], today),
+        isEmpty,
+      );
     });
 
     test('money already put in this month reduces the reservation', () {
@@ -190,13 +231,31 @@ void main() {
     });
 
     test('contributions from last month do not count against this month', () {
-      expect(totalReserved(goalReservations([save(monthly: 100000, c: [pt(30, 100000)])], today)), 100000);
+      expect(
+        totalReserved(
+          goalReservations([
+            save(monthly: 100000, c: [pt(30, 100000)]),
+          ], today),
+        ),
+        100000,
+      );
     });
 
     test('paydown reserves its monthly payment, capped at what is owed', () {
-      expect(totalReserved(goalReservations([paydown(monthly: 100000)], today)), 100000);
-      expect(totalReserved(goalReservations([paydown(owed: 30000, monthly: 100000)], today)), 30000);
-      expect(goalReservations([paydown(linked: 0, monthly: 100000)], today), isEmpty);
+      expect(
+        totalReserved(goalReservations([paydown(monthly: 100000)], today)),
+        100000,
+      );
+      expect(
+        totalReserved(
+          goalReservations([paydown(owed: 30000, monthly: 100000)], today),
+        ),
+        30000,
+      );
+      expect(
+        goalReservations([paydown(linked: 0, monthly: 100000)], today),
+        isEmpty,
+      );
     });
   });
 }

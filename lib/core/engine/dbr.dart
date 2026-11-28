@@ -80,8 +80,10 @@ class DbrReport {
 /// Warn from this much of the cap used.
 const dbrTightPct = 40.0;
 
-int cardObligationMinor(int limitMinor, {double sharePct = cardShareOfLimitPct}) =>
-    (limitMinor * sharePct / 100).round();
+int cardObligationMinor(
+  int limitMinor, {
+  double sharePct = cardShareOfLimitPct,
+}) => (limitMinor * sharePct / 100).round();
 
 DbrReport computeDbr({
   required List<DbrCard> cards,
@@ -89,11 +91,18 @@ DbrReport computeDbr({
   int loanEmisMinor = 0,
   double sharePct = cardShareOfLimitPct,
 }) {
-  final valid = [for (final c in cards) if (c.limitMinor > 0) c];
+  final valid = [
+    for (final c in cards)
+      if (c.limitMinor > 0) c,
+  ];
   final total = valid.fold<int>(0, (a, c) => a + c.limitMinor);
   final shares = [
     for (final c in valid)
-      DbrCardShare(c.name, c.limitMinor, total == 0 ? 0 : c.limitMinor / total * 100),
+      DbrCardShare(
+        c.name,
+        c.limitMinor,
+        total == 0 ? 0 : c.limitMinor / total * 100,
+      ),
   ]..sort((a, b) => b.limitMinor.compareTo(a.limitMinor));
   final cardOb = cardObligationMinor(total, sharePct: sharePct);
   final emis = math.max(0, loanEmisMinor);
@@ -105,7 +114,9 @@ DbrReport computeDbr({
   if (hasSalary) {
     pct = (cardOb + emis) / salaryMinor * 100;
     headroom = (salaryMinor * dbrMaxPct / 100).round() - cardOb - emis;
-    extra = sharePct <= 0 ? 0 : math.max(0, (headroom * 100 / sharePct).floor());
+    extra = sharePct <= 0
+        ? 0
+        : math.max(0, (headroom * 100 / sharePct).floor());
     level = pct > dbrMaxPct
         ? DbrLevel.over
         : (pct >= dbrTightPct ? DbrLevel.tight : DbrLevel.healthy);
@@ -125,7 +136,11 @@ DbrReport computeDbr({
 
 /// Would a new card with [newLimitMinor] push the DBR over the cap? Null when
 /// the salary is unknown.
-bool? newCardBreaksCap(DbrReport r, int newLimitMinor, {double sharePct = cardShareOfLimitPct}) {
+bool? newCardBreaksCap(
+  DbrReport r,
+  int newLimitMinor, {
+  double sharePct = cardShareOfLimitPct,
+}) {
   final h = r.headroomMinor;
   if (h == null) return null;
   return cardObligationMinor(newLimitMinor, sharePct: sharePct) > h;

@@ -87,7 +87,11 @@ void main() {
         failures.add('on shutdown: $e');
       }
       app.errors.uninstall();
-      expect(failures.toSet().toList(), isEmpty, reason: failures.toSet().join('\n'));
+      expect(
+        failures.toSet().toList(),
+        isEmpty,
+        reason: failures.toSet().join('\n'),
+      );
     }, timeout: const Timeout(Duration(minutes: 8)));
   }
 }

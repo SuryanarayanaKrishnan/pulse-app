@@ -48,7 +48,11 @@ class GoalService {
         targetDate: g.targetDate,
         plannedMonthlyMinor: g.monthlyMinor,
         paused: g.paused,
-        createdOn: CalDate(g.createdAt.year, g.createdAt.month, g.createdAt.day),
+        createdOn: CalDate(
+          g.createdAt.year,
+          g.createdAt.month,
+          g.createdAt.day,
+        ),
         contributions: [
           for (final c in contribs)
             if (c.goalId == g.id) ContributionPoint(c.date, c.amountMinor),
@@ -57,13 +61,20 @@ class GoalService {
   ];
 
   Future<List<GoalView>> views() async {
-    final (goals, contribs) = (await store.goals(), await store.contributions());
+    final (goals, contribs) = (
+      await store.goals(),
+      await store.contributions(),
+    );
     // Only read the Wealth list when a goal follows something in it.
     final needsAssets = goals.any((g) => g.linkedRef != null);
-    final byId = needsAssets ? {for (final a in await assets()) a.id: a} : <String, Asset>{};
+    final byId = needsAssets
+        ? {for (final a in await assets()) a.id: a}
+        : <String, Asset>{};
     final ins = inputs(goals, contribs, byId);
     final now = today;
-    final reserved = {for (final r in goalReservations(ins, now)) r.goalId: r.amountMinor};
+    final reserved = {
+      for (final r in goalReservations(ins, now)) r.goalId: r.amountMinor,
+    };
     final out = <GoalView>[];
     for (var i = 0; i < goals.length; i++) {
       var g = goals[i];
@@ -98,7 +109,8 @@ class GoalService {
     return out;
   }
 
-  Future<GoalView?> view(String id) async => (await views()).where((v) => v.id == id).firstOrNull;
+  Future<GoalView?> view(String id) async =>
+      (await views()).where((v) => v.id == id).firstOrNull;
 
   Future<GoalRecord> save(GoalRecord g) => store.saveGoal(g);
 
@@ -111,7 +123,12 @@ class GoalService {
 
   /// Adds money (or, with a negative amount, takes it back). A pay down
   /// goal's positive amount is a payment.
-  Future<void> contribute(String goalId, int amountMinor, {CalDate? on, String? note}) async {
+  Future<void> contribute(
+    String goalId,
+    int amountMinor, {
+    CalDate? on,
+    String? note,
+  }) async {
     await store.saveContribution(
       GoalContribution(
         id: newGoalId(),

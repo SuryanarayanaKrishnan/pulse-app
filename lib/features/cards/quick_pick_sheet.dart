@@ -16,7 +16,8 @@ class QuickPickCardsSheet extends ConsumerStatefulWidget {
   final Set<String> preselect;
 
   @override
-  ConsumerState<QuickPickCardsSheet> createState() => _QuickPickCardsSheetState();
+  ConsumerState<QuickPickCardsSheet> createState() =>
+      _QuickPickCardsSheetState();
 }
 
 class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
@@ -36,7 +37,11 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
         final messenger = ScaffoldMessenger.of(context);
         Navigator.of(context).pop();
         messenger.showSnackBar(
-          const SnackBar(content: Text('Added. Open a card to add its last four digits so alerts match it.')),
+          const SnackBar(
+            content: Text(
+              'Added. Open a card to add its last four digits so alerts match it.',
+            ),
+          ),
         );
       }
     } on Object {
@@ -53,10 +58,16 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
   Widget build(BuildContext context) {
     final c = context.pc;
     final catalog = ref.watch(catalogProvider).value ?? const <CreditCard>[];
-    final held = {for (final k in ref.watch(myCardsProvider).value ?? const <CreditCard>[]) k.catalogId};
+    final held = {
+      for (final k in ref.watch(myCardsProvider).value ?? const <CreditCard>[])
+        k.catalogId,
+    };
     final shown = [
       for (final k in catalog)
-        if (!held.contains(k.id) && (_query.isEmpty || '${k.issuer} ${k.name}'.toLowerCase().contains(_query))) k,
+        if (!held.contains(k.id) &&
+            (_query.isEmpty ||
+                '${k.issuer} ${k.name}'.toLowerCase().contains(_query)))
+          k,
     ];
     final n = _picked.length;
     return SafeArea(
@@ -64,17 +75,33 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.md, Space.gutter, Space.sm),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.md,
+              Space.gutter,
+              Space.sm,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Which cards do you hold?', style: context.tt.headlineSmall),
+                Text(
+                  'Which cards do you hold?',
+                  style: context.tt.headlineSmall,
+                ),
                 const SizedBox(height: Space.xs),
-                Text('Tick them all. Details can wait.', style: context.tt.bodyMedium!.copyWith(color: c.textSecondary)),
+                Text(
+                  'Tick them all. Details can wait.',
+                  style: context.tt.bodyMedium!.copyWith(
+                    color: c.textSecondary,
+                  ),
+                ),
                 const SizedBox(height: Space.md),
                 TextField(
-                  decoration: const InputDecoration(hintText: 'Search by bank or card'),
-                  onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                  decoration: const InputDecoration(
+                    hintText: 'Search by bank or card',
+                  ),
+                  onChanged: (v) =>
+                      setState(() => _query = v.trim().toLowerCase()),
                 ),
               ],
             ),
@@ -85,14 +112,23 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
               children: [
                 for (final k in shown)
                   ListRow(
-                    leading: SizedBox(width: 56, child: CreditCardVisual(card: k, compact: true)),
+                    leading: SizedBox(
+                      width: 56,
+                      child: CreditCardVisual(card: k, compact: true),
+                    ),
                     title: '${k.issuer} ${k.name}',
                     subtitle: k.highlight,
                     trailing: Icon(
-                      _picked.contains(k.id) ? Icons.check_circle_rounded : Icons.circle_outlined,
+                      _picked.contains(k.id)
+                          ? Icons.check_circle_rounded
+                          : Icons.circle_outlined,
                       color: _picked.contains(k.id) ? c.accent : c.textTertiary,
                     ),
-                    onTap: () => setState(() => _picked.contains(k.id) ? _picked.remove(k.id) : _picked.add(k.id)),
+                    onTap: () => setState(
+                      () => _picked.contains(k.id)
+                          ? _picked.remove(k.id)
+                          : _picked.add(k.id),
+                    ),
                   ),
                 ListRow(
                   key: const Key('cant_find_card'),
@@ -101,7 +137,11 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
                   subtitle: 'Add it yourself',
                   chevron: true,
                   onTap: () async {
-                    await showPulseSheet<void>(context, full: true, builder: (_) => const AddCardSheet(startCustom: true));
+                    await showPulseSheet<void>(
+                      context,
+                      full: true,
+                      builder: (_) => const AddCardSheet(startCustom: true),
+                    );
                     ref.invalidate(catalogProvider);
                   },
                 ),
@@ -109,9 +149,16 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(Space.gutter, Space.sm, Space.gutter, Space.md),
+            padding: const EdgeInsets.fromLTRB(
+              Space.gutter,
+              Space.sm,
+              Space.gutter,
+              Space.md,
+            ),
             child: PrimaryButton(
-              label: n == 0 ? 'Pick your cards' : (n == 1 ? 'Add 1 card' : 'Add $n cards'),
+              label: n == 0
+                  ? 'Pick your cards'
+                  : (n == 1 ? 'Add 1 card' : 'Add $n cards'),
               loading: _busy,
               onPressed: n == 0 ? null : () => _save(catalog),
             ),
@@ -122,5 +169,11 @@ class _QuickPickCardsSheetState extends ConsumerState<QuickPickCardsSheet> {
   }
 }
 
-Future<void> showQuickPickCards(BuildContext context, {Set<String> preselect = const {}}) =>
-    showPulseSheet<void>(context, full: true, builder: (_) => QuickPickCardsSheet(preselect: preselect));
+Future<void> showQuickPickCards(
+  BuildContext context, {
+  Set<String> preselect = const {},
+}) => showPulseSheet<void>(
+  context,
+  full: true,
+  builder: (_) => QuickPickCardsSheet(preselect: preselect),
+);

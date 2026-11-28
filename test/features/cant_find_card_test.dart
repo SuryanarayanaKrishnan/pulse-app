@@ -21,11 +21,20 @@ void main() {
     await tester.runAsync(() async {
       final db = PulseDatabase(NativeDatabase.memory());
       addTearDown(db.close);
-      final catalog = CatalogService(db: db, bundled: () async => File('assets/catalog/cards.json').readAsStringSync());
+      final catalog = CatalogService(
+        db: db,
+        bundled: () async =>
+            File('assets/catalog/cards.json').readAsStringSync(),
+      );
       await catalog.loadBundled();
       final pipeline = IngestPipeline(db, clock: DateTime.now);
       addTearDown(pipeline.dispose);
-      r = LocalPulseRepository(db: db, catalog: catalog, pipeline: pipeline, clock: DateTime.now);
+      r = LocalPulseRepository(
+        db: db,
+        catalog: catalog,
+        pipeline: pipeline,
+        clock: DateTime.now,
+      );
     });
     return r;
   }
@@ -39,11 +48,16 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [repositoryProvider.overrideWithValue(r)],
-        child: MaterialApp(theme: PulseTheme.light, home: const Scaffold(body: AddCardSheet())),
+        child: MaterialApp(
+          theme: PulseTheme.light,
+          home: const Scaffold(body: AddCardSheet()),
+        ),
       ),
     );
     for (var i = 0; i < 5; i++) {
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 150)));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 150)),
+      );
       await tester.pump(const Duration(milliseconds: 250));
     }
   }
@@ -58,7 +72,9 @@ void main() {
     });
   }
 
-  testWidgets('"I can\'t find my card" leads to a form that creates the card', (tester) async {
+  testWidgets('"I can\'t find my card" leads to a form that creates the card', (
+    tester,
+  ) async {
     final r = await repo(tester);
     await open(tester, r);
     await tester.enterText(find.byType(TextField).first, 'zzzz');
@@ -66,15 +82,23 @@ void main() {
     expect(find.text('No match'), findsOneWidget);
     await tester.tap(find.byKey(const Key('cant_find_card')));
     await tester.pump(const Duration(milliseconds: 300));
-    await tester.enterText(find.byKey(const Key('custom_card_issuer')), 'Some Bank');
+    await tester.enterText(
+      find.byKey(const Key('custom_card_issuer')),
+      'Some Bank',
+    );
     await tester.enterText(find.byKey(const Key('custom_card_name')), 'Gold');
     await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Continue'));
     for (var i = 0; i < 4; i++) {
-      await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 150)));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 150)),
+      );
       await tester.pump(const Duration(milliseconds: 250));
     }
     expect(find.textContaining('Some Bank Gold'), findsWidgets);
-    expect(find.text('Last 4 digits (optional)'), findsOneWidget); // on to the digits step
+    expect(
+      find.text('Last 4 digits (optional)'),
+      findsOneWidget,
+    ); // on to the digits step
   });
 }

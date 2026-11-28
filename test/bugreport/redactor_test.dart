@@ -34,7 +34,14 @@ void main() {
         final out = Redactor.redact(input);
         expect(out, contains(marker));
         expect(out, isNot(matches(_digit)), reason: out);
-        for (final secret in ['Carrefour', 'Talabat', 'example.ae', 'Rent for Sara', 'Dad birthday', 'abc']) {
+        for (final secret in [
+          'Carrefour',
+          'Talabat',
+          'example.ae',
+          'Rent for Sara',
+          'Dad birthday',
+          'abc',
+        ]) {
           expect(out, isNot(contains(secret)), reason: out);
         }
       });
@@ -52,7 +59,10 @@ void main() {
     });
 
     test('literal terms are removed', () {
-      final out = Redactor.redactWith('opened Mashreq Neo card for Fatima', ['mashreq neo', 'Fatima']);
+      final out = Redactor.redactWith('opened Mashreq Neo card for Fatima', [
+        'mashreq neo',
+        'Fatima',
+      ]);
       expect(out, isNot(contains('Fatima')));
       expect(out.toLowerCase(), isNot(contains('mashreq')));
     });
@@ -65,10 +75,37 @@ void main() {
 
   group('fuzz', () {
     const words = [
-      'Spinneys', 'Sara', 'Al Mansoori', 'AED', 'USD', r'$', 'merchant', 'note',
-      'amount:', 'iban=', 'AE07', 'GB82', 'WEST', 'x@y.ae', 'a.b+c@mail.example.com',
-      '+971', '050', '1,234.50', '99', '١٢٣', 'Dhs', '12/05', '"quoted"', "'single'",
-      'https://a.b/c?d=1', '#4', 'file.dart:12:3', '\n', '  ', 'Rent', 'Netflix',
+      'Spinneys',
+      'Sara',
+      'Al Mansoori',
+      'AED',
+      'USD',
+      r'$',
+      'merchant',
+      'note',
+      'amount:',
+      'iban=',
+      'AE07',
+      'GB82',
+      'WEST',
+      'x@y.ae',
+      'a.b+c@mail.example.com',
+      '+971',
+      '050',
+      '1,234.50',
+      '99',
+      '١٢٣',
+      'Dhs',
+      '12/05',
+      '"quoted"',
+      "'single'",
+      'https://a.b/c?d=1',
+      '#4',
+      'file.dart:12:3',
+      '\n',
+      '  ',
+      'Rent',
+      'Netflix',
     ];
 
     String randomLine(Random r) {
@@ -78,9 +115,15 @@ void main() {
           case 0:
             b.write(words[r.nextInt(words.length)]);
           case 1:
-            b.write(List.generate(r.nextInt(14) + 1, (_) => r.nextInt(10)).join());
+            b.write(
+              List.generate(r.nextInt(14) + 1, (_) => r.nextInt(10)).join(),
+            );
           case 2:
-            b.write(String.fromCharCodes(List.generate(r.nextInt(8) + 1, (_) => 32 + r.nextInt(95))));
+            b.write(
+              String.fromCharCodes(
+                List.generate(r.nextInt(8) + 1, (_) => 32 + r.nextInt(95)),
+              ),
+            );
           default:
             b.write(' ');
         }
@@ -94,17 +137,34 @@ void main() {
       for (var i = 0; i < 3000; i++) {
         final input = randomLine(r);
         final out = Redactor.redact(input);
-        expect(_withoutKept(out), isNot(matches(_digit)), reason: 'in: $input\nout: $out');
-        expect(out, isNot(matches(RegExp(r'[\w.+\-]+@[\w\-]+\.\w+'))), reason: 'in: $input\nout: $out');
+        expect(
+          _withoutKept(out),
+          isNot(matches(_digit)),
+          reason: 'in: $input\nout: $out',
+        );
+        expect(
+          out,
+          isNot(matches(RegExp(r'[\w.+\-]+@[\w\-]+\.\w+'))),
+          reason: 'in: $input\nout: $out',
+        );
         expect(Redactor.redact(out), out, reason: 'idempotent for: $input');
       }
     });
 
     test('field values and known names never survive', () {
       final r = Random(7);
-      const fields = ['merchant', 'name', 'note', 'amount', 'iban', 'contact', 'balance'];
+      const fields = [
+        'merchant',
+        'name',
+        'note',
+        'amount',
+        'iban',
+        'contact',
+        'balance',
+      ];
       for (var i = 0; i < 500; i++) {
-        final secret = 'Zq${r.nextInt(900000)}Xy${String.fromCharCode(97 + r.nextInt(26))}';
+        final secret =
+            'Zq${r.nextInt(900000)}Xy${String.fromCharCode(97 + r.nextInt(26))}';
         final f = fields[r.nextInt(fields.length)];
         final input = switch (r.nextInt(3)) {
           0 => 'evt $f: $secret, done',
