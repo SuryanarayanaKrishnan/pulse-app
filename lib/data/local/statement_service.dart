@@ -11,6 +11,7 @@ import '../../core/engine/sheet_import.dart' show parseCsv, readXlsx;
 import '../../core/engine/split_settle.dart';
 import '../../core/engine/statement_import.dart';
 import '../../core/engine/statement_parser.dart';
+import '../../core/engine/own_transfers.dart';
 import '../../core/engine/statement_transfers.dart';
 import '../../core/engine/types.dart';
 import '../statement_password_store.dart';
@@ -185,9 +186,25 @@ class LocalStatementService {
             ))
             .get();
     var changed = false;
+    final row = await (db.select(
+      db.statements,
+    )..where((t) => t.id.equals(statementId))).getSingleOrNull();
+    final own = row == null ? null : await _ownAccounts(row);
     for (final l in parsed.lines) {
       final c = transferCounterparty(l.description, l.direction);
       if (c == null) continue;
+      // Your own account is not someone to settle a split with.
+      if (own != null &&
+          classifyOwnTransfer(
+                merchant: l.description,
+                text: l.description,
+                direction: l.direction,
+                source: own.source,
+                accounts: own.all,
+              ) !=
+              null) {
+        continue;
+      }
       final key =
           '${l.postedOn.toIso()}|${l.direction.name}|${l.amountMinor}|${normaliseName(c.name)}|${c.phone ?? ''}|${c.ibanTail ?? ''}';
       if (handled.contains(key)) continue;
@@ -542,6 +559,8 @@ class LocalStatementService {
     final used = <String>{};
     var linked = 0;
     final only = <ReconLine>[];
+    final transfers = <ReconLine>[];
+    final own = await _ownAccounts(row);
     for (final l in lines) {
       final day = DateTime.parse(l.postedOn).toUtc();
       final hit = inPeriod.where((t) {
@@ -554,12 +573,26 @@ class LocalStatementService {
         used.add(hit.id);
         linked++;
       } else {
-        only.add(
+        // Paying a card or moving money between your own accounts is not a
+        // purchase to chase: it is listed on its own, never as missing spend.
+        final verdict = own == null
+            ? null
+            : classifyOwnTransfer(
+                merchant: l.description,
+                text: l.description,
+                direction: l.direction == 'credit'
+                    ? Direction.credit
+                    : Direction.debit,
+                source: own.source,
+                accounts: own.all,
+              );
+        (verdict == null ? only : transfers).add(
           ReconLine(
             date: DateTime.parse(l.postedOn),
             description: l.description,
             amount: l.amountMinor / 100,
             credit: l.direction == 'credit',
+            reason: verdict?.reason,
           ),
         );
       }
@@ -590,12 +623,59 @@ class LocalStatementService {
       linked: linked,
       statementOnly: only,
       capturedOnly: missing,
+      ownTransfers: transfers,
       warnings: [
         for (final w
             in (jsonDecode(row.summary ?? '{}') as Map)['warnings'] as List? ??
                 const [])
           '$w',
       ],
+    );
+  }
+
+  /// The account this statement is for, and all the user's accounts, for
+  /// telling own-account movements from purchases. Null when none is known.
+  Future<({OwnAccountRef source, List<OwnAccountRef> all})?> _ownAccounts(
+    StatementRow row,
+  ) async {
+    final accts = await (db.select(
+      db.accounts,
+    )..where((a) => a.deletedAt.isNull())).get();
+    final all = [
+      for (final a in accts)
+        OwnAccountRef(
+          id: a.id,
+          type: a.type,
+          institution: a.institution,
+          name: a.name,
+          last4: a.last4,
+        ),
+    ];
+    final summary = row.summary == null
+        ? const <String, dynamic>{}
+        : jsonDecode(row.summary!) as Map<String, dynamic>;
+    final last4 = summary['last4'] as String?;
+    final isCard = row.kind == 'credit_card';
+    AccountRow? hit;
+    if (row.accountId != null) {
+      hit = accts.where((a) => a.id == row.accountId).firstOrNull;
+    }
+    if (hit == null && last4 != null) {
+      final c = accts.where((a) => a.last4 == last4).toList();
+      if (c.length == 1) hit = c.first;
+    }
+    if (hit != null) {
+      return (source: all.firstWhere((a) => a.id == hit!.id), all: all);
+    }
+    // Unknown account: the statement still tells its kind and bank.
+    return (
+      source: OwnAccountRef(
+        id: 'statement:${row.id}',
+        type: isCard ? 'credit_card' : 'bank',
+        institution: row.institution,
+        last4: last4,
+      ),
+      all: all,
     );
   }
 

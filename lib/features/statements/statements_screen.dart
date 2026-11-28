@@ -615,6 +615,25 @@ class ReconciliationSheet extends ConsumerWidget {
                   ],
                 ),
               ],
+              if (r.ownTransfers.isNotEmpty) ...[
+                const SizedBox(height: Space.xl),
+                Text(
+                  'Your own transfers and card payments, not counted as spending',
+                  style: context.tt.bodySmall,
+                ),
+                RowGroup(
+                  padding: EdgeInsets.zero,
+                  children: [
+                    for (final l in r.ownTransfers)
+                      ListRow(
+                        title: l.description,
+                        subtitle:
+                            '${DateFormat('d MMM').format(l.date)}${l.reason == null ? '' : ' · ${l.reason}'}',
+                        trailing: money(l.credit ? l.amount : -l.amount),
+                      ),
+                  ],
+                ),
+              ],
               if (r.capturedOnly.isNotEmpty) ...[
                 const SizedBox(height: Space.xl),
                 Text(
